@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Track Your Order – Gifts and Glory</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto Slab', serif;
+      background-color: #fff;
+      color: #333;
+      padding: 20px;
+    }
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      text-align: center;
+      padding: 24px;
+      border: 2px solid #000;
+      border-radius: 24px;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-family: inherit;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .note {
+      font-size: 13px;
+      color: #777;
+      margin-top: 14px;
+    }
+    .result {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 10px;
+      background-color: #f5f5f5;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Track Your Order</h1>
+    <input type="text" id="orderId" placeholder="Enter your Order ID or Phone" />
+    <button onclick="trackOrder()">Track Now</button>
+    <div class="note">📦 You'll get order status & tracking link.</div>
+    <div class="result" id="resultBox"></div>
+  </div>
+
+  <script>
+    function trackOrder() {
+      const id = document.getElementById("orderId").value.trim();
+      const result = document.getElementById("resultBox");
+
+      if (!id) {
+        result.style.display = "block";
+        result.innerText = "❗ Please enter a valid Order ID or phone number.";
+        return;
+      }
+
+      // Replace this logic with real API if needed
+      result.style.display = "block";
+      result.innerHTML = `
+        ✅ Order found!<br>
+        Order ID: <strong>${id}</strong><br>
+        Status: <span style="color: green;">Shipped</span><br><br>
+        📦 <a href="https://shiprocket.co/tracking" target="_blank">Click here to view tracking</a>
+      `;
+    }
+  </script>
+
+</body>
+</html>
