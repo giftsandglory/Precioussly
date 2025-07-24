@@ -1010,24 +1010,34 @@ down-toggle {
 
 
 
-<!-- ✅ Overlay -->
-<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-  <!-- Announcement Bar -->
-  <div id="announcementBar">Min Order 149/- ┃ Made in India 🇮🇳</div>
-  
+<!-- 🔁 Dynamic Announcement Bar -->
+<div id="announcementBar">Min Order 149/- ┃ Made in India 🇮🇳</div>
 
-
+<!-- 🔁 Dynamic Love Letter Popup -->
 <div class="overlay" id="popupOverlay" onclick="closePopupOnOutside(event)">
   <div class="popup-box" onclick="event.stopPropagation()">
     <div class="popup-close" onclick="togglePopup()">×</div>
+    <div class="popup-logo-row">
+      <img class="popup-logo" id="popupLogo" src="" alt="Popup Logo" />
+      <div class="popup-insta">
+        <a href="#" id="popupInsta" target="_blank">@giftsandglory_</a>
+      </div>
+    </div>
+    <div class="popup-text" id="popupText"></div>
+  </div>
+</div>
 
+
+<!-- old popup -->
+<div class="overlay" id="popupOverlay" onclick="closePopupOnOutside(event)">
+  <div class="popup-box" onclick="event.stopPropagation()">
+    <div class="popup-close" onclick="togglePopup()">×</div>
     <div class="popup-logo-row">
       <img class="popup-logo" src="https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png" alt="Popup Logo" />
       <div class="popup-insta">
         <a href="https://www.instagram.com/giftsandglory_/" target="_blank">@giftsandglory_</a>
       </div>
     </div>
-
     <div class="popup-text">
       • Every moment deserves a little glory ✨<br>
       • Make it memorable with <a href="https://www.instagram.com/giftsandglory_/" target="_blank">@giftsandglory_</a><br>
@@ -1412,5 +1422,30 @@ down-toggle {
 <div style="margin-top: 10px;"></div>
 <div id="menuContent"></div>
 </nav>
+<script>
+const headerSheetURL = "https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1";
+
+fetch(headerSheetURL)
+  .then(res => res.json())
+  .then(data => {
+    const row = data[0];
+
+    // Set popup logo
+    const logo = document.getElementById("popupLogo");
+    if (logo && row.popup_logo) {
+      logo.src = row.popup_logo;
+    }
+
+    // Set popup text
+    document.getElementById("popupText").innerText = row.popup_text || "";
+
+    // Set Instagram link
+    const insta = document.getElementById("popupInsta");
+    if (insta && row.popup_insta_link) {
+      insta.href = row.popup_insta_link;
+      insta.innerText = "@" + (new URL(row.popup_insta_link).pathname.replace(/\//g, ""));
+    }
+  });
+</script>
 </body>
 </html>
