@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -745,20 +745,35 @@ down-toggle {
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   background: rgba(0,0,0,0.8);
-  display: none;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 1px;
+  display: block;
   z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
 }
+
+.image-popup-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .image-popup-overlay img {
+  position: absolute;
+  top: 10px;   /* 🔧 adjust this as needed */
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
   max-width: 90%;
-  max-height: 90%;
+  max-height: 80%;
   border-radius: 20px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.4);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
 }
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; padding-bottom: 120px; }
+
+.image-popup-overlay.active img {
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+}
     .grid-container {
       display: grid; grid-template-columns: repeat(2, 1fr);
       gap: 14px; padding: 14px;
@@ -1065,13 +1080,18 @@ down-toggle {
   <p id="shippingPopupText">Shipping info will appear here</p>
 </div>
 <script>
-  function showPopup(imageUrl) {
-    document.getElementById("popupImage").src = imageUrl;
-    document.getElementById("imagePopup").style.display = "flex";
-  }
-  function hidePopup() {
-    document.getElementById("imagePopup").style.display = "none";
-  }
+function showPopup(imageUrl) {
+  const overlay = document.getElementById("imagePopup");
+  const image = document.getElementById("popupImage");
+  image.src = imageUrl;
+  overlay.classList.add("active");
+}
+
+function hidePopup() {
+  const overlay = document.getElementById("imagePopup");
+  overlay.classList.remove("active");
+}
+
 
   const sheetURL = "https://opensheet.elk.sh/1cdAdUYr58Qocj3MW2546djjwZfcul7oF-g2e3I1WtoE/Sheet1";
   let shippingCharge = 70;
@@ -1147,6 +1167,17 @@ down-toggle {
   }
 </script>
 <script>
+  function showPopup(imageUrl) {
+  const overlay = document.getElementById("imagePopup");
+  const image = document.getElementById("popupImage");
+  image.src = imageUrl;
+  overlay.classList.add("active");
+}
+
+function hidePopup() {
+  const overlay = document.getElementById("imagePopup");
+  overlay.classList.remove("active");
+}
   function getSelectedItems() {
     return [...document.querySelectorAll(".product-check")].map(cb => {
       const index = +cb.getAttribute("data-id");
@@ -1228,108 +1259,7 @@ down-toggle {
   requiredFields.forEach(id => {
     document.getElementById(id).addEventListener("input", validateAddressForm);
   });
-
-  document.getElementById("showAddressBtn").onclick = () => {
-    document.getElementById("addressPopup").style.display = "flex";
-    validateAddressForm();
-  };
-</script>
-<!-- Razorpay Script -->
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-<script>
-  document.getElementById("placeOrderBtn").onclick = function () {
-    const selected = getSelectedItems();
-    let subtotal = 0;
-    let orderDesc = "";
-
-    selected.forEach(p => {
-      const product = productData[p.id];
-      const price = parseInt(product.price);
-      const qty = p.qty;
-      const total = price * qty;
-      subtotal += total;
-      orderDesc += `${product.name || "Item"} × ${qty} = ₹${total}\n`;
-    });
-
-    const totalAmount = subtotal + shippingCharge;
-
-    const name = document.getElementById("fullname").value;
-    const phone = document.getElementById("phone").value;
-    const address = document.getElementById("address").value;
-    const city = document.getElementById("city").value;
-    const state = document.getElementById("state").value;
-    const pincode = document.getElementById("pincode").value;
-
-    const options = {
-      key: "rzp_live_z9RbtukzIlUfMa",
-      amount: totalAmount * 100,
-      currency: "INR",
-      name: "Gifts and Glory",
-      description: "Order Payment",
-      handler: function (response) {
-        alert("✅ Payment successful!");
-        window.location.href = "thankyou.html";
-      },
-      prefill: {
-        name: name,
-        contact: phone
-      },
-      notes: {
-        address: `${address}, ${city}, ${state} - ${pincode}`,
-        orderDetails: orderDesc
-      },
-      theme: {
-        color: "#1473E6"
-      }
-    };
-
-    const rzp = new Razorpay(options);
-    rzp.open();
-  };
-
-  function shareOnWhatsApp() {
-    const selected = getSelectedItems();
-    if (!selected.length) {
-      alert("Please select at least one product.");
-      return;
-    }
-
-    let message = "Order Details:\n";
-    let subtotal = 0;
-
-    selected.forEach(p => {
-      const product = productData[p.id];
-      const qty = p.qty;
-      const price = parseInt(product.price);
-      const total = qty * price;
-      subtotal += total;
-      message += `• ${product.name || "Item"} × ${qty} = ₹${total}\nImage: ${product.image}\n\n`;
-    });
-
-    const grandTotal = subtotal + shippingCharge;
-    message += `Total (incl. shipping): ₹${grandTotal}\n\n`;
-
-    const name = document.getElementById("fullname")?.value || "";
-    const state = document.getElementById("state")?.value || "";
-    const city = document.getElementById("city")?.value || "";
-    const pincode = document.getElementById("pincode")?.value || "";
-    const address = document.getElementById("address")?.value || "";
-    const phone = document.getElementById("phone")?.value || "";
-    const altPhone = document.getElementById("altphone")?.value || "";
-
-    message += "*Customer Details*:\n";
-    message += `Full Name: ${name}\nState: ${state}\nCity: ${city}\nPincode: ${pincode}\nFull Address: ${address}\nPhone Number: ${phone}\n`;
-    if (altPhone.trim()) {
-      message += `Alternate Phone (Optional): ${altPhone}\n`;
-    }
-
-    message += `\nUPI ID - 8744841734@pthdfc`;
-
-    const phoneNumber = "918744841734";
-    const link = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-    window.open(link, "_blank");
-  }
+  
 
   // ✅ Love Letter Popup Logic
   function togglePopup() {
@@ -1404,9 +1334,7 @@ down-toggle {
 </script>
 </script>
 <!-- 🔍 Image Zoom Popup Overlay -->
-<div id="imagePopup" class="image-popup-overlay" onclick="hidePopup()">
-  <img id="popupImage" src="" alt="Zoomed Image" />
-</div>
+
 <div class="menu-overlay" onclick="toggleMenu()"></div>
 
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
@@ -1414,7 +1342,7 @@ down-toggle {
 <nav class="side-menu" id="sideMenu">
   <div class="menu-header">
     <div class="menu-brand">
-      <img src="https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png" alt="Logo" class="menu-logo" />
+      <img src="https://i.postimg.cc/7Z8b0BRC/logo-jpg.jpg" alt="Logo" class="menu-logo" />
       <span class="menu-text">giftsandglory_</span>
     </div>
     <span class="menu-close" onclick="toggleMenu()">✕</span>
@@ -1464,5 +1392,194 @@ fetch(headerSheetURL)
     insta.innerText = "@giftsandglory_";
   });
 </script>
+
+</div>
+<!-- Address Popup -->
+<div class="address-popup-overlay" id="addressPopup">
+  <div class="address-popup-box">
+    <span class="close-btn" onclick="closeAddressPopup()">×</span>
+
+    <div class="address-field"><input id="fullname" placeholder=" " /><label for="fullname">Full Name</label></div>
+    <div class="address-field"><input id="state" placeholder=" " /><label for="state">State</label></div>
+    <div class="address-field"><input id="city" placeholder=" " /><label for="city">City</label></div>
+    <div class="address-field"><input id="pincode" placeholder=" " /><label for="pincode">Pincode</label></div>
+    <div class="address-field"><input id="address" placeholder=" " /><label for="address">Your Full Address</label></div>
+    <div class="address-field"><input id="phone" placeholder=" " /><label for="phone">Phone Number</label></div>
+    <div class="address-field"><input id="altphone" placeholder=" " /><label for="altphone">Alternate Phone (Optional)</label></div>
+
+    <div class="button-row">
+      <button class="cancel-btn" onclick="closeAddressPopup()">Cancel</button>
+      <button class="whatsapp-btn" onclick="confirmAddress()">Confirm Address</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Summary Popup -->
+<div class="address-popup-overlay" id="summaryPopup">
+  <div class="address-popup-box" style="border: 2px solid #ccc;">
+    <span class="close-btn" onclick="document.getElementById('summaryPopup').style.display='none'">×</span>
+    <h3 style="text-align:center; margin-bottom: 14px; color:#1473E6;">Order Summary</h3>
+    <div id="summaryDetails" style="font-size: 14px; color: #333; margin-bottom: 20px; max-height: 300px; overflow-y: auto;"></div>
+    <button id="placeOrderBtn" style="width: 100%; padding: 12px; background: #1473E6; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">Pay via Razorpay</button>
+    <button onclick="shareOnWhatsApp()" style="width: 100%; margin-top: 10px; padding: 12px; background: #25D366; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">Order via WhatsApp</button>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script>
+function openAddressPopup() {
+  document.getElementById("addressPopup").style.display = "flex";
+}
+function closeAddressPopup() {
+  document.getElementById("addressPopup").style.display = "none";
+}
+function confirmAddress() {
+  const selected = getSelectedItems();
+  if (!selected.length) return;
+
+  let summaryHTML = "";
+  let subtotal = 0;
+
+  selected.forEach(p => {
+    const product = productData[p.id];
+    const price = parseInt(product.price);
+    const total = price * p.qty;
+    subtotal += total;
+    summaryHTML += `<div style="margin-bottom: 8px;"><strong>${product.name || "Item"}</strong> × ${p.qty} = ₹${total}</div>`;
+  });
+
+  const totalAmount = subtotal + shippingCharge;
+  summaryHTML += `<hr style="margin: 12px 0;"><div style="font-weight:bold;">Total Amount (incl. shipping): ₹${totalAmount}</div>`;
+
+  document.getElementById("summaryDetails").innerHTML = summaryHTML;
+  closeAddressPopup();
+  document.getElementById("summaryPopup").style.display = "flex";
+}
+
+const requiredFields = ["fullname", "state", "city", "pincode", "address", "phone"];
+const confirmBtn = document.querySelector(".whatsapp-btn");
+
+function validateAddressForm() {
+  const isValid = requiredFields.every(id => {
+    const input = document.getElementById(id);
+    return input && input.value.trim().length > 0;
+  });
+  confirmBtn.disabled = !isValid;
+  confirmBtn.style.opacity = isValid ? "1" : "0.6";
+  confirmBtn.style.cursor = isValid ? "pointer" : "not-allowed";
+}
+requiredFields.forEach(id => {
+  document.getElementById(id).addEventListener("input", validateAddressForm);
+});
+
+document.getElementById("showAddressBtn").onclick = () => {
+  document.getElementById("addressPopup").style.display = "flex";
+  validateAddressForm();
+};
+</script>
+
+<!-- Razorpay Payment -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.getElementById("placeOrderBtn").onclick = function () {
+  const selected = getSelectedItems();
+  let subtotal = 0;
+  let orderDesc = "";
+
+  selected.forEach(p => {
+    const product = productData[p.id];
+    const price = parseInt(product.price);
+    const qty = p.qty;
+    const total = price * qty;
+    subtotal += total;
+    orderDesc += `${product.name || "Item"} × ${qty} = ₹${total}\n`;
+  });
+
+  const totalAmount = subtotal + shippingCharge;
+
+  const name = document.getElementById("fullname").value;
+  const phone = document.getElementById("phone").value;
+  const address = document.getElementById("address").value;
+  const city = document.getElementById("city").value;
+  const state = document.getElementById("state").value;
+  const pincode = document.getElementById("pincode").value;
+
+  const options = {
+    key: "rzp_live_z9RbtukzIlUfMa",
+    amount: totalAmount * 100,
+    currency: "INR",
+    name: "Gifts and Glory",
+    description: "Order Payment",
+    handler: function () {
+      alert("✅ Payment successful!");
+      window.location.href = "thankyou.html";
+    },
+    prefill: { name: name, contact: phone },
+    notes: {
+      address: `${address}, ${city}, ${state} - ${pincode}`,
+      orderDetails: orderDesc
+    },
+    theme: { color: "#1473E6" }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+};
+</script>
+
+<!-- WhatsApp Order -->
+<script>
+function shareOnWhatsApp() {
+  const selected = getSelectedItems();
+  if (!selected.length) {
+    alert("Please select at least one product.");
+    return;
+  }
+
+  let message = "Order Details:\n";
+  let subtotal = 0;
+
+  selected.forEach(p => {
+    const product = productData[p.id];
+    const qty = p.qty;
+    const price = parseInt(product.price);
+    const total = qty * price;
+    subtotal += total;
+    message += `• ${product.name || "Item"} × ${qty} = ₹${total}\nImage: ${product.image}\n\n`;
+  });
+
+  const grandTotal = subtotal + shippingCharge;
+  message += `Total (incl. shipping): ₹${grandTotal}\n\n`;
+
+  const name = document.getElementById("fullname")?.value || "";
+  const state = document.getElementById("state")?.value || "";
+  const city = document.getElementById("city")?.value || "";
+  const pincode = document.getElementById("pincode")?.value || "";
+  const address = document.getElementById("address")?.value || "";
+  const phone = document.getElementById("phone")?.value || "";
+  const altPhone = document.getElementById("altphone")?.value || "";
+
+  message += "*Customer Details*:\n";
+  message += `Full Name: ${name}\n`;
+  message += `State: ${state}\n`;
+  message += `City: ${city}\n`;
+  message += `Pincode: ${pincode}\n`;
+  message += `Full Address: ${address}\n`;
+  message += `Phone Number: ${phone}\n`;
+  if (altPhone.trim()) {
+    message += `Alternate Phone (Optional): ${altPhone}\n`;
+  }
+
+  message += `\nUPI ID - 8744841734@pthdfc`;
+
+  const phoneNumber = "918744841734";
+  const link = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+  window.open(link, "_blank");
+}
+</script>
+<!-- 🔍 Image Zoom Popup Overlay -->
+<div id="imagePopup" class="image-popup-overlay" onclick="hidePopup()">
+  <img id="popupImage" src="" alt="Zoomed Image" />
+</div>
 </body>
 </html>
