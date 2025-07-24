@@ -502,24 +502,13 @@ down-toggle {
   color: #000; /* 🔁 black */
 }
   
-  .section-title {
-  opacity: 0;
-  animation: ultraFade 0.8s ease forwards;
-}
-@keyframes ultraFade {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.section-title {
+  opacity: 1;
 }
 
+
 .product-box {
-  opacity: 0;
-  animation: ultraFade 0.8s ease forwards;
+  opacity: 1;
 }
   .address-popup-overlay {
   position: fixed;
@@ -745,35 +734,20 @@ down-toggle {
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   background: rgba(0,0,0,0.8);
-  display: block;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 1px;
   z-index: 999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease;
 }
-
-.image-popup-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
 .image-popup-overlay img {
-  position: absolute;
-  top: 10px;   /* 🔧 adjust this as needed */
-  left: 50%;
-  transform: translateX(-50%) scale(0.9);
   max-width: 90%;
-  max-height: 80%;
+  max-height: 90%;
   border-radius: 20px;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  transition: transform 0.4s ease, opacity 0.4s ease;
+  box-shadow: 0 0 20px rgba(0,0,0,0.4);
 }
-
-.image-popup-overlay.active img {
-  transform: translateX(-50%) scale(1);
-  opacity: 1;
-}
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; padding-bottom: 120px; }
     .grid-container {
       display: grid; grid-template-columns: repeat(2, 1fr);
       gap: 14px; padding: 14px;
@@ -1080,18 +1054,13 @@ down-toggle {
   <p id="shippingPopupText">Shipping info will appear here</p>
 </div>
 <script>
-function showPopup(imageUrl) {
-  const overlay = document.getElementById("imagePopup");
-  const image = document.getElementById("popupImage");
-  image.src = imageUrl;
-  overlay.classList.add("active");
-}
-
-function hidePopup() {
-  const overlay = document.getElementById("imagePopup");
-  overlay.classList.remove("active");
-}
-
+  function showPopup(imageUrl) {
+    document.getElementById("popupImage").src = imageUrl;
+    document.getElementById("imagePopup").style.display = "flex";
+  }
+  function hidePopup() {
+    document.getElementById("imagePopup").style.display = "none";
+  }
 
   const sheetURL = "https://opensheet.elk.sh/1cdAdUYr58Qocj3MW2546djjwZfcul7oF-g2e3I1WtoE/Sheet1";
   let shippingCharge = 70;
@@ -1167,17 +1136,6 @@ function hidePopup() {
   }
 </script>
 <script>
-  function showPopup(imageUrl) {
-  const overlay = document.getElementById("imagePopup");
-  const image = document.getElementById("popupImage");
-  image.src = imageUrl;
-  overlay.classList.add("active");
-}
-
-function hidePopup() {
-  const overlay = document.getElementById("imagePopup");
-  overlay.classList.remove("active");
-}
   function getSelectedItems() {
     return [...document.querySelectorAll(".product-check")].map(cb => {
       const index = +cb.getAttribute("data-id");
@@ -1334,7 +1292,9 @@ function hidePopup() {
 </script>
 </script>
 <!-- 🔍 Image Zoom Popup Overlay -->
-
+<div id="imagePopup" class="image-popup-overlay" onclick="hidePopup()">
+  <img id="popupImage" src="" alt="Zoomed Image" />
+</div>
 <div class="menu-overlay" onclick="toggleMenu()"></div>
 
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
@@ -1577,9 +1537,5 @@ function shareOnWhatsApp() {
   window.open(link, "_blank");
 }
 </script>
-<!-- 🔍 Image Zoom Popup Overlay -->
-<div id="imagePopup" class="image-popup-overlay" onclick="hidePopup()">
-  <img id="popupImage" src="" alt="Zoomed Image" />
-</div>
 </body>
 </html>
