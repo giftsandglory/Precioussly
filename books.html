@@ -1428,24 +1428,41 @@ const headerSheetURL = "https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3B
 fetch(headerSheetURL)
   .then(res => res.json())
   .then(data => {
-    const row = data[0];
+    const row = data[0] || {};
 
-    // Set popup logo
+    const defaultLogo = "https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png";
+    const defaultText = `• Every moment deserves a little glory ✨
+• Make it memorable with @giftsandglory_
+• Fashion Jewellery • Real Flowers Jewels 🌹 • Keychains & more`;
+    const defaultInsta = "https://www.instagram.com/giftsandglory_?igsh=dWg3cmF2azBuZGEx";
+
+    // Set logo
     const logo = document.getElementById("popupLogo");
-    if (logo && row.popup_logo) {
-      logo.src = row.popup_logo;
-    }
+    logo.src = row.popup_logo || defaultLogo;
+    logo.onerror = function () {
+      this.src = defaultLogo;
+    };
 
     // Set popup text
-    document.getElementById("popupText").innerText = row.popup_text || "";
+    const popupText = document.getElementById("popupText");
+    popupText.innerText = row.popup_text || defaultText;
 
-    // Set Instagram link
+    // Set Instagram
     const insta = document.getElementById("popupInsta");
-    if (insta && row.popup_insta_link) {
-      insta.href = row.popup_insta_link;
-      insta.innerText = "@" + (new URL(row.popup_insta_link).pathname.replace(/\//g, ""));
-    }
+    insta.href = row.popup_insta_link || defaultInsta;
+    insta.innerText = "@giftsandglory_";
+  })
+  .catch(err => {
+    console.error("Sheet fetch failed:", err);
+    // If fetch fails, fallback manually
+    document.getElementById("popupLogo").src = "https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png";
+    document.getElementById("popupText").innerText = `• Every moment deserves a little glory ✨
+• Make it memorable with @giftsandglory_
+• Fashion Jewellery • Real Flowers Jewels 🌹 • Keychains & more`;
+    const insta = document.getElementById("popupInsta");
+    insta.href = "https://www.instagram.com/giftsandglory_?igsh=dWg3cmF2azBuZGEx";
+    insta.innerText = "@giftsandglory_";
   });
 </script>
 </body>
-</html> 
+</html>
