@@ -902,8 +902,8 @@ down-toggle {
     }
     .shipping-close {
   position: absolute;
-  top: -10px;
-  right: -10px;
+  top:  4px;
+  right: 4px;
   background: #fff;
   color: #2c8f5b;
   border: 2px solid #2c8f5b;
@@ -1149,21 +1149,25 @@ down-toggle {
   }
 
   function updateUI() {
-    const selected = getSelectedItems();
-    const subtotal = selected.reduce((sum, p) => sum + (parseInt(productData[p.id].price) * p.qty), 0);
-    const total = subtotal + shippingCharge;
-    const strip = document.getElementById("infoStrip");
-    strip.style.display = selected.length ? "block" : "none";
-    document.getElementById("showAddressBtn").style.display = selected.length ? "block" : "none";
-    strip.innerHTML = `
-      <div style="display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span>Total: ₹${total} <span style="color:#555;">(incl. shipping)</span></span>
-        <span id="infoIcon" style="cursor:pointer;font-size:17px;background:#eee;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;">ⓘ</span>
-      </div>`;
-    document.getElementById("infoIcon")?.addEventListener("click", () => {
-      document.getElementById("shippingPopup").style.display = "block";
-    });
-  }
+  const selected = getSelectedItems();
+  const subtotal = selected.reduce((sum, p) => sum + (parseInt(productData[p.id].price) * p.qty), 0);
+  const totalItems = selected.reduce((count, p) => count + p.qty, 0);
+
+  const strip = document.getElementById("infoStrip");
+  strip.style.display = selected.length ? "block" : "none";
+  document.getElementById("showAddressBtn").style.display = selected.length ? "block" : "none";
+
+  strip.innerHTML = `
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;">
+      <span><strong>Total: ₹${subtotal}</strong></span>
+      <span>Items: ${totalItems}</span>
+      <span id="infoIcon" style="cursor:pointer;font-size:17px;background:#eee;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;outline:none;user-select:none;">ⓘ</span>
+    </div>`;
+
+  document.getElementById("infoIcon")?.addEventListener("click", () => {
+    document.getElementById("shippingPopup").style.display = "block";
+  });
+}
 
   document.addEventListener("change", updateUI);
   document.getElementById("showAddressBtn").onclick = () => addressPopup.style.display = "flex";
@@ -1196,7 +1200,12 @@ down-toggle {
 
     const totalAmount = subtotal + shippingCharge;
     summaryHTML += `<hr style="margin: 12px 0;">
-      <div style="font-weight:bold;">Total Amount (incl. shipping): ₹${totalAmount}</div>`;
+  <div style="font-weight:bold; display: flex; justify-content: center; align-items: center; gap: 6px;">
+    Total Amount (incl. shipping): ₹${totalAmount}
+    <span onclick="document.getElementById('shippingPopup').style.display='block'"
+          <span onclick="document.getElementById('shippingPopup').style.display='block'"
+  style="cursor:pointer; font-size:14px; background:#eee; border-radius:50%; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; outline:none; user-select:none;">ⓘ</span>
+  </div>`;
 
     document.getElementById("summaryDetails").innerHTML = summaryHTML;
 
@@ -1382,9 +1391,77 @@ fetch(headerSheetURL)
   <div class="address-popup-box" style="border: 2px solid #ccc;">
     <span class="close-btn" onclick="document.getElementById('summaryPopup').style.display='none'">×</span>
     <h3 style="text-align:center; margin-bottom: 14px; color:#1473E6;">Order Summary</h3>
+    
     <div id="summaryDetails" style="font-size: 14px; color: #333; margin-bottom: 20px; max-height: 300px; overflow-y: auto;"></div>
-    <button id="placeOrderBtn" style="width: 100%; padding: 12px; background: #1473E6; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">Pay via Razorpay</button>
-    <button onclick="shareOnWhatsApp()" style="width: 100%; margin-top: 10px; padding: 12px; background: #25D366; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">Order via WhatsApp</button>
+    
+    <button id="placeOrderBtn" style="width: 100%; padding: 12px; background: #1473E6; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">
+      Pay via Razorpay
+    </button>
+
+    <button onclick="shareOnWhatsApp()" style="width: 100%; margin-top: 10px; padding: 12px; background: #25D366; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">
+      Order via WhatsApp
+    </button>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  document.getElementById("placeOrderBtn").onclick = function () {
+    const selected = getSelectedItems();
+    if (!selected.length) {
+      alert("Please select at least one item.");
+      return;
+    }
+
+    let subtotal = 0;
+    let orderDesc = "";
+
+    selected.forEach(p => {
+      const product = productData[p.id];
+      const price = parseInt(product.price) || 0;
+      const qty = p.qty || 1;
+      const total = price * qty;
+      subtotal += total;
+      orderDesc += `${product.name || "Item"} × ${qty} = ₹${total}\n`;
+    });
+
+    const totalAmount = subtotal + shippingCharge;
+
+    const name = document.getElementById("fullname")?.value || "";
+    const phone = document.getElementById("phone")?.value || "";
+    const address = document.getElementById("address")?.value || "";
+    const city = document.getElementById("city")?.value || "";
+    const state = document.getElementById("state")?.value || "";
+    const pincode = document.getElementById("pincode")?.value || "";
+
+    const options = {
+      key: "rzp_live_z9RbtukzIlUfMa",
+      amount: totalAmount * 100,
+      currency: "INR",
+      name: "Gifts and Glory",
+      description: "Order Payment",
+      image: "https://i.postimg.cc/T3CT6N2F/1000029536-modified.jpg",
+      handler: function () {
+        alert("✅ Payment successful!");
+        window.location.href = "thankyou.html";
+      },
+      prefill: {
+        name: name,
+        contact: phone
+      },
+      notes: {
+        address: `${address}, ${city}, ${state} - ${pincode}`,
+        orderDetails: orderDesc
+      },
+      theme: {
+        color: "#1473E6"
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  };
+</script>
   </div>
 </div>
 
@@ -1468,26 +1545,26 @@ document.getElementById("placeOrderBtn").onclick = function () {
   const pincode = document.getElementById("pincode").value;
 
   const options = {
-    key: "rzp_live_z9RbtukzIlUfMa",
-    amount: totalAmount * 100,
-    currency: "INR",
-    name: "Gifts and Glory",
-    description: "Order Payment",
-    handler: function () {
-      alert("✅ Payment successful!");
-      window.location.href = "thankyou.html";
-    },
-    prefill: { name: name, contact: phone },
-    notes: {
-      address: `${address}, ${city}, ${state} - ${pincode}`,
-      orderDetails: orderDesc
-    },
-    theme: { color: "#1473E6" }
-  };
-
-  const rzp = new Razorpay(options);
-  rzp.open();
+  key: "rzp_live_z9RbtukzIlUfMa",
+  amount: totalAmount * 100,
+  currency: "INR",
+  name: "Gifts and Glory",
+  description: "Order Payment",
+  image: "https://i.postimg.cc/T3CT6N2F/1000029536-modified.jpg", // ✅ Logo added here
+  handler: function () {
+    alert("✅ Payment successful!");
+    window.location.href = "thankyou.html";
+  },
+  prefill: { name: name, contact: phone },
+  notes: {
+    address: `${address}, ${city}, ${state} - ${pincode}`,
+    orderDetails: orderDesc
+  },
+  theme: { color: "#1473E6" }
 };
+
+const rzp = new Razorpay(options);
+rzp.open();
 </script>
 
 <!-- WhatsApp Order -->
