@@ -184,6 +184,78 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   min-height: 72px;   /* ✅ added for height consistency */
 }
+.coupon-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f7fff9;
+  scroll-behavior: smooth;
+}
+
+.coupon-card {
+  background: #e9fef1;
+  border: 1px solid #c5ecd6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  width: 220px;
+  height: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.coupon-card h3 {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  color: #064c2c;
+}
+
+.coupon-card p {
+  font-size: 12px;
+  margin: 2px 0 6px;
+  color: #064c2c;
+}
+
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* spacing between Shreya and copy icon */
+}
+
+.code-box {
+  background: #d5f5e5;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #064c2c;
+  letter-spacing: 0.3px;
+}
+
+.copy-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.copy-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #064c2c;
+  stroke-width: 2;
+}
+
+.copy-btn:hover {
+  opacity: 0.6;
+}
 
     .left-section {
       display: flex;
@@ -1004,6 +1076,10 @@ down-toggle {
 
 <!-- 🔁 Dynamic Announcement Bar -->
 <div id="announcementBar">Min Order 149/- ┃ Made in India 🇮🇳</div>
+<!-- ✅ Coupon Code Boxes Below Announcement -->
+<div class="coupon-container" id="couponContainer">
+  <!-- Coupons will be loaded here from Google Sheet -->
+</div>
 
 <!-- 🔁 Dynamic Love Letter Popup -->
 <div class="overlay" id="popupOverlay" onclick="closePopupOnOutside(event)">
@@ -1616,6 +1692,41 @@ function shareOnWhatsApp() {
   const link = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
   window.open(link, "_blank");
 }
+</script>
+<script>
+  const couponSheetID = '1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs'; // Replace with your own Sheet ID
+  const couponSheetName = 'Sheet1';
+  const couponURL = `https://opensheet.elk.sh/${couponSheetID}/${couponSheetName}`;
+
+  fetch(couponURL)
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('couponContainer');
+      container.innerHTML = '';
+      data.forEach((row, index) => {
+        const card = document.createElement('div');
+        card.className = 'coupon-card';
+        card.innerHTML = `
+          <h3>${row.Title}</h3>
+          <p>Buy for min of ₹${row.MinAmount}</p>
+          <div class="code-row">
+            <div class="code-box" id="code${index}">${row.Code}</div>
+            <div class="copy-btn" onclick="copyCode('code${index}')">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    });
+
+  function copyCode(id) {
+    const text = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(text);
+  }
 </script>
 </body>
 </html>
