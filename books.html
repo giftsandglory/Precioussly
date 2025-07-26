@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live Grid from Google Sheet</title>
-   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Live Grid from Google Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
+<style>
   .custom-dropdown-container {
   position: relative;
   width: 100%;
@@ -1245,83 +1246,67 @@ img {
 </style>
 </head>
 <body>
-  
-  <header class="site-header">
-  <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div>
-    <div></div>
-    <div></div>
-  </div>
-
-  <a href="" class="header-title" style="text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">giftsandglory_</a>
-
-  <img class="right-icon" src="https://i.postimg.cc/DfpVrcPL/IMG-20250723-040829.jpg" alt="Right Icon" onclick="togglePopup()" />
+<header class="site-header">
+<div class="hamburger-wrapper" onclick="toggleMenu()">
+<div></div>
+<div></div>
+<div></div>
+</div>
+<a class="header-title" href="" style="text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">giftsandglory_</a>
+<img alt="Right Icon" class="right-icon" onclick="togglePopup()" src="https://i.postimg.cc/DfpVrcPL/IMG-20250723-040829.jpg"/>
 </header>
-
-
-
 <!-- 🔁 Dynamic Announcement Bar -->
 <div id="announcementBar">Min Order 149/- ┃ Made in India 🇮🇳</div>
 <!-- ✅ Coupon Code Boxes Below Announcement -->
 <div class="coupon-container" id="couponContainer">
-  <!-- Coupons will be loaded here from Google Sheet -->
+<!-- Coupons will be loaded here from Google Sheet -->
 </div>
-
 <!-- 🔁 Dynamic Love Letter Popup -->
 <div class="overlay" id="popupOverlay" onclick="closePopupOnOutside(event)">
-  <div class="popup-box" onclick="event.stopPropagation()">
-    <div class="popup-close" onclick="togglePopup()">×</div>
-    <div class="popup-logo-row">
-      <img class="popup-logo" id="popupLogo" src="" alt="Popup Logo" />
-      <div class="popup-insta">
-        <a href="#" id="popupInsta" target="_blank">@giftsandglory_</a>
-      </div>
-    </div>
-    <div class="popup-text" id="popupText"></div>
-  </div>
+<div class="popup-box" onclick="event.stopPropagation()">
+<div class="popup-close" onclick="togglePopup()">×</div>
+<div class="popup-logo-row">
+<img alt="Popup Logo" class="popup-logo" id="popupLogo" src=""/>
+<div class="popup-insta">
+<a href="#" id="popupInsta" target="_blank">@giftsandglory_</a>
 </div>
-
-
+</div>
+<div class="popup-text" id="popupText"></div>
+</div>
+</div>
 <!-- old popup -->
 <div class="overlay" id="popupOverlay" onclick="closePopupOnOutside(event)">
-  <div class="popup-box" onclick="event.stopPropagation()">
-    <div class="popup-close" onclick="togglePopup()">×</div>
-    <div class="popup-logo-row">
-      <img class="popup-logo" src="https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png" alt="Popup Logo" />
-      <div class="popup-insta">
-        <a href="https://www.instagram.com/giftsandglory_/" target="_blank">@giftsandglory_</a>
-      </div>
-    </div>
-    <div class="popup-text">
-      • Every moment deserves a little glory ✨<br>
-      • Make it memorable with <a href="https://www.instagram.com/giftsandglory_/" target="_blank">@giftsandglory_</a><br>
-      • Fashion Jewellery • Real Flowers Jewels 🌹 • Keychains & more
-    </div>
-  </div>
+<div class="popup-box" onclick="event.stopPropagation()">
+<div class="popup-close" onclick="togglePopup()">×</div>
+<div class="popup-logo-row">
+<img alt="Popup Logo" class="popup-logo" src="https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png"/>
+<div class="popup-insta">
+<a href="https://www.instagram.com/giftsandglory_/" target="_blank">@giftsandglory_</a>
 </div>
-
+</div>
+<div class="popup-text">
+      • Every moment deserves a little glory ✨<br/>
+      • Make it memorable with <a href="https://www.instagram.com/giftsandglory_/" target="_blank">@giftsandglory_</a><br/>
+      • Fashion Jewellery • Real Flowers Jewels 🌹 • Keychains &amp; more
+    </div>
+</div>
+</div>
 <!-- Product Grid -->
 <div class="grid-container" id="productGrid"></div>
 <div class="info-strip" id="infoStrip"></div>
 <div class="sticky-button" id="showAddressBtn">Add address details</div>
-
-
-
-
 <!-- Clean Minimum Order Popup -->
-<div id="orderPopup" class="modern-order-popup" onclick="closeOrderPopupOnOutside(event)">
-  <div class="order-popup-box" onclick="event.stopPropagation()">
-    <button class="order-close-btn" onclick="closeOrderPopup()">×</button>
-    <div class="order-warning-icon">⚠️</div>
-    <div class="order-popup-text" id="orderPopupText">Minimum order amount is ₹149. Please add more items.</div>
-  </div>
+<div class="modern-order-popup" id="orderPopup" onclick="closeOrderPopupOnOutside(event)">
+<div class="order-popup-box" onclick="event.stopPropagation()">
+<button class="order-close-btn" onclick="closeOrderPopup()">×</button>
+<div class="order-warning-icon">⚠️</div>
+<div class="order-popup-text" id="orderPopupText">Minimum order amount is ₹149. Please add more items.</div>
 </div>
-
-
+</div>
 <!-- Shipping Popup -->
 <div class="shipping-popup" id="shippingPopup">
-  <button class="shipping-close" onclick="document.getElementById('shippingPopup').style.display='none'">×</button>
-  <p id="shippingPopupText">Shipping info will appear here</p>
+<button class="shipping-close" onclick="document.getElementById('shippingPopup').style.display='none'">×</button>
+<p id="shippingPopupText">Shipping info will appear here</p>
 </div>
 <script>
   
@@ -1571,7 +1556,7 @@ function confirmAddress() {
   document.querySelector(".menu-overlay").classList.toggle("active");
 }
 </script>
-  <script>
+<script>
   const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
   const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
 
@@ -1623,23 +1608,20 @@ function confirmAddress() {
     document.getElementById("menuOverlay").classList.toggle("active");
   }
 </script>
-</script>
 <!-- 🔍 Image Zoom Popup Overlay -->
-<div id="imagePopup" class="image-popup-overlay" onclick="hidePopup()">
-  <img id="popupImage" src="" alt="Zoomed Image" />
+<div class="image-popup-overlay" id="imagePopup" onclick="hidePopup()">
+<img alt="Zoomed Image" id="popupImage" src=""/>
 </div>
 <div class="menu-overlay" onclick="toggleMenu()"></div>
-
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-
 <nav class="side-menu" id="sideMenu">
-  <div class="menu-header">
-    <div class="menu-brand">
-      <img src="https://i.postimg.cc/7Z8b0BRC/logo-jpg.jpg" alt="Logo" class="menu-logo" />
-      <span class="menu-text">giftsandglory_</span>
-    </div>
-    <span class="menu-close" onclick="toggleMenu()">✕</span>
-  </div>
+<div class="menu-header">
+<div class="menu-brand">
+<img alt="Logo" class="menu-logo" src="https://i.postimg.cc/7Z8b0BRC/logo-jpg.jpg"/>
+<span class="menu-text">giftsandglory_</span>
+</div>
+<span class="menu-close" onclick="toggleMenu()">✕</span>
+</div>
 <div style="margin-top: 10px;"></div>
 <div id="menuContent"></div>
 </nav>
@@ -1685,113 +1667,98 @@ fetch(headerSheetURL)
     insta.innerText = "@giftsandglory_";
   });
 </script>
-
-</div>
 <!-- Address Popup -->
 <div class="address-popup-overlay" id="addressPopup">
-  <div class="address-popup-box">
-    <span class="close-btn" onclick="closeAddressPopup()">×</span>
-
-    <div class="address-field">
-      <input id="fullname" placeholder=" " />
-      <label for="fullname">Full Name</label>
-    </div>
-
-    
+<div class="address-popup-box">
+<span class="close-btn" onclick="closeAddressPopup()">×</span>
 <div class="address-field">
-  <select id="state" required>
-    <option value="" disabled selected hidden></option>
-    <option>Andhra Pradesh</option>
-    <option>Arunachal Pradesh</option>
-    <option>Assam</option>
-    <option>Bihar</option>
-    <option>Chandigarh</option>
-    <option>Chhattisgarh</option>
-    <option>Delhi</option>
-    <option>Goa</option>
-    <option>Gujarat</option>
-    <option>Haryana</option>
-    <option>Himachal Pradesh</option>
-    <option>Jammu and Kashmir</option>
-    <option>Jharkhand</option>
-    <option>Karnataka</option>
-    <option>Kerala</option>
-    <option>Ladakh</option>
-    <option>Madhya Pradesh</option>
-    <option>Maharashtra</option>
-    <option>Manipur</option>
-    <option>Meghalaya</option>
-    <option>Mizoram</option>
-    <option>Nagaland</option>
-    <option>Odisha</option>
-    <option>Puducherry</option>
-    <option>Punjab</option>
-    <option>Rajasthan</option>
-    <option>Sikkim</option>
-    <option>Tamil Nadu</option>
-    <option>Telangana</option>
-    <option>Tripura</option>
-    <option>Uttar Pradesh</option>
-    <option>Uttarakhand</option>
-    <option>West Bengal</option>
-  </select>
-  <label for="state">Select your state</label>
+<input id="fullname" placeholder=" "/>
+<label for="fullname">Full Name</label>
 </div>
-
-
-    <div class="address-field">
-      <input id="city" placeholder=" " />
-      <label for="city">City</label>
-    </div>
-
-    <div class="address-field">
-      <input id="pincode" placeholder=" " />
-      <label for="pincode">Pincode</label>
-    </div>
-
-    <div class="address-field">
-      <input id="address" placeholder=" " />
-      <label for="address">Your Full Address</label>
-    </div>
-
-    <div class="address-field">
-      <input id="phone" placeholder=" " />
-      <label for="phone">Phone Number</label>
-    </div>
-
-    <div class="address-field">
-      <input id="altphone" placeholder=" " />
-      <label for="altphone">Alternate Phone (Optional)</label>
-    </div>
-
-    <div class="button-row">
-      <button class="cancel-btn" onclick="closeAddressPopup()">Cancel</button>
-      <button class="whatsapp-btn" onclick="confirmAddress()">Confirm Address</button>
-    </div>
-  </div>
+<div class="address-field">
+<select id="state" required="">
+<option disabled="" hidden="" selected="" value=""></option>
+<option>Andhra Pradesh</option>
+<option>Arunachal Pradesh</option>
+<option>Assam</option>
+<option>Bihar</option>
+<option>Chandigarh</option>
+<option>Chhattisgarh</option>
+<option>Delhi</option>
+<option>Goa</option>
+<option>Gujarat</option>
+<option>Haryana</option>
+<option>Himachal Pradesh</option>
+<option>Jammu and Kashmir</option>
+<option>Jharkhand</option>
+<option>Karnataka</option>
+<option>Kerala</option>
+<option>Ladakh</option>
+<option>Madhya Pradesh</option>
+<option>Maharashtra</option>
+<option>Manipur</option>
+<option>Meghalaya</option>
+<option>Mizoram</option>
+<option>Nagaland</option>
+<option>Odisha</option>
+<option>Puducherry</option>
+<option>Punjab</option>
+<option>Rajasthan</option>
+<option>Sikkim</option>
+<option>Tamil Nadu</option>
+<option>Telangana</option>
+<option>Tripura</option>
+<option>Uttar Pradesh</option>
+<option>Uttarakhand</option>
+<option>West Bengal</option>
+</select>
+<label for="state">Select your state</label>
+</div>
+<div class="address-field">
+<input id="city" placeholder=" "/>
+<label for="city">City</label>
+</div>
+<div class="address-field">
+<input id="pincode" placeholder=" "/>
+<label for="pincode">Pincode</label>
+</div>
+<div class="address-field">
+<input id="address" placeholder=" "/>
+<label for="address">Your Full Address</label>
+</div>
+<div class="address-field">
+<input id="phone" placeholder=" "/>
+<label for="phone">Phone Number</label>
+</div>
+<div class="address-field">
+<input id="altphone" placeholder=" "/>
+<label for="altphone">Alternate Phone (Optional)</label>
+</div>
+<div class="button-row">
+<button class="cancel-btn" onclick="closeAddressPopup()">Cancel</button>
+<button class="whatsapp-btn" onclick="confirmAddress()">Confirm Address</button>
+</div>
+</div>
 </div>
 <!-- Order Summary Popup -->
 <div class="address-popup-overlay" id="summaryPopup">
-  <div class="address-popup-box" style="border: 2px solid #ccc;">
-    <span class="close-btn" onclick="document.getElementById('summaryPopup').style.display='none'">×</span>
-    <h3 style="text-align:center; margin-bottom: 14px; color:#1473E6;">Order Summary</h3>
-    
-    <div id="summaryDetails" style="font-size: 14px; color: #333; margin-bottom: 20px; max-height: 300px; overflow-y: auto;"></div>
-    <div id="couponSection" style="width: 100%; margin-bottom: 10px;">
-  <input id="couponCodeInput" placeholder="Enter Coupon Code" style="width: 60%; padding: 8px; border: 1px solid #ccc; border-radius: 6px;" />
-  <button onclick="applyCoupon()" style="padding: 8px 12px; background: green; color: white; border: none; border-radius: 6px; font-weight: bold;">Apply Coupon</button>
-  <div id="couponMessage" style="margin-top: 6px; font-size: 13px; color: #1473E6;"></div>
+<div class="address-popup-box" style="border: 2px solid #ccc;">
+<span class="close-btn" onclick="document.getElementById('summaryPopup').style.display='none'">×</span>
+<h3 style="text-align:center; margin-bottom: 14px; color:#1473E6;">Order Summary</h3>
+<div id="summaryDetails" style="font-size: 14px; color: #333; margin-bottom: 20px; max-height: 300px; overflow-y: auto;"></div>
+<div id="couponSection" style="width: 100%; margin-bottom: 10px;">
+<input id="couponCodeInput" placeholder="Enter Coupon Code" style="width: 60%; padding: 8px; border: 1px solid #ccc; border-radius: 6px;"/>
+<button onclick="applyCoupon()" style="padding: 8px 12px; background: green; color: white; border: none; border-radius: 6px; font-weight: bold;">Apply Coupon</button>
+<div id="couponMessage" style="margin-top: 6px; font-size: 13px; color: #1473E6;"></div>
 </div>
-    <button id="placeOrderBtn" style="width: 100%; padding: 12px; background: #1473E6; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">
+<button id="placeOrderBtn" style="width: 100%; padding: 12px; background: #1473E6; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">
       Pay via Razorpay
     </button>
-
-    <button onclick="shareOnWhatsApp()" style="width: 100%; margin-top: 10px; padding: 12px; background: #25D366; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">
+<button onclick="shareOnWhatsApp()" style="width: 100%; margin-top: 10px; padding: 12px; background: #25D366; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">
       Order via WhatsApp
     </button>
-  </div>
 </div>
-
+</div>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
   document.getElementById("placeOrderBtn").onclick = function () {
@@ -1850,9 +1817,6 @@ fetch(headerSheetURL)
     rzp.open();
   };
 </script>
-  </div>
-</div>
-
 <!-- Scripts -->
 <script>
 function openAddressPopup() {
@@ -1927,7 +1891,6 @@ document.getElementById("showAddressBtn").onclick = () => {
   validateAddressForm();
 };
 </script>
-
 <!-- Razorpay Payment -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
@@ -1976,7 +1939,6 @@ document.getElementById("placeOrderBtn").onclick = function () {
 const rzp = new Razorpay(options);
 rzp.open();
 </script>
-
 <!-- WhatsApp Order -->
 <script>
 function shareOnWhatsApp() {
@@ -2244,6 +2206,69 @@ addressFields.forEach(id => {
     input.style.borderColor = value ? "#ccc" : "red";
   });
 });
+</script>
+<script>
+let bestAutoCoupon = null;
+
+function evaluateBestCoupon(subtotal) {
+  bestAutoCoupon = null;
+  appliedDiscount = 0;
+
+  couponData.forEach(c => {
+    const min = parseInt(c.min_amount);
+    const discount = parseInt(c.discount_amount);
+    if (subtotal >= min) {
+      if (!bestAutoCoupon || discount > parseInt(bestAutoCoupon.discount_amount)) {
+        bestAutoCoupon = c;
+      }
+    }
+  });
+
+  if (bestAutoCoupon) {
+    appliedDiscount = parseInt(bestAutoCoupon.discount_amount);
+    document.getElementById("couponMessage").innerText = 
+      `Coupon \"${bestAutoCoupon.coupon_code}\" applied successfully! ₹${appliedDiscount} off.`;
+    document.getElementById("couponCodeInput").value = bestAutoCoupon.coupon_code;
+  } else {
+    document.getElementById("couponMessage").innerText = "";
+  }
+}
+
+function updateSummary() {
+  const selected = getSelectedItems();
+  if (!selected.length) return;
+
+  let summaryHTML = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+  let subtotal = 0;
+
+  selected.forEach(p => {
+    const product = productData[p.id];
+    const price = parseInt(product.price);
+    const total = price * p.qty;
+    subtotal += total;
+
+    summaryHTML += `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div onclick="showPopup('${product.image}')" style="width: 64px; height: 64px; border-radius: 14px; overflow: hidden; cursor: pointer; border: 2px solid #ccc; flex-shrink: 0;">
+          <img src="${product.image}" style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+        <div style="font-size: 14px; font-weight: 500;">×${p.qty} = ₹${total}</div>
+      </div>`;
+  });
+
+  evaluateBestCoupon(subtotal);
+  const totalAmount = subtotal + shippingCharge - appliedDiscount;
+
+  summaryHTML += `
+  <div style="position: sticky; bottom: 0; background: white; padding: 10px 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.08); border-top: 1px solid #ccc;">
+    <div style="font-weight:bold;">Subtotal: ₹${subtotal}</div>
+    <div style="font-weight:bold;">Shipping: ₹${shippingCharge}</div>
+    ${appliedDiscount ? `<div style="font-weight:bold; color: green;">Discount: −₹${appliedDiscount}</div>` : ""}
+    <div style="font-weight:bold;">Total Amount (incl. shipping): ₹${totalAmount}</div>
+  </div>`;
+
+  document.getElementById("summaryDetails").innerHTML = summaryHTML;
+}
 </script>
 </body>
 </html>
