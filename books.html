@@ -6,6 +6,72 @@
   <title>Live Grid from Google Sheet</title>
    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
+  .custom-dropdown-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 22px;
+}
+
+.floating-label {
+  position: absolute;
+  top: -8px;
+  left: 14px;
+  background: white;
+  padding: 0 6px;
+  font-size: 13px;
+  color: #1473E6;
+  z-index: 1;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.custom-dropdown {
+  width: 100%;
+  padding: 18px 12px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  background: white;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  z-index: 2;
+  position: relative;
+}
+
+.dropdown-arrow {
+  font-size: 14px;
+  color: #333;
+}
+
+.dropdown-options {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  position: absolute;
+  width: 100%;
+  background: #fff;
+  z-index: 10;
+  display: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-options li {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 15px;
+}
+
+.dropdown-options li:hover {
+  background: #f3faff;
+}
   .side-menu {
   position: fixed;
   top: 0;
@@ -183,78 +249,6 @@
   padding: 20px 16px; /* 🔁 increased from 12px */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   min-height: 72px;   /* ✅ added for height consistency */
-}
-.coupon-container {
-  display: flex;
-  overflow-x: auto;
-  gap: 10px;
-  padding: 10px 12px;
-  background: #f7fff9;
-  scroll-behavior: smooth;
-}
-
-.coupon-card {
-  background: #e9fef1;
-  border: 1px solid #c5ecd6;
-  border-radius: 10px;
-  padding: 8px 10px;
-  width: 220px;
-  height: auto;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.coupon-card h3 {
-  font-size: 15px;
-  font-weight: bold;
-  margin: 0;
-  color: #064c2c;
-}
-
-.coupon-card p {
-  font-size: 12px;
-  margin: 2px 0 6px;
-  color: #064c2c;
-}
-
-.code-row {
-  display: flex;
-  align-items: center;
-  gap: 6px; /* spacing between Shreya and copy icon */
-}
-
-.code-box {
-  background: #d5f5e5;
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 12px;
-  color: #064c2c;
-  letter-spacing: 0.3px;
-}
-
-.copy-btn {
-  width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.copy-btn svg {
-  width: 100%;
-  height: 100%;
-  fill: none;
-  stroke: #064c2c;
-  stroke-width: 2;
-}
-
-.copy-btn:hover {
-  opacity: 0.6;
 }
 
     .left-section {
@@ -672,7 +666,25 @@ down-toggle {
   font-size: 13px;
   color: #696969;
 }
+.address-field select {
+  width: 100%;
+  padding: 20px 12px 6px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color: #000;
 
+  /* ✅ Custom arrow icon */
+  background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+}
 .button-row {
   display: flex;
   gap: 10px;
@@ -1055,8 +1067,179 @@ down-toggle {
       padding: 8px 14px; font-size: 14px;
       border: none; border-radius: 30px; cursor: pointer;
     }
-    
-  </style>
+    .coupon-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f7fff9;
+  scroll-behavior: smooth;
+}
+.coupon-card {
+  background: #e9fef1;
+  border: 1px solid #c5ecd6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  width: 220px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.coupon-card h3 {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  color: #064c2c;
+}
+.coupon-card p {
+  font-size: 12px;
+  margin: 2px 0 6px;
+  color: #064c2c;
+}
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.code-box {
+  background: #d5f5e5;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #064c2c;
+  letter-spacing: 0.3px;
+}
+.copy-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.copy-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #064c2c;
+  stroke-width: 2;
+}
+.copy-btn:hover {
+  opacity: 0.6;
+}
+.address-field select {
+  width: 100%;
+  padding: 20px 12px 6px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color: #000;
+
+  /* ✅ Custom arrow icon */
+  background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+}
+
+/* floating label fix */
+.address-field label {
+  position: absolute;
+  top: 16px;
+  left: 14px;
+  font-size: 16px;
+  color: #999;
+  background: white;
+  padding: 0 4px;
+  transition: 0.2s ease all;
+  pointer-events: none;
+}
+
+/* ✅ Prevent blue highlight on image tap */
+img {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* If value selected, float the label */
+.address-field select:focus + label,
+.address-field select:not([value=""]):valid + label {
+  top: -8px;
+  left: 12px;
+  font-size: 13px;
+  color: #1473E6;
+}
+/* ✅ Prevent blue highlight on image tap in summary */
+#summaryDetails img,
+#summaryDetails div[onclick^="showPopup"] {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+  
+.modern-order-popup {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.order-popup-box {
+  width: 90vw;
+  max-width: 300px;
+  aspect-ratio: 1 / 1;
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  text-align: center;
+  position: relative;
+  animation: popupIn 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+.order-warning-icon {
+  font-size: 40px;
+  color: #000;
+}
+.order-popup-text {
+  font-size: 16px;
+  font-weight: bold;
+  color: #000;
+}
+.order-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #fff;
+  border: 2px solid #000;
+  color: #000;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+@keyframes popupIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+</style>
 </head>
 <body>
   
@@ -1121,11 +1304,16 @@ down-toggle {
 
 
 
-<!-- Minimum Order Popup -->
-<div class="custom-popup" id="orderPopup">
-  <p id="orderPopupText">Minimum order amount is ₹99. Please add more items.</p>
-  <button onclick="orderPopup.style.display='none'">OK</button>
+
+<!-- Clean Minimum Order Popup -->
+<div id="orderPopup" class="modern-order-popup" onclick="closeOrderPopupOnOutside(event)">
+  <div class="order-popup-box" onclick="event.stopPropagation()">
+    <button class="order-close-btn" onclick="closeOrderPopup()">×</button>
+    <div class="order-warning-icon">⚠️</div>
+    <div class="order-popup-text" id="orderPopupText">Minimum order amount is ₹149. Please add more items.</div>
+  </div>
 </div>
+
 
 <!-- Shipping Popup -->
 <div class="shipping-popup" id="shippingPopup">
@@ -1133,10 +1321,15 @@ down-toggle {
   <p id="shippingPopupText">Shipping info will appear here</p>
 </div>
 <script>
-  function showPopup(imageUrl) {
-    document.getElementById("popupImage").src = imageUrl;
-    document.getElementById("imagePopup").style.display = "flex";
-  }
+  
+function showPopup(imageUrl) {
+  const popup = document.getElementById("imagePopup");
+  const image = document.getElementById("popupImage");
+  image.src = imageUrl;
+  popup.style.display = "flex";
+  popup.style.zIndex = "3001"; // ensure it's above order summary
+}
+
   function hidePopup() {
     document.getElementById("imagePopup").style.display = "none";
   }
@@ -1213,6 +1406,19 @@ down-toggle {
     el.textContent = qty;
     updateUI();
   }
+
+function showOrderPopup() {
+  document.getElementById("orderPopup").style.display = "flex";
+}
+function closeOrderPopup() {
+  document.getElementById("orderPopup").style.display = "none";
+}
+function closeOrderPopupOnOutside(event) {
+  if (event.target.id === "orderPopup") {
+    closeOrderPopup();
+  }
+}
+
 </script>
 <script>
   function getSelectedItems() {
@@ -1257,37 +1463,53 @@ down-toggle {
   }
 
   function confirmAddress() {
-    const selected = getSelectedItems();
-    if (!selected.length) return;
+  const selected = getSelectedItems();
+  if (!selected.length) return;
 
-    let summaryHTML = "";
-    let subtotal = 0;
+  let summaryHTML = "";
+  let subtotal = 0;
 
-    selected.forEach(p => {
-      const product = productData[p.id];
-      const price = parseInt(product.price);
-      const total = price * p.qty;
-      subtotal += total;
-      summaryHTML += `
-        <div style="margin-bottom: 8px;">
-          <strong>${product.name || "Item"}</strong> × ${p.qty} = ₹${total}
-        </div>`;
-    });
+  selected.forEach(p => {
+    const product = productData[p.id];
+    const price = parseInt(product.price);
+    const total = price * p.qty;
+    subtotal += total;
+    summaryHTML += `
+      <div style="margin-bottom: 8px;">
+        <strong>${product.name || "Item"}</strong> × ${p.qty} = ₹${total}
+      </div>`;
+  });
 
-    const totalAmount = subtotal + shippingCharge;
-    summaryHTML += `<hr style="margin: 12px 0;">
-  <div style="font-weight:bold; display: flex; justify-content: center; align-items: center; gap: 6px;">
-    Total Amount (incl. shipping): ₹${totalAmount}
-    <span onclick="document.getElementById('shippingPopup').style.display='block'"
-          <span onclick="document.getElementById('shippingPopup').style.display='block'"
-  style="cursor:pointer; font-size:14px; background:#eee; border-radius:50%; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; outline:none; user-select:none;">ⓘ</span>
-  </div>`;
+  // ✅ Minimum order check before proceeding
+  if (subtotal < MIN_ORDER) {
+    const orderPopup = document.getElementById("orderPopup");
+    const message = document.getElementById("orderPopupText");
+    message.innerText = MIN_ORDER_MESSAGE || `Minimum order amount is ₹${MIN_ORDER}. Please add more items.`;
+    orderPopup.style.display = "flex";
 
-    document.getElementById("summaryDetails").innerHTML = summaryHTML;
-
-    closeAddressPopup();
-    document.getElementById("summaryPopup").style.display = "flex";
+    // ✅ Optional: close on background tap
+    orderPopup.onclick = function (e) {
+      if (e.target === orderPopup) {
+        orderPopup.style.display = "none";
+      }
+    };
+    return;
   }
+
+  const totalAmount = subtotal + shippingCharge - appliedDiscount;
+  summaryHTML += `<hr style="margin: 12px 0;">
+    <div style="font-weight:bold; display: flex; justify-content: center; align-items: center; gap: 6px;">
+      Total Amount (incl. shipping): ₹${totalAmount}
+      <span onclick="document.getElementById('shippingPopup').style.display='block'"
+        style="cursor:pointer; font-size:14px; background:#eee; border-radius:50%; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center;">ⓘ</span>
+    </div>`;
+
+  document.getElementById("summaryDetails").innerHTML = summaryHTML;
+  updateSummary();
+  closeAddressPopup();
+  document.getElementById("summaryPopup").style.display = "flex";
+}
+
 
   const requiredFields = ["fullname", "state", "city", "pincode", "address", "phone"];
   const confirmBtn = document.querySelector(".whatsapp-btn");
@@ -1447,13 +1669,77 @@ fetch(headerSheetURL)
   <div class="address-popup-box">
     <span class="close-btn" onclick="closeAddressPopup()">×</span>
 
-    <div class="address-field"><input id="fullname" placeholder=" " /><label for="fullname">Full Name</label></div>
-    <div class="address-field"><input id="state" placeholder=" " /><label for="state">State</label></div>
-    <div class="address-field"><input id="city" placeholder=" " /><label for="city">City</label></div>
-    <div class="address-field"><input id="pincode" placeholder=" " /><label for="pincode">Pincode</label></div>
-    <div class="address-field"><input id="address" placeholder=" " /><label for="address">Your Full Address</label></div>
-    <div class="address-field"><input id="phone" placeholder=" " /><label for="phone">Phone Number</label></div>
-    <div class="address-field"><input id="altphone" placeholder=" " /><label for="altphone">Alternate Phone (Optional)</label></div>
+    <div class="address-field">
+      <input id="fullname" placeholder=" " />
+      <label for="fullname">Full Name</label>
+    </div>
+
+    
+<div class="address-field">
+  <select id="state" required>
+    <option value="" disabled selected hidden></option>
+    <option>Andhra Pradesh</option>
+    <option>Arunachal Pradesh</option>
+    <option>Assam</option>
+    <option>Bihar</option>
+    <option>Chandigarh</option>
+    <option>Chhattisgarh</option>
+    <option>Delhi</option>
+    <option>Goa</option>
+    <option>Gujarat</option>
+    <option>Haryana</option>
+    <option>Himachal Pradesh</option>
+    <option>Jammu and Kashmir</option>
+    <option>Jharkhand</option>
+    <option>Karnataka</option>
+    <option>Kerala</option>
+    <option>Ladakh</option>
+    <option>Madhya Pradesh</option>
+    <option>Maharashtra</option>
+    <option>Manipur</option>
+    <option>Meghalaya</option>
+    <option>Mizoram</option>
+    <option>Nagaland</option>
+    <option>Odisha</option>
+    <option>Puducherry</option>
+    <option>Punjab</option>
+    <option>Rajasthan</option>
+    <option>Sikkim</option>
+    <option>Tamil Nadu</option>
+    <option>Telangana</option>
+    <option>Tripura</option>
+    <option>Uttar Pradesh</option>
+    <option>Uttarakhand</option>
+    <option>West Bengal</option>
+  </select>
+  <label for="state">Select your state</label>
+</div>
+
+
+    <div class="address-field">
+      <input id="city" placeholder=" " />
+      <label for="city">City</label>
+    </div>
+
+    <div class="address-field">
+      <input id="pincode" placeholder=" " />
+      <label for="pincode">Pincode</label>
+    </div>
+
+    <div class="address-field">
+      <input id="address" placeholder=" " />
+      <label for="address">Your Full Address</label>
+    </div>
+
+    <div class="address-field">
+      <input id="phone" placeholder=" " />
+      <label for="phone">Phone Number</label>
+    </div>
+
+    <div class="address-field">
+      <input id="altphone" placeholder=" " />
+      <label for="altphone">Alternate Phone (Optional)</label>
+    </div>
 
     <div class="button-row">
       <button class="cancel-btn" onclick="closeAddressPopup()">Cancel</button>
@@ -1461,7 +1747,6 @@ fetch(headerSheetURL)
     </div>
   </div>
 </div>
-
 <!-- Order Summary Popup -->
 <div class="address-popup-overlay" id="summaryPopup">
   <div class="address-popup-box" style="border: 2px solid #ccc;">
@@ -1469,7 +1754,11 @@ fetch(headerSheetURL)
     <h3 style="text-align:center; margin-bottom: 14px; color:#1473E6;">Order Summary</h3>
     
     <div id="summaryDetails" style="font-size: 14px; color: #333; margin-bottom: 20px; max-height: 300px; overflow-y: auto;"></div>
-    
+    <div id="couponSection" style="width: 100%; margin-bottom: 10px;">
+  <input id="couponCodeInput" placeholder="Enter Coupon Code" style="width: 60%; padding: 8px; border: 1px solid #ccc; border-radius: 6px;" />
+  <button onclick="applyCoupon()" style="padding: 8px 12px; background: green; color: white; border: none; border-radius: 6px; font-weight: bold;">Apply Coupon</button>
+  <div id="couponMessage" style="margin-top: 6px; font-size: 13px; color: #1473E6;"></div>
+</div>
     <button id="placeOrderBtn" style="width: 100%; padding: 12px; background: #1473E6; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">
       Pay via Razorpay
     </button>
@@ -1553,21 +1842,43 @@ function confirmAddress() {
   const selected = getSelectedItems();
   if (!selected.length) return;
 
-  let summaryHTML = "";
   let subtotal = 0;
+  selected.forEach(p => {
+    const product = productData[p.id];
+    subtotal += parseInt(product.price) * p.qty;
+  });
 
+  // ✅ Minimum order logic
+  if (subtotal < MIN_ORDER) {
+    const orderPopup = document.getElementById("orderPopup");
+    const message = document.getElementById("orderPopupText");
+    message.innerText = MIN_ORDER_MESSAGE || `Minimum order amount is ₹${MIN_ORDER}. Please add more items.`;
+    orderPopup.style.display = "block";
+    return;
+  }
+
+  // ✅ Continue with order summary
+  let summaryHTML = "";
   selected.forEach(p => {
     const product = productData[p.id];
     const price = parseInt(product.price);
     const total = price * p.qty;
-    subtotal += total;
-    summaryHTML += `<div style="margin-bottom: 8px;"><strong>${product.name || "Item"}</strong> × ${p.qty} = ₹${total}</div>`;
+    summaryHTML += `
+      <div style="margin-bottom: 8px;">
+        <strong>${product.name || "Item"}</strong> × ${p.qty} = ₹${total}
+      </div>`;
   });
 
-  const totalAmount = subtotal + shippingCharge;
-  summaryHTML += `<hr style="margin: 12px 0;"><div style="font-weight:bold;">Total Amount (incl. shipping): ₹${totalAmount}</div>`;
+  const totalAmount = subtotal + shippingCharge - appliedDiscount;
+  summaryHTML += `<hr style="margin: 12px 0;">
+    <div style="font-weight:bold; display: flex; justify-content: center; align-items: center; gap: 6px;">
+      Total Amount (incl. shipping): ₹${totalAmount}
+      <span onclick="document.getElementById('shippingPopup').style.display='block'"
+        style="cursor:pointer; font-size:14px; background:#eee; border-radius:50%; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center;">ⓘ</span>
+    </div>`;
 
   document.getElementById("summaryDetails").innerHTML = summaryHTML;
+  updateSummary();
   closeAddressPopup();
   document.getElementById("summaryPopup").style.display = "flex";
 }
@@ -1694,38 +2005,188 @@ function shareOnWhatsApp() {
 }
 </script>
 <script>
-  const couponSheetID = '1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs'; // Replace with your own Sheet ID
-  const couponSheetName = 'Sheet1';
-  const couponURL = `https://opensheet.elk.sh/${couponSheetID}/${couponSheetName}`;
+const couponSheetURL = "https://opensheet.elk.sh/1SodsDKMHsfu8vI1PlevfcpZvOkKjryEyOvJaPe3WhDg/Sheet1";
+let couponData = [];
+let appliedDiscount = 0;
 
-  fetch(couponURL)
-    .then(res => res.json())
-    .then(data => {
-      const container = document.getElementById('couponContainer');
-      container.innerHTML = '';
-      data.forEach((row, index) => {
-        const card = document.createElement('div');
-        card.className = 'coupon-card';
-        card.innerHTML = `
-          <h3>${row.Title}</h3>
-          <p>Buy for min of ₹${row.MinAmount}</p>
-          <div class="code-row">
-            <div class="code-box" id="code${index}">${row.Code}</div>
-            <div class="copy-btn" onclick="copyCode('code${index}')">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-            </div>
+fetch(couponSheetURL)
+  .then(res => res.json())
+  .then(data => { couponData = data; });
+
+function applyCoupon() {
+  const inputCode = document.getElementById("couponCodeInput").value.trim().toUpperCase();
+  const subtotal = getSelectedItems().reduce((sum, p) => sum + (parseInt(productData[p.id].price) * p.qty), 0);
+  const msgEl = document.getElementById("couponMessage");
+
+  const matched = couponData.find(c =>
+    c.coupon_code?.toUpperCase() === inputCode &&
+    subtotal >= parseInt(c.min_amount)
+  );
+
+  if (matched) {
+    appliedDiscount = parseInt(matched.discount_amount);
+    msgEl.innerText = `Coupon "${inputCode}" applied successfully! ₹${appliedDiscount} off.`;
+  } else {
+    appliedDiscount = 0;
+    msgEl.innerText = `Invalid coupon or minimum amount not met.`;
+  }
+
+  updateSummary();
+}
+
+function updateSummary() {
+  const selected = getSelectedItems();
+  if (!selected.length) return;
+
+  let summaryHTML = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+  let subtotal = 0;
+
+  selected.forEach(p => {
+    const product = productData[p.id];
+    const price = parseInt(product.price);
+    const total = price * p.qty;
+    subtotal += total;
+
+    summaryHTML += `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div onclick="showPopup('${product.image}')" style="width: 64px; height: 64px; border-radius: 14px; overflow: hidden; cursor: pointer; border: 2px solid #ccc; flex-shrink: 0;">
+          <img src="${product.image}" style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+        <div style="font-size: 14px; font-weight: 500;">×${p.qty} = ₹${total}</div>
+      </div>`;
+  });
+
+  
+
+  const totalAmount = subtotal + shippingCharge - appliedDiscount;
+
+  summaryHTML += `
+  <div style="position: sticky; bottom: 0; background: white; padding: 10px 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.08); border-top: 1px solid #ccc;">
+    <div style="font-weight:bold;">Subtotal: ₹${subtotal}</div>
+    <div style="font-weight:bold;">Shipping: ₹${shippingCharge}</div>
+    ${appliedDiscount ? `<div style="font-weight:bold; color: green;">Discount: −₹${appliedDiscount}</div>` : ""}
+    <div style="font-weight:bold;">Total Amount (incl. shipping): ₹${totalAmount}</div>
+  </div>`;
+
+  document.getElementById("summaryDetails").innerHTML = summaryHTML;
+}
+</script>
+<script>
+const couponSheetID = '1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs'; // Replace with your Sheet ID
+const couponSheetName = 'Sheet1';
+const couponURL = `https://opensheet.elk.sh/${couponSheetID}/${couponSheetName}`;
+
+fetch(couponURL)
+  .then(res => res.json())
+  .then(data => {
+    const container = document.getElementById('couponContainer');
+    container.innerHTML = '';
+    data.forEach((row, index) => {
+      const card = document.createElement('div');
+      card.className = 'coupon-card';
+      card.innerHTML = `
+        <h3>${row.Title}</h3>
+        <p>Buy for min of ₹${row.MinAmount}</p>
+        <div class="code-row">
+          <div class="code-box" id="code${index}">${row.Code}</div>
+          <div class="copy-btn" onclick="copyCode('code${index}')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
           </div>
-        `;
-        container.appendChild(card);
-      });
+        </div>
+      `;
+      container.appendChild(card);
     });
+  });
 
-  function copyCode(id) {
-    const text = document.getElementById(id).innerText;
-    navigator.clipboard.writeText(text);
+function copyCode(id) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text);
+}
+</script>
+<script>
+function toggleDropdown() {
+  const list = document.getElementById("dropdownList");
+  list.style.display = list.style.display === "block" ? "none" : "block";
+}
+
+document.querySelectorAll("#dropdownList li").forEach(item => {
+  item.addEventListener("click", () => {
+    const selected = item.innerText;
+    document.getElementById("selectedState").innerText = selected;
+    document.getElementById("state").value = selected;
+    document.getElementById("dropdownList").style.display = "none";
+  });
+});
+
+// Auto-close dropdown if clicked outside
+document.addEventListener("click", function (event) {
+  const dropdown = document.getElementById("dropdownContainer");
+  if (!dropdown.contains(event.target)) {
+    document.getElementById("dropdownList").style.display = "none";
+  }
+});
+</script>
+<script>
+function toggleDropdown() {
+  const list = document.getElementById("dropdownList");
+  list.style.display = list.style.display === "block" ? "none" : "block";
+}
+
+document.querySelectorAll("#dropdownList li").forEach(item => {
+  item.addEventListener("click", () => {
+    const selected = item.innerText;
+    document.getElementById("selectedState").innerText = selected;
+    document.getElementById("state").value = selected;
+    document.getElementById("dropdownList").style.display = "none";
+  });
+});
+
+document.addEventListener("click", function (e) {
+  const dropdown = document.getElementById("dropdownBox");
+  if (!dropdown.contains(e.target)) {
+    document.getElementById("dropdownList").style.display = "none";
+  }
+});
+</script>
+<script>
+<!-- Minimum Order Warning Popup -->
+<div id="orderPopup" onclick="hideOrderPopup()" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:center;">
+  <!-- Box ke andar tap karne se kuchh na ho, sirf bahar tap pe band ho -->
+  <div onclick="event.stopPropagation()" style="background:#fff; padding:20px 30px; border-radius:8px; font-family:'Roboto Slab', serif; text-align:center;">
+    <div id="orderPopupText" style="font-size:16px; font-weight:bold; color:#d32f2f;">Minimum order amount is ₹149/-</div>
+    <div style="margin-top:12px;">
+      <button onclick="hideOrderPopup()" style="padding:8px 14px; background:#d32f2f; color:#fff; border:none; border-radius:4px;">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function hideOrderPopup() {
+    document.getElementById("orderPopup").style.display = "none";
+  }
+</script>
+<script>
+<!-- Minimum Order Warning Popup -->
+<div id="orderPopup" onclick="hideOrderPopup()" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:center;">
+  <div onclick="event.stopPropagation()" style="background:#fff; padding:24px 20px; border-radius:16px; border: 2px solid #d32f2f; font-family:'Roboto Slab', serif; text-align:center; width:90vw; max-width:300px; aspect-ratio:1/1; position:relative; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+    
+    <!-- Cross Button -->
+    <span onclick="hideOrderPopup()" style="position:absolute; top:10px; right:12px; font-size:20px; font-weight:bold; color:#d32f2f; cursor:pointer;">×</span>
+
+    <!-- Message Text -->
+    <div id="orderPopupText" style="font-size:16px; font-weight:bold; color:#d32f2f; margin-top:40px;">
+      Minimum order amount is ₹149/-
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function hideOrderPopup() {
+    document.getElementById("orderPopup").style.display = "none";
   }
 </script>
 </body>
