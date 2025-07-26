@@ -2234,5 +2234,16 @@ document.querySelector(".whatsapp-btn").onclick = function () {
   confirmAddress(); // 🔁 your existing function will run now only if form is filled
 };
 </script>
+<script>
+const addressFields = ["fullname", "state", "city", "pincode", "address", "phone"];
+
+addressFields.forEach(id => {
+  const input = document.getElementById(id);
+  input.addEventListener("input", () => {
+    const value = input.value.trim();
+    input.style.borderColor = value ? "#ccc" : "red";
+  });
+});
+</script>
 </body>
 </html>
