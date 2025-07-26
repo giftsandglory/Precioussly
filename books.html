@@ -1238,7 +1238,10 @@ img {
   from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
+.address-field input,
+.address-field select {
+  transition: border-color 0.3s ease;
+}
 </style>
 </head>
 <body>
@@ -1462,39 +1465,59 @@ function closeOrderPopupOnOutside(event) {
     document.getElementById("addressPopup").style.display = "none";
   }
 
-  function confirmAddress() {
-  const selected = getSelectedItems();
-  if (!selected.length) return;
+  
+function confirmAddress() {
+  const requiredFields = ["fullname", "state", "city", "pincode", "address", "phone"];
+  let isAddressValid = true;
 
-  let summaryHTML = "";
+  // 🔍 Validate all required fields
+  requiredFields.forEach(id => {
+    const field = document.getElementById(id);
+    const value = field?.value.trim();
+    const isEmpty = !value || value === "";
+
+    field.style.borderColor = isEmpty ? "red" : "#ccc";
+    if (isEmpty) isAddressValid = false;
+  });
+
+  const selected = getSelectedItems();
   let subtotal = 0;
 
   selected.forEach(p => {
     const product = productData[p.id];
+    subtotal += parseInt(product.price) * p.qty;
+  });
+
+  const isOrderValid = subtotal >= MIN_ORDER;
+
+  // 🛑 If both are wrong
+  if (!isAddressValid && !isOrderValid) {
+    document.getElementById("orderPopupText").innerText = `⚠️ minimum order amount is ₹${MIN_ORDER}/-`;
+    document.getElementById("orderPopup").style.display = "flex";
+    return;
+  }
+
+  // ❗ Only address wrong
+  if (!isAddressValid) return;
+
+  // ❗ Only order amount wrong
+  if (!isOrderValid) {
+    document.getElementById("orderPopupText").innerText = MIN_ORDER_MESSAGE;
+    document.getElementById("orderPopup").style.display = "flex";
+    return;
+  }
+
+  // ✅ All good – show order summary
+  let summaryHTML = "";
+  selected.forEach(p => {
+    const product = productData[p.id];
     const price = parseInt(product.price);
     const total = price * p.qty;
-    subtotal += total;
     summaryHTML += `
       <div style="margin-bottom: 8px;">
         <strong>${product.name || "Item"}</strong> × ${p.qty} = ₹${total}
       </div>`;
   });
-
-  // ✅ Minimum order check before proceeding
-  if (subtotal < MIN_ORDER) {
-    const orderPopup = document.getElementById("orderPopup");
-    const message = document.getElementById("orderPopupText");
-    message.innerText = MIN_ORDER_MESSAGE || `Minimum order amount is ₹${MIN_ORDER}. Please add more items.`;
-    orderPopup.style.display = "flex";
-
-    // ✅ Optional: close on background tap
-    orderPopup.onclick = function (e) {
-      if (e.target === orderPopup) {
-        orderPopup.style.display = "none";
-      }
-    };
-    return;
-  }
 
   const totalAmount = subtotal + shippingCharge - appliedDiscount;
   summaryHTML += `<hr style="margin: 12px 0;">
@@ -2188,6 +2211,28 @@ document.addEventListener("click", function (e) {
   function hideOrderPopup() {
     document.getElementById("orderPopup").style.display = "none";
   }
+  <script>
+function highlightInvalidFields() {
+  const fields = ["fullname", "state", "city", "pincode", "address", "phone"];
+  let valid = true;
+
+  fields.forEach(id => {
+    const input = document.getElementById(id);
+    const isEmpty = !input || !input.value.trim();
+
+    input.style.borderColor = isEmpty ? "red" : "#ccc";
+    valid = valid && !isEmpty;
+  });
+
+  return valid;
+}
+
+document.querySelector(".whatsapp-btn").onclick = function () {
+  const isFormValid = highlightInvalidFields();
+  if (!isFormValid) return;
+
+  confirmAddress(); // 🔁 your existing function will run now only if form is filled
+};
 </script>
 </body>
 </html>
