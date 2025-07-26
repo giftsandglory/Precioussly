@@ -685,10 +685,15 @@ down-toggle {
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px 16px;
+
+  /* ✅ Smooth transition */
+  transition: border-color 0.3s ease;
 }
-.button-row {
-  display: flex;
-  gap: 10px;
+
+/* 🔵 Blue border when focused */
+.address-field select:focus {
+  border-color: #1473E6;
+  outline: none;
 }
 
 .cancel-btn {
@@ -1744,7 +1749,7 @@ fetch(headerSheetURL)
 <div class="address-popup-overlay" id="summaryPopup">
 <div class="address-popup-box" style="border: 2px solid #ccc;">
 <span class="close-btn" onclick="document.getElementById('summaryPopup').style.display='none'">×</span>
-<h3 style="text-align:center; margin-bottom: 14px; color:#1473E6;">Order Summary</h3>
+<h3 style="text-align:center; margin-top: -20px; margin-bottom: 1px; color:#1473E6;">Order Summary</h3>
 <div id="summaryDetails" style="font-size: 14px; color: #333; margin-bottom: 20px; max-height: 300px; overflow-y: auto;"></div>
 <div id="couponSection" style="width: 100%; margin-bottom: 10px;">
 <input id="couponCodeInput" placeholder="Enter Coupon Code" style="width: 60%; padding: 8px; border: 1px solid #ccc; border-radius: 6px;"/>
