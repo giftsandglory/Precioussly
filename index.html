@@ -6,6 +6,138 @@
   <title>Gifts and Glory</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
+.coupon-strip {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  scroll-behavior: smooth;
+}
+.coupon-card {
+  background: #e9fef1;
+  border: 1px solid #c5ecd6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  width: 220px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.coupon-card h3 {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  color: #064c2c;
+}
+.coupon-card p {
+  font-size: 12px;
+  margin: 2px 0 6px;
+  color: #064c2c;
+}
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.code-box {
+  background: #d5f5e5;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #064c2c;
+  letter-spacing: 0.3px;
+}
+.copy-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.copy-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #064c2c;
+  stroke-width: 2;
+}
+.copy-btn:hover {
+  opacity: 0.6;
+}
+.strip-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 42px;
+  height: 42px;
+  background: rgba(0, 0, 0, 0.4); /* ✅ fixed background */
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 0;
+
+  /* ✅ Prevent tap glow & outlines */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-focus-ring-color: transparent;
+  outline: none;
+
+  /* ✅ Remove hover scale effect */
+  transition: none;
+}
+
+.strip-nav-btn:hover,
+.strip-nav-btn:active,
+.strip-nav-btn:focus {
+  background: rgba(0, 0, 0, 0.4); /* ❌ no change on hover/tap */
+  transform: translateY(-50%);   /* ❌ no zoom */
+}
+
+.strip-nav-left {
+  left: 8px;
+}
+
+.strip-nav-right {
+  right: 8px;
+}
+
+/* 👇 Arrow position adjust if needed */
+.strip-nav-btn span {
+  display: inline-block;
+  transform: translate(0, -2px); /* 🔼 Up 2px */
+}
+.image-strip-container {
+  display: flex;
+  overflow-x: hidden; /* 🔁 changed from auto to hidden */
+  scroll-snap-type: x mandatory;
+  gap: 0;
+  background: #fff;
+  width: 100%;
+}
+
+.strip-media {
+  flex: 0 0 100%;
+  height: auto;
+  scroll-snap-align: start;
+  object-fit: cover;
+  max-height: 320px;
+}
+
+.strip-media[controls] {
+  background: #000;
+}
   .menu-divider {
   width: 100vw;
   height: 1px;
@@ -452,7 +584,13 @@ down-toggle {
 </header>
 
   <!-- Announcement Bar -->
-  <div id="announcementBar">Min Order 149/- ┃ Made in India 🇮🇳</div>
+  <div id="announcementBar">🧿</div>
+  <div style="position: relative; overflow: hidden;">
+<button id="leftBtn" class="strip-nav-btn strip-nav-left"><span>❮</span></button>
+<div id="imageStrip" class="image-strip-container" style="scroll-behavior: smooth;"></div>
+<button id="rightBtn" class="strip-nav-btn strip-nav-right"><span>❯</span></button>
+</div>
+<div id="couponContainer" class="coupon-strip"></div>
 
   <!-- Popup -->
   <div class="overlay" id="popupOverlay" onclick="closePopupOnOutside(event)">
@@ -479,7 +617,7 @@ down-toggle {
 <nav class="side-menu" id="sideMenu">
   <div class="menu-header">
   <div class="menu-brand">
-    <img src="https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png" alt="Logo" class="menu-logo" />
+    <img src="https://i.postimg.cc/MZRYy4L9/logo-jpg.jpg" alt="Logo" class="menu-logo" />
     <span class="menu-text">giftsandglory_</span>
   </div>
   <span class="menu-close" onclick="toggleMenu()">✕</span>
@@ -503,6 +641,18 @@ down-toggle {
 
 <!-- 🔽 Final Working Script -->
 <script>
+  // Announcement Bar from Google Sheet
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
   // Popup function
   function togglePopup() {
     const overlay = document.getElementById("popupOverlay");
@@ -588,6 +738,76 @@ down-toggle {
   const submenu = document.getElementById(id);
   submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
 }
+// 🟢 Wide Media (Image/Video) Strip from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    const strip = document.getElementById("imageStrip");
+    data.forEach(row => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.trim().endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url.trim();
+        el.controls = true;
+        el.muted = true;
+        el.loop = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url.trim();
+      }
+
+      el.className = "strip-media";
+      strip.appendChild(el);
+    });
+  });
+  let currentIndex = 0;
+
+const strip = document.getElementById("imageStrip");
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
+
+function scrollToIndex(index) {
+  const items = strip.children;
+  if (index < 0 || index >= items.length) return;
+  currentIndex = index;
+  const itemWidth = items[0].offsetWidth;
+  strip.scrollTo({ left: itemWidth * currentIndex, behavior: "smooth" });
+}
+
+leftBtn.onclick = () => scrollToIndex(currentIndex - 1);
+rightBtn.onclick = () => scrollToIndex(currentIndex + 1);
+</script>
+<script>
+const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
+
+fetch(couponSheetURL)
+  .then(res => res.json())
+  .then(data => {
+    const container = document.getElementById("couponContainer");
+    data.forEach(c => {
+      if (!c.Title || !c.MinAmount || !c.Code || !c.Discount) return;
+      const html = `
+        <div class="coupon-card">
+          <h3>${c.Title}</h3>
+          <p>Buy for min of ₹${c.MinAmount}</p>
+          <div class="code-row">
+            <div class="code-box">${c.Code}</div>
+            <div class="copy-btn" onclick="navigator.clipboard.writeText('${c.Code}')">
+              <svg viewBox="0 0 24 24">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4
+                         a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </div>
+          </div>
+        </div>`;
+      container.innerHTML += html;
+    });
+  });
 </script>
 </body>
 </html>
