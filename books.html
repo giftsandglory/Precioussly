@@ -7,6 +7,32 @@
 <title>Live Grid from Google Sheet</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
+.site-footer {
+  background: #f9f9f9;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 300;
+  font-size: 12px;
+  text-align: center;
+  padding: 10px 12px 14px;
+  border-top: 1px solid #e1e1e1;
+}
+
+.footer-text {
+  margin-bottom: 6px;
+}
+
+.footer-links a {
+  color: inherit;
+  text-decoration: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.footer-links span {
+  user-select: none;
+  white-space: nowrap;
+}
   .custom-dropdown-container {
   position: relative;
   width: 100%;
@@ -840,7 +866,7 @@ down-toggle {
   box-shadow: 0 0 20px rgba(0,0,0,0.4);
 }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; padding-bottom: 120px; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; padding-bottom: px; }
     .grid-container {
       display: grid; grid-template-columns: repeat(2, 1fr);
       gap: 14px; padding: 14px;
@@ -1972,8 +1998,14 @@ function shareOnWhatsApp() {
     message += `• ${product.name || "Item"} × ${qty} = ₹${total}\nImage: ${product.image}\n\n`;
   });
 
-  const grandTotal = subtotal + shippingCharge;
-  message += `Total (incl. shipping): ₹${grandTotal}\n\n`;
+  const discount = appliedDiscount || 0;
+  const totalAmount = subtotal + shippingCharge - discount;
+
+  // ✅ Add detailed price breakdown
+  message += `Subtotal: ₹${subtotal}\n`;
+  message += `Shipping: ₹${shippingCharge}\n`;
+  message += `Discount: -₹${discount}\n`;
+  message += `Total Amount (incl. shipping): ₹${totalAmount}\n\n`;
 
   const name = document.getElementById("fullname")?.value || "";
   const state = document.getElementById("state")?.value || "";
@@ -2300,5 +2332,15 @@ function updateSummary() {
   document.getElementById("summaryDetails").innerHTML = summaryHTML;
 }
 </script>
+<footer class="site-footer">
+  <div class="footer-text">© 2025 Gifts & Glory. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="https://giftsandglory.netlify.app/privacy-policy" target="_blank">Privacy Policy</a> •
+    <a href="https://giftsandglory.netlify.app/terms-conditions" target="_blank">Terms & Conditions</a> •
+    <a href="https://giftsandglory.netlify.app/refund-policy" target="_blank">Refund Policy</a> •
+    <a href="https://giftsandglory.netlify.app/shipping-policy" target="_blank">Shipping Policy</a> •
+    <a href="https://giftsandglory.netlify.app/about" target="_blank">Contact Us</a>
+  </div>
+</footer>
 </body>
 </html>
