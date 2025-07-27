@@ -1248,12 +1248,7 @@ img {
 .address-field select {
   transition: border-color 0.3s ease;
 }
-
-#summaryBox > div {
-  margin-bottom: 12px !important;
-}
 </style>
-
 </head>
 <body>
 <header class="site-header">
@@ -1402,8 +1397,15 @@ function showPopup(imageUrl) {
     if (delta === -1 && qty > 1) qty--;
     if (delta === 1) qty++;
     el.textContent = qty;
+const popupQty = document.getElementById(`popup-qty-${i}`);
+if (popupQty) popupQty.textContent = qty;
     updateUI();
   }
+  function removeItem(id) {
+  document.querySelector(`.product-check[data-id="${id}"]`).checked = false;
+  updateUI();
+  updateSummary();
+}
 
 function showOrderPopup() {
   document.getElementById("orderPopup").style.display = "flex";
@@ -2043,27 +2045,21 @@ function updateSummary() {
     subtotal += total;
 
     summaryHTML += `
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <div onclick="showPopup('${product.image}')" style="width: 64px; height: 64px; border-radius: 12px; overflow: hidden; border: 2px solid #ccc; flex-shrink: 0; margin-top: 8px; margin-bottom: 8px;">
-          <img src="${product.image}" style="width: 100%; height: 100%; object-fit: cover;" />
-        </div>
-        
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <div onclick="showPopup('${product.image}')" style="width: 64px; height: 64px; border-radius: 12px; overflow: hidden; border: 2px solid #ccc; flex-shrink: 0; margin-top: 8px; margin-bottom: 8px;">
-          <img src="${product.image}" style="width: 100%; height: 100%; object-fit: cover;" />
-        </div>
-        <div style="display: flex; flex-direction: column;">
-          <div style="font-size: 14px; font-weight: 500;">${product.name || "Item"}</div>
-          <div class="summary-qty" style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
-            <button onclick="changeQty(${p.id}, -1)" style="width: 28px; height: 28px; border-radius: 6px; font-size: 18px; font-weight: bold; background: #eee; border: none;">−</button>
-            <span id="qty-${p.id}" style="min-width: 24px; text-align: center;">${p.qty}</span>
-            <button onclick="changeQty(${p.id}, 1)" style="width: 28px; height: 28px; border-radius: 6px; font-size: 18px; font-weight: bold; background: #eee; border: none;">+</button>
-            <span style="font-size: 13px;">= ₹${total}</span>
-          </div>
-        </div>
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <div onclick="showPopup('${product.image}')" style="width: 64px; height: 64px; border-radius: 14px; overflow: hidden; cursor: pointer; border: 2px solid #ccc; flex-shrink: 0;">
+      <img src="${product.image}" style="width: 100%; height: 100%; object-fit: cover;" />
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="font-size: 14px; font-weight: 500;">${product.name || "Item"}</div>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <button onclick="changeQty(${p.id}, -1); updateSummary()" style="padding: 2px 8px; font-size: 16px;">−</button>
+        <span id="popup-qty-${p.id}" style="min-width: 24px; text-align: center;">${p.qty}</span>
+        <button onclick="changeQty(${p.id}, 1); updateSummary()" style="padding: 2px 8px; font-size: 16px;">+</button>
+        <button onclick="removeItem(${p.id})" style="padding: 2px 6px; font-size: 14px; color: red;">Remove</button>
       </div>
-
-      </div>`;
+      <div style="font-size: 13px;">= ₹${total}</div>
+    </div>
+  </div>`;
   });
 
   
@@ -2273,36 +2269,20 @@ function updateSummary() {
     subtotal += total;
 
     summaryHTML += `
-<div style="display: flex; align-items: center; gap: 10px;">
-  <div onclick="showPopup('${product.image}')" style="width: 64px; height: 64px; border-radius: 12px; overflow: hidden; border: 2px solid #ccc; flex-shrink: 0; margin-top: 8px; margin-bottom: 8px;">
-    <img src="${product.image}" style="width: 100%; height: 100%; object-fit: cover;" />
-  </div>
-  <div style="display: flex; flex-direction: column;">
-    <div style="font-size: 14px; font-weight: 500;">${product.name || "Item"}</div>
-    <div class="summary-qty" style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
-      <button onclick="changeQty(${p.id}, -1)" style="width: 28px; height: 28px; border-radius: 6px; font-size: 18px; font-weight: bold; background: #eee; border: none;">−</button>
-      <span id="qty-${p.id}" style="min-width: 24px; text-align: center;">${p.qty}</span>
-      <button onclick="changeQty(${p.id}, 1)" style="width: 28px; height: 28px; border-radius: 6px; font-size: 18px; font-weight: bold; background: #eee; border: none;">+</button>
-      <span style="font-size: 13px;">= ₹${total}</span>
-    </div>
-  </div>
-</div>
-        
       <div style="display: flex; align-items: center; gap: 10px;">
-        <div onclick="showPopup('${product.image}')" style="width: 64px; height: 64px; border-radius: 12px; overflow: hidden; border: 2px solid #ccc; flex-shrink: 0; margin-top: 8px; margin-bottom: 8px;">
+        <div onclick="showPopup('${product.image}')" style="width: 64px; height: 64px; border-radius: 14px; overflow: hidden; cursor: pointer; border: 2px solid #ccc; flex-shrink: 0;">
           <img src="${product.image}" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
-        <div style="display: flex; flex-direction: column;">
-          <div style="font-size: 14px; font-weight: 500;">${product.name || "Item"}</div>
-          <div class="summary-qty" style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
-            <button onclick="changeQty(${p.id}, -1)" style="width: 28px; height: 28px; border-radius: 6px; font-size: 18px; font-weight: bold; background: #eee; border: none;">−</button>
-            <span id="qty-${p.id}" style="min-width: 24px; text-align: center;">${p.qty}</span>
-            <button onclick="changeQty(${p.id}, 1)" style="width: 28px; height: 28px; border-radius: 6px; font-size: 18px; font-weight: bold; background: #eee; border: none;">+</button>
-            <span style="font-size: 13px;">= ₹${total}</span>
-          </div>
-        </div>
-      </div>
-
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+  <div style="font-size: 14px; font-weight: 500;">${product.name || "Item"}</div>
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <button onclick="changeQty(${p.id}, -1); updateSummary()" style="padding: 2px 8px; font-size: 16px;">−</button>
+    <span id="popup-qty-${p.id}" style="min-width: 24px; text-align: center;">${p.qty}</span>
+    <button onclick="changeQty(${p.id}, 1); updateSummary()" style="padding: 2px 8px; font-size: 16px;">+</button>
+    <button onclick="removeItem(${p.id})" style="padding: 2px 6px; font-size: 14px; color: red;">Remove</button>
+  </div>
+  <div style="font-size: 13px;">= ₹${total}</div>
+</div>
       </div>`;
   });
 
@@ -2320,19 +2300,5 @@ function updateSummary() {
   document.getElementById("summaryDetails").innerHTML = summaryHTML;
 }
 </script>
-
-<script>
-  function changeQty(i, delta) {
-    const el = document.getElementById(`qty-${i}`);
-    if (!el) return;
-    let qty = parseInt(el.textContent);
-    if (delta === -1 && qty > 1) qty--;
-    if (delta === 1) qty++;
-    el.textContent = qty;
-    updateUI();
-    updateSummary();
-  }
-</script>
-
 </body>
 </html>
