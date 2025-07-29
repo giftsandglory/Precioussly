@@ -464,7 +464,37 @@ down-toggle {
   </style>
 </head>
 <body>
-  
+  <!-- Header -->
+<header class="site-header">
+  <div class="hamburger-wrapper" onclick="toggleMenu()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;">
+    <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
+    <a href="" class="header-title" style="position: static; transform: none; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">Precioussly_</a>
+  </div>
+
+  <div style="display: flex; align-items: center;">
+    <img src="https://i.postimg.cc/8c050gYz/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
+  </div>
+</header>
+
+<!-- Announcement Bar -->
+<div id="announcementBar">🧿</div>
+
+<!-- Side Menu + Overlay -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">✕</span>
+  </div>
+  <hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;">
+  <div id="menuContent"></div>
+</nav>
 
   
 
@@ -745,6 +775,78 @@ down-toggle {
   const submenu = document.getElementById(id);
   submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
 }
+</script>
+<script>
+  // Toggle menu open/close
+  function toggleMenu() {
+    const menu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("menuOverlay");
+    const body = document.body;
+    const isOpen = menu.classList.contains("active");
+
+    if (isOpen) {
+      menu.classList.remove("active");
+      overlay.classList.remove("active");
+      body.classList.remove("no-scroll");
+    } else {
+      menu.classList.add("active");
+      overlay.classList.add("active");
+      body.classList.add("no-scroll");
+    }
+  }
+
+  // Announcement Bar (Google Sheet)
+  fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
+  // Menu from Google Sheet
+  fetch("https://opensheet.elk.sh/1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag/Sheet1")
+    .then(res => res.json())
+    .then(data => {
+      const menuContent = document.getElementById("menuContent");
+      const grouped = {};
+
+      data.forEach(item => {
+        const menu = item.Menu?.trim();
+        const sub = item.Submenu?.trim();
+        const link = item.Link?.trim();
+        if (!menu) return;
+
+        if (sub) {
+          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+          grouped[menu].subs.push({ name: sub, link });
+        } else {
+          grouped[menu] = { link, subs: [] };
+        }
+      });
+
+      Object.entries(grouped).forEach(([menu, info]) => {
+        if (info.subs.length === 0) {
+          menuContent.innerHTML += `<a href="${info.link}" class="menu-link" target="_blank">${menu}</a>`;
+        } else {
+          const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+          menuContent.innerHTML += `
+            <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+              <span>${menu}</span>
+              <span class="dropdown-icon">›</span>
+            </div>
+            <div class="submenu-container" id="${menuId}" style="display: none;">
+              ${info.subs.map(s => `<a href="${s.link}" class="submenu-link" target="_blank">› ${s.name}</a>`).join("")}
+            </div>
+          `;
+        }
+      });
+    });
+
+  function toggleSubmenu(id) {
+    const submenu = document.getElementById(id);
+    submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+  }
 </script>
 </body>
 </html>
