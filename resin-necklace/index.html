@@ -965,16 +965,13 @@ function closeProductPopup() {
 
 
     <div>
-<div id="popupDesc"></div>
-
-    <button onclick="addToCart()">Add to Cart</button>
-  </div>
-</div>
+ <div id="popupDesc"></div>
+<button onclick="addToCart()">Add to Cart</button>
 <script>
 function addToCart() {
   const name = document.getElementById("popupName").innerText.trim();
   const priceText = document.getElementById("popupPrice").innerText.trim();
-  const img = document.getElementById("popupImage").src;
+  const imgSrc = document.getElementById("popupImage").src;
 
   const priceMatch = priceText.match(/₹(\d+)/);
   const price = priceMatch ? parseInt(priceMatch[1]) : 0;
@@ -985,7 +982,7 @@ function addToCart() {
   if (existing) {
     existing.qty += 1;
   } else {
-    cartItems.push({ name, price, img, qty: 1 });
+    cartItems.push({ name, price, img: imgSrc, qty: 1 });
   }
 
   localStorage.setItem("cartItems", JSON.stringify(cartItems));
@@ -993,10 +990,35 @@ function addToCart() {
 
   // show confirmation
   const confirmDiv = document.createElement('div');
-  confirmDiv.innerText = "Item added to cart";
-  confirmDiv.style.cssText = "position:fixed;top:17px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:10px 16px;border-radius:10px;font-family:'Roboto Slab', serif;z-index:9999;";
+  confirmDiv.style.cssText = `
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f1f1f;
+    color: #fff;
+    padding: 10px 16px 10px 12px;
+    border-radius: 999px;
+    font-family: 'Roboto Slab', serif;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 9999;
+  `;
+
+  const img = document.createElement('img');
+  img.src = 'https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg';
+  img.style.cssText = 'width: 28px; height: 28px; border-radius: 50%; object-fit: cover;';
+
+  const text = document.createElement('span');
+  text.innerText = 'Item added to cart';
+
+  confirmDiv.appendChild(img);
+  confirmDiv.appendChild(text);
   document.body.appendChild(confirmDiv);
-  setTimeout(() => confirmDiv.remove(), 2000);
+  setTimeout(() => confirmDiv.remove(), 2200);
 }
 </script>
 <script>
@@ -1007,7 +1029,6 @@ function updateCartBadge() {
   const badge = document.getElementById("cartCountBadge");
   if (badge) badge.innerText = count;
 }
-updateCartBadge();
 </script>
 </body>
 </html>
