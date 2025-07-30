@@ -776,10 +776,16 @@ const link = rawLink && rawLink.startsWith("http") ? rawLink : `https://precious
         grid.className = "grid";
 
         products.forEach(p => {
-          const card = document.createElement("a");
-          card.href = p.link || "#";
+          const card = document.createElement("div");
 card.className = "card";
-card.target = "_blank"; // Optional: open in new tab
+card.style.cursor = "pointer";
+card.addEventListener("click", () => {
+  document.body.style.transition = "opacity 0.4s ease";
+  document.body.style.opacity = 0;
+  setTimeout(() => {
+    window.location.href = p.link;
+  }, 300);
+});
 
           card.innerHTML = `
             <img src="${p.img}" alt="${p.name}">
