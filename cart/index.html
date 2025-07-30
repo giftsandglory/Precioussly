@@ -7,177 +7,245 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
   <style>
-  .address-popup-box input::placeholder,
-.address-popup-box select {
-  color: #888;
-}
-
-.address-popup-box input,
-.address-popup-box select {
-  background: #fff;
-  border: 1px solid #ccc;
-  box-shadow: none;
-  outline: none;
-}
 .address-popup-overlay {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;      /* ✅ Perfect vertical center */
+  justify-content: center;  /* ✅ Perfect horizontal center */
+  padding: 16px;            /* ✅ Some space around */
+  box-sizing: border-box;
+  z-index: 1000;
 }
 
 .address-popup-box {
   background: #fff;
   width: 90%;
   max-width: 420px;
+  margin: 0 auto; /* horizontal centering */
   padding: 24px 20px;
   border-radius: 16px;
   position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.address-popup-box input,
-.address-popup-box select {
-  width: 100%;
-  padding: 14px;
-  margin-bottom: 16px;
-  border: 1.5px solid #ccc;
-  border-radius: 14px;
-  font-size: 15px;
-  font-family: 'Roboto', sans-serif;
-  box-shadow: none;
-  outline: none;
+  .address-popup-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: flex-start;   /* 👈 move to top */
+  justify-content: center;
+  padding-top: 50px;         /* 👈 adjust how much upar you want */
+  z-index: 1000;
+}
+
+.address-popup-box {
   background: #fff;
-  color: #333;
+  width: 90%;
+  max-width: 400px;
+  padding: 24px 20px;
+  border-radius: 16px;
+  position: relative;
+  animation: popupFadeIn 0.3s ease;
 }
 
-.address-popup-box .close-btn {
+@keyframes popupFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.close-btn {
   position: absolute;
-  top: 8px;
-  right: 10px;
+  top: 3px;
+  right: 3px;
   background: #fff;
-  border: 2px solid #ccc;
-  width: 24px;
-  height: 24px;
-  font-size: 16px;
+  border: 2px solid #888;
+  color: #888;
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  font-weight: bold;
   border-radius: 50%;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.button-row {
-  display: flex;
-  gap: 12px;
-  margin-top: 10px;
+.address-field {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+.address-field input {
+  width: 100%;
+  padding: 20px 12px 6px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: 'Segoe UI', sans-serif;
+  transition: all 0.2s ease;
+  background-color: transparent;
+}
+
+.address-field input:focus {
+  border-color: #696969;
+  outline: none;
+}
+
+.address-field label {
+  position: absolute;
+  top: 16px;
+  left: 14px;
+  font-size: 16px;
+  color: #999;
+  background: white;
+  padding: 0 4px;
+  transition: 0.2s ease all;
+  pointer-events: none;
+}
+
+.address-field input:focus + label,
+.address-field input:not(:placeholder-shown) + label {
+  top: -8px;
+  left: 12px;
+  font-size: 13px;
+  color: #696969;
+}
+.address-field select {
+  width: 100%;
+  padding: 20px 12px 6px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color: #000;
+
+  /* ✅ Custom arrow icon */
+  background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+
+  /* ✅ Smooth transition */
+  transition: border-color 0.3s ease;
+}
+
+/* 🔵 Blue border when focused */
+.address-field select:focus {
+  border-color: #1473E6;
+  outline: none;
 }
 
 .cancel-btn {
-  flex: 1;
   background: #e0e0e0;
-  color: #000;
-  padding: 12px;
+  color: #696969;
+  flex: 1;
+  font-weight: bold;
+  border-radius: 30px;
   border: none;
-  border-radius: 999px;
-  font-weight: 500;
+  padding: 10px;
 }
 
 .whatsapp-btn {
-  flex: 1;
-  background: #007bff;
+  background: #000;
   color: #fff;
-  padding: 12px;
+  flex: 1;
+  font-weight: bold;
+  border-radius: 30px;
   border: none;
-  border-radius: 999px;
-  font-weight: 500;
+  padding: 10px;
 }
+    .address-field {
+  position: relative;
+  margin-bottom: 22px;
 }
-    body {
-      font-family: 'Roboto', sans-serif;
-      margin: 0;
-      background: #fff;
-      color: #000;
+
+.address-field input {
+  width: 100%;
+  padding: 20px 12px 6px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: 'Segoe UI', sans-serif;
+  transition: all 0.2s ease;
+  background-color: transparent;
+}
+
+.address-field input:focus {
+  border-color: #1473E6;
+  outline: none;
+}
+
+.address-field label {
+  position: absolute;
+  top: 16px;
+  left: 14px;
+  font-size: 16px;
+  color: #999;
+  background: white;
+  padding: 0 4px;
+  transition: 0.2s ease all;
+  pointer-events: none;
+}
+
+.address-field input:focus + label,
+.address-field input:not(:placeholder-shown) + label {
+  top: -8px;
+  left: 12px;
+  font-size: 13px;
+  color: #1473E6;
+}
+
+
+    
+    .button-row {
+      display: flex; gap: 10px; margin-top: 10px;
     }
-    .container {
-      padding: 16px;
-      max-width: 500px;
-      margin: auto;
+    .cancel-btn { background: #e0e0e0; color: ##696969; flex: 1; }
+    .whatsapp-btn { background: #1473E6; color: #fff; flex: 1; }
+
+    .custom-popup {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fefefe; border: 3px solid #e2e2e2;
+      border-radius: 16px; padding: 20px;
+      width: 340px; max-width: 90%;
+      text-align: center; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      display: none; z-index: 1001;
     }
-    .section-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 12px;
+    .custom-popup p { margin-bottom: 16px; font-size: 14px; font-weight: 500; color: #111; }
+    .custom-popup button {
+      background: #1473E6; color: #fff;
+      padding: 8px 14px; font-size: 14px;
+      border: none; border-radius: 30px; cursor: pointer;
     }
-    .address, .items, .payment, .summary {
-      border-bottom: 1px solid #ddd;
-      padding: 12px 0;
-    }
-    .item {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    .item img {
-      width: 70px;
-      border-radius: 8px;
-    }
-    .item-info {
-      flex: 1;
-    }
-    .item-name {
-      font-weight: 500;
-      font-size: 16px;
-    }
-    .item-price {
-      font-size: 15px;
-      margin-top: 4px;
-    }
-    .qty-controls {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      margin-top: 8px;
-    }
-    .qty-btn {
-      width: 28px;
-      height: 28px;
-      border: 1px solid #000;
-      background: transparent;
-      font-size: 16px;
-      line-height: 26px;
-      text-align: center;
-      cursor: pointer;
-    }
-    .qty-count {
-      min-width: 24px;
-      text-align: center;
-    }
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      margin: 8px 0;
-    }
-    .proceed-btn {
-      width: 100%;
-      margin-top: 20px;
-      background: #000;
-      color: #fff;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: 500;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-  </style>
+    .address-field select:focus + label,
+.address-field select:not([value=""]):valid + label {
+  top: -8px;
+  left: 12px;
+  font-size: 13px;
+  color: #1473E6;
+}
+.address-field input,
+.address-field select {
+  transition: border-color 0.3s ease;
+#productGrid .product-box:last-child {
+  margin-bottom: 100px !important;
+}
+</style>
 </head>
 <body>
   <div class="container">
@@ -334,43 +402,43 @@
     </div>
   </div>
 </div>
-<!-- MODERN ADDRESS POPUP END -->
 <script>
-  function openAddressPopup() {
-    document.getElementById("addressPopup").style.display = "flex";
+function openAddressPopup() {
+  document.getElementById("addressPopup").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function closeAddressPopup() {
+  document.getElementById("addressPopup").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+function confirmAddress() {
+  const fullName = document.getElementById("fullname").value;
+  const state = document.getElementById("state").value;
+  const city = document.getElementById("city").value;
+  const pincode = document.getElementById("pincode").value;
+  const address = document.getElementById("address").value;
+  const phone = document.getElementById("phone").value;
+  const altphone = document.getElementById("altphone").value;
+
+  const finalAddress = `
+    <strong>${fullName}</strong><br>
+    ${address}, ${city}, ${state}, ${pincode}<br>
+    Phone: ${phone}${altphone ? ', Alt: ' + altphone : ''}
+  `;
+
+  localStorage.setItem("shippingAddress", finalAddress);
+  document.getElementById("displayAddress").innerHTML = finalAddress;
+  closeAddressPopup();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const saved = localStorage.getItem("shippingAddress");
+  if (saved) {
+    document.getElementById("displayAddress").innerHTML = saved;
   }
-
-  function closeAddressPopup() {
-    document.getElementById("addressPopup").style.display = "none";
-  }
-
-  function confirmAddress() {
-    const fullName = document.getElementById("fullname").value;
-    const state = document.getElementById("state").value;
-    const city = document.getElementById("city").value;
-    const pincode = document.getElementById("pincode").value;
-    const address = document.getElementById("address").value;
-    const phone = document.getElementById("phone").value;
-    const altphone = document.getElementById("altphone").value;
-
-    const finalAddress = `
-      <strong>${fullName}</strong><br>
-      ${address}, ${city}, ${state}, ${pincode}<br>
-      Phone: ${phone}${altphone ? ', Alt: ' + altphone : ''}
-    `;
-
-    localStorage.setItem("shippingAddress", finalAddress);
-    document.getElementById("displayAddress").innerHTML = finalAddress;
-    closeAddressPopup();
-  }
-
-  // On load, display saved address if any
-  document.addEventListener("DOMContentLoaded", () => {
-    const saved = localStorage.getItem("shippingAddress");
-    if (saved) {
-      document.getElementById("displayAddress").innerHTML = saved;
-    }
-  });
+});
 </script>
 </body>
 </html>
