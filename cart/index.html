@@ -239,14 +239,11 @@ button {
 
     <div class="items" id="cartItems"></div>
 
-    <div class="payment">
-      <strong>Payment Method</strong><br>
-      Pay Online – UPI, Cards, Wallets
-    </div>
+
 
     <div class="summary" id="summaryBox"></div>
 
-    <button class="proceed-btn" onclick="alert('Proceeding to Payment...')">Proceed to Pay</button>
+    <button class="proceed-btn" id="proceedBtn" onclick="alert('Proceeding to Payment...')">Proceed to Pay</button>
   </div>
 
 <script>
@@ -290,31 +287,53 @@ button {
     `;
 
     if (cartData.length === 0) {
-      container.innerHTML = "<p>Your cart is empty.</p>";
+      container.innerHTML = `
+  <div style="text-align:center; margin-top: 30px;">
+    <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" />
+    <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+  </div>
+`;
       document.getElementById("summaryBox").innerHTML = "";
       document.querySelector(".proceed-btn").style.display = "none";
     }
   });
 
   function increase(index) {
-    cartData[index].qty++;
-    localStorage.setItem("cartItems", JSON.stringify(cartData));
-    location.reload();
-  }
+  cartData[index].qty++;
+  document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
+  localStorage.setItem("cartItems", JSON.stringify(cartData));
+  updateSummary();
+}
 
   function decrease(index) {
-    if (cartData[index].qty > 1) {
-      cartData[index].qty--;
-      localStorage.setItem("cartItems", JSON.stringify(cartData));
-      location.reload();
-    }
+  if (cartData[index].qty > 1) {
+    cartData[index].qty--;
+    document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
+    localStorage.setItem("cartItems", JSON.stringify(cartData));
+    updateSummary();
   }
+}
+function updateSummary() {
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
+  const deliveryFee = 65;
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
+  `;
+}
 
   function removeItem(index) {
+  const itemDiv = document.getElementsByClassName('item')[index];
+  itemDiv.style.transition = "opacity 0.3s ease";
+  itemDiv.style.opacity = "0";
+  setTimeout(() => {
     cartData.splice(index, 1);
     localStorage.setItem("cartItems", JSON.stringify(cartData));
     location.reload();
-  }
+  }, 300);
+}
 
   function updateCartBadge() {
     const items = JSON.parse(localStorage.getItem("cartItems")) || [];
