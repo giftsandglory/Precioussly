@@ -1,180 +1,985 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Your Cart - Precioussly</title>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <title>Precioussly_</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Roboto', sans-serif;
+  .site-footer {
+  background: #fff;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 300;
+  font-size: 12px;
+  text-align: center;
+  padding: 10px 12px 14px;
+  border-top: 1px solid #e1e1e1;
+}
+
+.footer-text {
+  margin-bottom: 6px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.footer-links span {
+  user-select: none;
+  white-space: nowrap;
+}
+  .menu-divider {
+  width: 100vw;
+  height: 1px;
+  background-color: #e1dcd5;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+  .dropdown-icon {
+  font-size: 18px;
+  color: #000; /* black arrow */
+  font-family: 'Roboto Slab', serif;
+}
+  .header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 17px;
+  font-weight: 400;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+}
+  
+
+.side-menu.active {
+  left: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  z-index: 4000;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.menu-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.menu-link, .submenu-link {
+  display: block;
+  color: #5a3d2b;
+  text-decoration: none;
+  padding: 10px;
+  font-weight: 500;
+}
+
+.submenu-container {
+  margin-left: 15px;
+  padding-left: 10px;
+}
+    * {
       margin: 0;
-      background: #fff;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .site-header {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 16px; /* 🔁 increased from 12px */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  min-height: 72px;   /* ✅ added for height consistency */
+}
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hamburger-wrapper {
+  width: 24px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+
+  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue Android highlight */
+  touch-action: manipulation;               /* ✅ Prevent default touch delay */
+}
+
+    .hamburger-wrapper div {
+  width: 100%;
+  height: 3px;
+  background-color: #000; /* ✅ black */
+  border-radius: 2px;
+}
+
+    .logo-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .insta-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .insta-handle {
+  font-size: 17px;
+  color: #000; /* ✅ black */
+  font-weight: 500;
+}
+
+    .insta-handle a {
+      text-decoration: none;
       color: #000;
     }
-    .container {
-      padding: 16px;
-      max-width: 500px;
-      margin: auto;
+
+    .insta-handle a:hover {
+      text-decoration: underline;
     }
-    .section-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
-    .address, .items, .payment, .summary {
-      border-bottom: 1px solid #ddd;
-      padding: 12px 0;
-    }
-    .item {
+
+    .right-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue tap glow */
+  touch-action: manipulation;
+}
+
+    .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */ /* REMOVE THIS */
+  /* padding-top: 100px; */  /* REMOVE THIS */
+  z-index: 3000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+    .popup-box {
+  background-color: #ffffff;         /* white like header */
+  border: 2px solid #000;         /* premium brown */
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.4s ease;
+  pointer-events: none;
+  width: 90vw;
+  max-width: 320px;
+  position: absolute;
+  top: 120px;
+}
+
+    .popup-logo-row {
       display: flex;
+      justify-content: center;
+      align-items: center;
       gap: 12px;
-      align-items: center;
-      margin-bottom: 16px;
     }
-    .item img {
-      width: 70px;
-      border-radius: 8px;
+
+    .popup-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
     }
-    .item-info {
-      flex: 1;
-    }
-    .item-name {
-      font-weight: 500;
+
+    .popup-insta {
       font-size: 16px;
+      font-weight: 500;
+      color: #5a3d2b;
     }
-    .item-price {
+
+    .popup-insta a {
+      color: #5a3d2b;
+      text-decoration: none;
+    }
+
+    .popup-insta a:hover {
+      text-decoration: underline;
+    }
+
+    .popup-text {
+      color: #5a3d2b;
       font-size: 15px;
-      margin-top: 4px;
+      line-height: 1.6;
+      max-width: 90%;
+      word-wrap: break-word;
     }
-    .qty-controls {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      margin-top: 8px;
+
+    .close-btn {
+  position: absolute;
+  top: 8px;                 /* 🟢 adjust vertically inside */
+  right: 8px;               /* 🟢 adjust horizontally inside */
+  width: 22px;              /* 🟢 smaller size */
+  height: 22px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;          /* 🟢 smaller font */
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.close-btn:hover {
+  transform: scale(1.1);     /* hover zoom effect */
+}
+
+    #announcementBar {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #ffffff;
+  background: #000000;
+  border-top: none;
+  border-bottom: none;
+  font-weight: 500;
+  text-align: center;
+  font-family: 'Roboto Slab', serif; /* ✅ Use Roboto Slab */
+  min-height: 24px;
+  line-height: 22px;
+  user-select: none;
+}
+
+    @media (max-width: 480px) {
+      .logo-img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .insta-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      .insta-handle {
+        font-size: 15px;
+      }
+
+      .right-icon {
+        width: 26px;
+        height: 26px;
+      }
+
+      .hamburger-wrapper {
+        width: 22px;
+        height: 18px;
+      }
+
+      .hamburger-wrapper div {
+        height: 2.5px;
+      }
     }
-    .qty-btn {
-      width: 28px;
-      height: 28px;
-      border: 1px solid #000;
-      background: transparent;
-      font-size: 16px;
-      line-height: 26px;
-      text-align: center;
-      cursor: pointer;
-    }
-    .qty-count {
-      min-width: 24px;
-      text-align: center;
-    }
-    .coupon {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 8px;
-    }
-    .coupon button {
-      padding: 6px 12px;
-      border: 1px solid #000;
-      background: transparent;
-      cursor: pointer;
-    }
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      margin: 8px 0;
-    }
-    .proceed-btn {
-      width: 100%;
-      margin-top: 20px;
-      background: #000;
-      color: #fff;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: 500;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+  .overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.popup-box.active {
+  opacity: 1;
+  transform: translateY(-10px); /* Final position slightly above */
+  pointer-events: auto;
+}
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 300;
+  line-height: 1;
+  margin-top: 2px; /* ✅ Adjust vertically */
+}
+}
+
+.menu-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+}
+}
+}
+
+.menu-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000; /* 🔁 black */
+  font-family: 'Roboto Slab', serif;
+}
+
+.menu-close {
+  font-size: 24px;
+  font-weight: bold;
+  color: #000; /* ✅ black color */
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.menu-close:hover {
+  transform: scale(1.2);
+}
+
+/* Updated side-menu for premium look */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translateX(-100%);
+  width: 80%;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+  padding: 20px 16px;
+  overflow-y: auto;
+  z-index: 5000;
+  font-family: 'Roboto Slab', serif;
+
+  /* ✅ Ultra smooth animation */
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.side-menu.active {
+  transform: translateX(0%);
+}
+
+.menu-link {
+  font-size: 17px;
+  color: #000;
+  text-decoration: none;
+  padding: 14px 18px 14px 24px;
+  font-weight: 500;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: none !important; /* ✅ Remove the line */
+}
+
+.submenu-link {
+  font-size: 15px;
+  color: #444;
+  padding: 10px 20px 10px 36px;
+  text-decoration: none;
+  font-weight: 400;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #eaeaea; /* ✅ Light line for submenu */
+}
+down-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px 14px 24px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  border-bottom: 1px solid #e1dcd5;
+  cursor: pointer;
+}
+
+.down-icon {
+  font-size: 18px;
+  color: #000; /* 🔁 black */
+}
+.overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.popup-box.active {
+  opacity: 1;
+  transform: translateY(-10px);
+  pointer-events: auto;
+}
   </style>
+  <style>
+#productPopupBox {
+  max-width: 340px;
+  width: 90vw;
+  border-radius: 20px;
+  padding: 16px;
+  background: #fff;
+  border: 2px solid #000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+#productPopupBox img {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+#popupName {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  margin: 4px 0 2px;
+}
+
+#popupPrice {
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  margin-bottom: 6px;
+}
+
+#popupPrice s {
+  color: #888;
+}
+
+
+#popupDescToggle {
+  cursor: pointer;
+  font-size: 14px;
+  color: #000;
+  text-align: center;
+}
+
+#popupDesc {
+  font-size: 14px;
+  color: #444;
+  display: none;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+#productPopupBox button:last-child {
+  margin-top: 8px;
+  padding: 12px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="section-title">Confirm Order</div>
-
-    <div class="address">
-      <strong>Shipping Address</strong><br>
-      Burari, Uma garden, Near uma garden,<br>DELHI, DELHI - 110084
-    </div>
-
-    <div class="items" id="cartItems"></div>
-
-    <div class="payment">
-      <strong>Payment Method</strong><br>
-      Pay Online – UPI, Cards, Wallets
-    </div>
-
-    <div class="summary">
-      <div class="summary-row"><span>Item Total</span><span>₹450</span></div>
-      <div class="summary-row"><span>Delivery Fee</span><span>₹65</span></div>
-      <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹515</span></div>
-    </div>
-
-    <button class="proceed-btn" onclick="alert('Proceeding to Payment...')">Proceed to Pay</button>
+  <!-- Header -->
+<header class="site-header">
+  <div class="hamburger-wrapper" onclick="toggleMenu()">
+    <div></div>
+    <div></div>
+    <div></div>
   </div>
 
+  <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;">
+    <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
+    <a href="" class="header-title" style="position: static; transform: none; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">Precioussly_</a>
+  </div>
+
+  <div style="display: flex; align-items: center;">
+   <div style="display: flex; align-items: center;">
+  <a href="https://precioussly.com/cart/" style="display: flex;">
+    <img src="https://i.postimg.cc/8c050gYz/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
+  </a>
+</div>
+  </div>
+</header>
+
+<!-- Announcement Bar -->
+<div id="announcementBar">🧿</div>
+
+<!-- Side Menu + Overlay -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">✕</span>
+  </div>
+  <hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;">
+  <div id="menuContent"></div>
+</nav>
+
+  
+
+  <!-- Announcement Bar -->
+  
+
+<!-- 🔽 Product Grid Section -->
+<div id="productGrid" style="padding: 12px;"></div>
+
+<style>
+.section-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 8px 0 10px; /* 🔽 reduced top margin from 18px to 8px */
+  text-align: left;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+}
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .card {
+    position: relative;
+    text-decoration: none;
+    color: #000;
+  }
+
+  .card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 20px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .tag {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+.tag.pink {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: #f8c3d9;       /* soft pink */
+  color: #b0004d;                  /* rich pink text for contrast */
+  padding: 3px 7px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #f8c3d9;
+  font-weight: 600;                /* bold text for visibility */
+  font-family: 'Roboto Slab', serif;
+}
+  .info {
+    padding-top: 6px;
+    font-family: 'Roboto Slab', serif;
+  }
+
+  .name {
+    font-size: 15px;
+  }
+
+  .price {
+    font-size: 14px;
+    margin-top: 2px;
+  }
+
+  .price s {
+    color: #888;
+  }
+</style>
+<style>
+#productPopupBox,
+#popupName,
+#popupPrice,
+#popupPrice s,
+#popupDesc,
+#productPopupBox button {
+  font-family: 'Roboto Slab', serif !important;
+}
+  #categorySection {
+    padding: px px px; /* Top padding kam kiya */
+  }
+</style>
+
 <script>
-  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-  const shippingAddress = localStorage.getItem("shippingAddress") || "No address found";
+  const sheetURL = "https://opensheet.elk.sh/1HJ-BGRbSFbVWBVEl7rBxxyzleri7OtQX3nbmTQP_8p0/Sheet1";
 
-  const addressBox = document.querySelector(".address");
-  addressBox.innerHTML = `<strong>Shipping Address</strong><br>${shippingAddress}`;
+  fetch(sheetURL)
+    .then(res => res.json())
+    .then(rows => {
+      const container = document.getElementById("productGrid");
+      const grouped = {};
 
-  const container = document.getElementById("cartItems");
-  let total = 0;
+      rows.forEach(row => {
+        const title = row["Title"]?.trim();
+        const name = row["Product Name"]?.trim();
+        const img = row["Product Image"]?.trim();
+        const tag = row["Tag"]?.trim();
+        const mrp = row["MRP"]?.trim();
+        const price = row["Selling Price"]?.trim();
+        const link = row["Product Page Link"]?.trim() || "#";
+        if (!title || !name || !img) return;
+        if (!grouped[title]) grouped[title] = [];
+        grouped[title].push({ name, img, tag, mrp, price, link });
+      });
 
-  cartData.forEach((item, index) => {
-    total += item.price * item.qty;
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      <img src="${item.img}" />
-      <div class="item-info">
-        <div class="item-name">${item.name}</div>
-        <div class="item-price">₹${item.price}</div>
-        <div class="qty-controls">
-          <button class="qty-btn" onclick="decrease(${index})">-</button>
-          <span id="qty-${index}" class="qty-count">${item.qty}</span>
-          <button class="qty-btn" onclick="increase(${index})">+</button>
-        </div>
+      Object.entries(grouped).forEach(([title, products]) => {
+        const sectionTitle = document.createElement("div");
+        sectionTitle.className = "section-title";
+        sectionTitle.innerText = title;
+        container.appendChild(sectionTitle);
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+
+        products.forEach(p => {
+          const card = document.createElement("a");
+          card.href = "javascript:void(0)";
+card.className = "card";
+card.onclick = () => openProductPopup(p);
+
+          card.innerHTML = `
+            <img src="${p.img}" alt="${p.name}">
+            ${
+  p.tag === "Out of stock"
+    ? `<div class='tag'>Out of stock</div>`
+    : p.tag
+    ? `<div class='tag pink'>${p.tag}</div>`
+    : ""
+}
+            <div class="info">
+              <div class="name">${p.name}</div>
+              <div class="price"><s>₹${p.mrp}</s> &nbsp; <b>₹${p.price}</b></div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+
+        container.appendChild(grid);
+      });
+    });
+</script>
+
+
+  <!-- Popup -->
+  <div class="overlay" id="popupOverlay" onclick="closePopupOnOutside(event)">
+  <div class="popup-box" onclick="event.stopPropagation()">
+    <button class="close-btn" onclick="togglePopup()">×</button>
+
+    <div class="popup-logo-row">
+      <img class="popup-logo" src="https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png" alt="Popup Logo" />
+      <div class="popup-insta">
+        <a href="https://www.instagram.com/giftsandglory_/" target="_blank">@Precioussly_</a>
+      </div>
+    </div>
+
+    <div class="popup-text">
+      • Every moment deserves a little glory ✨<br>
+      • Make it memorable with <a href="https://www.instagram.com/giftsandglory_/" target="_blank">@Precioussly_</a><br>
+      • Fashion Jewellery • Real Flowers Jewels 🌹 • Keychains & more
+    </div>
+    
+</div>
+</div>
+
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+  <div class="menu-brand">
+    <img src="https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png" alt="Logo" class="menu-logo" />
+    <span class="menu-text">Precioussly_</span>
+  </div>
+  <span class="menu-close" onclick="toggleMenu()">✕</span>
+</div>
+
+  
+  <div id="menuContent"></div>
+</nav>
+<!-- Menu Overlay -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+<!-- Side Menu -->
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">✕</span>
+  </div>
+  <hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;">
+  <div id="menuContent"></div>
+</nav>
+
+<!-- 🔽 Final Working Script -->
+<script>
+  // Popup function
+  function togglePopup() {
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = overlay.querySelector(".popup-box");
+    const isOpen = overlay.classList.contains("active");
+    overlay.classList.toggle("active", !isOpen);
+    popupBox.classList.toggle("active", !isOpen);
+  }
+
+  // Hamburger toggle function
+  function toggleMenu() {
+  const menu = document.getElementById("sideMenu");      // ✅ matches your <nav id="sideMenu">
+  const overlay = document.getElementById("menuOverlay"); // ✅ matches your <div id="menuOverlay">
+
+  menu.classList.toggle("active");
+  overlay.classList.toggle("active");
+}
+  // 🔽 POPUP DATA FROM SHEET
+  const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
+
+  fetch(sheetURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const row = data[0];
+        const logo = document.querySelector(".popup-logo");
+        if (row.popup_logo) logo.src = row.popup_logo;
+
+        const popupText = document.querySelector(".popup-text");
+        if (row.popup_text) popupText.innerHTML = row.popup_text;
+
+        const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
+        instaLinks.forEach(link => {
+          if (row.popup_insta_link) link.href = row.popup_insta_link;
+          if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
+        });
+      }
+    });
+
+  // 🔽 MENU DATA FROM SHEET
+  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+
+  fetch(menuURL)
+    .then(res => res.json())
+    .then(data => {
+      const menuContent = document.getElementById("menuContent");
+      const grouped = {};
+
+      data.forEach(item => {
+        const menu = item.Menu?.trim();
+        const sub = item.Submenu?.trim();
+        const link = item.Link?.trim();
+        if (!menu) return;
+
+        if (sub) {
+          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+          grouped[menu].subs.push({ name: sub, link });
+        } else {
+          grouped[menu] = { link, subs: [] };
+        }
+      });
+
+      Object.entries(grouped).forEach(([menu, info]) => {
+  if (info.subs.length === 0) {
+    menuContent.innerHTML += `<a href="${info.link}" class="menu-link" target="_blank">${menu}</a>`;
+  } else {
+    const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+    menuContent.innerHTML += `
+      <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+        <span>${menu}</span>
+        <span class="dropdown-icon">›</span>
+      </div>
+      <div class="submenu-container" id="${menuId}" style="display: none;">
+        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link" target="_blank">› ${s.name}</a>`).join("")}
       </div>
     `;
-    container.appendChild(div);
-  });
-
-  // Update summary totals
-  const itemTotal = document.querySelector(".item-total");
-  const deliveryFee = 65;
-  document.querySelector(".summary").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
-  `;
-
-  function increase(index) {
-    cartData[index].qty++;
-    localStorage.setItem("cartItems", JSON.stringify(cartData));
-    document.getElementById("qty-" + index).innerText = cartData[index].qty;
-    location.reload();
   }
+});
+    });
+    function toggleSubmenu(id) {
+  const submenu = document.getElementById(id);
+  submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+<script>
+  // Toggle menu open/close
+  function toggleMenu() {
+    const menu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("menuOverlay");
+    const body = document.body;
+    const isOpen = menu.classList.contains("active");
 
-  function decrease(index) {
-    if (cartData[index].qty > 1) {
-      cartData[index].qty--;
-      localStorage.setItem("cartItems", JSON.stringify(cartData));
-      document.getElementById("qty-" + index).innerText = cartData[index].qty;
-      location.reload();
+    if (isOpen) {
+      menu.classList.remove("active");
+      overlay.classList.remove("active");
+      body.classList.remove("no-scroll");
+    } else {
+      menu.classList.add("active");
+      overlay.classList.add("active");
+      body.classList.add("no-scroll");
     }
   }
+
+  // Announcement Bar (Google Sheet)
+  fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
+  // Menu from Google Sheet
+  fetch("https://opensheet.elk.sh/1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag/Sheet1")
+    .then(res => res.json())
+    .then(data => {
+      const menuContent = document.getElementById("menuContent");
+      const grouped = {};
+
+      data.forEach(item => {
+        const menu = item.Menu?.trim();
+        const sub = item.Submenu?.trim();
+        const link = item.Link?.trim();
+        if (!menu) return;
+
+        if (sub) {
+          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+          grouped[menu].subs.push({ name: sub, link });
+        } else {
+          grouped[menu] = { link, subs: [] };
+        }
+      });
+
+      Object.entries(grouped).forEach(([menu, info]) => {
+        if (info.subs.length === 0) {
+          menuContent.innerHTML += `<a href="${info.link}" class="menu-link" target="_blank">${menu}</a>`;
+        } else {
+          const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+          menuContent.innerHTML += `
+            <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+              <span>${menu}</span>
+              <span class="dropdown-icon">›</span>
+            </div>
+            <div class="submenu-container" id="${menuId}" style="display: none;">
+              ${info.subs.map(s => `<a href="${s.link}" class="submenu-link" target="_blank">› ${s.name}</a>`).join("")}
+            </div>
+          `;
+        }
+      });
+    });
+
+  function toggleSubmenu(id) {
+    const submenu = document.getElementById(id);
+    submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+  }
+</script>
+<script>
+function openProductPopup(product) {
+  document.getElementById("popupImage").src = product.img;
+  document.getElementById("popupName").innerText = product.name;
+  document.getElementById("popupPrice").innerHTML = `<s>₹${product.mrp}</s> &nbsp; <b>₹${product.price}</b>`;
+  document.getElementById("popupDesc").innerText = product.desc || "No description available.";
+
+  document.getElementById("productPopupOverlay").classList.add("active");
+  document.getElementById("productPopupBox").classList.add("active");
+}
+
+function closeProductPopup() {
+  document.getElementById("productPopupOverlay").classList.remove("active");
+  document.getElementById("productPopupBox").classList.remove("active");
+}
+
+</script>
+<div class="overlay" id="productPopupOverlay" onclick="closeProductPopup()">
+  <div class="popup-box" id="productPopupBox" onclick="event.stopPropagation()">
+    <button class="close-btn" onclick="closeProductPopup()">×</button>
+
+    <img id="popupImage" />
+    <h2 id="popupName"></h2>
+    <p id="popupPrice"></p>
+
+
+
+    <div>
+<div id="popupDesc"></div>
+
+    <button onclick="addToCart()">Add to Cart</button>
+  </div>
+</div>
+<script>
+function addToCart() {
+  const name = document.getElementById("popupName").innerText;
+  const price = document.getElementById("popupPrice").innerText;
+  const img = document.getElementById("popupImage").src;
+
+  const cartItem = { name, price, img };
+  localStorage.setItem("cartItem", JSON.stringify(cartItem));
+
+  window.location.href = "https://precioussly.com/cart/";
+}
 </script>
 </body>
 </html>
