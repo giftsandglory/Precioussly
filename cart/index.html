@@ -26,7 +26,32 @@
   </style>
 </head>
 <body>
-  <h1>Your cart is empty</h1>
-  <button onclick="window.location.href='https://precioussly.com'">Continue Shopping</button>
+  <div id="cartContent"></div>
+
+  <script>
+    const cartData = localStorage.getItem("cartItem");
+    const container = document.getElementById("cartContent");
+
+    if (cartData) {
+      const item = JSON.parse(cartData);
+      container.innerHTML = `
+        <h1>Cart</h1>
+        <img src="${item.img}" style="width: 150px; border-radius: 12px; margin-bottom: 12px;" />
+        <div style="font-size: 18px; font-weight: bold;">${item.name}</div>
+        <div style="font-size: 16px; color: #444;">${item.price}</div>
+        <br>
+        <button onclick="checkout()">Proceed to Checkout</button>
+      `;
+    } else {
+      container.innerHTML = `
+        <h1>Your cart is empty</h1>
+        <button onclick="window.location.href='https://precioussly.com'">Continue Shopping</button>
+      `;
+    }
+
+    function checkout() {
+      alert("Checkout logic not implemented.");
+    }
+  </script>
 </body>
 </html>
