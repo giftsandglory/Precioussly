@@ -555,9 +555,10 @@ down-toggle {
 
   <div style="display: flex; align-items: center;">
    <div style="display: flex; align-items: center;">
-  <a href="https://precioussly.com/cart/" style="display: flex;">
-    <img src="https://i.postimg.cc/8c050gYz/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
-  </a>
+<a href="https://precioussly.com/cart/" style="position: relative;">
+  <img src="https://i.postimg.cc/8c050gYz/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
+  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: black; color: white; font-size: 12px; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+</a>
 </div>
   </div>
 </header>
@@ -971,15 +972,42 @@ function closeProductPopup() {
 </div>
 <script>
 function addToCart() {
-  const name = document.getElementById("popupName").innerText;
-  const price = document.getElementById("popupPrice").innerText;
+  const name = document.getElementById("popupName").innerText.trim();
+  const priceText = document.getElementById("popupPrice").innerText.trim();
   const img = document.getElementById("popupImage").src;
 
-  const cartItem = { name, price, img };
-  localStorage.setItem("cartItem", JSON.stringify(cartItem));
+  const priceMatch = priceText.match(/₹(\d+)/);
+  const price = priceMatch ? parseInt(priceMatch[1]) : 0;
 
-  window.location.href = "https://precioussly.com/cart/";
+  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+  const existing = cartItems.find(item => item.name === name);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cartItems.push({ name, price, img, qty: 1 });
+  }
+
+  localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  updateCartBadge();
+
+  // show confirmation
+  const confirmDiv = document.createElement('div');
+  confirmDiv.innerText = "Item added to cart";
+  confirmDiv.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:10px 16px;border-radius:10px;font-family:'Roboto Slab', serif;z-index:9999;";
+  document.body.appendChild(confirmDiv);
+  setTimeout(() => confirmDiv.remove(), 2000);
 }
+</script>
+<script>
+function updateCartBadge() {
+  const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let count = 0;
+  items.forEach(item => count += item.qty);
+  const badge = document.getElementById("cartCountBadge");
+  if (badge) badge.innerText = count;
+}
+updateCartBadge();
 </script>
 </body>
 </html>
