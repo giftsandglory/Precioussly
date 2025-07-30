@@ -6,42 +6,6 @@
   <title>Product - Precioussly</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
-  .add-to-cart-btn:disabled {
-  background: #999 !important;
-  cursor: not-allowed;
-  opacity: 1;
-}
-.image-container {
-  position: relative;
-  display: inline-block;
-}
-
-.tag {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 6px;
-  font-family: 'Roboto Slab', serif;
-  font-weight: 600;
-}
-
-.tag.out-of-stock {
-  background-color: rgba(0, 0, 0, 0.7);  /* translucent black */
-  color: #fff;                           /* white text */
-  font-size: 13px;
-  padding: 6px 12px;
-  border-radius: 10px;
-  font-weight: 500;
-  font-family: 'Roboto Slab', serif;
-}
-
-.tag.pink {
-  background-color: #f8c3d9;
-  color: #b0004d;
-  border: 1px solid #f8c3d9;
-}
     body {
       font-family: 'Roboto Slab', serif;
       margin: 0;
@@ -94,15 +58,13 @@
 </head>
 <body>
   <div class="container">
-    <div class="image-container">
-  <img id="productImage" src="" alt="Product Image">
-  <div class="tag" id="productTag"></div>
-</div>
+    <img id="productImage" src="" alt="Product Image">
+    <div class="tag" id="productTag"></div>
     <div class="name" id="productName"></div>
     <div class="price" id="productPrice"></div>
     <button class="add-to-cart-btn" onclick="addToCart()">Add to Cart</button>
   </div>
-  <!-- ✅ At the bottom, just before </body> -->
+
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const productName = urlParams.get("name")?.trim();
@@ -112,7 +74,7 @@
     fetch(sheetURL)
       .then(res => res.json())
       .then(data => {
-        const product = data.find(p => p["Product Name"]?.trim().toLowerCase() === productName.toLowerCase());
+        const product = data.find(p => p["Product Name"]?.trim() === productName);
         if (!product) {
           document.body.innerHTML = "<p style='text-align:center;font-size:18px;'>Product not found</p>";
           return;
@@ -120,35 +82,8 @@
         document.getElementById("productImage").src = product["Product Image"];
         document.getElementById("productName").innerText = product["Product Name"];
         document.getElementById("productPrice").innerHTML = `<s>₹${product["MRP"]}</s> <b>₹${product["Selling Price"]}</b>`;
-        
-        const tagElement = document.getElementById("productTag");
-const addBtn = document.querySelector(".add-to-cart-btn");
-
-if (product["Tag"]) {
-  tagElement.innerText = product["Tag"];
-
-  if (product["Tag"].toLowerCase() === "out of stock") {
-    tagElement.className = "tag out-of-stock";
-
-    // Disable Add to Cart
-    addBtn.innerText = "Out of Stock";
-    addBtn.disabled = true;
-    addBtn.style.background = "#999";
-    addBtn.style.cursor = "not-allowed";
-  } else {
-    tagElement.className = "tag pink";
-    addBtn.disabled = false;
-    addBtn.innerText = "Add to Cart";
-    addBtn.style.background = "#007bff";
-    addBtn.style.cursor = "pointer";
-  }
-} else {
-  tagElement.style.display = "none";
-  addBtn.disabled = false;
-  addBtn.innerText = "Add to Cart";
-  addBtn.style.background = "#007bff";
-  addBtn.style.cursor = "pointer";
-}
+        document.getElementById("productTag").innerText = product["Tag"] || "";
+      });
 
     function addToCart() {
       const name = document.getElementById("productName").innerText;
