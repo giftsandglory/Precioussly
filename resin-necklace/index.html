@@ -524,18 +524,23 @@ down-toggle {
   margin-top: 6px;
   line-height: 1.4;
 }
-
-#productPopupBox button:last-child {
-  margin-top: 8px;
-  padding: 12px;
-  background: #000;
+.add-to-cart-btn {
+  margin-top: 12px;
+  padding: 14px;
+  background: #007bff;
   color: #fff;
   border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: bold;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   width: 100%;
+  transition: background 0.3s ease;
+  font-family: 'Roboto Slab', serif;
+}
+
+.add-to-cart-btn:hover {
+  background: #0056b3;
 }
 </style>
 </head>
@@ -961,12 +966,8 @@ function closeProductPopup() {
     <img id="popupImage" />
     <h2 id="popupName"></h2>
     <p id="popupPrice"></p>
-
-
-
-    <div>
- <div id="popupDesc"></div>
-<button onclick="addToCart()">Add to Cart</button>
+    <div id="popupDesc"></div>
+<button class="add-to-cart-btn" onclick="addToCart()">Add to Cart</button>
 <script>
 function addToCart() {
   const name = document.getElementById("popupName").innerText.trim();
