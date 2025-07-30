@@ -129,7 +129,7 @@ button {
 
 /* POLISHED ADDRESS POPUP */
 .address-popup-overlay {
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: flex-start;
   position: fixed;
@@ -404,12 +404,6 @@ function confirmAddress() {
   closeAddressPopup();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const saved = localStorage.getItem("shippingAddress");
-  if (saved) {
-    document.getElementById("displayAddress").innerHTML = saved;
-  }
-});
 </script>
 </body>
 </html>
