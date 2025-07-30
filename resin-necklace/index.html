@@ -461,7 +461,83 @@ down-toggle {
   font-size: 18px;
   color: #000; /* 🔁 black */
 }
+.overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.popup-box.active {
+  opacity: 1;
+  transform: translateY(-10px);
+  pointer-events: auto;
+}
   </style>
+  <style>
+#productPopupBox {
+  max-width: 340px;
+  width: 90vw;
+  border-radius: 20px;
+  padding: 16px;
+  background: #fff;
+  border: 2px solid #000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+#productPopupBox img {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+#popupName {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  margin: 4px 0 2px;
+}
+
+#popupPrice {
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  margin-bottom: 6px;
+}
+
+#popupPrice s {
+  color: #888;
+}
+
+
+#popupDescToggle {
+  cursor: pointer;
+  font-size: 14px;
+  color: #000;
+  text-align: center;
+}
+
+#popupDesc {
+  font-size: 14px;
+  color: #444;
+  display: none;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+#productPopupBox button:last-child {
+  margin-top: 8px;
+  padding: 12px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+</style>
 </head>
 <body>
   <!-- Header -->
@@ -580,6 +656,14 @@ down-toggle {
   }
 </style>
 <style>
+#productPopupBox,
+#popupName,
+#popupPrice,
+#popupPrice s,
+#popupDesc,
+#productPopupBox button {
+  font-family: 'Roboto Slab', serif !important;
+}
   #categorySection {
     padding: px px px; /* Top padding kam kiya */
   }
@@ -618,9 +702,9 @@ down-toggle {
 
         products.forEach(p => {
           const card = document.createElement("a");
-          card.href = p.link;
-          card.className = "card";
-          card.target = "_blank";
+          card.href = "javascript:void(0)";
+card.className = "card";
+card.onclick = () => openProductPopup(p);
 
           card.innerHTML = `
             <img src="${p.img}" alt="${p.name}">
@@ -851,6 +935,51 @@ down-toggle {
     const submenu = document.getElementById(id);
     submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
   }
+</script>
+<script>
+function openProductPopup(product) {
+  document.getElementById("popupImage").src = product.img;
+  document.getElementById("popupName").innerText = product.name;
+  document.getElementById("popupPrice").innerHTML = `<s>₹${product.mrp}</s> &nbsp; <b>₹${product.price}</b>`;
+  document.getElementById("popupDesc").innerText = product.desc || "No description available.";
+
+  document.getElementById("productPopupOverlay").classList.add("active");
+  document.getElementById("productPopupBox").classList.add("active");
+}
+
+function closeProductPopup() {
+  document.getElementById("productPopupOverlay").classList.remove("active");
+  document.getElementById("productPopupBox").classList.remove("active");
+}
+
+</script>
+<div class="overlay" id="productPopupOverlay" onclick="closeProductPopup()">
+  <div class="popup-box" id="productPopupBox" onclick="event.stopPropagation()">
+    <button class="close-btn" onclick="closeProductPopup()">×</button>
+
+    <img id="popupImage" />
+    <h2 id="popupName"></h2>
+    <p id="popupPrice"></p>
+
+
+
+    <div>
+<div id="popupDesc"></div>
+
+    <button onclick="addToCart()">Add to Cart</button>
+  </div>
+</div>
+<script>
+function addToCart() {
+  const name = document.getElementById("popupName").innerText;
+  const price = document.getElementById("popupPrice").innerText;
+  const img = document.getElementById("popupImage").src;
+
+  const cartItem = { name, price, img };
+  localStorage.setItem("cartItem", JSON.stringify(cartItem));
+
+  window.location.href = "https://precioussly.com/cart/";
+}
 </script>
 </body>
 </html>
