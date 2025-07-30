@@ -710,6 +710,10 @@ down-toggle {
   #categorySection {
     padding: px px px; /* Top padding kam kiya */
   }
+  @keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 </style>
 
 <script>
@@ -999,49 +1003,60 @@ function closeProductPopup() {
 <div class="overlay" id="productPopupOverlay" onclick="closeProductPopup()">
   <div class="popup-box" id="productPopupBox" onclick="event.stopPropagation()">
     <button class="close-btn" onclick="closeProductPopup()">×</button>
+<!-- ✅ Inside your #productPopupBox -->
+<img id="popupImage" />
+<h2 id="popupName"></h2>
+<p id="popupPrice"></p>
+<div id="popupDesc"></div>
 
-    <img id="popupImage" />
-    <h2 id="popupName"></h2>
-    <p id="popupPrice"></p>
-    <div id="popupDesc"></div>
-<button class="add-to-cart-btn" onclick="addToCart()">Add to Cart</button>
+<!-- ✅ Single Add to Cart button -->
+<button id="addToCartBtn" class="add-to-cart-btn" onclick="addToCart()">Add to Cart</button>
 <script>
 function addToCart() {
-  const name = document.getElementById("popupName").innerText.trim();
-  const priceText = document.getElementById("popupPrice").innerText.trim();
-  const imgSrc = document.getElementById("popupImage").src;
+  const btn = document.getElementById("addToCartBtn");
+  const originalText = btn.innerHTML;
 
-  const priceMatch = priceText.match(/₹(\d+)/);
-  const price = priceMatch ? parseInt(priceMatch[1]) : 0;
+  // Show loading spinner
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner" style="height: 18px; width: 18px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>`;
 
-  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
-
-  const existing = cartItems.find(item => item.name === name);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    cartItems.push({ name, price, img: imgSrc, qty: 1 });
-  }
-
-  localStorage.setItem("cartItems", JSON.stringify(cartItems));
-  updateCartBadge();
-
-  // Show confirmation banner
-  const confirmDiv = document.createElement('div');
-  confirmDiv.id = 'cart-confirm-banner';
-  confirmDiv.innerHTML = `
-    <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" alt="Logo" />
-    <span>Item added to cart</span>
-  `;
-  document.body.appendChild(confirmDiv);
-
-  // Trigger fade-in
-  setTimeout(() => confirmDiv.classList.add('show'), 50);
-
-  // Remove after 2.2s
   setTimeout(() => {
-    confirmDiv.classList.remove('show');
-    setTimeout(() => confirmDiv.remove(), 500);
+    const name = document.getElementById("popupName").innerText.trim();
+    const priceText = document.getElementById("popupPrice").innerText.trim();
+    const imgSrc = document.getElementById("popupImage").src;
+
+    const priceMatch = priceText.match(/₹(\d+)/);
+    const price = priceMatch ? parseInt(priceMatch[1]) : 0;
+
+    const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+    const existing = cartItems.find(item => item.name === name);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cartItems.push({ name, price, img: imgSrc, qty: 1 });
+    }
+
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    updateCartBadge();
+
+    // Restore button text
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+
+    // Show confirmation popup
+    const confirmDiv = document.createElement('div');
+    confirmDiv.id = 'cart-confirm-banner';
+    confirmDiv.innerHTML = `
+      <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" alt="Logo" />
+      <span>Item added to cart</span>
+    `;
+    document.body.appendChild(confirmDiv);
+    setTimeout(() => confirmDiv.classList.add('show'), 50);
+    setTimeout(() => {
+      confirmDiv.classList.remove('show');
+      setTimeout(() => confirmDiv.remove(), 500);
+    }, 2000);
   }, 1000);
 }
 </script>
