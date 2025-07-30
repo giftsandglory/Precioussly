@@ -101,10 +101,10 @@
   <div class="container">
     <div class="section-title">Confirm Order</div>
 
-    <div class="address">
-      <strong>Shipping Address</strong><br>
-      Burari, Uma garden, Near uma garden,<br>DELHI, DELHI - 110084
-    </div>
+  <div class="address">
+  <strong>Shipping Address</strong><br>
+  <textarea id="addressInput" rows="4" placeholder="Enter your full address here" style="width: 100%; margin-top: 6px; padding: 8px; border: 1px solid #ccc; border-radius: 6px;"></textarea>
+</div>
 
     <div class="items" id="cartItems"></div>
 
@@ -125,6 +125,17 @@
 <script>
   const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
   const shippingAddress = localStorage.getItem("shippingAddress") || "No address found";
+  
+  document.addEventListener("DOMContentLoaded", () => {
+  const addressInput = document.getElementById("addressInput");
+  if (shippingAddress !== "No address found") {
+    addressInput.value = shippingAddress;
+  }
+
+  addressInput.addEventListener("input", () => {
+    localStorage.setItem("shippingAddress", addressInput.value);
+  });
+});
 
   const addressBox = document.querySelector(".address");
   addressBox.innerHTML = `<strong>Shipping Address</strong><br>${shippingAddress}`;
