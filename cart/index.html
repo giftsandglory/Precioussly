@@ -91,10 +91,11 @@
   <div class="container">
     <div class="section-title">Confirm Order</div>
 
-    <div class="address">
-      <strong>Shipping Address</strong><br>
-      <textarea id="addressInput" rows="4" placeholder="Enter your full address here" style="width: 100%; margin-top: 6px; padding: 8px; border: 1px solid #ccc; border-radius: 6px;"></textarea>
-    </div>
+<div class="address">
+  <strong>Shipping Address</strong><br>
+  <div id="displayAddress" style="margin-top: 6px;"></div>
+  <button onclick="openAddressPopup()" style="margin-top: 10px; padding: 8px 12px; background: #000; color: #fff; border: none; border-radius: 6px;">Add / Edit Address</button>
+</div>
 
     <div class="items" id="cartItems"></div>
 
@@ -188,6 +189,97 @@
   }
 
   updateCartBadge();
+</script>
+<div class="address-popup-overlay" id="addressPopup" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 9999;">
+  <div class="address-popup-box" style="background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; position: relative;">
+    <span class="close-btn" onclick="closeAddressPopup()" style="position: absolute; top: 10px; right: 14px; font-size: 22px; cursor: pointer;">×</span>
+    <div class="address-field"><input id="fullname" placeholder=" " style="width:100%;padding:10px;margin-top:10px"/><label for="fullname">Full Name</label></div>
+    <div class="address-field">
+      <select id="state" required style="width:100%;padding:10px;margin-top:10px">
+        <option disabled hidden selected value=""></option>
+        <option>Andhra Pradesh</option>
+        <option>Arunachal Pradesh</option>
+        <option>Assam</option>
+        <option>Bihar</option>
+        <option>Chandigarh</option>
+        <option>Chhattisgarh</option>
+        <option>Delhi</option>
+        <option>Goa</option>
+        <option>Gujarat</option>
+        <option>Haryana</option>
+        <option>Himachal Pradesh</option>
+        <option>Jammu and Kashmir</option>
+        <option>Jharkhand</option>
+        <option>Karnataka</option>
+        <option>Kerala</option>
+        <option>Ladakh</option>
+        <option>Madhya Pradesh</option>
+        <option>Maharashtra</option>
+        <option>Manipur</option>
+        <option>Meghalaya</option>
+        <option>Mizoram</option>
+        <option>Nagaland</option>
+        <option>Odisha</option>
+        <option>Puducherry</option>
+        <option>Punjab</option>
+        <option>Rajasthan</option>
+        <option>Sikkim</option>
+        <option>Tamil Nadu</option>
+        <option>Telangana</option>
+        <option>Tripura</option>
+        <option>Uttar Pradesh</option>
+        <option>Uttarakhand</option>
+        <option>West Bengal</option>
+      </select>
+      <label for="state">Select your state</label>
+    </div>
+    <div class="address-field"><input id="city" placeholder=" " style="width:100%;padding:10px;margin-top:10px"/><label for="city">City</label></div>
+    <div class="address-field"><input id="pincode" placeholder=" " style="width:100%;padding:10px;margin-top:10px"/><label for="pincode">Pincode</label></div>
+    <div class="address-field"><input id="address" placeholder=" " style="width:100%;padding:10px;margin-top:10px"/><label for="address">Your Full Address</label></div>
+    <div class="address-field"><input id="phone" placeholder=" " style="width:100%;padding:10px;margin-top:10px"/><label for="phone">Phone Number</label></div>
+    <div class="address-field"><input id="altphone" placeholder=" " style="width:100%;padding:10px;margin-top:10px"/><label for="altphone">Alternate Phone (Optional)</label></div>
+    <div class="button-row" style="display:flex;justify-content:space-between;margin-top:14px;">
+      <button class="cancel-btn" onclick="closeAddressPopup()" style="padding: 10px 16px; background: #aaa; color: #fff; border: none; border-radius: 6px;">Cancel</button>
+      <button class="whatsapp-btn" onclick="confirmAddress()" style="padding: 10px 16px; background: #000; color: #fff; border: none; border-radius: 6px;">Confirm Address</button>
+    </div>
+  </div>
+</div>
+<script>
+  function openAddressPopup() {
+    document.getElementById("addressPopup").style.display = "flex";
+  }
+
+  function closeAddressPopup() {
+    document.getElementById("addressPopup").style.display = "none";
+  }
+
+  function confirmAddress() {
+    const fullName = document.getElementById("fullname").value;
+    const state = document.getElementById("state").value;
+    const city = document.getElementById("city").value;
+    const pincode = document.getElementById("pincode").value;
+    const address = document.getElementById("address").value;
+    const phone = document.getElementById("phone").value;
+    const altphone = document.getElementById("altphone").value;
+
+    const finalAddress = `
+      <strong>${fullName}</strong><br>
+      ${address}, ${city}, ${state}, ${pincode}<br>
+      Phone: ${phone}${altphone ? ', Alt: ' + altphone : ''}
+    `;
+
+    localStorage.setItem("shippingAddress", finalAddress);
+    document.getElementById("displayAddress").innerHTML = finalAddress;
+    closeAddressPopup();
+  }
+
+  // On load, display saved address if any
+  document.addEventListener("DOMContentLoaded", () => {
+    const saved = localStorage.getItem("shippingAddress");
+    if (saved) {
+      document.getElementById("displayAddress").innerHTML = saved;
+    }
+  });
 </script>
 </body>
 </html>
