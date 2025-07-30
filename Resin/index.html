@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Precioussly_</title>
+  <title>Precioussly</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
   .site-footer {
@@ -475,9 +475,10 @@ down-toggle {
 
   <a href="" class="header-title" style="text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">Precioussly_</a>
 
-  <div style="display: flex; gap: 12px; align-items: center;">
-    <img src="https://i.postimg.cc/8c050gYz/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
-    <img src="https://i.postimg.cc/FHm5XBQr/Profile.jpg" alt="Profile" class="right-icon" />
+  <div style="display: flex; align-items: center; gap: 12px;">
+  <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
+  <img src="https://i.postimg.cc/8c050gYz/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
+</div>
   </div>
 </header>
 
@@ -638,7 +639,6 @@ fetch(categorySheetURL)
       items.forEach(item => {
         const box = document.createElement("a");
         box.href = item.link;
-        box.target = "_blank";
         box.style.textDecoration = "none";
         box.style.color = "inherit";
 
