@@ -537,7 +537,13 @@ down-toggle {
   width: 100%;
   transition: background 0.3s ease;
   font-family: 'Roboto Slab', serif;
+  .add-to-cart-btn:active {
+  background: #007bff !important;
+  color: #fff !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
+
 
 .add-to-cart-btn:hover {
   background: #0056b3;
@@ -1056,8 +1062,8 @@ function addToCart() {
     setTimeout(() => {
       confirmDiv.classList.remove('show');
       setTimeout(() => confirmDiv.remove(), 500);
-    }, 2000);
-  }, 1000);
+    }, 700);
+  }, 700);
 }
 </script>
 <script>
