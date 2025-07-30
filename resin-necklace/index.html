@@ -543,6 +543,40 @@ down-toggle {
   background: #0056b3;
 }
 </style>
+<style>
+#cart-confirm-banner {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  background: #000;
+  color: #fff;
+  font-family: 'Roboto Slab', serif;
+  font-size: 15px;
+  padding: 10px 14px 10px 10px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+#cart-confirm-banner.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0px);
+}
+
+#cart-confirm-banner img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+</style>
 </head>
 <body>
   <!-- Header -->
@@ -992,38 +1026,23 @@ function addToCart() {
   localStorage.setItem("cartItems", JSON.stringify(cartItems));
   updateCartBadge();
 
-  // show confirmation
+  // Show confirmation banner
   const confirmDiv = document.createElement('div');
-  confirmDiv.style.cssText = `
-  position: fixed;
-  top: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1f1f1f;
-  color: #fff;
-  padding: 10px 16px 10px 12px;
-  border-radius: 999px;
-  font-family: 'Roboto Slab', serif;
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  z-index: 9999;
-  white-space: nowrap;
-`;
-
-  const img = document.createElement('img');
-  img.src = 'https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg';
-  img.style.cssText = 'width: 40px; height: 40px; border-radius: 50%; object-fit: cover;';
-
-  const text = document.createElement('span');
-  text.innerText = 'Item added to cart';
-
-  confirmDiv.appendChild(img);
-  confirmDiv.appendChild(text);
+  confirmDiv.id = 'cart-confirm-banner';
+  confirmDiv.innerHTML = `
+    <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" alt="Logo" />
+    <span>Item added to cart</span>
+  `;
   document.body.appendChild(confirmDiv);
-  setTimeout(() => confirmDiv.remove(), 2200);
+
+  // Trigger fade-in
+  setTimeout(() => confirmDiv.classList.add('show'), 50);
+
+  // Remove after 2.2s
+  setTimeout(() => {
+    confirmDiv.classList.remove('show');
+    setTimeout(() => confirmDiv.remove(), 500);
+  }, 1000);
 }
 </script>
 <script>
