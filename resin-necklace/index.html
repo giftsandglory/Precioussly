@@ -759,7 +759,8 @@ down-toggle {
         const tag = row["Tag"]?.trim();
         const mrp = row["MRP"]?.trim();
         const price = row["Selling Price"]?.trim();
-        const link = row["Product Page Link"]?.trim() || "#";
+        const rawLink = row["Product Page Link"]?.trim();
+const link = rawLink && rawLink.startsWith("http") ? rawLink : `https://precioussly.com/product.html?name=${encodeURIComponent(row["Product Name"]?.trim() || "")}`;
         if (!title || !name || !img) return;
         if (!grouped[title]) grouped[title] = [];
         grouped[title].push({ name, img, tag, mrp, price, link });
