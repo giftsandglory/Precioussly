@@ -112,7 +112,7 @@
     fetch(sheetURL)
       .then(res => res.json())
       .then(data => {
-        const product = data.find(p => p["Product Name"]?.trim() === productName);
+        const product = data.find(p => p["Product Name"]?.trim().toLowerCase() === productName.toLowerCase());
         if (!product) {
           document.body.innerHTML = "<p style='text-align:center;font-size:18px;'>Product not found</p>";
           return;
