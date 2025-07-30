@@ -286,3 +286,175 @@
 <div class="offer-popup" id="offerPopup">
   🎁 Use code <b>GIFT10</b> for ₹10 OFF – valid for 5 mins!
 </div>
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const productName = urlParams.get("name")?.trim();
+const sheetURL = "https://opensheet.elk.sh/1HJ-BGRbSFbVWBVEl7rBxxyzleri7OtQX3nbmTQP_8p0/Sheet1";
+
+fetch(sheetURL)
+  .then(res => res.json())
+  .then(data => {
+    const product = data.find(p => p["Product Name"]?.trim() === productName);
+    if (!product) {
+      document.body.innerHTML = "<p style='text-align:center;font-size:18px;'>Product not found</p>";
+      return;
+    }
+
+    document.getElementById("productImage").src = product["Product Image"];
+    document.getElementById("zoomedImage").src = product["Product Image"];
+    document.getElementById("productName").innerText = product["Product Name"];
+    document.getElementById("stickyName").innerText = product["Product Name"];
+    document.getElementById("productPrice").innerHTML = `<s>₹${product["MRP"]}</s> <b>₹${product["Selling Price"]}</b>`;
+
+    const tag = product["Tag"]?.trim().toLowerCase();
+    const stock = parseInt(product["Stock"] || "0");
+    const tagBox = document.getElementById("productTag");
+    const btn = document.getElementById("addToCartBtn");
+
+    if (product["Tag"]) {
+      tagBox.innerText = product["Tag"];
+      tagBox.style.display = "inline-block";
+    }
+
+    if (tag === "out of stock" || stock <= 0) {
+      btn.innerText = "Out of Stock";
+      btn.disabled = true;
+      document.getElementById("stickyBar").style.display = "none";
+    } else if (stock <= 2) {
+      document.getElementById("stockAlert").innerText = `Only ${stock} left in stock!`;
+      document.getElementById("stockAlert").style.display = "block";
+    }
+
+    saveToRecentlyViewed(product["Product Name"], product["Product Image"]);
+    renderRecentlyViewed();
+  });
+
+function addToCart() {
+  const btn = document.getElementById("addToCartBtn");
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner"></div>`;
+
+  setTimeout(() => {
+    const name = document.getElementById("productName").innerText;
+    const priceText = document.getElementById("productPrice").innerText;
+    const imgSrc = document.getElementById("productImage").src;
+    const priceMatch = priceText.match(/₹(\d+)/g);
+    const price = priceMatch ? parseInt(priceMatch[1].replace("₹", "")) : 0;
+
+    const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+    const existing = cartItems.find(item => item.name === name);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cartItems.push({ name, price, img: imgSrc, qty: 1 });
+    }
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+
+    const confirm = document.getElementById("confirmation");
+    confirm.classList.add("show");
+    setTimeout(() => confirm.classList.remove("show"), 1500);
+
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }, 1000);
+}
+
+function buyNow() {
+  const name = document.getElementById("productName").innerText;
+  const priceText = document.getElementById("productPrice").innerText;
+  const priceMatch = priceText.match(/₹(\d+)/g);
+  const price = priceMatch ? parseInt(priceMatch[1].replace("₹", "")) : 0;
+
+  const options = {
+    key: "rzp_test_YourKeyHere", // Replace with your Razorpay key
+    amount: price * 100,
+    currency: "INR",
+    name: "Precioussly",
+    description: name,
+    image: "https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg",
+    handler: function () {
+      window.location.href = "/thank-you.html";
+    },
+    prefill: {
+      name: "",
+      email: "",
+      contact: ""
+    },
+    theme: {
+      color: "#007bff"
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+
+function toggleDesc() {
+  const desc = document.getElementById("descText");
+  desc.style.display = desc.style.display === "block" ? "none" : "block";
+}
+
+function zoomImage() {
+  document.getElementById("zoomOverlay").style.display = "flex";
+}
+
+function closeZoom() {
+  document.getElementById("zoomOverlay").style.display = "none";
+}
+
+function shareProduct() {
+  const url = window.location.href;
+  const name = document.getElementById("productName").innerText;
+  const message = `Check this out on Precioussly_ 💖\n${name}\n${url}`;
+  const whatsappLink = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  window.open(whatsappLink, "_blank");
+}
+
+let idleTimer;
+function showOfferPopup() {
+  document.getElementById("offerPopup").style.display = "block";
+}
+function resetIdleTimer() {
+  document.getElementById("offerPopup").style.display = "none";
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(showOfferPopup, 10000); // 10 seconds idle
+}
+document.onclick = resetIdleTimer;
+document.onmousemove = resetIdleTimer;
+document.onkeypress = resetIdleTimer;
+resetIdleTimer();
+function saveToRecentlyViewed(name, img) {
+  let viewed = JSON.parse(localStorage.getItem("recentlyViewed")) || [];
+  viewed = viewed.filter(p => p.name !== name); // remove duplicates
+  viewed.unshift({ name, img });
+  if (viewed.length > 6) viewed = viewed.slice(0, 6); // keep max 6
+  localStorage.setItem("recentlyViewed", JSON.stringify(viewed));
+}
+
+function renderRecentlyViewed() {
+  const container = document.getElementById("recentlyViewedContainer");
+  const viewed = JSON.parse(localStorage.getItem("recentlyViewed")) || [];
+
+  container.innerHTML = "";
+  viewed.forEach(p => {
+    const div = document.createElement("a");
+    div.href = `/product.html?name=${encodeURIComponent(p.name)}`;
+    div.style.display = "block";
+    div.style.minWidth = "100px";
+    div.innerHTML = `
+      <img src="${p.img}" style="width: 100%; border-radius: 12px; aspect-ratio: 1 / 1; object-fit: cover; margin-bottom: 4px;" />
+      <div style="font-size: 13px; color: #000; text-align: center;">${p.name}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+</script>
+<!-- Recently Viewed Section -->
+<div style="max-width: 460px; margin: 40px auto 20px; padding: 0 10px;">
+  <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">Recently Viewed</h3>
+  <div id="recentlyViewedContainer" style="display: flex; gap: 12px; overflow-x: auto;"></div>
+</div>
+
+</body>
+</html>
