@@ -68,18 +68,6 @@
       min-width: 24px;
       text-align: center;
     }
-    .coupon {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 8px;
-    }
-    .coupon button {
-      padding: 6px 12px;
-      border: 1px solid #000;
-      background: transparent;
-      cursor: pointer;
-    }
     .summary-row {
       display: flex;
       justify-content: space-between;
@@ -150,6 +138,7 @@
             <button class="qty-btn" onclick="decrease(${index})">-</button>
             <span id="qty-${index}" class="qty-count">${item.qty}</span>
             <button class="qty-btn" onclick="increase(${index})">+</button>
+            <button class="qty-btn" style="background: #000; color: #fff;" onclick="removeItem(${index})">×</button>
           </div>
         </div>
       `;
@@ -162,6 +151,12 @@
       <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
       <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
     `;
+
+    if (cartData.length === 0) {
+      container.innerHTML = "<p>Your cart is empty.</p>";
+      document.getElementById("summaryBox").innerHTML = "";
+      document.querySelector(".proceed-btn").style.display = "none";
+    }
   });
 
   function increase(index) {
@@ -177,6 +172,22 @@
       location.reload();
     }
   }
+
+  function removeItem(index) {
+    cartData.splice(index, 1);
+    localStorage.setItem("cartItems", JSON.stringify(cartData));
+    location.reload();
+  }
+
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) badge.innerText = count;
+  }
+
+  updateCartBadge();
 </script>
 </body>
 </html>
