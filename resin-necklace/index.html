@@ -23,7 +23,7 @@
 
 .footer-links {
   display: flex;
-  flex-wrap: wrap;
+  flex-: ;
   justify-content: center;
   gap: 6px;
   font-size: 12px;
@@ -31,7 +31,7 @@
 
 .footer-links span {
   user-select: none;
-  white-space: nowrap;
+  white-space: no;
 }
   .menu-divider {
   width: 100vw;
@@ -117,7 +117,7 @@
       gap: 10px;
     }
 
-    .hamburger-wrapper {
+    .hamburger-per {
   width: 24px;
   height: 20px;
   cursor: pointer;
@@ -132,7 +132,7 @@
   touch-action: manipulation;               /* ✅ Prevent default touch delay */
 }
 
-    .hamburger-wrapper div {
+    .hamburger-per div {
   width: 100%;
   height: 3px;
   background-color: #000; /* ✅ black */
@@ -248,7 +248,7 @@
       font-size: 15px;
       line-height: 1.6;
       max-width: 90%;
-      word-wrap: break-word;
+      word-: break-word;
     }
 
     .close-btn {
@@ -316,12 +316,12 @@
         height: 26px;
       }
 
-      .hamburger-wrapper {
+      .hamburger-per {
         width: 22px;
         height: 18px;
       }
 
-      .hamburger-wrapper div {
+      .hamburger-per div {
         height: 2.5px;
       }
     }
@@ -554,7 +554,7 @@ down-toggle {
   position: fixed;
   top: 16px;
   left: 50%;
-  transform: translateX(-50%) translateY(-10px);
+  transform: translateX(-50%);
   background: #000;
   color: #fff;
   font-family: 'Roboto Slab', serif;
@@ -568,12 +568,11 @@ down-toggle {
   z-index: 9999;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition: opacity 0.5s ease;
 }
 
 #cart-confirm-banner.show {
   opacity: 1;
-  transform: translateX(-50%) translateY(0px);
 }
 
 #cart-confirm-banner img {
@@ -587,7 +586,7 @@ down-toggle {
 <body>
   <!-- Header -->
 <header class="site-header">
-  <div class="hamburger-wrapper" onclick="toggleMenu()">
+  <div class="hamburger-per" onclick="toggleMenu()">
     <div></div>
     <div></div>
     <div></div>
@@ -1062,8 +1061,8 @@ function addToCart() {
     setTimeout(() => {
       confirmDiv.classList.remove('show');
       setTimeout(() => confirmDiv.remove(), 500);
-    }, 700);
-  }, 700);
+    }, 1300);
+  }, 1300);
 }
 </script>
 <script>
