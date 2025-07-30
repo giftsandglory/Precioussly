@@ -6,6 +6,11 @@
   <title>Product - Precioussly</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
+  .add-to-cart-btn:disabled {
+  background: #999 !important;
+  cursor: not-allowed;
+  opacity: 1;
+}
 .image-container {
   position: relative;
   display: inline-block;
@@ -117,13 +122,33 @@
         document.getElementById("productPrice").innerHTML = `<s>₹${product["MRP"]}</s> <b>₹${product["Selling Price"]}</b>`;
         
         const tagElement = document.getElementById("productTag");
-        if (product["Tag"]) {
-          tagElement.innerText = product["Tag"];
-          tagElement.className = "tag" + (product["Tag"] === "Out of stock" ? "" : " pink");
-        } else {
-          tagElement.style.display = "none";
-        }
-      });
+const addBtn = document.querySelector(".add-to-cart-btn");
+
+if (product["Tag"]) {
+  tagElement.innerText = product["Tag"];
+
+  if (product["Tag"].toLowerCase() === "out of stock") {
+    tagElement.className = "tag out-of-stock";
+
+    // Disable Add to Cart
+    addBtn.innerText = "Out of Stock";
+    addBtn.disabled = true;
+    addBtn.style.background = "#999";
+    addBtn.style.cursor = "not-allowed";
+  } else {
+    tagElement.className = "tag pink";
+    addBtn.disabled = false;
+    addBtn.innerText = "Add to Cart";
+    addBtn.style.background = "#007bff";
+    addBtn.style.cursor = "pointer";
+  }
+} else {
+  tagElement.style.display = "none";
+  addBtn.disabled = false;
+  addBtn.innerText = "Add to Cart";
+  addBtn.style.background = "#007bff";
+  addBtn.style.cursor = "pointer";
+}
 
     function addToCart() {
       const name = document.getElementById("productName").innerText;
