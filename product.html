@@ -6,6 +6,28 @@
   <title>Product - Precioussly</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
+  .image-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  font-family: 'Roboto Slab', serif;
+}
+
+.tag.pink {
+  background-color: #f8c3d9;
+  color: #b0004d;
+  border: 1px solid #f8c3d9;
+}
     body {
       font-family: 'Roboto Slab', serif;
       margin: 0;
@@ -58,8 +80,10 @@
 </head>
 <body>
   <div class="container">
-    <img id="productImage" src="" alt="Product Image">
-    <div class="tag" id="productTag"></div>
+    <div class="image-container">
+  <img id="productImage" src="" alt="Product Image">
+  <div class="tag" id="productTag"></div>
+</div>
     <div class="name" id="productName"></div>
     <div class="price" id="productPrice"></div>
     <button class="add-to-cart-btn" onclick="addToCart()">Add to Cart</button>
@@ -82,8 +106,13 @@
         document.getElementById("productImage").src = product["Product Image"];
         document.getElementById("productName").innerText = product["Product Name"];
         document.getElementById("productPrice").innerHTML = `<s>₹${product["MRP"]}</s> <b>₹${product["Selling Price"]}</b>`;
-        document.getElementById("productTag").innerText = product["Tag"] || "";
-      });
+        const tagElement = document.getElementById("productTag");
+if (product["Tag"]) {
+  tagElement.innerText = product["Tag"];
+  tagElement.className = "tag" + (product["Tag"] === "Out of stock" ? "" : " pink");
+} else {
+  tagElement.style.display = "none";
+}
 
     function addToCart() {
       const name = document.getElementById("productName").innerText;
