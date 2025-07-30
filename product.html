@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Product - Precioussly</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Roboto Slab', serif;
       background: #fff;
       color: #111;
-      padding: 20px 16px;
+      padding: 20px 16px 100px;
     }
 
     .container {
@@ -46,6 +47,23 @@
       border-radius: 16px;
       object-fit: cover;
       margin-bottom: 16px;
+      cursor: zoom-in;
+    }
+
+    .zoom-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .zoom-overlay img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 12px;
     }
 
     .name {
@@ -56,12 +74,39 @@
 
     .price {
       font-size: 18px;
-      margin-bottom: 18px;
+      margin-bottom: 6px;
     }
 
     .price s {
       color: #999;
       margin-right: 8px;
+    }
+
+    .stock-alert {
+      color: red;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .delivery-est {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 14px;
+    }
+
+    .desc-toggle {
+      font-size: 14px;
+      color: #000;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .desc-text {
+      font-size: 14px;
+      color: #444;
+      margin-bottom: 16px;
+      display: none;
     }
 
     .add-to-cart-btn {
@@ -85,18 +130,28 @@
       cursor: not-allowed;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .buy-now-btn {
+      background: #000;
+      margin-top: 10px;
     }
 
-    .spinner {
-      height: 18px;
-      width: 18px;
-      border: 2px solid #fff;
-      border-top: 2px solid transparent;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    .share-btn {
+      font-size: 14px;
+      color: #007bff;
+      margin-top: 16px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .reviews {
+      font-size: 14px;
+      color: #333;
+      text-align: left;
+      margin-top: 24px;
+    }
+
+    .reviews div {
+      margin-bottom: 8px;
     }
 
     .confirmation {
@@ -127,89 +182,107 @@
       height: 24px;
       border-radius: 50%;
     }
+
+    .sticky-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-top: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      font-size: 15px;
+      z-index: 999;
+      box-shadow: 0 -1px 4px rgba(0,0,0,0.1);
+    }
+
+    .sticky-bar span {
+      font-weight: bold;
+    }
+
+    .sticky-bar button {
+      padding: 8px 14px;
+      font-size: 14px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+    }
+
+    .offer-popup {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff8e1;
+      border: 1px solid #ffd54f;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .spinner {
+      height: 18px;
+      width: 18px;
+      border: 2px solid #fff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="product-img-wrapper">
-      <div id="productTag" class="tag-overlay" style="display: none;"></div>
-      <img id="productImage" class="product-img" src="" alt="Product Image">
-    </div>
-    <div class="name" id="productName"></div>
-    <div class="price" id="productPrice"></div>
-    <button class="add-to-cart-btn" id="addToCartBtn" onclick="addToCart()">Add to Cart</button>
+<div class="container">
+  <div class="product-img-wrapper">
+    <div id="productTag" class="tag-overlay" style="display: none;"></div>
+    <img id="productImage" class="product-img" src="" alt="Product Image" onclick="zoomImage()" />
   </div>
-
-  <div id="confirmation" class="confirmation">
-    <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" />
-    <span>Item added to cart</span>
+  <div class="name" id="productName"></div>
+  <div class="price" id="productPrice"></div>
+  <div class="stock-alert" id="stockAlert" style="display:none;"></div>
+  <div class="delivery-est">Delivery by 3–5 days 🚚</div>
+  <div class="desc-toggle" onclick="toggleDesc()">More info +</div>
+  <div class="desc-text" id="descText">Handcrafted with real flowers. Perfect for gifting. Hypoallergenic and waterproof.</div>
+  <button class="add-to-cart-btn" id="addToCartBtn" onclick="addToCart()">Add to Cart</button>
+  <button class="add-to-cart-btn buy-now-btn" onclick="buyNow()">Buy Now</button>
+  <div class="share-btn" onclick="shareProduct()">Share this Product</div>
+  <div class="reviews">
+    <strong>Customer Reviews:</strong>
+    <div>⭐️⭐️⭐️⭐️⭐️ "Looks even better than photos!" – Riya</div>
+    <div>⭐️⭐️⭐️⭐️ "Gifted it to my sister and she loved it!" – Pooja</div>
   </div>
+</div>
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const productName = urlParams.get("name")?.trim();
+<!-- Zoom overlay -->
+<div id="zoomOverlay" class="zoom-overlay" style="display:none;" onclick="closeZoom()">
+  <img id="zoomedImage" />
+</div>
 
-    const sheetURL = "https://opensheet.elk.sh/1HJ-BGRbSFbVWBVEl7rBxxyzleri7OtQX3nbmTQP_8p0/Sheet1";
+<!-- Confirmation toast -->
+<div id="confirmation" class="confirmation">
+  <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" />
+  <span>Item added to cart</span>
+</div>
 
-    fetch(sheetURL)
-      .then(res => res.json())
-      .then(data => {
-        const product = data.find(p => p["Product Name"]?.trim() === productName);
-        if (!product) {
-          document.body.innerHTML = "<p style='text-align:center;font-size:18px;'>Product not found</p>";
-          return;
-        }
+<!-- Sticky Bottom Bar -->
+<div class="sticky-bar" id="stickyBar">
+  <span id="stickyName">Product</span>
+  <button onclick="addToCart()">Add to Cart</button>
+</div>
 
-        document.getElementById("productImage").src = product["Product Image"];
-        document.getElementById("productName").innerText = product["Product Name"];
-        document.getElementById("productPrice").innerHTML = `<s>₹${product["MRP"]}</s> <b>₹${product["Selling Price"]}</b>`;
-
-        const tag = product["Tag"]?.trim();
-        const tagBox = document.getElementById("productTag");
-        const btn = document.getElementById("addToCartBtn");
-
-        if (tag) {
-          tagBox.innerText = tag;
-          tagBox.style.display = "inline-block";
-
-          if (tag.toLowerCase() === "out of stock") {
-            btn.innerText = "Out of Stock";
-            btn.disabled = true;
-          }
-        }
-      });
-
-    function addToCart() {
-      const btn = document.getElementById("addToCartBtn");
-      const originalText = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<div class="spinner"></div>`;
-
-      setTimeout(() => {
-        const name = document.getElementById("productName").innerText;
-        const priceText = document.getElementById("productPrice").innerText;
-        const imgSrc = document.getElementById("productImage").src;
-        const priceMatch = priceText.match(/₹(\d+)/g);
-        const price = priceMatch ? parseInt(priceMatch[1].replace("₹", "")) : 0;
-
-        const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
-        const existing = cartItems.find(item => item.name === name);
-        if (existing) {
-          existing.qty += 1;
-        } else {
-          cartItems.push({ name, price, img: imgSrc, qty: 1 });
-        }
-        localStorage.setItem("cartItems", JSON.stringify(cartItems));
-
-        // Show confirmation
-        const confirm = document.getElementById("confirmation");
-        confirm.classList.add("show");
-        setTimeout(() => confirm.classList.remove("show"), 1500);
-
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-      }, 1200);
-    }
-  </script>
-</body>
-</html>
+<!-- Offer Popup -->
+<div class="offer-popup" id="offerPopup">
+  🎁 Use code <b>GIFT10</b> for ₹10 OFF – valid for 5 mins!
+</div>
