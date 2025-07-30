@@ -995,26 +995,27 @@ function addToCart() {
   // show confirmation
   const confirmDiv = document.createElement('div');
   confirmDiv.style.cssText = `
-    position: fixed;
-    top: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1f1f1f;
-    color: #fff;
-    padding: 10px 16px 10px 12px;
-    border-radius: 999px;
-    font-family: 'Roboto Slab', serif;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 9999;
-  `;
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f1f1f;
+  color: #fff;
+  padding: 10px 16px 10px 12px;
+  border-radius: 999px;
+  font-family: 'Roboto Slab', serif;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 9999;
+  white-space: nowrap;
+`;
 
   const img = document.createElement('img');
   img.src = 'https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg';
-  img.style.cssText = 'width: 28px; height: 28px; border-radius: 50%; object-fit: cover;';
+  img.style.cssText = 'width: 40px; height: 40px; border-radius: 50%; object-fit: cover;';
 
   const text = document.createElement('span');
   text.innerText = 'Item added to cart';
