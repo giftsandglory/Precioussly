@@ -994,7 +994,7 @@ function addToCart() {
   // show confirmation
   const confirmDiv = document.createElement('div');
   confirmDiv.innerText = "Item added to cart";
-  confirmDiv.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:10px 16px;border-radius:10px;font-family:'Roboto Slab', serif;z-index:9999;";
+  confirmDiv.style.cssText = "position:fixed;top:17px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:10px 16px;border-radius:10px;font-family:'Roboto Slab', serif;z-index:9999;";
   document.body.appendChild(confirmDiv);
   setTimeout(() => confirmDiv.remove(), 2000);
 }
