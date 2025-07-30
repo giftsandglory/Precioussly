@@ -529,7 +529,8 @@ down-toggle {
 
 .add-to-cart-btn {
   margin-top: 12px;
-  padding: 14px;
+  padding: 0 16px;                      /* ✅ Horizontal padding only */
+  height: 48px;                         /* ✅ Fixed height */
   background: #007bff;
   color: #fff;
   border: none;
@@ -540,6 +541,9 @@ down-toggle {
   width: 100%;
   transition: background 0.3s ease;
   font-family: 'Roboto Slab', serif;
+  display: flex;                        /* ✅ Align text and spinner */
+  align-items: center;
+  justify-content: center;
 }
 
 .add-to-cart-btn:hover {
@@ -583,7 +587,7 @@ down-toggle {
   opacity: 0;
   pointer-events: none;
   position: fixed;
-  top: 16px;
+  top: 180px;
   left: 50%;
   transform: translateX(-50%);
   transition: opacity 0.5s ease;
