@@ -243,7 +243,7 @@ button {
 
     <div class="summary" id="summaryBox"></div>
 
-    <button class="proceed-btn" id="proceedBtn" onclick="alert('Proceeding to Payment...')">Proceed to Pay</button>
+  <button class="proceed-btn" id="proceedBtn" onclick="payNow()">Proceed to Pay</button>
   </div>
 
 <script>
@@ -345,6 +345,47 @@ function updateSummary() {
 
   updateCartBadge();
 </script>
+<script>
+function payNow() {
+  const address = localStorage.getItem("shippingAddress") || "";
+  if (!address.trim()) {
+    alert("Please fill the shipping address before proceeding.");
+    return;
+  }
+
+  const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cart.forEach(item => total += item.price * item.qty);
+  const deliveryFee = 65;
+  const finalAmount = (total + deliveryFee) * 100;
+
+  const options = {
+    "key": "rzp_live_S4Dmi0UXQYNAyV",
+    "amount": finalAmount,
+    "currency": "INR",
+    "name": "Precioussly",
+    "description": "Order Payment",
+    "image": "https://cdn-icons-png.flaticon.com/512/2038/2038854.png",
+    "handler": function (response){
+        window.location.href = "thankyou.html";
+    },
+    "prefill": {
+        "name": "Customer",
+        "email": "",
+        "contact": ""
+    },
+    "notes": {
+        "address": address
+    },
+    "theme": {
+        "color": "#2874f0"
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+</script>
 
 
 <!-- MODERN ADDRESS POPUP START -->
@@ -433,5 +474,6 @@ function confirmAddress() {
 }
 
 </script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </body>
 </html>
