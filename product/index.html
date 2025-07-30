@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product | Precioussly</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px 16px;
+      font-family: 'Roboto Slab', serif;
+      background-color: #fff;
+      color: #111;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .product-image {
+      width: 100%;
+      border-radius: 20px;
+      object-fit: cover;
+    }
+    .product-name {
+      font-size: 20px;
+      font-weight: 600;
+      margin-top: 16px;
+    }
+    .product-price {
+      font-size: 18px;
+      margin-top: 8px;
+    }
+    .product-price s {
+      color: #999;
+      margin-right: 8px;
+    }
+    .product-description {
+      font-size: 15px;
+      margin-top: 14px;
+      line-height: 1.5;
+      color: #444;
+    }
+    .add-to-cart-btn {
+      margin-top: 20px;
+      padding: 14px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img id="productImage" class="product-image" src="" alt="Product" />
+    <div class="product-name" id="productName"></div>
+    <div class="product-price" id="productPrice"></div>
+    <div class="product-description" id="productDesc"></div>
+    <button class="add-to-cart-btn" onclick="addToCart()">Add to Cart</button>
+  </div>
+
+  <script>
+    const sheetURL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
+
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get("id");
+
+    if (!productId) {
+      document.body.innerHTML = "<h2>Product not found</h2>";
+    } else {
+      fetch(sheetURL)
+        .then(res => res.json())
+        .then(data => {
+          const product = data.find(item => item["ID"] === productId);
+          if (!product) {
+            document.body.innerHTML = "<h2>Product not found</h2>";
+            return;
+          }
+
+          document.getElementById("productImage").src = product["Category Image"];
+          document.getElementById("productName").innerText = product["Category Name"];
+          document.getElementById("productPrice").innerHTML =
+            `<s>₹${product["MRP"] || "200"}</s> <b>₹${product["Selling Price"] || "149"}</b>`;
+          document.getElementById("productDesc").innerText = product["Description"] || "This is a beautiful handcrafted product from Precioussly.";
+        });
+    }
+
+    function addToCart() {
+      const name = document.getElementById("productName").innerText.trim();
+      const priceText = document.getElementById("productPrice").innerText.trim();
+      const imgSrc = document.getElementById("productImage").src;
+
+      const priceMatch = priceText.match(/₹(\d+)/);
+      const price = priceMatch ? parseInt(priceMatch[1]) : 0;
+
+      const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+      const existing = cartItems.find(item => item.name === name);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cartItems.push({ name, price, img: imgSrc, qty: 1 });
+      }
+
+      localStorage.setItem("cartItems", JSON.stringify(cartItems));
+      alert("Item added to cart!");
+    }
+  </script>
+</body>
+</html>
