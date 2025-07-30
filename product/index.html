@@ -1,80 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Product | Precioussly</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+  <title>Product - Precioussly</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body {
-      font-family: 'Roboto Slab', serif;
-      margin: 0;
-      padding: 20px;
-      background: #fff;
-      color: #000;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-    }
-    .back-link {
-      display: inline-block;
-      margin-bottom: 20px;
-      font-size: 14px;
-      color: blue;
-      text-decoration: underline;
-    }
-    .product-image {
-      width: 100%;
-      border-radius: 20px;
-    }
-    h1 {
-      font-size: 22px;
-      margin-top: 20px;
-    }
-    .price {
-      margin-top: 10px;
-      font-size: 18px;
-    }
-    .price s {
-      color: #888;
-      margin-right: 10px;
-    }
-    .description {
-      margin-top: 20px;
-      font-size: 15px;
-      line-height: 1.6;
-    }
+    body { font-family: 'Roboto Slab', serif; padding: 20px; background: #fff; }
+    .product { max-width: 400px; margin: auto; text-align: center; }
+    img { width: 100%; border-radius: 12px; }
+    h1 { font-size: 20px; }
+    p { font-size: 15px; }
+    .price { font-weight: bold; margin-top: 8px; font-size: 18px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <a href="/" class="back-link">← Back to Home</a>
-    <img id="productImage" class="product-image" src="" alt="Product" />
+  <div class="product">
+    <img id="productImage" />
     <h1 id="productName">Loading...</h1>
-    <div class="price">
-      <s id="productMRP">₹0</s> <b id="productPrice">₹0</b>
-    </div>
-    <p class="description" id="productDesc">Please wait...</p>
+    <p class="price" id="productPrice"></p>
+    <p id="productDesc"></p>
   </div>
 
   <script>
-    const id = new URLSearchParams(window.location.search).get("id");
+    const query = new URLSearchParams(window.location.search);
+    const productName = query.get("product");
 
-    fetch("https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1")
+    fetch("https://opensheet.elk.sh/1sGLu65bvRpQJRGddgV1iRK97iPVnrBQhbnrSasg7NDI/Sheet1")
       .then(res => res.json())
-      .then(data => {
-        const product = data.find(p => p.ID === id);
+      .then(rows => {
+        const product = rows.find(p => p["Product Name"]?.trim() === productName);
         if (!product) {
-          document.getElementById("productName").innerText = "Product not found";
+          document.getElementById("productName").innerText = "Product Not Found";
           return;
         }
 
-        document.getElementById("productImage").src = product["Category Image"];
-        document.getElementById("productName").innerText = product["Category Name"];
-        document.getElementById("productMRP").innerText = `₹200`;  // Hardcoded for now
-        document.getElementById("productPrice").innerText = `₹149`; // Hardcoded for now
-        document.getElementById("productDesc").innerText = "Beautifully handmade resin product by Precioussly.";
+        document.title = product["Product Name"] + " - Precioussly";
+        document.getElementById("productImage").src = product["Product Image"];
+        document.getElementById("productName").innerText = product["Product Name"];
+        document.getElementById("productPrice").innerText = `₹${product["Selling Price"]} (MRP ₹${product["MRP"]})`;
+        document.getElementById("productDesc").innerText = product["Description"] || "";
       });
   </script>
 </body>
