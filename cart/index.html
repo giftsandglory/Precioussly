@@ -114,42 +114,10 @@
   const shippingAddress = localStorage.getItem("shippingAddress") || "";
 
   document.addEventListener("DOMContentLoaded", () => {
-  const container = document.getElementById("cartItems");
-  let total = 0;
-
-  cartData.forEach((item, index) => {
-    total += item.price * item.qty;
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      <img src="${item.img}" />
-      <div class="item-info">
-        <div class="item-name">${item.name}</div>
-        <div class="item-price">₹${item.price}</div>
-        <div class="qty-controls">
-          <button class="qty-btn" onclick="decrease(${index})">-</button>
-          <span id="qty-${index}" class="qty-count">${item.qty}</span>
-          <button class="qty-btn" onclick="increase(${index})">+</button>
-          <button class="qty-btn" style="background: #000; color: #fff;" onclick="removeItem(${index})">×</button>
-        </div>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-
-  const deliveryFee = 65;
-  document.getElementById("summaryBox").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
-  `;
-
-  if (cartData.length === 0) {
-    container.innerHTML = "<p>Your cart is empty.</p>";
-    document.getElementById("summaryBox").innerHTML = "";
-    document.querySelector(".proceed-btn").style.display = "none";
-  }
-});
+    // Show saved address if exists
+    if (shippingAddress) {
+      document.getElementById("displayAddress").innerHTML = shippingAddress;
+    }
 
     const container = document.getElementById("cartItems");
     let total = 0;
@@ -218,6 +186,8 @@
 
   updateCartBadge();
 </script>
+
+
 <div class="address-popup-overlay" id="addressPopup" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 9999;">
   <div class="address-popup-box" style="background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; position: relative;">
     <span class="close-btn" onclick="closeAddressPopup()" style="position: absolute; top: 10px; right: 14px; font-size: 22px; cursor: pointer;">×</span>
