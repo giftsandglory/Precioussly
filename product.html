@@ -88,7 +88,7 @@
     <div class="price" id="productPrice"></div>
     <button class="add-to-cart-btn" onclick="addToCart()">Add to Cart</button>
   </div>
-
+  <!-- ✅ At the bottom, just before </body> -->
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const productName = urlParams.get("name")?.trim();
@@ -106,13 +106,15 @@
         document.getElementById("productImage").src = product["Product Image"];
         document.getElementById("productName").innerText = product["Product Name"];
         document.getElementById("productPrice").innerHTML = `<s>₹${product["MRP"]}</s> <b>₹${product["Selling Price"]}</b>`;
+        
         const tagElement = document.getElementById("productTag");
-if (product["Tag"]) {
-  tagElement.innerText = product["Tag"];
-  tagElement.className = "tag" + (product["Tag"] === "Out of stock" ? "" : " pink");
-} else {
-  tagElement.style.display = "none";
-}
+        if (product["Tag"]) {
+          tagElement.innerText = product["Tag"];
+          tagElement.className = "tag" + (product["Tag"] === "Out of stock" ? "" : " pink");
+        } else {
+          tagElement.style.display = "none";
+        }
+      });
 
     function addToCart() {
       const name = document.getElementById("productName").innerText;
@@ -132,5 +134,7 @@ if (product["Tag"]) {
       alert("Item added to cart");
     }
   </script>
+</body>
+</html>
 </body>
 </html>
