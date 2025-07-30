@@ -477,12 +477,15 @@ down-toggle {
   width: 90vw;
   border-radius: 20px;
   padding: 16px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);  /* ✅ slightly transparent */
+  backdrop-filter: blur(6px);             /* ✅ glass effect */
+  -webkit-backdrop-filter: blur(6px);     /* ✅ for Safari */
   border: 2px solid #000;
   display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: stretch;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* ✅ soft shadow */
 }
 
 #productPopupBox img {
@@ -509,7 +512,6 @@ down-toggle {
   color: #888;
 }
 
-
 #popupDescToggle {
   cursor: pointer;
   font-size: 14px;
@@ -524,6 +526,7 @@ down-toggle {
   margin-top: 6px;
   line-height: 1.4;
 }
+
 .add-to-cart-btn {
   margin-top: 12px;
   padding: 14px;
@@ -537,37 +540,52 @@ down-toggle {
   width: 100%;
   transition: background 0.3s ease;
   font-family: 'Roboto Slab', serif;
-  .add-to-cart-btn:active {
+}
+
+.add-to-cart-btn:hover {
+  background: #0056b3;
+}
+
+.add-to-cart-btn:active {
   background: #007bff !important;
   color: #fff !important;
   transform: none !important;
   box-shadow: none !important;
 }
 
-
 .add-to-cart-btn:hover {
   background: #0056b3;
+}
+
+.add-to-cart-btn:active {
+  background: #007bff !important;
+  color: #fff !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 </style>
 <style>
 #cart-confirm-banner {
+  background: rgba(0, 0, 0, 0.6);         /* ✅ translucent black */
+  backdrop-filter: blur(6px);             /* ✅ glass blur effect */
+  -webkit-backdrop-filter: blur(6px);     /* ✅ iOS/Safari support */
+  color: #fff;
+  font-family: 'Roboto Slab', serif;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
   position: fixed;
   top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  background: #000;
-  color: #fff;
-  font-family: 'Roboto Slab', serif;
-  font-size: 15px;
-  padding: 10px 14px 10px 10px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  z-index: 9999;
-  opacity: 0;
-  pointer-events: none;
   transition: opacity 0.5s ease;
 }
 
@@ -576,8 +594,8 @@ down-toggle {
 }
 
 #cart-confirm-banner img {
-  width: 36px;
-  height: 36px;
+  width: 28px; /* ⬅ smaller */
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
 }
