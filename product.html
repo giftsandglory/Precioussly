@@ -6,6 +6,29 @@
   <title>Product - Precioussly</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
+  .image-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 600;
+  background-color: rgba(0, 0, 0, 0.7); /* Default black bg */
+  color: #fff;
+}
+
+.tag.pink {
+  background-color: #f8c3d9;
+  color: #b0004d;
+  border: 1px solid #f8c3d9;
+}
     body {
       font-family: 'Roboto Slab', serif;
       margin: 0;
@@ -37,12 +60,7 @@
       color: #999;
       margin-right: 8px;
     }
-    .tag {
-      font-size: 14px;
-      margin-bottom: 8px;
-      color: #b0004d;
-      font-weight: 600;
-    }
+    
     .add-to-cart-btn {
       padding: 12px;
       width: 100%;
@@ -58,8 +76,10 @@
 </head>
 <body>
   <div class="container">
-    <img id="productImage" src="" alt="Product Image">
-    <div class="tag" id="productTag"></div>
+  <div class="image-container">
+  <img id="productImage" src="" alt="Product Image">
+  <div class="tag" id="productTag"></div>
+</div>
     <div class="name" id="productName"></div>
     <div class="price" id="productPrice"></div>
     <button class="add-to-cart-btn" onclick="addToCart()">Add to Cart</button>
@@ -80,10 +100,20 @@
           return;
         }
         document.getElementById("productImage").src = product["Product Image"];
-        document.getElementById("productName").innerText = product["Product Name"];
-        document.getElementById("productPrice").innerHTML = `<s>₹${product["MRP"]}</s> <b>₹${product["Selling Price"]}</b>`;
-        document.getElementById("productTag").innerText = product["Tag"] || "";
-      });
+document.getElementById("productName").innerText = product["Product Name"];
+document.getElementById("productPrice").innerHTML = `<s>₹${product["MRP"]}</s> <b>₹${product["Selling Price"]}</b>`;
+
+const tagEl = document.getElementById("productTag");
+const tagText = product["Tag"]?.trim();
+if (tagText) {
+  tagEl.innerText = tagText;
+  tagEl.className = "tag";
+  if (tagText.toLowerCase() !== "out of stock") {
+    tagEl.classList.add("pink");
+  }
+} else {
+  tagEl.style.display = "none";
+}
 
     function addToCart() {
       const name = document.getElementById("productName").innerText;
