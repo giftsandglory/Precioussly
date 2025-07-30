@@ -1,6 +1,8 @@
-<!DOCTYPE html> 
+
+<!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Your Cart - Precioussly</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
@@ -101,10 +103,10 @@
   <div class="container">
     <div class="section-title">Confirm Order</div>
 
-  <div class="address">
-  <strong>Shipping Address</strong><br>
-  <textarea id="addressInput" rows="4" placeholder="Enter your full address here" style="width: 100%; margin-top: 6px; padding: 8px; border: 1px solid #ccc; border-radius: 6px;"></textarea>
-</div>
+    <div class="address">
+      <strong>Shipping Address</strong><br>
+      <textarea id="addressInput" rows="4" placeholder="Enter your full address here" style="width: 100%; margin-top: 6px; padding: 8px; border: 1px solid #ccc; border-radius: 6px;"></textarea>
+    </div>
 
     <div class="items" id="cartItems"></div>
 
@@ -113,68 +115,58 @@
       Pay Online – UPI, Cards, Wallets
     </div>
 
-    <div class="summary">
-      <div class="summary-row"><span>Item Total</span><span>₹450</span></div>
-      <div class="summary-row"><span>Delivery Fee</span><span>₹65</span></div>
-      <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹515</span></div>
-    </div>
+    <div class="summary" id="summaryBox"></div>
 
     <button class="proceed-btn" onclick="alert('Proceeding to Payment...')">Proceed to Pay</button>
   </div>
 
 <script>
   const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-  const shippingAddress = localStorage.getItem("shippingAddress") || "No address found";
-  
+  const shippingAddress = localStorage.getItem("shippingAddress") || "";
+
   document.addEventListener("DOMContentLoaded", () => {
-  const addressInput = document.getElementById("addressInput");
-  if (shippingAddress !== "No address found") {
-    addressInput.value = shippingAddress;
-  }
+    const addressInput = document.getElementById("addressInput");
+    if (shippingAddress !== "") {
+      addressInput.value = shippingAddress;
+    }
 
-  addressInput.addEventListener("input", () => {
-    localStorage.setItem("shippingAddress", addressInput.value);
-  });
-});
+    addressInput.addEventListener("input", () => {
+      localStorage.setItem("shippingAddress", addressInput.value);
+    });
 
-  const addressBox = document.querySelector(".address");
-  addressBox.innerHTML = `<strong>Shipping Address</strong><br>${shippingAddress}`;
+    const container = document.getElementById("cartItems");
+    let total = 0;
 
-  const container = document.getElementById("cartItems");
-  let total = 0;
-
-  cartData.forEach((item, index) => {
-    total += item.price * item.qty;
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      <img src="${item.img}" />
-      <div class="item-info">
-        <div class="item-name">${item.name}</div>
-        <div class="item-price">₹${item.price}</div>
-        <div class="qty-controls">
-          <button class="qty-btn" onclick="decrease(${index})">-</button>
-          <span id="qty-${index}" class="qty-count">${item.qty}</span>
-          <button class="qty-btn" onclick="increase(${index})">+</button>
+    cartData.forEach((item, index) => {
+      total += item.price * item.qty;
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <img src="${item.img}" />
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">₹${item.price}</div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="decrease(${index})">-</button>
+            <span id="qty-${index}" class="qty-count">${item.qty}</span>
+            <button class="qty-btn" onclick="increase(${index})">+</button>
+          </div>
         </div>
-      </div>
-    `;
-    container.appendChild(div);
-  });
+      `;
+      container.appendChild(div);
+    });
 
-  // Update summary totals
-  const itemTotal = document.querySelector(".item-total");
-  const deliveryFee = 65;
-  document.querySelector(".summary").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
-  `;
+    const deliveryFee = 65;
+    document.getElementById("summaryBox").innerHTML = `
+      <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+      <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
+      <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
+    `;
+  });
 
   function increase(index) {
     cartData[index].qty++;
     localStorage.setItem("cartItems", JSON.stringify(cartData));
-    document.getElementById("qty-" + index).innerText = cartData[index].qty;
     location.reload();
   }
 
@@ -182,7 +174,6 @@
     if (cartData[index].qty > 1) {
       cartData[index].qty--;
       localStorage.setItem("cartItems", JSON.stringify(cartData));
-      document.getElementById("qty-" + index).innerText = cartData[index].qty;
       location.reload();
     }
   }
