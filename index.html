@@ -5,7 +5,7 @@
   <meta name="google-signin-client_id" content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Precioussly_</title>
+  <title>Precioussly</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
   .product-badge {
@@ -601,16 +601,20 @@ down-toggle {
     <div></div>
   </div>
 
-  <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;">
-    <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
-    <a href="" class="header-title" style="position: static; transform: none; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">Precioussly_</a>
-  </div>
+  <div style="position: absolute; left: 45%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;">
+  <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
+  <a href="" class="header-title" style="position: static; transform: none; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">Precioussly</a>
+</div>
 
 <div style="display: flex; align-items: center; gap: 12px;">
+  <!-- Search icon -->
   <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
-  <a href="https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fwww.precioussly.com&response_type=token&scope=email%20profile&prompt=consent" onclick="clearStorage()">
-  <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" />
-</a>
+
+  <!-- Cart icon -->
+  <img src="https://i.postimg.cc/0NKSBQGK/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
+
+  <!-- Profile icon -->
+  <img id="profileIcon" src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" onclick="handleProfileClick()" style="cursor: pointer;" />
 </div>
 </header>
 
@@ -631,7 +635,7 @@ down-toggle {
   <div class="menu-header">
   <div class="menu-brand">
     <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" class="menu-logo" />
-    <span class="menu-text">Precioussly_</span>
+    <span class="menu-text">Precioussly</span>
   </div>
   <span class="menu-close" onclick="toggleMenu()">✕</span>
 </div>
@@ -905,6 +909,39 @@ card.style.userSelect = "none";
   function clearStorage() {
     localStorage.clear();
     sessionStorage.clear();
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+<script>
+  // If redirected from Google login
+  if (window.location.hash.includes("access_token")) {
+    const accessToken = window.location.hash.split("=")[1].split("&")[0];
+    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+      localStorage.setItem("user_name", data.name);
+      localStorage.setItem("user_email", data.email);
+      localStorage.setItem("user_photo", data.picture);
+      location.href = "https://precioussly.com"; // redirect clean
+    });
+  }
+
+  // Show profile photo if already logged in
+  const photo = localStorage.getItem("user_photo");
+  if (photo) {
+    document.getElementById("profileIcon").src = photo;
+  }
+
+  // When user taps profile icon
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+    }
   }
 </script>
 </body>
