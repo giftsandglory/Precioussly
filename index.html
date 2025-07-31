@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <meta name="google-signin-client_id" content="177120382751-ri5nsbpmeumoqpm6ek4q3rm7pmvupq8u.apps.googleusercontent.com">
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -609,7 +608,7 @@ down-toggle {
 
 <div style="display: flex; align-items: center; gap: 12px;">
   <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
-  <a href="javascript:void(0)" onclick="googleLogin()">
+  <a href="#" onclick="googleLoginNow()">
     <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" />
   </a>
 </div>
@@ -893,23 +892,20 @@ card.style.userSelect = "none";
   });
   </script>
 
-  <div id="g_id_onload"
-      data-client_id="177120382751-ri5nsbpmeumoqpm6ek4q3rm7pmvupq8u.apps.googleusercontent.com"
-      data-context="signin"
-      data-ux_mode="popup"
-      data-callback="handleCredentialResponse"
-      style="display:none;"></div>
+<script>
+  function handleGoogleResponse(response) {
+    const data = JSON.parse(atob(response.credential.split('.')[1]));
+    alert("Login successful! Welcome " + data.name);
+    console.log("Google User:", data);
+  }
 
-  <script>
-    function handleCredentialResponse(response) {
-      const data = JSON.parse(atob(response.credential.split('.')[1]));
-      alert("Hello, " + data.name);
-    }
-
-    function googleLogin() {
-      google.accounts.id.prompt(); // open popup
-    }
-  </script>
+  function googleLoginNow() {
+    google.accounts.id.initialize({
+      client_id: "746848628668-83a44mlh0klb2kp8gjahj426sd3316l1.apps.googleusercontent.com",
+      callback: handleGoogleResponse
+    });
+    google.accounts.id.prompt();
+  }
+</script>
 </body>
-
 </html>
