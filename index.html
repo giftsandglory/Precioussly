@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-
+  <meta name="google-signin-client_id" content="746848628668-83a44mlh0klb2kp8gajahj426sd33l61.apps.googleusercontent.com">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Precioussly_</title>
@@ -608,7 +608,7 @@ down-toggle {
 
 <div style="display: flex; align-items: center; gap: 12px;">
   <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
-  <a href="#" onclick="googleLoginNow()">
+  <a href="#" onclick="initiateGoogleLogin()">
     <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" />
   </a>
 </div>
@@ -893,19 +893,20 @@ card.style.userSelect = "none";
   </script>
 
 <script>
-  function handleGoogleResponse(response) {
-    const data = JSON.parse(atob(response.credential.split('.')[1]));
-    alert("Login successful! Welcome " + data.name);
-    console.log("Google User:", data);
+  function handleCredentialResponse(response) {
+    const data = jwt_decode(response.credential);
+    alert("Welcome " + data.name + " (" + data.email + ")");
   }
 
-  function googleLoginNow() {
+  function initiateGoogleLogin() {
     google.accounts.id.initialize({
-      client_id: "746848628668-83a44mlh0klb2kp8gjahj426sd3316l1.apps.googleusercontent.com",
-      callback: handleGoogleResponse
+      client_id: "746848628668-83a44mlh0klb2kp8gajahj426sd33l61.apps.googleusercontent.com",
+      callback: handleCredentialResponse
     });
     google.accounts.id.prompt();
   }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
 </body>
+
 </html>
