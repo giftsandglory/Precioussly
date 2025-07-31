@@ -229,7 +229,7 @@ button {
 </head>
 <body>
   <div class="container">
-    <div class="section-title">Confirm Order</div>
+<div class="section-title" id="orderTitle">Confirm Order</div>
 
 <div class="address">
   <strong>Shipping Address</strong><br>
@@ -242,8 +242,8 @@ button {
 
 
     <div class="summary" id="summaryBox"></div>
-
-  <button class="proceed-btn" id="proceedBtn" onclick="payNow()">Proceed to Pay</button>
+<div style="font-size:14px; color:#666; margin-top: 6px;">Estimated Delivery: 3–5 days</div>
+    <button class="proceed-btn" id="proceedBtn" onclick="alert('Proceeding to Payment...')">Proceed to Pay</button>
   </div>
 
 <script>
@@ -257,8 +257,7 @@ button {
     }
 
     const container = document.getElementById("cartItems");
-    let total = 0;
-
+    
     cartData.forEach((item, index) => {
       total += item.price * item.qty;
       const div = document.createElement("div");
@@ -279,24 +278,29 @@ button {
       container.appendChild(div);
     });
 
-    const deliveryFee = 65;
+    let deliveryFee = 65;
+if (total >= 499) deliveryFee = 0;
     document.getElementById("summaryBox").innerHTML = `
       <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-      <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
       <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
     `;
+    if (cartData.length > 0) {
+  document.getElementById("stickyBar").style.display = "block";
+  document.getElementById("stickyTotal").innerText = total + deliveryFee;
+}
 
     if (cartData.length === 0) {
-      container.innerHTML = `
-  <div style="text-align:center; margin-top: 30px;">
-    <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" />
-    <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
-  </div>
-`;
-      document.getElementById("summaryBox").innerHTML = "";
-      document.querySelector(".proceed-btn").style.display = "none";
-    }
-  });
+  container.innerHTML = `
+    <div style="text-align:center; margin-top: 30px;">
+      <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 90px; opacity: 0.5;" />
+      <p style="font-size: 17px; color: #555;">Your cart is empty.</p>
+      <a href="/" style="color: #2874f0; text-decoration: none;">Continue Shopping</a>
+    </div>
+  `;
+  document.getElementById("summaryBox").innerHTML = "";
+  document.querySelector(".proceed-btn").style.display = "none";
+  document.getElementById("stickyBar").style.display = "none";  // ✅ Add this line here
+}
 
   function increase(index) {
   cartData[index].qty++;
@@ -318,8 +322,8 @@ function updateSummary() {
   cartData.forEach(item => total += item.price * item.qty);
   const deliveryFee = 65;
   document.getElementById("summaryBox").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
+  <div class="summary-row"><span>Delivery Fee</span><span>${deliveryFee === 0 ? '<span style="color:green;">FREE</span>' : '₹' + deliveryFee}</span></div>
+  
     <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
   `;
 }
@@ -344,47 +348,6 @@ function updateSummary() {
   }
 
   updateCartBadge();
-</script>
-<script>
-function payNow() {
-  const address = localStorage.getItem("shippingAddress") || "";
-  if (!address.trim()) {
-    alert("Please fill the shipping address before proceeding.");
-    return;
-  }
-
-  const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
-  let total = 0;
-  cart.forEach(item => total += item.price * item.qty);
-  const deliveryFee = 65;
-  const finalAmount = (total + deliveryFee) * 100;
-
-  const options = {
-    "key": "rzp_live_S4Dmi0UXQYNAyV",
-    "amount": finalAmount,
-    "currency": "INR",
-    "name": "Precioussly",
-    "description": "Order Payment",
-    "image": "https://cdn-icons-png.flaticon.com/512/2038/2038854.png",
-    "handler": function (response){
-        window.location.href = "thankyou.html";
-    },
-    "prefill": {
-        "name": "Customer",
-        "email": "",
-        "contact": ""
-    },
-    "notes": {
-        "address": address
-    },
-    "theme": {
-        "color": "#2874f0"
-    }
-  };
-
-  const rzp = new Razorpay(options);
-  rzp.open();
-}
 </script>
 
 
@@ -474,6 +437,11 @@ function confirmAddress() {
 }
 
 </script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<div id="stickyBar" style="position:fixed; bottom:0; left:0; right:0; background:#fff; padding:10px 12px; border-top:1px solid #ccc; display:none;">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div style="font-weight: bold; font-size: 16px;">Total: ₹<span id="stickyTotal">0</span></div>
+    <button onclick="document.getElementById('proceedBtn').click()" style="background:#2874f0; color:#fff; padding:10px 16px; border:none; border-radius:8px;">Pay Now</button>
+  </div>
+</div>
 </body>
 </html>
