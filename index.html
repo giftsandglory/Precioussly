@@ -610,8 +610,11 @@ down-toggle {
   <!-- Search icon -->
   <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
 
-  <!-- Cart icon -->
+  <!-- Cart icon with badge -->
+<div style="position: relative;">
   <img src="https://i.postimg.cc/0NKSBQGK/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
+  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: black; color: white; font-size: 12px; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+</div>
 
   <!-- Profile icon -->
   <img id="profileIcon" src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" onclick="handleProfileClick()" style="cursor: pointer;" />
@@ -943,6 +946,17 @@ card.style.userSelect = "none";
       window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
     }
   }
+</script>
+<script>
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) badge.innerText = count;
+  }
+  // Call once on page load
+  updateCartBadge();
 </script>
 </body>
 </html>
