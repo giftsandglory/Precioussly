@@ -6,6 +6,25 @@
   <title>Precioussly_</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
+.small-cart-btn {
+  margin: 6px auto 0;               /* ⬅ centers the button */
+  display: block;                   /* required for margin auto to work */
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Roboto Slab', serif;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.card .small-cart-btn:hover {
+  background-color: #0056b3;
+}
   .site-footer {
   background: #fff;
   color: #000;
@@ -752,63 +771,125 @@ down-toggle {
 </style>
 
 <script>
-  const sheetURL = "https://opensheet.elk.sh/1HJ-BGRbSFbVWBVEl7rBxxyzleri7OtQX3nbmTQP_8p0/Sheet1";
+const sheetURL = "https://opensheet.elk.sh/1HJ-BGRbSFbVWBVEl7rBxxyzleri7OtQX3nbmTQP_8p0/Sheet1";
 
-  fetch(sheetURL)
-    .then(res => res.json())
-    .then(rows => {
-      const container = document.getElementById("productGrid");
-      const grouped = {};
+fetch(sheetURL)
+  .then(res => res.json())
+  .then(rows => {
+    const container = document.getElementById("productGrid");
+    const grouped = {};
 
-      rows.forEach(row => {
-        const title = row["Title"]?.trim();
-        const name = row["Product Name"]?.trim();
-        const img = row["Product Image"]?.trim();
-        const tag = row["Tag"]?.trim();
-        const mrp = row["MRP"]?.trim();
-        const price = row["Selling Price"]?.trim();
-        const rawLink = row["Product Page Link"]?.trim();
-const link = rawLink && rawLink.startsWith("http") ? rawLink : `https://precioussly.com/product.html?name=${encodeURIComponent(row["Product Name"]?.trim() || "")}`;
-        if (!title || !name || !img) return;
-        if (!grouped[title]) grouped[title] = [];
-        grouped[title].push({ name, img, tag, mrp, price, link });
-      });
+    rows.forEach(row => {
+      const title = row["Title"]?.trim();
+      const name = row["Product Name"]?.trim();
+      const img = row["Product Image"]?.trim();
+      const tag = row["Tag"]?.trim();
+      const mrp = row["MRP"]?.trim();
+      const price = row["Selling Price"]?.trim();
+      const rawLink = row["Product Page Link"]?.trim();
+      const link = rawLink && rawLink.startsWith("http")
+        ? rawLink
+        : `https://precioussly.com/product.html?name=${encodeURIComponent(name || "")}`;
 
-      Object.entries(grouped).forEach(([title, products]) => {
-        const sectionTitle = document.createElement("div");
-        sectionTitle.className = "section-title";
-        sectionTitle.innerText = title;
-        container.appendChild(sectionTitle);
+      if (!title || !name || !img) return;
+      if (!grouped[title]) grouped[title] = [];
+      grouped[title].push({ name, img, tag, mrp, price, link });
+    });
 
-        const grid = document.createElement("div");
-        grid.className = "grid";
+    Object.entries(grouped).forEach(([title, products]) => {
+      const sectionTitle = document.createElement("div");
+      sectionTitle.className = "section-title";
+      sectionTitle.innerText = title;
+      container.appendChild(sectionTitle);
 
-        products.forEach(p => {
-          const card = document.createElement("a");
-card.className = "card";
-card.href = p.link;
-card.style.textDecoration = "none";
+      const grid = document.createElement("div");
+      grid.className = "grid";
 
-          card.innerHTML = `
+      products.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const isOutOfStock = p.tag === "Out of stock";
+
+        card.innerHTML = `
+          <a href="${p.link}" style="text-decoration: none;">
             <img src="${p.img}" alt="${p.name}">
             ${
-  p.tag === "Out of stock"
-    ? `<div class='tag'>Out of stock</div>`
-    : p.tag
-    ? `<div class='tag pink'>${p.tag}</div>`
-    : ""
-}
+              isOutOfStock
+                ? `<div class='tag'>Out of stock</div>`
+                : p.tag
+                ? `<div class='tag pink'>${p.tag}</div>`
+                : ""
+            }
             <div class="info">
               <div class="name">${p.name}</div>
               <div class="price"><s>₹${p.mrp}</s> &nbsp; <b>₹${p.price}</b></div>
             </div>
-          `;
-          grid.appendChild(card);
-        });
-
-        container.appendChild(grid);
+          </a>
+          <button class="small-cart-btn" onclick="addToCartLoading(this, '${p.name}', ${p.price}, '${p.img}')">Add to Cart</button>
+        `;
+        grid.appendChild(card);
       });
+
+      container.appendChild(grid);
     });
+  });
+
+// Minimal direct cart handler
+function addToCartDirect(name, price, img) {
+  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+  const existing = cartItems.find(item => item.name === name);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cartItems.push({ name, price, img, qty: 1 });
+  }
+
+  localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  updateCartBadge();
+
+  const confirmDiv = document.createElement('div');
+  confirmDiv.id = 'cart-confirm-banner';
+  confirmDiv.innerHTML = `
+    <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" alt="Logo" />
+    <span>Item added to cart</span>
+  `;
+  document.body.appendChild(confirmDiv);
+  setTimeout(() => confirmDiv.classList.add('show'), 50);
+  setTimeout(() => {
+    confirmDiv.classList.remove('show');
+    setTimeout(() => confirmDiv.remove(), 500);
+  }, 1300);
+}
+</script>
+<script>
+function addToCartDirect(name, price, img) {
+  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+  const existing = cartItems.find(item => item.name === name);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cartItems.push({ name, price, img, qty: 1 });
+  }
+
+  localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  updateCartBadge();
+
+  const confirmDiv = document.createElement('div');
+  confirmDiv.id = 'cart-confirm-banner';
+  confirmDiv.innerHTML = `
+    <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" alt="Logo" />
+    <span>Item added to cart</span>
+  `;
+  document.body.appendChild(confirmDiv);
+  setTimeout(() => confirmDiv.classList.add('show'), 50);
+  setTimeout(() => {
+    confirmDiv.classList.remove('show');
+    setTimeout(() => confirmDiv.remove(), 500);
+  }, 1300);
+}
 </script>
 
 
@@ -1086,6 +1167,46 @@ function updateCartBadge() {
   items.forEach(item => count += item.qty);
   const badge = document.getElementById("cartCountBadge");
   if (badge) badge.innerText = count;
+}
+</script>
+<script>
+function addToCartLoading(button, name, price, img) {
+  const originalHTML = button.innerHTML;
+
+  // Show loading spinner
+  button.disabled = true;
+  button.innerHTML = `<div class="spinner" style="height: 16px; width: 16px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>`;
+
+  setTimeout(() => {
+    // Add to localStorage
+    const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+    const existing = cartItems.find(item => item.name === name);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cartItems.push({ name, price, img, qty: 1 });
+    }
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    updateCartBadge();
+
+    // Restore button
+    button.disabled = false;
+    button.innerHTML = originalHTML;
+
+    // Show popup
+    const confirmDiv = document.createElement('div');
+    confirmDiv.id = 'cart-confirm-banner';
+    confirmDiv.innerHTML = `
+      <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" alt="Logo" />
+      <span>Item added to cart</span>
+    `;
+    document.body.appendChild(confirmDiv);
+    setTimeout(() => confirmDiv.classList.add('show'), 50);
+    setTimeout(() => {
+      confirmDiv.classList.remove('show');
+      setTimeout(() => confirmDiv.remove(), 500);
+    }, 1300);
+  }, 1000);
 }
 </script>
 </body>
