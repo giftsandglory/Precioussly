@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      font-family: 'Roboto Slab', serif;
+      padding: 20px;
+      background: #fff;
+      color: #111;
+    }
+    .container {
+      max-width: 480px;
+      margin: auto;
+    }
+    h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome, <span id="userName">User</span> 👋</h2>
+    <div class="section">Your Orders: <em>Coming Soon...</em></div>
+    <div class="section">Account Settings: <em>Coming Soon...</em></div>
+  </div>
+  <script>
+    const name = localStorage.getItem("google_name");
+    if (name) document.getElementById("userName").innerText = name;
+  </script>
+</body>
+</html>
