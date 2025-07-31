@@ -7,9 +7,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
   .product-badge {
-  position: absolute;
+  position:absolute;
   top: -2px;
-  left: -2px;
+  left: -2px ;
   background: #f7f7f7;
   border: 1px solid #ccc;
   border-radius: 50%;
@@ -590,6 +590,7 @@ down-toggle {
     touch-action: none;
   }
   </style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -606,9 +607,7 @@ down-toggle {
 
   <div style="display: flex; align-items: center; gap: 12px;">
   <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
-<a href="https://precioussly.com/profile">
-  <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" />
-</a>
+<img id="profileIcon" src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" onclick="startGoogleLogin()" />
 </a>
 </div>
 </header>
@@ -642,16 +641,14 @@ down-toggle {
     <div id="menuContent"></div>
   </div>
 
-  <!-- ✅ Bottom Sign In with thick, modern divider -->
-  <div style="border-top: 4px solid #f0f0f0;">
-    <div style="padding: 14px 16px 18px;">
-      <a href="https://precioussly.com/profile" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-        <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Sign In" style="width: 22px; height: 22px; object-fit: contain; border-radius: 50%;" />
-        <span style="font-size: 16px; color: #000; font-family: 'Roboto Slab', serif;">Sign In</span>
-      </a>
-    </div>
+<div id="menuFooter" style="border-top: 4px solid #f0f0f0;">
+  <div style="padding: 14px 16px 18px;">
+    <a href="#" onclick="startGoogleLogin()" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+      <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Sign In" style="width: 22px; height: 22px;" />
+      <span style="font-size: 16px; color: #000;">Sign In</span>
+    </a>
   </div>
-</nav>
+</div>
 
 <!-- 🔽 Final Working Script -->
 <script>
@@ -892,5 +889,56 @@ card.style.userSelect = "none";
     });
   });
   </script>
+  <script>
+const CLIENT_ID = "979342586460-polu14sv9vgrtu3q0p0uvcpn45q5ual2.apps.googleusercontent.com";
+const LOGIN_REDIRECT = "https://precioussly.com/";
+
+function startGoogleLogin() {
+  google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback: handleCredentialResponse,
+  });
+
+  google.accounts.id.prompt(); // popup login
+}
+
+function handleCredentialResponse(response) {
+  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+  const userName = payload.name;
+  localStorage.setItem("google_token", response.credential);
+  localStorage.setItem("google_name", userName);
+
+  // Replace profile icon with cart icon
+  const profileIcon = document.getElementById("profileIcon");
+  if (profileIcon) {
+    profileIcon.src = "https://i.postimg.cc/63VmLgP3/IMG-20250729-120307.jpg";
+  }
+
+  // Update menu footer to "Profile Dashboard"
+  const menuFooter = document.getElementById("menuFooter");
+  if (menuFooter) {
+    menuFooter.innerHTML = `
+      <a href="/dashboard.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+        <img src="https://i.postimg.cc/63VmLgP3/IMG-20250729-120307.jpg" style="width: 22px; height: 22px;" />
+        <span style="font-size: 16px; color: #000;">Profile Dashboard</span>
+      </a>`;
+  }
+}
+const token = localStorage.getItem("google_token");
+const name = localStorage.getItem("google_name");
+
+// If logged in
+if (token && name) {
+  document.getElementById("profileIcon").src = "https://i.postimg.cc/63VmLgP3/IMG-20250729-120307.jpg";
+  const menuFooter = document.getElementById("menuFooter");
+  if (menuFooter) {
+    menuFooter.innerHTML = `
+      <a href="/dashboard.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+        <img src="https://i.postimg.cc/63VmLgP3/IMG-20250729-120307.jpg" style="width: 22px; height: 22px;" />
+        <span style="font-size: 16px; color: #000;">Profile Dashboard</span>
+      </a>`;
+  }
+}
+</script>
 </body>
 </html>
