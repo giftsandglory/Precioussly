@@ -316,7 +316,7 @@ button {
 function updateSummary() {
   let total = 0;
   cartData.forEach(item => total += item.price * item.qty);
-  const deliveryFee = 65;
+  const deliveryFee = 1;
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
     <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
@@ -357,7 +357,7 @@ function payNow() {
     return;
   }
 
-  let amount = 65; // base delivery fee
+  let amount = 1; // base delivery fee
   cart.forEach(item => amount += item.price * item.qty);
 
   const options = {
