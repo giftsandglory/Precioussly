@@ -943,16 +943,19 @@ if (token && name) {
 }
 </script>
 <script>
-  window.addEventListener("load", () => {
+  function waitForGoogleLibrary(callback) {
+    const interval = setInterval(() => {
+      if (window.google && google.accounts && google.accounts.id) {
+        clearInterval(interval);
+        callback();
+      }
+    }, 100); // check every 100ms
+  }
+
+  waitForGoogleLibrary(() => {
     const profileIcon = document.getElementById("profileIcon");
     if (profileIcon) {
-      profileIcon.addEventListener("click", () => {
-        if (window.google && google.accounts && google.accounts.id) {
-          startGoogleLogin();
-        } else {
-          alert("Login not ready. Please wait a moment and try again.");
-        }
-      });
+      profileIcon.addEventListener("click", startGoogleLogin);
     }
   });
 </script>
