@@ -746,7 +746,7 @@ function toggleMenu() {
 
       Object.entries(grouped).forEach(([menu, info]) => {
   if (info.subs.length === 0) {
-    menuContent.innerHTML += `<a href="${info.link}" class="menu-link" target="_blank">${menu}</a>`;
+    menuContent.innerHTML += `<a href="${info.link}" class="menu-link">${menu}</a>`;
   } else {
     const menuId = menu.replace(/\s+/g, '-') + '-submenu';
     menuContent.innerHTML += `
@@ -755,7 +755,7 @@ function toggleMenu() {
         <span class="dropdown-icon">›</span>
       </div>
       <div class="submenu-container" id="${menuId}" style="display: none;">
-        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link" target="_blank">› ${s.name}</a>`).join("")}
+        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link">› ${s.name}</a>`).join("")}
       </div>
     `;
   }
