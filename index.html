@@ -608,9 +608,9 @@ down-toggle {
 
 <div style="display: flex; align-items: center; gap: 12px;">
   <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
-  <a href="#" onclick="initiateGoogleLogin()">
-    <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" />
-  </a>
+  <a href="https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajahj426sd33l61.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fwww.precioussly.com&response_type=token&scope=email%20profile&prompt=consent" onclick="clearStorage()">
+  <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" />
+</a>
 </div>
 </header>
 
@@ -898,15 +898,14 @@ card.style.userSelect = "none";
     alert("Welcome " + data.name + " (" + data.email + ")");
   }
 
-  function initiateGoogleLogin() {
-    google.accounts.id.initialize({
-      client_id: "746848628668-83a44mlh0klb2kp8gajahj426sd33l61.apps.googleusercontent.com",
-      callback: handleCredentialResponse
-    });
-    google.accounts.id.prompt();
-  }
+  
 </script>
 <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+<script>
+  function clearStorage() {
+    localStorage.clear();
+    sessionStorage.clear();
+  }
+</script>
 </body>
-
 </html>
