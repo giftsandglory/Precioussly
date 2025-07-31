@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Precioussly_</title>
@@ -607,7 +606,9 @@ down-toggle {
 
   <div style="display: flex; align-items: center; gap: 12px;">
   <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
-<img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" onclick="googleLogin()" style="cursor:pointer;" />
+  <a href="https://precioussly.com/cart">
+  <img src="https://i.postimg.cc/8c050gYz/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
+</a>
 </div>
 </header>
 
@@ -624,31 +625,29 @@ down-toggle {
 
 
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+  <div class="menu-brand">
+    <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" class="menu-logo" />
+    <span class="menu-text">Precioussly_</span>
+  </div>
+  <span class="menu-close" onclick="toggleMenu()">✕</span>
+</div>
 
-
+  
+  <div id="menuContent"></div>
+</nav>
 <!-- Menu Overlay -->
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 
 <!-- Side Menu -->
-<nav class="side-menu" id="sideMenu" style="position: fixed; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
-  <div>
-    <div class="menu-header">
-      <span class="menu-title">Menu</span>
-      <span class="menu-close" onclick="toggleMenu()">✕</span>
-    </div>
-    <hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;">
-    <div id="menuContent"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">✕</span>
   </div>
-
-  <!-- ✅ Bottom Sign In with thick, modern divider -->
-  <div style="border-top: 4px solid #f0f0f0;">
-    <div style="padding: 14px 16px 18px;">
-      <a href="https://precioussly.com/profile" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-        <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Sign In" style="width: 22px; height: 22px; object-fit: contain; border-radius: 50%;" />
-        <span style="font-size: 16px; color: #000; font-family: 'Roboto Slab', serif;">Sign In</span>
-      </a>
-    </div>
-  </div>
+  <hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;">
+  <div id="menuContent"></div>
 </nav>
 
 <!-- 🔽 Final Working Script -->
@@ -890,19 +889,5 @@ card.style.userSelect = "none";
     });
   });
   </script>
-  <script>
-  function googleLogin() {
-    google.accounts.id.initialize({
-      client_id: "979342586460-polu14sv9vgrtu3q0p0uvcpn45q5ual2.apps.googleusercontent.com",
-      callback: handleCredentialResponse
-    });
-    google.accounts.id.prompt(); // Show the one-tap dialog
-  }
-
-  function handleCredentialResponse(response) {
-    // Redirect to your WordPress login URL with token
-    window.location.href = "https://precioussly.com/wp-login.php?loginSocial=google&credential=" + response.credential;
-  }
-</script>
 </body>
 </html>
