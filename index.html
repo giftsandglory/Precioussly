@@ -643,10 +643,10 @@ down-toggle {
 
 <div id="menuFooter" style="border-top: 4px solid #f0f0f0;">
   <div style="padding: 14px 16px 18px;">
-    <a href="#" onclick="startGoogleLogin()" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-      <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Sign In" style="width: 22px; height: 22px;" />
-      <span style="font-size: 16px; color: #000;">Sign In</span>
-    </a>
+  <a href="javascript:void(0)" onclick="startGoogleLogin()" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+  <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Sign In" style="width: 22px; height: 22px; object-fit: contain; border-radius: 50%;" />
+  <span style="font-size: 16px; color: #000; font-family: 'Roboto Slab', serif;">Sign In</span>
+</a>
   </div>
 </div>
 
@@ -953,6 +953,14 @@ if (token && name) {
       });
     }
   });
+</script>
+<script>
+  const profileIcon = document.getElementById("profileIcon");
+  if (profileIcon) {
+    profileIcon.addEventListener("click", () => {
+      startGoogleLogin();
+    });
+  }
 </script>
 </body>
 </html>
