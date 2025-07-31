@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <meta name="google-signin-client_id" content="177120382751-ri5nsbpmeumoqpm6ek4q3rm7pmvupq8u.apps.googleusercontent.com">
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Precioussly_</title>
@@ -606,7 +609,7 @@ down-toggle {
 
 <div style="display: flex; align-items: center; gap: 12px;">
   <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
-  <a href="#" onclick="togglePopup()">
+  <a href="javascript:void(0)" onclick="googleLogin()">
     <img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" />
   </a>
 </div>
@@ -889,5 +892,24 @@ card.style.userSelect = "none";
     });
   });
   </script>
+
+  <div id="g_id_onload"
+      data-client_id="177120382751-ri5nsbpmeumoqpm6ek4q3rm7pmvupq8u.apps.googleusercontent.com"
+      data-context="signin"
+      data-ux_mode="popup"
+      data-callback="handleCredentialResponse"
+      style="display:none;"></div>
+
+  <script>
+    function handleCredentialResponse(response) {
+      const data = JSON.parse(atob(response.credential.split('.')[1]));
+      alert("Hello, " + data.name);
+    }
+
+    function googleLogin() {
+      google.accounts.id.prompt(); // open popup
+    }
+  </script>
 </body>
+
 </html>
