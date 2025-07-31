@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel - Precioussly</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 20px 0;
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 16px;
+      margin-top: 10px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Precioussly Admin Panel</h1>
+  <div id="adminContent" style="display: none;">
+    <div class="section">
+      <h3>🟩 Edit Announcement</h3>
+      <textarea id="announcementText"></textarea>
+      <button onclick="updateAnnouncement()">Update Announcement</button>
+    </div>
+
+    <div class="section">
+      <h3>🟪 Edit Coupon (First Only)</h3>
+      <textarea id="couponJSON" placeholder='[{"Title":"New","MinAmount":"200","Code":"NEW200","Discount":"10%"}]'></textarea>
+      <button onclick="updateCoupon()">Update Coupon</button>
+    </div>
+
+    <div class="section">
+      <h3>🟦 Edit Categories (All)</h3>
+      <textarea id="categoryJSON" placeholder='[{"section":"Top","category name":"Shoes","image":"URL","link":"URL"}]'></textarea>
+      <button onclick="updateCategory()">Update Category</button>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_EMAIL = "ritiktyagi0033@gmail.com";
+
+    function checkLogin() {
+      google.accounts.id.initialize({
+        client_id: "746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com",
+        callback: handleCredentialResponse
+      });
+      google.accounts.id.prompt();
+    }
+
+    function handleCredentialResponse(response) {
+      const data = jwt_decode(response.credential);
+      if (data.email !== ADMIN_EMAIL) {
+        alert("Access denied");
+        return;
+      }
+      document.getElementById("adminContent").style.display = "block";
+      loadData();
+    }
+
+    function loadData() {
+      fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+        .then(res => res.json())
+        .then(data => {
+          if (data.length > 0) {
+            document.getElementById("announcementText").value = data[0]["(announcement_text)"] || "";
+          }
+        });
+    }
+
+    function updateAnnouncement() {
+      const text = document.getElementById("announcementText").value;
+      const payload = {
+        range: "Sheet1!A2",
+        values: [[text]]
+      };
+      sendUpdate("1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc", payload);
+    }
+
+    function updateCoupon() {
+      const json = JSON.parse(document.getElementById("couponJSON").value);
+      const values = json.map(c => [c.Title, c.MinAmount, c.Code, c.Discount]);
+      sendUpdate("1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs", { range: "Sheet1", values });
+    }
+
+    function updateCategory() {
+      const json = JSON.parse(document.getElementById("categoryJSON").value);
+      const values = json.map(c => [c.section, c["category name"], c.image, c.link]);
+      sendUpdate("1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I", { range: "Sheet1", values });
+    }
+
+    function sendUpdate(sheetId, payload) {
+      alert("This button is a demo. For real saving, connect to Google Apps Script or Firebase.");
+      console.log("Would update:", sheetId, payload);
+    }
+
+    window.onload = checkLogin;
+  </script>
+</body>
+</html>
