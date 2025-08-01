@@ -13,13 +13,6 @@
       background: #fff;
       color: #111;
     }
-    .slider-img {
-  width: 100%;
-  max-width: 320px;
-  border-radius: 16px;
-  object-fit: cover;
-  flex-shrink: 0;
-}
     .container {
       max-width: 480px;
       margin: 0 auto;
@@ -65,10 +58,7 @@
 </head>
 <body>
   <div class="container">
-    <div id="sliderContainer" style="position: relative; overflow: hidden;">
-  <div id="imageSlider" style="display: flex; transition: transform 0.5s ease;"></div>
-  <div style="margin-top: 12px; font-size: 15px;" id="imageCounter">1/1</div>
-</div>
+    <img id="productImage" src="" alt="Product Image">
     <div class="tag" id="productTag"></div>
     <div class="name" id="productName"></div>
     <div class="price" id="productPrice"></div>
@@ -89,71 +79,11 @@
           document.body.innerHTML = "<p style='text-align:center;font-size:18px;'>Product not found</p>";
           return;
         }
-        const imageSlider = document.getElementById("imageSlider");
-const imageCounter = document.getElementById("imageCounter");
-
-let images = [];
-let currentIndex = 0;
-
-const product = data.find(p => p["Product Name"]?.trim() === productName);
-if (!product) {
-  document.body.innerHTML = "<p style='text-align:center;font-size:18px;'>Product not found</p>";
-  return;
-}
-
-// Fetch all images from columns Product Image, Product Image 2, 3...
-for (let i = 1; i <= 10; i++) {
-  const key = i === 1 ? "Product Image" : `Product Image ${i}`;
-  if (product[key]?.trim()) images.push(product[key].trim());
-}
-
-if (images.length === 0) {
-  imageSlider.innerHTML = "<p>No images</p>";
-} else {
-  images.forEach(src => {
-    const img = document.createElement("img");
-    img.src = src;
-    img.className = "slider-img";
-    imageSlider.appendChild(img);
-  });
-  updateCounter();
-}
-
-document.getElementById("productName").innerText = product["Product Name"];
-document.getElementById("productPrice").innerHTML = `<s>₹${product["MRP"]}</s> <b>₹${product["Selling Price"]}</b>`;
-document.getElementById("productTag").innerText = product["Tag"] || "";
-
-// Swipe Support (Optional)
-let startX = 0;
-imageSlider.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-imageSlider.addEventListener("touchend", e => {
-  const deltaX = e.changedTouches[0].clientX - startX;
-  if (deltaX > 50) showPrev();
-  else if (deltaX < -50) showNext();
-});
-
-function showPrev() {
-  if (currentIndex > 0) {
-    currentIndex--;
-    updateSlider();
-  }
-}
-
-function showNext() {
-  if (currentIndex < images.length - 1) {
-    currentIndex++;
-    updateSlider();
-  }
-}
-
-function updateSlider() {
-  imageSlider.style.transform = `translateX(-${currentIndex * 100}%)`;
-  updateCounter();
-}
-
-function updateCounter() {
-  imageCounter.innerText = `${currentIndex + 1}/${images.length}`;
-}
+        document.getElementById("productImage").src = product["Product Image"];
+        document.getElementById("productName").innerText = product["Product Name"];
+        document.getElementById("productPrice").innerHTML = `<s>₹${product["MRP"]}</s> <b>₹${product["Selling Price"]}</b>`;
+        document.getElementById("productTag").innerText = product["Tag"] || "";
+      });
 
     function addToCart() {
       const name = document.getElementById("productName").innerText;
