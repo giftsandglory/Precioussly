@@ -294,9 +294,10 @@
     .right-icon {
   width: 28px;
   height: 28px;
-  object-fit: contain;
+  object-fit: cover;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue tap glow */
+  border-radius: 50%; /* ✅ Add this line */
+  -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
@@ -601,23 +602,24 @@ down-toggle {
     <div></div>
   </div>
 
-  <div style="position: absolute; left: 45%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;">
+  <div style="position: absolute; left: 38%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;">
   <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
   <a href="" class="header-title" style="position: static; transform: none; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">Precioussly</a>
 </div>
 
-<div style="display: flex; align-items: center; gap: 12px;">
+ <div style="display: flex; align-items: center; gap: 12px;">
   <!-- Search icon -->
-  <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
-
-  <!-- Cart icon with badge -->
-<div style="position: relative;">
-  <img src="https://i.postimg.cc/0NKSBQGK/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
-  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: black; color: white; font-size: 12px; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
-</div>
+  <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0;" />
 
   <!-- Profile icon -->
-  <img id="profileIcon" src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" onclick="handleProfileClick()" style="cursor: pointer; border-radius: 50%; object-fit: cover;" />
+  <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon" onclick="handleProfileClick()" style="cursor: pointer;" />
+
+  <!-- Cart icon with badge -->
+  <div style="position: relative; margin-top: 4px;">
+  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon" />
+  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+</div>
+  </div>
 </div>
 </header>
 
@@ -953,7 +955,14 @@ card.style.userSelect = "none";
     let count = 0;
     items.forEach(item => count += item.qty);
     const badge = document.getElementById("cartCountBadge");
-    if (badge) badge.innerText = count;
+    if (badge) {
+  if (count > 0) {
+    badge.innerText = count;
+    badge.style.display = "flex";
+  } else {
+    badge.style.display = "none";
+  }
+}
   }
   // Call once on page load
   updateCartBadge();
