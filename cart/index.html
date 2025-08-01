@@ -243,7 +243,7 @@ button {
 
     <div class="summary" id="summaryBox"></div>
 
-    <button class="proceed-btn" id="proceedBtn" onclick="payNow()">Proceed to Pay</button>
+    <button class="proceed-btn" id="proceedBtn" onclick="alert('Proceeding to Payment...')">Proceed to Pay</button>
   </div>
 
 <script>
@@ -287,15 +287,16 @@ button {
     `;
 
     if (cartData.length === 0) {
-      container.innerHTML = `
-  <div style="text-align:center; margin-top: 30px;">
-    <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" />
-    <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
-  </div>
-`;
-      document.getElementById("summaryBox").innerHTML = "";
-      document.querySelector(".proceed-btn").style.display = "none";
-    }
+  container.innerHTML = `
+    <div style="text-align:center; margin-top: 30px;">
+      <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" />
+      <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+      <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+    </div>
+  `;
+  document.getElementById("summaryBox").innerHTML = "";
+  document.querySelector(".proceed-btn").style.display = "none";
+}
   });
 
   function increase(index) {
@@ -316,7 +317,7 @@ button {
 function updateSummary() {
   let total = 0;
   cartData.forEach(item => total += item.price * item.qty);
-  const deliveryFee = 1;
+  const deliveryFee = 65;
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
     <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
@@ -344,46 +345,6 @@ function updateSummary() {
   }
 
   updateCartBadge();
-  
-function payNow() {
-  const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
-  const address = localStorage.getItem("shippingAddress") || "";
-  if (!address) {
-    alert("Please add a shipping address first.");
-    return;
-  }
-  if (cart.length === 0) {
-    alert("Cart is empty.");
-    return;
-  }
-
-  let amount = 1; // base delivery fee
-  cart.forEach(item => amount += item.price * item.qty);
-
-  const options = {
-    "key": "rzp_live_S4Dmi0UXQYNAyV", // Your Razorpay Key ID
-    "amount": amount * 100, // Amount in paise
-    "currency": "INR",
-    "name": "Precioussly",
-    "description": "Order Payment",
-    "image": "https://precioussly.com/logo.png", // Optional: your logo
-    "handler": function (response) {
-      alert("Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
-      localStorage.removeItem("cartItems");
-      window.location.href = "/thankyou.html"; // create this page
-    },
-    "prefill": {
-      "name": "",
-      "email": "",
-      "contact": ""
-    },
-    "theme": {
-      "color": "#2874f0"
-    }
-  };
-  const rzp = new Razorpay(options);
-  rzp.open();
-}
 </script>
 
 
@@ -473,6 +434,5 @@ function confirmAddress() {
 }
 
 </script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </body>
 </html>
