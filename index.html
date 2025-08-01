@@ -8,6 +8,10 @@
   <title>Precioussly</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
+  .icon-size {
+  width: 10px;
+  height: 10px;
+}
   .product-badge {
   position: absolute;
   top: -2px;
@@ -292,11 +296,11 @@
     }
 
     .right-icon {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   object-fit: cover;
   cursor: pointer;
-  border-radius: 50%; /* ✅ Add this line */
+  border-radius: 50%;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -436,10 +440,7 @@
         font-size: 15px;
       }
 
-      .right-icon {
-        width: 26px;
-        height: 26px;
-      }
+      
 
       .hamburger-wrapper {
         width: 22px;
@@ -602,22 +603,23 @@ down-toggle {
     <div></div>
   </div>
 
-  <div style="position: absolute; left: 38%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;">
+  <div style="position: absolute; left: 35%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;">
   <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
   <a href="" class="header-title" style="position: static; transform: none; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">Precioussly</a>
 </div>
 
  <div style="display: flex; align-items: center; gap: 12px;">
-  <!-- Search icon -->
-  <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0;" />
+<!-- Search icon -->
+<img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon icon-size" style="border-radius: 0;" />
 
-  <!-- Profile icon -->
-  <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon" onclick="handleProfileClick()" style="cursor: pointer;" />
+<!-- Profile icon -->
+<img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
 
-  <!-- Cart icon with badge -->
-  <div style="position: relative; margin-top: 4px;">
-  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon" />
+<!-- Cart icon with badge -->
+<div style="position: relative; margin-top: 5px;">
+  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
   <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+</div>
 </div>
   </div>
 </div>
