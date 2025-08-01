@@ -616,6 +616,29 @@ down-toggle {
   pointer-events: auto;
   z-index: 1;
 }
+.fade-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 5;
+}
+
+.fade-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.15); /* normal dot: very soft black */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.fade-dot.active {
+  background-color: rgba(0, 0, 0, 0.35); /* active dot: slightly darker */
+  transform: scale(1.2); /* optional subtle scale effect */
+}
   </style>
 </head>
 <body>
@@ -653,6 +676,7 @@ down-toggle {
   <div id="announcementBar">🧿</div>
   <div style="position: relative; overflow: hidden;">
 <div id="fadeSlider" class="fade-slider"></div>
+<div class="fade-dots" id="fadeDots"></div>
 </div>
 <div id="couponContainer" class="coupon-strip"></div>
 
@@ -826,7 +850,9 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
   });
 let currentIndex = 0;
 let slides = [];
-let slider = document.getElementById("fadeSlider");
+let dots = [];
+const slider = document.getElementById("fadeSlider");
+const dotsContainer = document.getElementById("fadeDots");
 
 fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
   .then(res => res.json())
@@ -853,9 +879,36 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
 
       slider.appendChild(el);
       slides.push(el);
+
+      // dots
+      const dot = document.createElement("div");
+      dot.className = "fade-dot";
+      if (index === 0) dot.classList.add("active");
+      dot.addEventListener("click", () => showSlide(index));
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
     });
   });
 
+function showSlide(index) {
+  slides[currentIndex]?.classList.remove("active");
+  dots[currentIndex]?.classList.remove("active");
+
+  currentIndex = index;
+
+  slides[currentIndex]?.classList.add("active");
+  dots[currentIndex]?.classList.add("active");
+}
+
+function showNextSlide() {
+  showSlide((currentIndex + 1) % slides.length);
+}
+
+function showPrevSlide() {
+  showSlide((currentIndex - 1 + slides.length) % slides.length);
+}
+
+// Swipe gesture
 let startX = 0;
 slider.addEventListener("touchstart", e => {
   startX = e.touches[0].clientX;
@@ -867,18 +920,6 @@ slider.addEventListener("touchend", e => {
     else showPrevSlide();
   }
 });
-
-function showNextSlide() {
-  slides[currentIndex]?.classList.remove("active");
-  currentIndex = (currentIndex + 1) % slides.length;
-  slides[currentIndex]?.classList.add("active");
-}
-
-function showPrevSlide() {
-  slides[currentIndex]?.classList.remove("active");
-  currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-  slides[currentIndex]?.classList.add("active");
-}
 </script>
 <script>
 const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
