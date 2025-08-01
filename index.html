@@ -623,21 +623,20 @@ down-toggle {
   width: 100%;
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   z-index: 5;
 }
 
 .fade-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.15); /* normal dot: very soft black */
+  width: 14px;
+  height: 6px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.15); /* soft black */
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .fade-dot.active {
-  background-color: rgba(0, 0, 0, 0.35); /* active dot: slightly darker */
-  transform: scale(1.2); /* optional subtle scale effect */
+  background-color: rgba(0, 0, 0, 0.35); /* slightly darker */
 }
   </style>
 </head>
