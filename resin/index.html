@@ -510,7 +510,7 @@ down-toggle {
 <div class="menu-header">
 <div class="menu-brand">
 <img alt="Logo" class="menu-logo" src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg"/>
-<span class="menu-text">Precioussly_</span>
+<span class="menu-text">Precioussly</span>
 </div>
 <span class="menu-close" onclick="toggleMenu()">✕</span>
 </div>
@@ -518,15 +518,6 @@ down-toggle {
 </nav>
 <!-- Menu Overlay -->
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-<!-- Side Menu -->
-<nav class="side-menu" id="sideMenu">
-<div class="menu-header">
-<span class="menu-title">Menu</span>
-<span class="menu-close" onclick="toggleMenu()">✕</span>
-</div>
-<hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;"/>
-<div id="menuContent"></div>
-</nav>
 <!-- 🔽 Final Working Script -->
 <script>
   
@@ -667,6 +658,18 @@ fetch(categorySheetURL)
       container.appendChild(grid);
     });
   });
+</script>
+<script>
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
 </script>
 </body>
 </html>
