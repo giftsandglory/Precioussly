@@ -131,15 +131,15 @@ fetch(SHEET_URL)
       img.src = item["photo 1"];
       img.alt = item["Product Name"];
       img.onclick = () => {
-  const images = [
-    item["photo 1"],
-    item["photo 2"],
-    item["photo 3"],
-    item["photo 4"],
-    item["photo 5"]
-  ].filter(url => url?.trim()); // removes empty or undefined
-  openPopup(images);
-};
+        const images = [
+          item["photo 1"],
+          item["photo 2"],
+          item["photo 3"],
+          item["photo 4"],
+          item["photo 5"]
+        ].filter(url => url?.trim());
+        openPopup(images);
+      };
       product.appendChild(img);
 
       if (item["Badge"]) {
@@ -151,12 +151,22 @@ fetch(SHEET_URL)
 
       const info = document.createElement('div');
       info.className = 'product-info';
+
+      let priceHTML = "";
+      if (item["MRP"] && item["Selling Price"]) {
+        priceHTML = `<div><s>₹${item["MRP"]}</s> <b>₹${item["Selling Price"]}</b></div>`;
+      } else if (item["Selling Price"]) {
+        priceHTML = `<div><b>₹${item["Selling Price"]}</b></div>`;
+      } else {
+        priceHTML = `<div style="color:#999;">Price not available</div>`;
+      }
+
       info.innerHTML = `
-        <div><s>₹${item["MRP"]}</s> <b>₹${item["Selling Price"]}</b></div>
+        ${priceHTML}
         <button class="add-btn" ${+item["in stock"] === 0 ? 'disabled' : ''}>Add to Cart</button>
       `;
-      product.appendChild(info);
 
+      product.appendChild(info);
       sectionWrapper.appendChild(product);
     });
   });
