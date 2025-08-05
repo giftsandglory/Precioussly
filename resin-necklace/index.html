@@ -141,7 +141,14 @@ fetch(SHEET_URL)
         openPopup(images);
       };
       product.appendChild(img);
+    product.appendChild(img);
 
+const title = document.createElement('div');
+title.style.fontSize = "14px";
+title.style.textAlign = "center";
+title.style.marginTop = "6px";
+title.innerText = item["Product Name"];
+product.appendChild(title);
       if (item["Badge"]) {
         const badge = document.createElement('div');
         badge.className = 'badge';
