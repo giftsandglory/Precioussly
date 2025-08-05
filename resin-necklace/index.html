@@ -3,207 +3,1210 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Product Grid</title>
+  <title>Precioussly_</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Roboto Slab', serif;
-      background: #ffffff;
-      color: #222;
-    }
-
-    .section-title {
-  font-size: 16px;         /* smaller font size */
-  font-weight: 400;        /* normal font weight */
+.small-cart-btn {
+  margin: 6px auto 0;               /* ⬅ centers the button */
+  display: block;                   /* required for margin auto to work */
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Roboto Slab', serif;
   text-align: center;
-  padding: 14px 12px 8px;  /* reduced padding */
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.card .small-cart-btn:hover {
+  background-color: #0056b3;
+}
+  .site-footer {
   background: #fff;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 300;
+  font-size: 12px;
+  text-align: center;
+  padding: 10px 12px 14px;
+  border-top: 1px solid #e1e1e1;
 }
 
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      padding: 0 8px 2px;
+.footer-text {
+  margin-bottom: 6px;
+}
+
+.footer-links {
+  display: flex;
+  flex-: ;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.footer-links span {
+  user-select: none;
+  white-space: no;
+}
+  .menu-divider {
+  width: 100vw;
+  height: 1px;
+  background-color: #e1dcd5;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+  .dropdown-icon {
+  font-size: 18px;
+  color: #000; /* black arrow */
+  font-family: 'Roboto Slab', serif;
+}
+  .header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 17px;
+  font-weight: 400;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+}
+  
+
+.side-menu.active {
+  left: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  z-index: 4000;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.menu-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.menu-link, .submenu-link {
+  display: block;
+  color: #5a3d2b;
+  text-decoration: none;
+  padding: 10px;
+  font-weight: 500;
+}
+
+.submenu-container {
+  margin-left: 15px;
+  padding-left: 10px;
+}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .product {
-      position: relative;
+    body {
+      background-color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
     }
 
-    .product img {
+    .site-header {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 16px; /* 🔁 increased from 12px */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  min-height: 72px;   /* ✅ added for height consistency */
+}
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hamburger-per {
+  width: 24px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+
+  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue Android highlight */
+  touch-action: manipulation;               /* ✅ Prevent default touch delay */
+}
+
+    .hamburger-per div {
   width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 16px;
-  object-fit: cover;
-  background: none;
-  box-shadow: none;
+  height: 3px;
+  background-color: #000; /* ✅ black */
+  border-radius: 2px;
 }
-    
-    .badge {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: #ffcc00;
+
+    .logo-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .insta-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .insta-handle {
+  font-size: 17px;
+  color: #000; /* ✅ black */
+  font-weight: 500;
+}
+
+    .insta-handle a {
+      text-decoration: none;
       color: #000;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 8px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
 
-    .product-info {
-      margin-top: 8px;
-      font-size: 14px;
-      text-align: center;
-      font-family: 'Roboto Slab', serif;
+    .insta-handle a:hover {
+      text-decoration: underline;
     }
 
-    .product-info s {
-      color: #999;
-      margin-right: 6px;
+    .right-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue tap glow */
+  touch-action: manipulation;
+}
+
+    .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */ /* REMOVE THIS */
+  /* padding-top: 100px; */  /* REMOVE THIS */
+  z-index: 3000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+    .popup-box {
+  background-color: #ffffff;         /* white like header */
+  border: 2px solid #000;         /* premium brown */
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.4s ease;
+  pointer-events: none;
+  width: 90vw;
+  max-width: 320px;
+  position: absolute;
+  top: 120px;
+}
+
+    .popup-logo-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
     }
 
-    .product-info b {
-      color: #222;
+    .popup-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .popup-insta {
+      font-size: 16px;
+      font-weight: 500;
+      color: #5a3d2b;
+    }
+
+    .popup-insta a {
+      color: #5a3d2b;
+      text-decoration: none;
+    }
+
+    .popup-insta a:hover {
+      text-decoration: underline;
+    }
+
+    .popup-text {
+      color: #5a3d2b;
       font-size: 15px;
+      line-height: 1.6;
+      max-width: 90%;
+      word-: break-word;
     }
 
-    .add-btn {
-      display: inline-block;
-      margin-top: 6px;
-      padding: 6px 14px;
-      font-size: 13px;
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: white;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s;
-    }
+    .close-btn {
+  position: absolute;
+  top: -5px;      
+  right: -5px;    
+  width: 22px;          
+  height: 22px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;          /* 🟢 smaller font */
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
 
-    .add-btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
+.close-btn:hover {
+  transform: scale(1.1);     /* hover zoom effect */
+}
 
-    .add-btn:hover {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      transform: scale(1.03);
+    #announcementBar {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #ffffff;
+  background: #000000;
+  border-top: none;
+  border-bottom: none;
+  font-weight: 500;
+  text-align: center;
+  font-family: 'Roboto Slab', serif; /* ✅ Use Roboto Slab */
+  min-height: 24px;
+  line-height: 22px;
+  user-select: none;
+}
+
+    @media (max-width: 480px) {
+      .logo-img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .insta-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      .insta-handle {
+        font-size: 15px;
+      }
+
+      .right-icon {
+        width: 26px;
+        height: 26px;
+      }
+
+      .hamburger-per {
+        width: 22px;
+        height: 18px;
+      }
+
+      .hamburger-per div {
+        height: 2.5px;
+      }
     }
+  .overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.popup-box.active {
+  opacity: 1;
+  transform: translateY(-10px); /* Final position slightly above */
+  pointer-events: auto;
+}
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 300;
+  line-height: 1;
+  margin-top: 2px; /* ✅ Adjust vertically */
+}
+}
+
+.menu-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+}
+}
+}
+
+.menu-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000; /* 🔁 black */
+  font-family: 'Roboto Slab', serif;
+}
+
+.menu-close {
+  font-size: 24px;
+  font-weight: bold;
+  color: #000; /* ✅ black color */
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.menu-close:hover {
+  transform: scale(1.2);
+}
+
+/* Updated side-menu for premium look */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translateX(-100%);
+  width: 80%;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+  padding: 20px 16px;
+  overflow-y: auto;
+  z-index: 5000;
+  font-family: 'Roboto Slab', serif;
+
+  /* ✅ Ultra smooth animation */
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.side-menu.active {
+  transform: translateX(0%);
+}
+
+.menu-link {
+  font-size: 17px;
+  color: #000;
+  text-decoration: none;
+  padding: 14px 18px 14px 24px;
+  font-weight: 500;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: none !important; /* ✅ Remove the line */
+}
+
+.submenu-link {
+  font-size: 15px;
+  color: #444;
+  padding: 10px 20px 10px 36px;
+  text-decoration: none;
+  font-weight: 400;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #eaeaea; /* ✅ Light line for submenu */
+}
+down-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px 14px 24px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  border-bottom: 1px solid #e1dcd5;
+  cursor: pointer;
+}
+
+.down-icon {
+  font-size: 18px;
+  color: #000; /* 🔁 black */
+}
+.overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.popup-box.active {
+  opacity: 1;
+  transform: translateY(-10px);
+  pointer-events: auto;
+}
   </style>
+  <style>
+#productPopupBox {
+  max-width: 340px;
+  width: 90vw;
+  border-radius: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.92);  /* ✅ slightly transparent */
+  backdrop-filter: blur(6px);             /* ✅ glass effect */
+  -webkit-backdrop-filter: blur(6px);     /* ✅ for Safari */
+  border: 2px solid #000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* ✅ soft shadow */
+}
+
+#productPopupBox img {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+#popupName {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  margin: 4px 0 2px;
+}
+
+#popupPrice {
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  margin-bottom: 6px;
+}
+
+#popupPrice s {
+  color: #888;
+}
+
+#popupDescToggle {
+  cursor: pointer;
+  font-size: 14px;
+  color: #000;
+  text-align: center;
+}
+
+#popupDesc {
+  font-size: 14px;
+  color: #444;
+  display: none;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.add-to-cart-btn {
+  margin-top: 12px;
+  padding: 0 16px;                      /* ✅ Horizontal padding only */
+  height: 48px;                         /* ✅ Fixed height */
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.3s ease;
+  font-family: 'Roboto Slab', serif;
+  display: flex;                        /* ✅ Align text and spinner */
+  align-items: center;
+  justify-content: center;
+}
+
+.add-to-cart-btn:hover {
+  background: #0056b3;
+}
+
+.add-to-cart-btn:active {
+  background: #007bff !important;
+  color: #fff !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.add-to-cart-btn:hover {
+  background: #0056b3;
+}
+
+.add-to-cart-btn:active {
+  background: #007bff !important;
+  color: #fff !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+</style>
+<style>
+#cart-confirm-banner {
+  background: rgba(0, 0, 0, 0.6);         /* ✅ translucent black */
+  backdrop-filter: blur(6px);             /* ✅ glass blur effect */
+  -webkit-backdrop-filter: blur(6px);     /* ✅ iOS/Safari support */
+  color: #fff;
+  font-family: 'Roboto Slab', serif;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  top: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.5s ease;
+}
+
+#cart-confirm-banner.show {
+  opacity: 1;
+}
+
+#cart-confirm-banner img {
+  width: 28px; /* ⬅ smaller */
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+</style>
 </head>
 <body>
-
-<div id="content"></div>
-
-<script>
-const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
-
-fetch(SHEET_URL)
-  .then(res => res.json())
-  .then(data => {
-    const content = document.getElementById('content');
-    let currentSection = '';
-    let sectionWrapper;
-
-    data.forEach(item => {
-      if (item["Section"]) {
-        currentSection = item["Section"];
-        const sectionTitle = document.createElement('div');
-        sectionTitle.className = 'section-title';
-        sectionTitle.innerText = currentSection;
-        content.appendChild(sectionTitle);
-
-        sectionWrapper = document.createElement('div');
-        sectionWrapper.className = 'product-grid';
-        content.appendChild(sectionWrapper);
-      }
-
-      if (!item["Product Name"]) return;
-
-      const product = document.createElement('div');
-      product.className = 'product';
-
-      const img = document.createElement('img');
-      img.src = item["photo 1"];
-      img.alt = item["Product Name"];
-      img.onclick = () => {
-        const images = [
-          item["photo 1"],
-          item["photo 2"],
-          item["photo 3"],
-          item["photo 4"],
-          item["photo 5"]
-        ].filter(url => url?.trim());
-        openPopup(images);
-      };
-      product.appendChild(img);
-    product.appendChild(img);
-
-const title = document.createElement('div');
-title.style.fontSize = "14px";
-title.style.textAlign = "center";
-title.style.marginTop = "6px";
-title.innerText = item["Product Name"];
-product.appendChild(title);
-      if (item["Badge"]) {
-        const badge = document.createElement('div');
-        badge.className = 'badge';
-        badge.innerText = item["Badge"];
-        product.appendChild(badge);
-      }
-
-      const info = document.createElement('div');
-      info.className = 'product-info';
-
-      let priceHTML = "";
-      if (item["MRP"] && item["Selling Price"]) {
-        priceHTML = `<div><s>₹${item["MRP"]}</s> <b>₹${item["Selling Price"]}</b></div>`;
-      } else if (item["Selling Price"]) {
-        priceHTML = `<div><b>₹${item["Selling Price"]}</b></div>`;
-      } else {
-        priceHTML = `<div style="color:#999;">Price not available</div>`;
-      }
-
-      info.innerHTML = `
-        ${priceHTML}
-        <button class="add-btn" ${+item["in stock"] === 0 ? 'disabled' : ''}>Add to Cart</button>
-      `;
-
-      product.appendChild(info);
-      sectionWrapper.appendChild(product);
-    });
-  });
-</script>
-<div id="popupOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#00000099; z-index:9999; justify-content:center; align-items:center;">
-  <div id="popupContent" style="background:white; border-radius:12px; max-width:90%; max-height:90%; padding:14px; position:relative; overflow:hidden;">
-    <span onclick="closePopup()" style="position:absolute; top:8px; right:14px; font-size:20px; cursor:pointer;">&times;</span>
-    <div id="popupSlider" style="display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:10px; border-radius:10px;">
-      <!-- Images will be injected here -->
-    </div>
+  <!-- Header -->
+<header class="site-header">
+  <div class="hamburger-per" onclick="toggleMenu()">
+    <div></div>
+    <div></div>
+    <div></div>
   </div>
+
+  <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;">
+    <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
+    <a href="" class="header-title" style="position: static; transform: none; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">Precioussly_</a>
+  </div>
+
+  <div style="display: flex; align-items: center;">
+   <div style="display: flex; align-items: center;">
+<a href="https://precioussly.com/cart/" style="position: relative;">
+<!-- Search icon -->
+<a href="#" style="margin-right: 12px;">
+  <img src="https://i.postimg.cc/SN2Xv4yJ/Search.jpg" alt="Search" class="right-icon" />
+</a>
+
+<!-- Cart icon -->
+<a href="https://precioussly.com/cart/" style="position: relative;">
+  <img src="https://i.postimg.cc/8c050gYz/IMG-20250729-120307.jpg" alt="Cart" class="right-icon" />
+  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: black; color: white; font-size: 12px; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+</a>
+</a>
 </div>
-<script>
-function openPopup(images) {
-  const overlay = document.getElementById("popupOverlay");
-  const slider = document.getElementById("popupSlider");
-  slider.innerHTML = "";
+  </div>
+</header>
 
-  images.forEach(url => {
-    const img = document.createElement("img");
-    img.src = url.trim();
-    img.style = "aspect-ratio:1/1; width:100%; max-width:300px; border-radius:12px; object-fit:cover; scroll-snap-align:center;";
-    slider.appendChild(img);
-  });
+<!-- Announcement Bar -->
+<div id="announcementBar">🧿</div>
 
-  overlay.style.display = "flex";
+<!-- Side Menu + Overlay -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">✕</span>
+  </div>
+  <hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;">
+  <div id="menuContent"></div>
+</nav>
+
+  
+
+  <!-- Announcement Bar -->
+  
+
+<!-- 🔽 Product Grid Section -->
+<div id="productGrid" style="padding: 12px;"></div>
+
+<style>
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 1px 0 12px;
+  text-align: center;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
 }
 
-function closePopup() {
-  document.getElementById("popupOverlay").style.display = "none";
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .card {
+    position: relative;
+    text-decoration: none;
+    color: #000;
+  }
+
+  .card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 20px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .tag {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+.tag.pink {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: #f8c3d9;       /* soft pink */
+  color: #b0004d;                  /* rich pink text for contrast */
+  padding: 3px 7px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #f8c3d9;
+  font-weight: 600;                /* bold text for visibility */
+  font-family: 'Roboto Slab', serif;
+}
+  .info {
+    padding-top: 6px;
+    font-family: 'Roboto Slab', serif;
+  }
+
+  .name {
+    font-size: 15px;
+  }
+
+  .price {
+    font-size: 14px;
+    margin-top: 2px;
+  }
+
+  .price s {
+    color: #888;
+  }
+</style>
+<style>
+#productPopupBox,
+#popupName,
+#popupPrice,
+#popupPrice s,
+#popupDesc,
+#productPopupBox button {
+  font-family: 'Roboto Slab', serif !important;
+}
+  #categorySection {
+    padding: px px px; /* Top padding kam kiya */
+  }
+  @keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+const sheetURL = "https://opensheet.elk.sh/1HJ-BGRbSFbVWBVEl7rBxxyzleri7OtQX3nbmTQP_8p0/Sheet1";
+
+fetch(sheetURL)
+  .then(res => res.json())
+  .then(rows => {
+    const container = document.getElementById("productGrid");
+    const grouped = {};
+
+    rows.forEach(row => {
+      const title = row["Title"]?.trim();
+      const name = row["Product Name"]?.trim();
+      const img = row["Product Image"]?.trim();
+      const tag = row["Tag"]?.trim();
+      const mrp = row["MRP"]?.trim();
+      const price = row["Selling Price"]?.trim();
+      const rawLink = row["Product Page Link"]?.trim();
+      const link = rawLink && rawLink.startsWith("http")
+        ? rawLink
+        : `https://precioussly.com/product.html?name=${encodeURIComponent(name || "")}`;
+
+      if (!title || !name || !img) return;
+      if (!grouped[title]) grouped[title] = [];
+      grouped[title].push({ name, img, tag, mrp, price, link });
+    });
+
+    Object.entries(grouped).forEach(([title, products]) => {
+      const sectionTitle = document.createElement("div");
+      sectionTitle.className = "section-title";
+      sectionTitle.innerText = title;
+      container.appendChild(sectionTitle);
+
+      const grid = document.createElement("div");
+      grid.className = "grid";
+
+      products.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const isOutOfStock = p.tag === "Out of stock";
+
+        card.innerHTML = `
+          <a href="${p.link}" style="text-decoration: none;">
+            <img src="${p.img}" alt="${p.name}">
+            ${
+              isOutOfStock
+                ? `<div class='tag'>Out of stock</div>`
+                : p.tag
+                ? `<div class='tag pink'>${p.tag}</div>`
+                : ""
+            }
+            <div class="info">
+              <div class="name">${p.name}</div>
+              <div class="price"><s>₹${p.mrp}</s> &nbsp; <b>₹${p.price}</b></div>
+            </div>
+          </a>
+          <button class="small-cart-btn" onclick="addToCartLoading(this, '${p.name}', ${p.price}, '${p.img}')">Add to Cart</button>
+        `;
+        grid.appendChild(card);
+      });
+
+      container.appendChild(grid);
+    });
+  });
+
+// Minimal direct cart handler
+function addToCartDirect(name, price, img) {
+  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+  const existing = cartItems.find(item => item.name === name);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cartItems.push({ name, price, img, qty: 1 });
+  }
+
+  localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  updateCartBadge();
+
+  const confirmDiv = document.createElement('div');
+  confirmDiv.id = 'cart-confirm-banner';
+  confirmDiv.innerHTML = `
+    <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" alt="Logo" />
+    <span>Item added to cart</span>
+  `;
+  document.body.appendChild(confirmDiv);
+  setTimeout(() => confirmDiv.classList.add('show'), 50);
+  setTimeout(() => {
+    confirmDiv.classList.remove('show');
+    setTimeout(() => confirmDiv.remove(), 500);
+  }, 1300);
+}
+</script>
+<script>
+function addToCartDirect(name, price, img) {
+  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+  const existing = cartItems.find(item => item.name === name);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cartItems.push({ name, price, img, qty: 1 });
+  }
+
+  localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  updateCartBadge();
+
+  const confirmDiv = document.createElement('div');
+  confirmDiv.id = 'cart-confirm-banner';
+  confirmDiv.innerHTML = `
+    <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" alt="Logo" />
+    <span>Item added to cart</span>
+  `;
+  document.body.appendChild(confirmDiv);
+  setTimeout(() => confirmDiv.classList.add('show'), 50);
+  setTimeout(() => {
+    confirmDiv.classList.remove('show');
+    setTimeout(() => confirmDiv.remove(), 500);
+  }, 1300);
+}
+</script>
+
+
+  <!-- Popup -->
+  <div class="overlay" id="popupOverlay" onclick="closePopupOnOutside(event)">
+  <div class="popup-box" onclick="event.stopPropagation()">
+    <button class="close-btn" onclick="togglePopup()">×</button>
+
+    <div class="popup-logo-row">
+      <img class="popup-logo" src="https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png" alt="Popup Logo" />
+      <div class="popup-insta">
+        <a href="https://www.instagram.com/giftsandglory_/" target="_blank">@Precioussly_</a>
+      </div>
+    </div>
+
+    <div class="popup-text">
+      • Every moment deserves a little glory ✨<br>
+      • Make it memorable with <a href="https://www.instagram.com/giftsandglory_/" target="_blank">@Precioussly_</a><br>
+      • Fashion Jewellery • Real Flowers Jewels 🌹 • Keychains & more
+    </div>
+    
+</div>
+</div>
+
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+  <div class="menu-brand">
+    <img src="https://i.postimg.cc/yx1kJ57d/Gifts-and-glory-Logo.png" alt="Logo" class="menu-logo" />
+    <span class="menu-text">Precioussly_</span>
+  </div>
+  <span class="menu-close" onclick="toggleMenu()">✕</span>
+</div>
+
+  
+  <div id="menuContent"></div>
+</nav>
+<!-- Menu Overlay -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+<!-- Side Menu -->
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">✕</span>
+  </div>
+  <hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;">
+  <div id="menuContent"></div>
+</nav>
+
+<!-- 🔽 Final Working Script -->
+<script>
+  // Popup function
+  function togglePopup() {
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = overlay.querySelector(".popup-box");
+    const isOpen = overlay.classList.contains("active");
+    overlay.classList.toggle("active", !isOpen);
+    popupBox.classList.toggle("active", !isOpen);
+  }
+
+  // Hamburger toggle function
+  function toggleMenu() {
+  const menu = document.getElementById("sideMenu");      // ✅ matches your <nav id="sideMenu">
+  const overlay = document.getElementById("menuOverlay"); // ✅ matches your <div id="menuOverlay">
+
+  menu.classList.toggle("active");
+  overlay.classList.toggle("active");
+}
+  // 🔽 POPUP DATA FROM SHEET
+  const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
+
+  fetch(sheetURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const row = data[0];
+        const logo = document.querySelector(".popup-logo");
+        if (row.popup_logo) logo.src = row.popup_logo;
+
+        const popupText = document.querySelector(".popup-text");
+        if (row.popup_text) popupText.innerHTML = row.popup_text;
+
+        const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
+        instaLinks.forEach(link => {
+          if (row.popup_insta_link) link.href = row.popup_insta_link;
+          if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
+        });
+      }
+    });
+
+  // 🔽 MENU DATA FROM SHEET
+  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+
+  fetch(menuURL)
+    .then(res => res.json())
+    .then(data => {
+      const menuContent = document.getElementById("menuContent");
+      const grouped = {};
+
+      data.forEach(item => {
+        const menu = item.Menu?.trim();
+        const sub = item.Submenu?.trim();
+        const link = item.Link?.trim();
+        if (!menu) return;
+
+        if (sub) {
+          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+          grouped[menu].subs.push({ name: sub, link });
+        } else {
+          grouped[menu] = { link, subs: [] };
+        }
+      });
+
+      Object.entries(grouped).forEach(([menu, info]) => {
+  if (info.subs.length === 0) {
+    menuContent.innerHTML += `<a href="${info.link}" class="menu-link" target="_blank">${menu}</a>`;
+  } else {
+    const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+    menuContent.innerHTML += `
+      <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+        <span>${menu}</span>
+        <span class="dropdown-icon">›</span>
+      </div>
+      <div class="submenu-container" id="${menuId}" style="display: none;">
+        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link" target="_blank">› ${s.name}</a>`).join("")}
+      </div>
+    `;
+  }
+});
+    });
+    function toggleSubmenu(id) {
+  const submenu = document.getElementById(id);
+  submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+<script>
+  // Toggle menu open/close
+  function toggleMenu() {
+    const menu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("menuOverlay");
+    const body = document.body;
+    const isOpen = menu.classList.contains("active");
+
+    if (isOpen) {
+      menu.classList.remove("active");
+      overlay.classList.remove("active");
+      body.classList.remove("no-scroll");
+    } else {
+      menu.classList.add("active");
+      overlay.classList.add("active");
+      body.classList.add("no-scroll");
+    }
+  }
+
+  // Announcement Bar (Google Sheet)
+  fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
+  // Menu from Google Sheet
+  fetch("https://opensheet.elk.sh/1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag/Sheet1")
+    .then(res => res.json())
+    .then(data => {
+      const menuContent = document.getElementById("menuContent");
+      const grouped = {};
+
+      data.forEach(item => {
+        const menu = item.Menu?.trim();
+        const sub = item.Submenu?.trim();
+        const link = item.Link?.trim();
+        if (!menu) return;
+
+        if (sub) {
+          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+          grouped[menu].subs.push({ name: sub, link });
+        } else {
+          grouped[menu] = { link, subs: [] };
+        }
+      });
+
+      Object.entries(grouped).forEach(([menu, info]) => {
+        if (info.subs.length === 0) {
+          menuContent.innerHTML += `<a href="${info.link}" class="menu-link" target="_blank">${menu}</a>`;
+        } else {
+          const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+          menuContent.innerHTML += `
+            <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+              <span>${menu}</span>
+              <span class="dropdown-icon">›</span>
+            </div>
+            <div class="submenu-container" id="${menuId}" style="display: none;">
+              ${info.subs.map(s => `<a href="${s.link}" class="submenu-link" target="_blank">› ${s.name}</a>`).join("")}
+            </div>
+          `;
+        }
+      });
+    });
+
+  function toggleSubmenu(id) {
+    const submenu = document.getElementById(id);
+    submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+  }
+</script>
+<div class="overlay" id="productPopupOverlay" onclick="closeProductPopup()">
+  <div class="popup-box" id="productPopupBox" onclick="event.stopPropagation()">
+    <button class="close-btn" onclick="closeProductPopup()">×</button>
+<!-- ✅ Inside your #productPopupBox -->
+<img id="popupImage" />
+<h2 id="popupName"></h2>
+<p id="popupPrice"></p>
+<div id="popupDesc"></div>
+
+<!-- ✅ Single Add to Cart button -->
+<button id="addToCartBtn" class="add-to-cart-btn" onclick="addToCart()">Add to Cart</button>
+<script>
+function addToCart() {
+  const btn = document.getElementById("addToCartBtn");
+  const originalText = btn.innerHTML;
+
+  // Show loading spinner
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner" style="height: 18px; width: 18px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>`;
+
+  setTimeout(() => {
+    const name = document.getElementById("popupName").innerText.trim();
+    const priceText = document.getElementById("popupPrice").innerText.trim();
+    const imgSrc = document.getElementById("popupImage").src;
+
+    const priceMatch = priceText.match(/₹(\d+)/);
+    const price = priceMatch ? parseInt(priceMatch[1]) : 0;
+
+    const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+    const existing = cartItems.find(item => item.name === name);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cartItems.push({ name, price, img: imgSrc, qty: 1 });
+    }
+
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    updateCartBadge();
+
+    // Restore button text
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+
+    // Show confirmation popup
+    const confirmDiv = document.createElement('div');
+    confirmDiv.id = 'cart-confirm-banner';
+    confirmDiv.innerHTML = `
+      <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" alt="Logo" />
+      <span>Item added to cart</span>
+    `;
+    document.body.appendChild(confirmDiv);
+    setTimeout(() => confirmDiv.classList.add('show'), 50);
+    setTimeout(() => {
+      confirmDiv.classList.remove('show');
+      setTimeout(() => confirmDiv.remove(), 500);
+    }, 1300);
+  }, 1300);
+}
+</script>
+<script>
+function updateCartBadge() {
+  const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let count = 0;
+  items.forEach(item => count += item.qty);
+  const badge = document.getElementById("cartCountBadge");
+  if (badge) badge.innerText = count;
+}
+</script>
+<script>
+function addToCartLoading(button, name, price, img) {
+  const originalHTML = button.innerHTML;
+
+  // Show loading spinner
+  button.disabled = true;
+  button.innerHTML = `<div class="spinner" style="height: 16px; width: 16px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>`;
+
+  setTimeout(() => {
+    // Add to localStorage
+    const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+    const existing = cartItems.find(item => item.name === name);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cartItems.push({ name, price, img, qty: 1 });
+    }
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    updateCartBadge();
+
+    // Restore button
+    button.disabled = false;
+    button.innerHTML = originalHTML;
+
+    // Show popup
+    const confirmDiv = document.createElement('div');
+    confirmDiv.id = 'cart-confirm-banner';
+    confirmDiv.innerHTML = `
+      <img src="https://i.postimg.cc/HnknLbx1/1000047275-modified.jpg" alt="Logo" />
+      <span>Item added to cart</span>
+    `;
+    document.body.appendChild(confirmDiv);
+    setTimeout(() => confirmDiv.classList.add('show'), 50);
+    setTimeout(() => {
+      confirmDiv.classList.remove('show');
+      setTimeout(() => confirmDiv.remove(), 500);
+    }, 1300);
+  }, 1000);
 }
 </script>
 </body>
