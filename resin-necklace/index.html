@@ -21,25 +21,27 @@
   background: #fff;
 }
 
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      padding: 0 8px 2px;
-    }
+    
+.product-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 10px;
+}
+
 
     .product {
       position: relative;
     }
 
-    .product img {
+    
+.product img {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 16px;
+  border-radius: 20px;
   object-fit: cover;
-  background: none;
-  box-shadow: none;
 }
+
     
     .badge {
       position: absolute;
@@ -253,7 +255,7 @@ fetch(SHEET_URL)
 const title = document.createElement('div');
 title.style.fontSize = "14px";
 title.style.textAlign = "center";
-title.style.marginTop = "6px";
+title.style.marginTop = "8px";
 title.innerText = item["Product Name"];
 product.appendChild(title);
       if (item["Badge"]) {
