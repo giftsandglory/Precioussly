@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Precioussly</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Precioussly</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
+<style>
   a {
   -webkit-tap-highlight-color: transparent;
 }
@@ -467,57 +468,65 @@ down-toggle {
   </style>
 </head>
 <body>
-  
-
 <header class="site-header">
-  <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div>
-    <div></div>
-    <div></div>
-  </div>
-
-  <a href="" class="header-title" style="text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">Precioussly_</a>
-
-  <div style="display: flex; align-items: center; gap: 12px;">
-  <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
-<img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" />
+<div class="hamburger-wrapper" onclick="toggleMenu()">
+<div></div>
+<div></div>
+<div></div>
 </div>
-  </div>
+<div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+<img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="
+      width: 110px;
+      height: auto;
+      object-fit: contain;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    "/>
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px;">
+<!-- Search icon -->
+<img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
+<!-- Profile icon -->
+<img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" style="cursor: pointer;"/>
+<!-- Cart icon with badge -->
+<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+<img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
+<span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+</a>
+</div>
+
+
+
 </header>
+<!-- Announcement Bar -->
+<div id="announcementBar">🧿</div>
+<div id="categorySection" style="padding: 0px 10px 10px 10px;"></div>
 
-  <!-- Announcement Bar -->
-  <div id="announcementBar">Min Order 149/- ┃ Made in India 🇮🇳</div>
-  
-  <div id="categorySection" style="padding: 0px 10px 10px 10px;"></div>
-</div>
-</div>
 
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 <nav class="side-menu" id="sideMenu">
-  <div class="menu-header">
-  <div class="menu-brand">
-    <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" class="menu-logo" />
-    <span class="menu-text">Precioussly_</span>
-  </div>
-  <span class="menu-close" onclick="toggleMenu()">✕</span>
+<div class="menu-header">
+<div class="menu-brand">
+<img alt="Logo" class="menu-logo" src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg"/>
+<span class="menu-text">Precioussly_</span>
 </div>
-
-  
-  <div id="menuContent"></div>
+<span class="menu-close" onclick="toggleMenu()">✕</span>
+</div>
+<div id="menuContent"></div>
 </nav>
 <!-- Menu Overlay -->
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-
 <!-- Side Menu -->
 <nav class="side-menu" id="sideMenu">
-  <div class="menu-header">
-    <span class="menu-title">Menu</span>
-    <span class="menu-close" onclick="toggleMenu()">✕</span>
-  </div>
-  <hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;">
-  <div id="menuContent"></div>
+<div class="menu-header">
+<span class="menu-title">Menu</span>
+<span class="menu-close" onclick="toggleMenu()">✕</span>
+</div>
+<hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;"/>
+<div id="menuContent"></div>
 </nav>
-
 <!-- 🔽 Final Working Script -->
 <script>
   
