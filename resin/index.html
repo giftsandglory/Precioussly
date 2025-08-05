@@ -3,253 +3,661 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Product Grid</title>
+  <title>Precioussly</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Roboto Slab', serif;
-      background: #ffffff;
-      color: #222;
-    }
-
-    .section-title {
-  font-size: 16px;         /* smaller font size */
-  font-weight: 400;        /* normal font weight */
-  text-align: center;
-  padding: 14px 12px 8px;  /* reduced padding */
+  a {
+  -webkit-tap-highlight-color: transparent;
+}
+  .site-footer {
   background: #fff;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 300;
+  font-size: 12px;
+  text-align: center;
+  padding: 10px 12px 14px;
+  border-top: 1px solid #e1e1e1;
 }
 
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      padding: 0 8px 2px;
+.footer-text {
+  margin-bottom: 6px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.footer-links span {
+  user-select: none;
+  white-space: nowrap;
+}
+  .menu-divider {
+  width: 100vw;
+  height: 1px;
+  background-color: #e1dcd5;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+  .dropdown-icon {
+  font-size: 18px;
+  color: #000; /* black arrow */
+  font-family: 'Roboto Slab', serif;
+}
+  .header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 17px;
+  font-weight: 400;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+}
+  
+
+.side-menu.active {
+  left: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  z-index: 4000;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.menu-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.menu-link, .submenu-link {
+  display: block;
+  color: #5a3d2b;
+  text-decoration: none;
+  padding: 10px;
+  font-weight: 500;
+}
+
+.submenu-container {
+  margin-left: 15px;
+  padding-left: 10px;
+}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .product {
-      position: relative;
+    body {
+      background-color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
     }
 
-    .product img {
+    .site-header {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 16px; /* 🔁 increased from 12px */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  min-height: 72px;   /* ✅ added for height consistency */
+}
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hamburger-wrapper {
+  width: 24px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+
+  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue Android highlight */
+  touch-action: manipulation;               /* ✅ Prevent default touch delay */
+}
+
+    .hamburger-wrapper div {
   width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 16px;
-  object-fit: cover;
-  background: none;
-  box-shadow: none;
+  height: 3px;
+  background-color: #000; /* ✅ black */
+  border-radius: 2px;
 }
-    
-    .badge {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: #ffcc00;
+
+    .logo-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .insta-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .insta-handle {
+  font-size: 17px;
+  color: #000; /* ✅ black */
+  font-weight: 500;
+}
+
+    .insta-handle a {
+      text-decoration: none;
       color: #000;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 8px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
 
-    .product-info {
-      margin-top: 8px;
-      font-size: 14px;
-      text-align: center;
-      font-family: 'Roboto Slab', serif;
+    .insta-handle a:hover {
+      text-decoration: underline;
     }
 
-    .product-info s {
-      color: #999;
-      margin-right: 6px;
+    .right-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue tap glow */
+  touch-action: manipulation;
+}
+
+    .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */ /* REMOVE THIS */
+  /* padding-top: 100px; */  /* REMOVE THIS */
+  z-index: 3000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+    .popup-box {
+  background-color: #ffffff;         /* white like header */
+  border: 2px solid #000;         /* premium brown */
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.4s ease;
+  pointer-events: none;
+  width: 90vw;
+  max-width: 320px;
+  position: absolute;
+  top: 120px;
+}
+
+    .popup-logo-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
     }
 
-    .product-info b {
-      color: #222;
+    .popup-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .popup-insta {
+      font-size: 16px;
+      font-weight: 500;
+      color: #5a3d2b;
+    }
+
+    .popup-insta a {
+      color: #5a3d2b;
+      text-decoration: none;
+    }
+
+    .popup-insta a:hover {
+      text-decoration: underline;
+    }
+
+    .popup-text {
+      color: #5a3d2b;
       font-size: 15px;
+      line-height: 1.6;
+      max-width: 90%;
+      word-wrap: break-word;
     }
 
-    .add-btn {
-      display: inline-block;
-      margin-top: 6px;
-      padding: 6px 14px;
-      font-size: 13px;
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: white;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s;
-    }
+    .close-btn {
+  position: absolute;
+  top: 8px;                 /* 🟢 adjust vertically inside */
+  right: 8px;               /* 🟢 adjust horizontally inside */
+  width: 22px;              /* 🟢 smaller size */
+  height: 22px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;          /* 🟢 smaller font */
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
 
-    .add-btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
+.close-btn:hover {
+  transform: scale(1.1);     /* hover zoom effect */
+}
 
-    .add-btn:hover {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      transform: scale(1.03);
+    #announcementBar {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #ffffff;
+  background: #000000;
+  border-top: none;
+  border-bottom: none;
+  font-weight: 500;
+  text-align: center;
+  font-family: 'Roboto Slab', serif; /* ✅ Use Roboto Slab */
+  min-height: 24px;
+  line-height: 22px;
+  user-select: none;
+}
+
+    @media (max-width: 480px) {
+      .logo-img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .insta-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      .insta-handle {
+        font-size: 15px;
+      }
+
+      .right-icon {
+        width: 26px;
+        height: 26px;
+      }
+
+      .hamburger-wrapper {
+        width: 22px;
+        height: 18px;
+      }
+
+      .hamburger-wrapper div {
+        height: 2.5px;
+      }
     }
+  .overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.popup-box.active {
+  opacity: 1;
+  transform: translateY(-10px); /* Final position slightly above */
+  pointer-events: auto;
+}
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 300;
+  line-height: 1;
+  margin-top: 2px; /* ✅ Adjust vertically */
+}
+}
+
+.menu-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+}
+}
+}
+
+.menu-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000; /* 🔁 black */
+  font-family: 'Roboto Slab', serif;
+}
+
+.menu-close {
+  font-size: 24px;
+  font-weight: bold;
+  color: #000; /* ✅ black color */
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.menu-close:hover {
+  transform: scale(1.2);
+}
+
+/* Updated side-menu for premium look */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translateX(-100%);
+  width: 80%;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+  padding: 20px 16px;
+  overflow-y: auto;
+  z-index: 5000;
+  font-family: 'Roboto Slab', serif;
+
+  /* ✅ Ultra smooth animation */
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.side-menu.active {
+  transform: translateX(0%);
+}
+
+.menu-link {
+  font-size: 17px;
+  color: #000;
+  text-decoration: none;
+  padding: 14px 18px 14px 24px;
+  font-weight: 500;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: none !important; /* ✅ Remove the line */
+}
+
+.submenu-link {
+  font-size: 15px;
+  color: #444;
+  padding: 10px 20px 10px 36px;
+  text-decoration: none;
+  font-weight: 400;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #eaeaea; /* ✅ Light line for submenu */
+}
+down-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px 14px 24px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  border-bottom: 1px solid #e1dcd5;
+  cursor: pointer;
+}
+
+.down-icon {
+  font-size: 18px;
+  color: #000; /* 🔁 black */
+}
   </style>
 </head>
 <body>
+  
 
-<div id="content"></div>
+<header class="site-header">
+  <div class="hamburger-wrapper" onclick="toggleMenu()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
 
+  <a href="" class="header-title" style="text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; outline: none;">Precioussly_</a>
+
+  <div style="display: flex; align-items: center; gap: 12px;">
+  <img src="https://i.postimg.cc/wMPVgzWm/IMG-20250729-215544.jpg" alt="Search" class="right-icon" />
+<img src="https://i.postimg.cc/pLHLyZkW/Profile.jpg" alt="Profile" class="right-icon" />
+</div>
+  </div>
+</header>
+
+  <!-- Announcement Bar -->
+  <div id="announcementBar">Min Order 149/- ┃ Made in India 🇮🇳</div>
+  
+  <div id="categorySection" style="padding: 0px 10px 10px 10px;"></div>
+</div>
+</div>
+
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+  <div class="menu-brand">
+    <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" class="menu-logo" />
+    <span class="menu-text">Precioussly_</span>
+  </div>
+  <span class="menu-close" onclick="toggleMenu()">✕</span>
+</div>
+
+  
+  <div id="menuContent"></div>
+</nav>
+<!-- Menu Overlay -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+<!-- Side Menu -->
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">✕</span>
+  </div>
+  <hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;">
+  <div id="menuContent"></div>
+</nav>
+
+<!-- 🔽 Final Working Script -->
 <script>
-const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
+  
 
-fetch(SHEET_URL)
+  // Hamburger toggle function
+  function toggleMenu() {
+  const menu = document.getElementById("sideMenu");      // ✅ matches your <nav id="sideMenu">
+  const overlay = document.getElementById("menuOverlay"); // ✅ matches your <div id="menuOverlay">
+
+  menu.classList.toggle("active");
+  overlay.classList.toggle("active");
+}
+  // 🔽 POPUP DATA FROM SHEET
+  const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
+
+  fetch(sheetURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const row = data[0];
+        const logo = document.querySelector(".popup-logo");
+        if (row.popup_logo) logo.src = row.popup_logo;
+
+        const popupText = document.querySelector(".popup-text");
+        if (row.popup_text) popupText.innerHTML = row.popup_text;
+
+        const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
+        instaLinks.forEach(link => {
+          if (row.popup_insta_link) link.href = row.popup_insta_link;
+          if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
+        });
+      }
+    });
+
+  // 🔽 MENU DATA FROM SHEET
+  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+
+  fetch(menuURL)
+    .then(res => res.json())
+    .then(data => {
+      const menuContent = document.getElementById("menuContent");
+      const grouped = {};
+
+      data.forEach(item => {
+        const menu = item.Menu?.trim();
+        const sub = item.Submenu?.trim();
+        const link = item.Link?.trim();
+        if (!menu) return;
+
+        if (sub) {
+          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+          grouped[menu].subs.push({ name: sub, link });
+        } else {
+          grouped[menu] = { link, subs: [] };
+        }
+      });
+
+      Object.entries(grouped).forEach(([menu, info]) => {
+  if (info.subs.length === 0) {
+    menuContent.innerHTML += `<a href="${info.link}" class="menu-link" target="_blank">${menu}</a>`;
+  } else {
+    const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+    menuContent.innerHTML += `
+      <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+        <span>${menu}</span>
+        <span class="dropdown-icon">›</span>
+      </div>
+      <div class="submenu-container" id="${menuId}" style="display: none;">
+        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link" target="_blank">› ${s.name}</a>`).join("")}
+      </div>
+    `;
+  }
+});
+    });
+    function toggleSubmenu(id) {
+  const submenu = document.getElementById(id);
+  submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+<script>
+const categorySheetURL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
+
+fetch(categorySheetURL)
   .then(res => res.json())
-  .then(data => {
-    const content = document.getElementById('content');
-    let currentSection = '';
-    let sectionWrapper;
+  .then(rows => {
+    const container = document.getElementById("categorySection");
+    const grouped = {};
 
-    data.forEach(item => {
-      if (item["Section"]) {
-        currentSection = item["Section"];
-        const sectionTitle = document.createElement('div');
-        sectionTitle.className = 'section-title';
-        sectionTitle.innerText = currentSection;
-        content.appendChild(sectionTitle);
+    rows.forEach(row => {
+      const section = row["Title"]?.trim();
+      const name = row["Category Name"]?.trim();
+      const img = row["Category Image"]?.trim();
+      const link = row["Link"]?.trim() || "#";
 
-        sectionWrapper = document.createElement('div');
-        sectionWrapper.className = 'product-grid';
-        content.appendChild(sectionWrapper);
-      }
+      if (!section || !name || !img) return;
 
-      if (!item["Product Name"]) return;
+      if (!grouped[section]) grouped[section] = [];
+      grouped[section].push({ name, img, link });
+    });
 
-      const product = document.createElement('div');
-      product.className = 'product';
+    Object.entries(grouped).forEach(([section, items]) => {
+      // Add section title
+      const title = document.createElement("h3");
+      title.innerText = section;
+      title.style.fontFamily = "'Roboto Slab', serif";
+      title.style.fontSize = "18px";
+      title.style.margin = "10px 0";
+      title.style.textAlign = "center";
+      title.style.textTransform = "capitalize";
+      title.style.fontWeight = "400";
+      container.appendChild(title);
 
-      const img = document.createElement('img');
-      img.src = item["photo 1"];
-      img.alt = item["Product Name"];
-      img.onclick = () => {
-  openPopup(
-    item["photo 1"],
-    item["Product Name"],
-    item["MRP"],
-    item["Selling Price"]
-  );
-};
-      product.appendChild(img);
-    product.appendChild(img);
+      // Create grid layout
+      const grid = document.createElement("div");
+      grid.style.display = "grid";
+      grid.style.gridTemplateColumns = "1fr 1fr";
+      grid.style.gap = "14px";
 
-const title = document.createElement('div');
-title.style.fontSize = "14px";
-title.style.textAlign = "center";
-title.style.marginTop = "6px";
-title.innerText = item["Product Name"];
-product.appendChild(title);
-      if (item["Badge"]) {
-        const badge = document.createElement('div');
-        badge.className = 'badge';
-        badge.innerText = item["Badge"];
-        product.appendChild(badge);
-      }
+      // Add boxes
+      items.forEach(item => {
+        const box = document.createElement("a");
+        box.href = item.link;
+        box.style.textDecoration = "none";
+        box.style.color = "inherit";
 
-      const info = document.createElement('div');
-      info.className = 'product-info';
+        box.innerHTML = `
+          <div style="text-align: center;">
+            <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 20px; object-fit: cover;">
+            <div style="margin-top: 8px; font-family: 'Roboto Slab', serif; font-size: 15px;">${item.name}</div>
+          </div>
+        `;
 
-      let priceHTML = "";
-      if (item["MRP"] && item["Selling Price"]) {
-        priceHTML = `<div><s>₹${item["MRP"]}</s> <b>₹${item["Selling Price"]}</b></div>`;
-      } else if (item["Selling Price"]) {
-        priceHTML = `<div><b>₹${item["Selling Price"]}</b></div>`;
-      } else {
-        priceHTML = `<div style="color:#999;">Price not available</div>`;
-      }
+        grid.appendChild(box);
+      });
 
-      info.innerHTML = `
-        ${priceHTML}
-        <button class="add-btn" ${+item["in stock"] === 0 ? 'disabled' : ''}>Add to Cart</button>
-      `;
-
-      product.appendChild(info);
-      sectionWrapper.appendChild(product);
+      container.appendChild(grid);
     });
   });
 </script>
-<div id="popupOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#00000099; z-index:9999; justify-content:center; align-items:center;">
-  <div id="popupContent" style="background:white; border-radius:12px; max-width:90%; max-height:90%; padding:14px; position:relative; overflow:hidden;">
-    <span onclick="closePopup()" style="position:absolute; top:8px; right:14px; font-size:20px; cursor:pointer;">&times;</span>
-    <div id="popupSlider" style="display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:10px; border-radius:10px;">
-      <!-- Images will be injected here -->
-    </div>
-  </div>
-</div>
-<script>
-function openPopup(images) {
-  const overlay = document.getElementById("popupOverlay");
-  const slider = document.getElementById("popupSlider");
-  slider.innerHTML = "";
-
-  images.forEach(url => {
-    const img = document.createElement("img");
-    img.src = url.trim();
-    img.style = "aspect-ratio:1/1; width:100%; max-width:300px; border-radius:12px; object-fit:cover; scroll-snap-align:center;";
-    slider.appendChild(img);
-  });
-
-  overlay.style.display = "flex";
-}
-
-function closePopup() {
-  document.getElementById("popupOverlay").style.display = "none";
-}
-</script>
-
-<div id="productPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#00000099; z-index:9999; justify-content:center; align-items:center;">
-  <div style="background:white; border-radius:16px; max-width:340px; width:90%; padding:16px; position:relative; text-align:center;">
-    <span onclick="closePopup()" style="position:absolute; top:10px; right:14px; font-size:22px; cursor:pointer;">&times;</span>
-    <img id="popupImage" src="" style="width:100%; border-radius:14px; margin-bottom:14px; object-fit:cover;" />
-    <div id="popupName" style="font-size:15px; font-weight:600;"></div>
-    <div id="popupPrice" style="margin:8px 0; font-size:14px;"></div>
-    <button onclick="addToCart()" style="background:#2563eb; color:#fff; border:none; border-radius:50px; padding:10px 20px; font-size:14px; margin-top:10px;">Add to Cart</button>
-  </div>
-</div>
-
-<div id="addedToast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#222; color:#fff; font-size:14px; padding:10px 20px; border-radius:30px; z-index:10000;">Item added to cart</div>
-
-<script>
-let selectedProduct = null;
-
-function openPopup(image, name, mrp, price) {
-  selectedProduct = { image, name, mrp, price };
-
-  document.getElementById("popupImage").src = image;
-  document.getElementById("popupName").innerText = name;
-
-  let priceHTML = "";
-  if (mrp && price) {
-    priceHTML = `<s>₹${mrp}</s> <b>₹${price}</b>`;
-  } else if (price) {
-    priceHTML = `<b>₹${price}</b>`;
-  } else {
-    priceHTML = `<span style="color:#999;">Price not available</span>`;
-  }
-
-  document.getElementById("popupPrice").innerHTML = priceHTML;
-  document.getElementById("productPopup").style.display = "flex";
-}
-
-function closePopup() {
-  document.getElementById("productPopup").style.display = "none";
-}
-
-function addToCart() {
-  closePopup();
-  const toast = document.getElementById("addedToast");
-  toast.style.display = "block";
-  setTimeout(() => { toast.style.display = "none"; }, 2000);
-}
-</script>
 </body>
-
 </html>
