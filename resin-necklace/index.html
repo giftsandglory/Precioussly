@@ -276,22 +276,22 @@ fetch(SHEET_URL)
       img.src = item["photo 1"];
       img.alt = item["Product Name"];
       img.onclick = () => {
-  openPopup(
-    item["photo 1"],
-    item["Product Name"],
-    item["MRP"],
-    item["Selling Price"]
-  );
-};
+        openPopup(
+          item["photo 1"],
+          item["Product Name"],
+          item["MRP"],
+          item["Selling Price"]
+        );
+      };
       product.appendChild(img);
-    product.appendChild(img);
 
-const title = document.createElement('div');
-title.style.fontSize = "14px";
-title.style.textAlign = "center";
-title.style.marginTop = "8px";
-title.innerText = item["Product Name"];
-product.appendChild(title);
+      const title = document.createElement('div');
+      title.style.fontSize = "14px";
+      title.style.textAlign = "center";
+      title.style.marginTop = "8px";
+      title.innerText = item["Product Name"];
+      product.appendChild(title);
+
       if (item["Badge"]) {
         const badge = document.createElement('div');
         badge.className = 'badge';
@@ -304,24 +304,29 @@ product.appendChild(title);
 
       let priceHTML = "";
       if (item["MRP"] && item["Selling Price"]) {
-  const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
-  priceHTML = `
-    <div><s>₹${item["MRP"]}</s> <b>₹${item["Selling Price"]}</b></div>
-    <div style="color:green; font-weight:bold; font-size:13px;">${discount}% off</div>
-  `;
-}
+        const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
+        priceHTML = `
+          <div><s>₹${item["MRP"]}</s> <b>₹${item["Selling Price"]}</b></div>
+          <div style="color:green; font-weight:bold; font-size:13px;">${discount}% off</div>
+        `;
+      }
 
-    if (+item["in stock"] === 0) {
-  info.innerHTML = `
-    ${priceHTML}
-    <div style="margin-top: 6px; color: red; font-weight: bold;">Out of Stock</div>
-  `;
-} else {
-  info.innerHTML = `
-    ${priceHTML}
-    <button class="add-btn">Add to Cart</button>
-  `;
-}
+      if (+item["in stock"] === 0) {
+        info.innerHTML = `
+          ${priceHTML}
+          <div style="margin-top: 6px; color: red; font-weight: bold;">Out of Stock</div>
+        `;
+      } else {
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(${JSON.stringify({
+            photo: item["photo 1"],
+            name: item["Product Name"],
+            mrp: item["MRP"],
+            price: item["Selling Price"]
+          })})'>Add to Cart</button>
+        `;
+      }
 
       product.appendChild(info);
       sectionWrapper.appendChild(product);
