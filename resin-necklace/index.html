@@ -7,6 +7,10 @@
 <title>Product Grid</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
+body.noscroll {
+  overflow: hidden;
+  height: 100vh;
+}
 /* 👇 Slider inside popup */
 .popup-slide {
   position: absolute;
@@ -530,6 +534,7 @@ function openPopup(images, name, mrp, price, stock) {
   popup.classList.remove("popup-hidden");
   popup.classList.add("popup-visible");
   popup.style.display = "flex";
+  document.body.classList.add("noscroll");
 }
 
 // Close popup
@@ -537,6 +542,7 @@ function closePopup() {
   const popup = document.getElementById("productPopup");
   popup.classList.remove("popup-visible");
   popup.classList.add("popup-hidden");
+  document.body.classList.remove("noscroll");
   setTimeout(() => {
     popup.style.display = "none";
   }, 200);
