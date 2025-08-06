@@ -411,9 +411,10 @@ function openPopup(image, name, mrp, price, stock) {
   document.getElementById("popupName").innerText = name;
 
   let priceHTML = "";
-  if (mrp && price) {
-    priceHTML = `<s>₹${mrp}</s> <b>₹${price}</b>`;
-  } else if (price) {
+if (mrp && price) {
+  const discount = Math.round(((mrp - price) / mrp) * 100);
+  priceHTML = `<s>₹${mrp}</s> <b>₹${price}</b><br><span style="color:green; font-weight:bold; font-size:13px;">${discount}% off</span>`;
+} else if (price) {
     priceHTML = `<b>₹${price}</b>`;
   } else {
     priceHTML = `<span style="color:#999;">Price not available</span>`;
