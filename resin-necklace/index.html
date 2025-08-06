@@ -212,6 +212,11 @@
 .popup-hidden {
   animation: popupFadeOut 0.2s ease-in forwards;
 }
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-focus-ring-color: transparent;
+  outline: none;
+}
 </style>
 </head>
 <body>
@@ -282,13 +287,14 @@ fetch(SHEET_URL)
       img.src = item["photo 1"];
       img.alt = item["Product Name"];
       img.onclick = () => {
-        openPopup(
-          item["photo 1"],
-          item["Product Name"],
-          item["MRP"],
-          item["Selling Price"]
-        );
-      };
+  openPopup(
+    item["photo 1"],
+    item["Product Name"],
+    item["MRP"],
+    item["Selling Price"],
+    item["in stock"]
+  );
+};
       product.appendChild(img);
 
       const title = document.createElement('div');
@@ -398,7 +404,7 @@ function closePopup() {
 let selectedProduct = null;
 
 // Open popup with product details
-function openPopup(image, name, mrp, price) {
+function openPopup(image, name, mrp, price, stock) {
   selectedProduct = { image, name, mrp, price };
 
   document.getElementById("popupImage").src = image;
@@ -417,6 +423,10 @@ function openPopup(image, name, mrp, price) {
 
   // Attach addToCartFromGrid logic to popup button
   const popupBtn = document.getElementById("popupAddBtn");
+  if (+stock === 0) {
+  popupBtn.disabled = true;
+  popupBtn.innerHTML = "Out of Stock";
+} else {
   popupBtn.disabled = false;
   popupBtn.innerHTML = "Add to Cart";
   popupBtn.onclick = function () {
@@ -427,6 +437,7 @@ function openPopup(image, name, mrp, price) {
       price: price
     });
   };
+}
 
   const popup = document.getElementById("productPopup");
   popup.classList.remove("popup-hidden");
