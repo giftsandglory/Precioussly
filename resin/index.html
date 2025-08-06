@@ -1,41 +1,182 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<head>
+<head><meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/><script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
-  a {
+  .header-logo-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo-img {
+  width: 110px;
+  height: auto;
+  object-fit: contain;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
   -webkit-tap-highlight-color: transparent;
 }
-  .site-footer {
-  background: #fff;
-  color: #000;
-  font-family: 'Roboto Slab', serif;
-  font-weight: 300;
-  font-size: 12px;
-  text-align: center;
-  padding: 10px 12px 14px;
-  border-top: 1px solid #e1e1e1;
+  .icon-size {
+  width: 10px;
+  height: 10px;
 }
-
-.footer-text {
-  margin-bottom: 6px;
-}
-
-.footer-links {
+  .product-badge {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-  gap: 6px;
+  z-index: 10;
+}
+.coupon-strip {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  scroll-behavior: smooth;
+}
+.coupon-card {
+  background: #e9fef1;
+  border: 1px solid #c5ecd6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  width: 220px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.coupon-card h3 {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  color: #064c2c;
+}
+.coupon-card p {
   font-size: 12px;
+  margin: 2px 0 6px;
+  color: #064c2c;
+}
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.code-box {
+  background: #d5f5e5;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #064c2c;
+  letter-spacing: 0.3px;
+}
+.copy-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.copy-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #064c2c;
+  stroke-width: 2;
+}
+.copy-btn:hover {
+  opacity: 0.6;
+}
+.strip-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 42px;
+  height: 42px;
+  background: rgba(0, 0, 0, 0.4); /* ✅ fixed background */
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 0;
+
+  /* ✅ Prevent tap glow & outlines */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-focus-ring-color: transparent;
+  outline: none;
+
+  /* ✅ Remove hover scale effect */
+  transition: none;
 }
 
-.footer-links span {
-  user-select: none;
-  white-space: nowrap;
+.strip-nav-btn:hover,
+.strip-nav-btn:active,
+.strip-nav-btn:focus {
+  background: rgba(0, 0, 0, 0.4); /* ❌ no change on hover/tap */
+  transform: translateY(-50%);   /* ❌ no zoom */
+}
+
+.strip-nav-left {
+  left: 8px;
+}
+
+.strip-nav-right {
+  right: 8px;
+}
+
+/* 👇 Arrow position adjust if needed */
+.strip-nav-btn span {
+  display: inline-block;
+  transform: translate(0, -2px); /* 🔼 Up 2px */
+}
+.image-strip-container {
+  display: flex;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.strip-media {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  object-fit: cover;
+  max-height: 320px;
+}
+
+.strip-media[controls] {
+  background: #000;
 }
   .menu-divider {
   width: 100vw;
@@ -172,11 +313,12 @@
     }
 
     .right-icon {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue tap glow */
+  border-radius: 50%;
+  -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
@@ -315,10 +457,7 @@
         font-size: 15px;
       }
 
-      .right-icon {
-        width: 26px;
-        height: 26px;
-      }
+      
 
       .hamburger-wrapper {
         width: 22px;
@@ -361,17 +500,13 @@
   display: inline-block;
   vertical-align: middle;
 }
-
 .menu-text {
   font-family: 'Roboto Slab', serif;
   font-size: 16px;
   color: #000;
-  font-weight: 300;
-  line-height: 1;
-  margin-top: 2px; /* ✅ Adjust vertically */
+  font-weight: 400;
+  user-select: none;  /* 👈 Yeh line add karo */
 }
-}
-
 .menu-logo {
   width: 40px;
   height: 40px;
@@ -465,9 +600,95 @@ down-toggle {
   font-size: 18px;
   color: #000; /* 🔁 black */
 }
-  </style>
+.menu-text, .header-title {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -ms-user-select: none !important;
+}
+  body.no-scroll {
+    overflow: hidden;
+    height: 100vh;
+    touch-action: none;
+  }
+  .fade-slider {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+}
+
+.fade-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.fade-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 1;
+}
+.fade-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  z-index: 5;
+}
+
+.fade-dot {
+  width: 14px;
+  height: 6px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.15); /* soft black */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.fade-dot.active {
+  background-color: rgba(0, 0, 0, 0.35); /* slightly darker */
+}
+  
+#categorySection {
+  padding: 10px 14px 40px 14px;
+}
+#categorySection h3 {
+  font-size: 18px;
+  font-weight: 400;
+  text-align: center;
+  margin: 16px 0 10px;
+  font-family: 'Roboto Slab', serif;
+}
+#categorySection img {
+  border-radius: 16px;
+  object-fit: cover;
+}
+#categorySection a {
+  text-decoration: none;
+  color: inherit;
+}
+    </style>
 </head>
 <body>
+<!-- 👇 SIDE MENU STRUCTURE NEEDED FOR OVERLAY -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+<div class="menu-header">
+<span class="menu-title">Menu</span>
+<span class="menu-close" onclick="toggleMenu()">×</span>
+</div>
+<div id="menuContent"></div>
+</nav>
 <header class="site-header">
 <div class="hamburger-wrapper" onclick="toggleMenu()">
 <div></div>
@@ -484,7 +705,6 @@ down-toggle {
       -webkit-tap-highlight-color: transparent;
     "/>
 </div>
-
 <div style="display: flex; align-items: center; gap: 12px;">
 <!-- Search icon -->
 <img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
@@ -496,39 +716,105 @@ down-toggle {
 <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
 </a>
 </div>
-
-
-
-</header>
-<!-- Announcement Bar -->
-<div id="announcementBar">🧿</div>
-<div id="categorySection" style="padding: 0px 10px 10px 10px;"></div>
-
-
-<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-<nav class="side-menu" id="sideMenu">
-<div class="menu-header">
-<div class="menu-brand">
-<img alt="Logo" class="menu-logo" src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg"/>
-<span class="menu-text">Precioussly</span>
-</div>
-<span class="menu-close" onclick="toggleMenu()">✕</span>
-</div>
-<div id="menuContent"></div>
-</nav>
-<!-- Menu Overlay -->
-<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-<!-- 🔽 Final Working Script -->
+</header><div id="announcementBar">🧿</div>
+<!-- Category Section (still working) -->
+<div id="categorySection"></div>
+<!-- 🔽 CATEGORY SCRIPT FROM SHEET -->
 <script>
-  
+  const categorySheetURL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
+
+  fetch(categorySheetURL)
+    .then(res => res.json())
+    .then(rows => {
+      const container = document.getElementById("categorySection");
+      const grouped = {};
+
+      rows.forEach(row => {
+        const section = row["Title"]?.trim();
+        const name = row["Category Name"]?.trim();
+        const img = row["Category Image"]?.trim();
+        const link = row["Link"]?.trim() || "#";
+
+        if (!section || !name || !img) return;
+
+        if (!grouped[section]) grouped[section] = [];
+        grouped[section].push({ name, img, link });
+      });
+
+      Object.entries(grouped).forEach(([section, items]) => {
+        const title = document.createElement("h3");
+        title.innerText = section;
+        title.style.fontFamily = "'Roboto Slab', serif";
+        title.style.fontSize = "18px";
+        title.style.margin = "10px 0";
+        title.style.textAlign = "center";
+        title.style.textTransform = "capitalize";
+        title.style.fontWeight = "400";
+        container.appendChild(title);
+
+        const grid = document.createElement("div");
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "1fr 1fr";
+        grid.style.gap = "14px";
+
+        items.forEach(item => {
+          const box = document.createElement("a");
+          box.href = item.link;
+          box.style.textDecoration = "none";
+          box.style.color = "inherit";
+
+          box.innerHTML = `
+            <div style="text-align: center;">
+              <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 20px; object-fit: cover;">
+              <div style="margin-top: 8px; font-family: 'Roboto Slab', serif; font-size: 15px;">${item.name}</div>
+            </div>
+          `;
+          grid.appendChild(box);
+        });
+
+        container.appendChild(grid);
+      });
+    });
+</script>
+<script>
+  // Announcement Bar from Google Sheet
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
+  // Popup function
+  function togglePopup() {
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = overlay.querySelector(".popup-box");
+    const isOpen = overlay.classList.contains("active");
+    overlay.classList.toggle("active", !isOpen);
+    popupBox.classList.toggle("active", !isOpen);
+  }
 
   // Hamburger toggle function
-  function toggleMenu() {
-  const menu = document.getElementById("sideMenu");      // ✅ matches your <nav id="sideMenu">
-  const overlay = document.getElementById("menuOverlay"); // ✅ matches your <div id="menuOverlay">
+function toggleMenu() {
+  const menu = document.getElementById("sideMenu");
+  const overlay = document.getElementById("menuOverlay");
+  const body = document.body;
 
-  menu.classList.toggle("active");
-  overlay.classList.toggle("active");
+  const isOpen = menu.classList.contains("active");
+
+  if (isOpen) {
+    menu.classList.remove("active");
+    overlay.classList.remove("active");
+    body.classList.remove("no-scroll");
+  } else {
+    menu.classList.add("active");
+    overlay.classList.add("active");
+    body.classList.add("no-scroll");
+  }
 }
   // 🔽 POPUP DATA FROM SHEET
   const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
@@ -579,7 +865,7 @@ down-toggle {
 
       Object.entries(grouped).forEach(([menu, info]) => {
   if (info.subs.length === 0) {
-    menuContent.innerHTML += `<a href="${info.link}" class="menu-link" target="_blank">${menu}</a>`;
+    menuContent.innerHTML += `<a href="${info.link}" class="menu-link">${menu}</a>`;
   } else {
     const menuId = menu.replace(/\s+/g, '-') + '-submenu';
     menuContent.innerHTML += `
@@ -588,7 +874,7 @@ down-toggle {
         <span class="dropdown-icon">›</span>
       </div>
       <div class="submenu-container" id="${menuId}" style="display: none;">
-        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link" target="_blank">› ${s.name}</a>`).join("")}
+        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link">› ${s.name}</a>`).join("")}
       </div>
     `;
   }
@@ -598,78 +884,145 @@ down-toggle {
   const submenu = document.getElementById(id);
   submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
 }
-</script>
-<script>
-const categorySheetURL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
-
-fetch(categorySheetURL)
+// 🟢 Wide Media (Image/Video) Strip from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
   .then(res => res.json())
-  .then(rows => {
-    const container = document.getElementById("categorySection");
-    const grouped = {};
+  .then(data => {
+    const strip = document.getElementById("imageStrip");
+    data.forEach(row => {
+      const url = row["(media_url)"];
+      if (!url) return;
 
-    rows.forEach(row => {
-      const section = row["Title"]?.trim();
-      const name = row["Category Name"]?.trim();
-      const img = row["Category Image"]?.trim();
-      const link = row["Link"]?.trim() || "#";
+      let el;
+      if (url.trim().endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url.trim();
+        el.controls = true;
+        el.muted = true;
+        el.loop = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url.trim();
+      }
 
-      if (!section || !name || !img) return;
-
-      if (!grouped[section]) grouped[section] = [];
-      grouped[section].push({ name, img, link });
-    });
-
-    Object.entries(grouped).forEach(([section, items]) => {
-      // Add section title
-      const title = document.createElement("h3");
-      title.innerText = section;
-      title.style.fontFamily = "'Roboto Slab', serif";
-      title.style.fontSize = "18px";
-      title.style.margin = "10px 0";
-      title.style.textAlign = "center";
-      title.style.textTransform = "capitalize";
-      title.style.fontWeight = "400";
-      container.appendChild(title);
-
-      // Create grid layout
-      const grid = document.createElement("div");
-      grid.style.display = "grid";
-      grid.style.gridTemplateColumns = "1fr 1fr";
-      grid.style.gap = "14px";
-
-      // Add boxes
-      items.forEach(item => {
-        const box = document.createElement("a");
-        box.href = item.link;
-        box.style.textDecoration = "none";
-        box.style.color = "inherit";
-
-        box.innerHTML = `
-          <div style="text-align: center;">
-            <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 20px; object-fit: cover;">
-            <div style="margin-top: 8px; font-family: 'Roboto Slab', serif; font-size: 15px;">${item.name}</div>
-          </div>
-        `;
-
-        grid.appendChild(box);
-      });
-
-      container.appendChild(grid);
+      el.className = "strip-media";
+      strip.appendChild(el);
+      setTimeout(() => {
+  const itemWidth = strip.children[0]?.offsetWidth || 0;
+  if (itemWidth) strip.scrollLeft = itemWidth;
+}, 300);
     });
   });
-</script>
-<script>
-  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
-  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+let currentIndex = 0;
+let slides = [];
+let dots = [];
+const slider = document.getElementById("fadeSlider");
+const dotsContainer = document.getElementById("fadeDots");
 
-  fetch(announceURL)
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    data.forEach((row, index) => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url;
+        el.loop = true;
+        el.muted = true;
+        el.autoplay = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url;
+      }
+
+      el.className = "fade-slide";
+      if (index === 0) el.classList.add("active");
+
+      slider.appendChild(el);
+      slides.push(el);
+
+      // dots
+      const dot = document.createElement("div");
+      dot.className = "fade-dot";
+      if (index === 0) dot.classList.add("active");
+      dot.addEventListener("click", () => showSlide(index));
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
+    });
+  });
+
+function showSlide(index) {
+  slides[currentIndex]?.classList.remove("active");
+  dots[currentIndex]?.classList.remove("active");
+
+  currentIndex = index;
+
+  slides[currentIndex]?.classList.add("active");
+  dots[currentIndex]?.classList.add("active");
+}
+
+function showNextSlide() {
+  showSlide((currentIndex + 1) % slides.length);
+}
+
+function showPrevSlide() {
+  showSlide((currentIndex - 1 + slides.length) % slides.length);
+}
+
+// Swipe gesture
+let startX = 0;
+slider.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+});
+slider.addEventListener("touchend", e => {
+  const deltaX = e.changedTouches[0].clientX - startX;
+  if (Math.abs(deltaX) > 50) {
+    if (deltaX < 0) showNextSlide();
+    else showPrevSlide();
+  }
+});
+</script><script>
+  function handleCredentialResponse(response) {
+    const data = jwt_decode(response.credential);
+    alert("Welcome " + data.name + " (" + data.email + ")");
+  }
+
+  
+</script><script>
+  // If redirected from Google login
+  if (window.location.hash.includes("access_token")) {
+    const accessToken = window.location.hash.split("=")[1].split("&")[0];
+    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
     .then(res => res.json())
     .then(data => {
-      if (data.length > 0 && data[0]["(announcement_text)"]) {
-        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
-      }
+      localStorage.setItem("user_name", data.name);
+      localStorage.setItem("user_email", data.email);
+      localStorage.setItem("user_photo", data.picture);
+      location.href = "https://precioussly.com"; // redirect clean
     });
-</script>
-</body>
+  }
+
+  // Show profile photo if already logged in
+  const photo = localStorage.getItem("user_photo");
+  if (photo) {
+    document.getElementById("profileIcon").src = photo;
+  }
+
+  // When user taps profile icon
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+    }
+  }
+</script></body>
 </html>
