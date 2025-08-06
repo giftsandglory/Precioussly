@@ -7,6 +7,21 @@
 <title>Product Grid</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
+.mini-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-top: 2px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
     body {
       margin: 0;
       font-family: 'Roboto Slab', serif;
@@ -395,14 +410,18 @@ function closePopup() {
 function addToCart() {
   const btn = document.querySelector("#productPopup button");
   btn.disabled = true;
-  const originalText = btn.innerText;
-  btn.innerText = "Loading...";
+
+  // Preserve height by wrapping the spinner in a fixed-height div
+  btn.innerHTML = `
+    <div class="fixed-spinner-wrapper">
+      <span class="mini-spinner"></span>
+    </div>
+  `;
 
   setTimeout(() => {
     btn.disabled = false;
-    btn.innerText = originalText;
+    btn.innerHTML = "Add to Cart";
 
-    // Toast for added item
     const toast = document.getElementById("addedToast");
     toast.innerHTML = `
       <img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">
@@ -414,13 +433,6 @@ function addToCart() {
     }, 2000);
   }, 1000);
 }
-
-// ✅ Close popup when clicking outside the white box
-document.getElementById("productPopup").addEventListener("click", function (e) {
-  if (e.target.id === "productPopup") {
-    closePopup();
-  }
-});
 </script>
 <script>
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
