@@ -17,12 +17,7 @@
   display: inline-block;
   vertical-align: middle;
 }
-.fixed-spinner-wrapper {
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -56,11 +51,16 @@
     }
 
     
-.product img {
+  .product img {
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 20px;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product:hover img {
+  transform: scale(1.06);
 }
 
     
@@ -303,48 +303,25 @@ product.appendChild(title);
       info.className = 'product-info';
 
       let priceHTML = "";
-if (item["MRP"] && item["Selling Price"]) {
-  const mrp = parseFloat(item["MRP"]);
-  const selling = parseFloat(item["Selling Price"]);
-  const discount = Math.round(((mrp - selling) / mrp) * 100);
-  priceHTML = `<div><s>₹${mrp}</s> <b>₹${selling}</b><br><span style="color:green; font-size:12px;">${discount}% off</span></div>`;
-} else if (item["Selling Price"]) {
-  priceHTML = `<div><b>₹${item["Selling Price"]}</b></div>`;
+      if (item["MRP"] && item["Selling Price"]) {
+  const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
+  priceHTML = `
+    <div><s>₹${item["MRP"]}</s> <b>₹${item["Selling Price"]}</b></div>
+    <div style="color:green; font-weight:bold; font-size:13px;">${discount}% off</div>
+  `;
+}
+
+    if (+item["in stock"] === 0) {
+  info.innerHTML = `
+    ${priceHTML}
+    <div style="margin-top: 6px; color: red; font-weight: bold;">Out of Stock</div>
+  `;
 } else {
-  priceHTML = `<div style="color:#999;">Price not available</div>`;
+  info.innerHTML = `
+    ${priceHTML}
+    <button class="add-btn">Add to Cart</button>
+  `;
 }
-
-      const addToCartBtn = document.createElement('button');
-addToCartBtn.className = 'add-btn';
-addToCartBtn.innerText = 'Add to Cart';
-
-if (+item["in stock"] === 0) {
-  addToCartBtn.disabled = true;
-}
-
-if (!item["Selling Price"]) {
-  addToCartBtn.style.display = 'none';
-}
-
-addToCartBtn.onclick = () => {
-  const originalText = addToCartBtn.innerHTML;
-  addToCartBtn.disabled = true;
-  addToCartBtn.innerHTML = `<div class="fixed-spinner-wrapper"><span class="mini-spinner"></span></div>`;
-
-  setTimeout(() => {
-    addToCartBtn.disabled = false;
-    addToCartBtn.innerHTML = "Add to Cart";
-
-    const toast = document.getElementById("addedToast");
-    toast.style.display = "flex";
-    setTimeout(() => {
-      toast.style.display = "none";
-    }, 2000);
-  }, 1000);
-};
-
-info.innerHTML = priceHTML;
-info.appendChild(addToCartBtn);
 
       product.appendChild(info);
       sectionWrapper.appendChild(product);
