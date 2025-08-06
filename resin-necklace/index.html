@@ -365,10 +365,14 @@ fetch(SHEET_URL)
       }
 
       if (+item["in stock"] === 0) {
-        info.innerHTML = `
-          ${priceHTML}
-          <div style="margin-top: 6px; color: red; font-weight: bold;">Out of Stock</div>
-        `;
+  info.innerHTML = `
+    ${priceHTML}
+    <button class="add-btn" disabled style="
+      background: #f1f1f1;
+      color: #888;
+      border: 1px solid #ccc;
+    ">Out of Stock</button>
+  `;
       } else {
         const productData = {
           photo: item["photo 1"],
