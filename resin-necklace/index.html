@@ -328,11 +328,11 @@ function openPopup(images) {
 function closePopup() {
   document.getElementById("popupOverlay").style.display = "none";
 }
-<script>
-// Close when clicking outside the popup
-document.getElementById("productPopup").addEventListener("click", function () {
-  closePopup();
-});
+  document.getElementById("productPopup").addEventListener("click", function (e) {
+    if (e.target.id === "productPopup") {
+      closePopup();
+    }
+  });
 </script>
 <div id="productPopup" class="popup-hidden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#00000099; z-index:9999; justify-content:center; align-items:center;">
 <div style="background:white; border-radius:20px; max-width:320px; width:90%; margin: 20px; padding:16px; position:relative; border: 2px solid #000;">
@@ -357,9 +357,8 @@ document.getElementById("productPopup").addEventListener("click", function () {
 <script>
 let selectedProduct = null;
 
-
-
-  function openPopup(image, name, mrp, price) {
+// Open popup with product details
+function openPopup(image, name, mrp, price) {
   selectedProduct = { image, name, mrp, price };
 
   document.getElementById("popupImage").src = image;
@@ -382,15 +381,17 @@ let selectedProduct = null;
   popup.style.display = "flex";
 }
 
+// Close popup
 function closePopup() {
   const popup = document.getElementById("productPopup");
   popup.classList.remove("popup-visible");
   popup.classList.add("popup-hidden");
   setTimeout(() => {
     popup.style.display = "none";
-  }, 200); // wait for animation to finish
+  }, 200);
 }
 
+// Add to cart logic
 function addToCart() {
   const btn = document.querySelector("#productPopup button");
   btn.disabled = true;
@@ -400,8 +401,8 @@ function addToCart() {
   setTimeout(() => {
     btn.disabled = false;
     btn.innerText = originalText;
-    closePopup();
 
+    // Toast for added item
     const toast = document.getElementById("addedToast");
     toast.innerHTML = `
       <img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">
@@ -413,6 +414,13 @@ function addToCart() {
     }, 2000);
   }, 1000);
 }
+
+// ✅ Close popup when clicking outside the white box
+document.getElementById("productPopup").addEventListener("click", function (e) {
+  if (e.target.id === "productPopup") {
+    closePopup();
+  }
+});
 </script>
 <script>
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
