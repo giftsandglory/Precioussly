@@ -7,6 +7,12 @@
 <title>Product Grid</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
+.fixed-spinner-wrapper {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .mini-spinner {
   width: 20px;
   height: 20px;
@@ -317,14 +323,16 @@ fetch(SHEET_URL)
           <div style="margin-top: 6px; color: red; font-weight: bold;">Out of Stock</div>
         `;
       } else {
+        const productData = {
+          photo: item["photo 1"],
+          name: item["Product Name"],
+          mrp: item["MRP"],
+          price: item["Selling Price"]
+        };
+
         info.innerHTML = `
           ${priceHTML}
-          <button class="add-btn" onclick='addToCartFromGrid(${JSON.stringify({
-            photo: item["photo 1"],
-            name: item["Product Name"],
-            mrp: item["MRP"],
-            price: item["Selling Price"]
-          })})'>Add to Cart</button>
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>
         `;
       }
 
@@ -424,21 +432,28 @@ function closePopup() {
 }
 
 // Add to cart logic
-function addToCart() {
-  const btn = document.querySelector("#productPopup button");
-  btn.disabled = true;
-
-  // Preserve height by wrapping the spinner in a fixed-height div
-  btn.innerHTML = `
-    <div class="fixed-spinner-wrapper">
-      <span class="mini-spinner"></span>
-    </div>
-  `;
+function addToCartFromGrid(button, product) {
+  const originalHTML = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<div class="fixed-spinner-wrapper"><span class="mini-spinner"></span></div>';
 
   setTimeout(() => {
-    btn.disabled = false;
-    btn.innerHTML = "Add to Cart";
+    button.disabled = false;
+    button.innerHTML = originalHTML;
 
+    // Add item to cart
+    let cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+    const existing = cartItems.find(i => i.name === product.name);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cartItems.push({ ...product, qty: 1 });
+    }
+
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    updateCartBadge();
+
+    // Show toast
     const toast = document.getElementById("addedToast");
     toast.innerHTML = `
       <img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">
