@@ -129,11 +129,12 @@
 }
 
     .product-info {
-      margin-top: 8px;
-      font-size: 14px;
-      text-align: center;
-      font-family: 'Roboto Slab', serif;
-    }
+  margin-top: 4px;
+  font-size: 14px;
+  text-align: center;
+  font-family: 'Roboto Slab', serif;
+  line-height: 1.4;
+}
 
     .product-info s {
       color: #999;
@@ -340,7 +341,7 @@ fetch(SHEET_URL)
 
       const title = document.createElement('div');
       title.style.fontSize = "14px";
-      title.style.textAlign = "center";
+      title.style.textAlign = "left";
       title.style.marginTop = "8px";
       title.innerText = item["Product Name"];
       product.appendChild(title);
@@ -356,14 +357,16 @@ fetch(SHEET_URL)
       info.className = 'product-info';
 
       let priceHTML = "";
-      if (item["MRP"] && item["Selling Price"]) {
-        const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
-        priceHTML = `
-          <div><s>₹${item["MRP"]}</s> <b>₹${item["Selling Price"]}</b></div>
-          <div style="color:green; font-weight:bold; font-size:13px;">${discount}% off</div>
-        `;
-      }
-
+if (item["MRP"] && item["Selling Price"]) {
+  const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
+  priceHTML = `
+    <div style="text-align:left; font-size:14px; font-weight:bold; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+      <span>₹${item["Selling Price"]}</span>
+      <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+      <span style="color:green; font-size:13px;">${discount}% off</span>
+    </div>
+  `;
+}
       if (+item["in stock"] === 0) {
   info.innerHTML = `
     ${priceHTML}
