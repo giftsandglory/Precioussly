@@ -9,16 +9,31 @@
 <style>
 /* 👇 Slider inside popup */
 .popup-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   max-width: 300px;
   aspect-ratio: 1/1;
   object-fit: cover;
   border-radius: 14px;
-  display: none;
+  opacity: 0;
   transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: 0;
 }
 .popup-slide.active {
-  display: block;
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 1;
+}
+#popupSlider {
+  position: relative;
+  height: auto;
+  min-height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .popup-dots {
   display: flex;
