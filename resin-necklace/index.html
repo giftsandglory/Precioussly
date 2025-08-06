@@ -418,9 +418,9 @@ function closePopup() {
 <div id="popupSlider"></div>
 <div id="popupDots" class="popup-dots"></div>
 <!-- Product name on left -->
-<div id="popupName" style="font-size:16px; font-weight:600; text-align:left;"></div>
+<div id="popupName" style="font-size:16px; font-weight:600; text-align:left; margin: 10px 6px 4px;"></div>
 <!-- Price -->
-<div id="popupPrice" style="margin:8px 0 16px; font-size:14px; text-align:left;"></div>
+<div id="popupPrice" style="margin:8px 6px 16px; font-size:14px; text-align:left;"></div>
 <!-- Add to Cart full-width button -->
 <button id="popupAddBtn" style="width:100%; background:#2563eb; color:#fff; border:1px solid #2563eb; border-radius:8px; padding:12px 16px; font-size:15px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
   Add to Cart
@@ -447,8 +447,13 @@ function openPopup(images, name, mrp, price, stock) {
 
   let priceHTML = "";
   if (mrp && price) {
-    const discount = Math.round(((mrp - price) / mrp) * 100);
-    priceHTML = `<s>₹${mrp}</s> <b>₹${price}</b><br><span style="color:green; font-weight:bold; font-size:13px;">${discount}% off</span>`;
+  const discount = Math.round(((mrp - price) / mrp) * 100);
+  priceHTML = `
+    <div style="font-size:14px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+      <b>₹${price}</b>
+      <s style="color:#999;">₹${mrp}</s>
+      <span style="color:green; font-size:13px;">${discount}% off</span>
+    </div>`;
   } else if (price) {
     priceHTML = `<b>₹${price}</b>`;
   } else {
