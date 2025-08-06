@@ -7,6 +7,35 @@
 <title>Product Grid</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
+/* 👇 Slider inside popup */
+.popup-slide {
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 14px;
+  display: none;
+  transition: opacity 0.5s ease;
+}
+.popup-slide.active {
+  display: block;
+}
+.popup-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.popup-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+.popup-dot.active {
+  background: rgba(0, 0, 0, 0.6);
+}
 .fixed-spinner-wrapper {
   height: 20px;
   display: flex;
@@ -360,7 +389,8 @@ function closePopup() {
 </div>
 <!-- Square image 1:1 -->
 <!-- Sliding photos here -->
-<div id="popupSlider" style="display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:10px; border-radius:10px; margin-bottom:16px;"></div>
+<div id="popupSlider"></div>
+<div id="popupDots" class="popup-dots"></div>
 <!-- Product name on left -->
 <div id="popupName" style="font-size:16px; font-weight:600; text-align:left;"></div>
 <!-- Price -->
@@ -417,14 +447,49 @@ function openPopup(images, name, mrp, price, stock) {
 
   // Inject slider images
   const slider = document.getElementById("popupSlider");
+  const dotsContainer = document.getElementById("popupDots");
   slider.innerHTML = "";
-  images.forEach(url => {
+  dotsContainer.innerHTML = "";
+  let currentPopupIndex = 0;
+  let popupSlides = [];
+  let popupDots = [];
+
+  images.forEach((url, i) => {
     const img = document.createElement("img");
     img.src = url.trim();
-    img.style = "aspect-ratio:1/1; width:100%; max-width:300px; border-radius:12px; object-fit:cover; scroll-snap-align:center;";
+    img.className = "popup-slide";
+    if (i === 0) img.classList.add("active");
     slider.appendChild(img);
+    popupSlides.push(img);
+
+    const dot = document.createElement("div");
+    dot.className = "popup-dot";
+    if (i === 0) dot.classList.add("active");
+    dot.addEventListener("click", () => showPopupSlide(i));
+    dotsContainer.appendChild(dot);
+    popupDots.push(dot);
   });
 
+  function showPopupSlide(index) {
+    popupSlides[currentPopupIndex]?.classList.remove("active");
+    popupDots[currentPopupIndex]?.classList.remove("active");
+    currentPopupIndex = index;
+    popupSlides[currentPopupIndex]?.classList.add("active");
+    popupDots[currentPopupIndex]?.classList.add("active");
+  }
+
+  // swipe gesture
+  let startX = 0;
+  slider.addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX;
+  });
+  slider.addEventListener("touchend", e => {
+    const deltaX = e.changedTouches[0].clientX - startX;
+    if (Math.abs(deltaX) > 50) {
+      if (deltaX < 0) showPopupSlide((currentPopupIndex + 1) % popupSlides.length);
+      else showPopupSlide((currentPopupIndex - 1 + popupSlides.length) % popupSlides.length);
+    }
+  });
   // Show popup
   const popup = document.getElementById("productPopup");
   popup.classList.remove("popup-hidden");
