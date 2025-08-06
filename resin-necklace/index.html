@@ -46,12 +46,14 @@ body.noscroll {
   margin-top: 10px;
 }
 .popup-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.2);
+  width: 16px;
+  height: 6px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.15);
   cursor: pointer;
+  transition: background 0.3s ease;
 }
+
 .popup-dot.active {
   background: rgba(0, 0, 0, 0.6);
 }
@@ -111,10 +113,6 @@ body.noscroll {
   border-radius: 20px;
   object-fit: cover;
   transition: transform 0.3s ease;
-}
-
-.product:hover img {
-  transform: scale(1.06);
 }
 
     
