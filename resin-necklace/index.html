@@ -339,12 +339,15 @@ fetch(SHEET_URL)
 };
       product.appendChild(img);
 
-      const title = document.createElement('div');
-      title.style.fontSize = "14px";
-      title.style.textAlign = "left";
-      title.style.marginTop = "8px";
-      title.innerText = item["Product Name"];
-      product.appendChild(title);
+      const infoWrapper = document.createElement('div');
+infoWrapper.style.padding = "0 6px"; // This adds left-right padding
+
+const title = document.createElement('div');
+title.style.fontSize = "14px";
+title.style.textAlign = "left";
+title.style.marginTop = "8px";
+title.innerText = item["Product Name"];
+infoWrapper.appendChild(title);
 
       if (item["Badge"]) {
         const badge = document.createElement('div');
@@ -390,7 +393,8 @@ if (item["MRP"] && item["Selling Price"]) {
         `;
       }
 
-      product.appendChild(info);
+      infoWrapper.appendChild(info);
+product.appendChild(infoWrapper);
       sectionWrapper.appendChild(product);
     });
   });
