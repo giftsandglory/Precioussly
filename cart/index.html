@@ -326,6 +326,13 @@ button {
   -webkit-tap-highlight-color: transparent; /* removes blue highlight */
   outline: none;                            /* removes outline on click */
 }
+
+button.remove-btn:hover {
+  background: #2874f0;
+  color: white;
+  border-color: #2874f0;
+}
+
 </style>
 </head>
 <body>
@@ -408,8 +415,10 @@ button {
             <button class="qty-btn" onclick="decrease(${index})">-</button>
             <span id="qty-${index}" class="qty-count">${item.qty}</span>
             <button class="qty-btn" onclick="increase(${index})">+</button>
-            <button class="qty-btn" style="font-family: 'Roboto Slab', serif; font-size: 14px; width: auto; min-width: 70px; padding: 6px 12px; border: 1px solid #d11a2a; color: #d11a2a; background: #fff; border-radius: 8px;" onclick="removeItem(${index})">
+            <button class="qty-btn" style="font-family: 'Roboto Slab', serif; font-size: 14px; width: auto; min-width: 70px; padding: 6px 12px; border: 1px solid #2874f0; color: #2874f0; background: #fff; border-radius: 8px;" onclick="removeItem(${index})">
   Remove
+</button>
+  <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M5 6h14M10 11v6m4-6v6m1-10V4H9v3H4v2h16V7h-5z"/></svg>
 </button>
           </div>
         </div>
@@ -676,7 +685,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <button class="qty-btn" onclick="decrease(${index})">-</button>
           <span id="qty-${index}" class="qty-count">${item.qty}</span>
           <button class="qty-btn" onclick="increase(${index})">+</button>
-          <button onclick="removeItem(${index})" style="margin-left: 8px; padding: 6px 12px; font-family: 'Roboto Slab', serif; font-size: 13px; background: transparent; border: 1px solid #d11a2a; color: #d11a2a; border-radius: 6px;">Remove</button>
+          <button class="remove-btn" onclick="removeItem(${index})" style="margin-left: 8px; padding: 6px 12px; font-family: 'Roboto Slab', serif; font-size: 13px; background: transparent; border: 1px solid #2874f0; color: #2874f0; border-radius: 6px;">Remove</button>
         </div>
       </div>
     `;
