@@ -557,10 +557,10 @@ function confirmAddress() {
   const altphone = document.getElementById("altphone").value;
 
   const finalAddress = `
-    <strong>${fullName}</strong><br>
-    ${address}, ${city}, ${state}, ${pincode}<br>
-    Phone: ${phone}${altphone ? ', Alt: ' + altphone : ''}
-  `;
+  <strong>${fullName}</strong><br>
+  ${address},<br>${city}, ${state} - ${pincode}<br>
+   <strong>${phone}</strong>${altphone ? '<br> Alt: <strong>' + altphone + '</strong>' : ''}
+`;
 
   localStorage.setItem("shippingAddress", finalAddress);
   document.getElementById("displayAddress").innerHTML = finalAddress;
