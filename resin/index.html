@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 
 <html lang="en">
 <head><meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/><script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
@@ -1024,5 +1024,19 @@ slider.addEventListener("touchend", e => {
       window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
     }
   }
-</script></body>
+</script>
+<script>
+  // 🟢 Show cart count only if items are in cart
+  const badge = document.getElementById("cartCountBadge");
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  if (totalItems > 0) {
+    badge.textContent = totalItems;
+    badge.style.display = "flex";
+  } else {
+    badge.style.display = "none";
+  }
+</script>
+</body>
+</body>
 </html>
