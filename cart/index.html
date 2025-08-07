@@ -9,6 +9,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
 <style>
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-top: 2px solid #2874f0;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 .site-header {
   background-color: #ffffff;
   display: flex;
@@ -402,8 +416,24 @@ button {
 function updateSummary() {
   let total = 0;
   cartData.forEach(item => total += item.price * item.qty);
-  const fee = window.deliveryFee || 0;
 
+  // 👇 Until delivery fee loads
+  if (typeof window.deliveryFee === "undefined") {
+    document.getElementById("summaryBox").innerHTML = `
+      <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+      <div class="summary-row">
+        <span>Delivery Fee</span>
+        <span class="spinner"></span>
+      </div>
+      <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+        <span>Order Total</span>
+        <span class="spinner"></span>
+      </div>
+    `;
+    return;
+  }
+
+  const fee = window.deliveryFee;
   const feeText = fee === 0
     ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
     : `₹${fee}`;
@@ -411,10 +441,11 @@ function updateSummary() {
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
     <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + fee}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+      <span>Order Total</span><span>₹${total + fee}</span>
+    </div>
   `;
 }
-
   function removeItem(index) {
   const itemDiv = document.getElementsByClassName('item')[index];
   itemDiv.style.transition = "opacity 0.3s ease";
