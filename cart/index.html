@@ -397,21 +397,6 @@ button {
 }
   });
 
-  function increase(index) {
-  cartData[index].qty++;
-  document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
-  localStorage.setItem("cartItems", JSON.stringify(cartData));
-  updateSummary();
-}
-
-  function decrease(index) {
-  if (cartData[index].qty > 1) {
-    cartData[index].qty--;
-    document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
-    localStorage.setItem("cartItems", JSON.stringify(cartData));
-    updateSummary();
-  }
-}
 function updateSummary() {
   let total = 0;
   cartData.forEach(item => total += item.price * item.qty);
@@ -441,16 +426,6 @@ function updateSummary() {
       <span>Order Total</span><span>₹${total + fee}</span>
     </div>
   `;
-}
-  function removeItem(index) {
-  const itemDiv = document.getElementsByClassName('item')[index];
-  itemDiv.style.transition = "opacity 0.3s ease";
-  itemDiv.style.opacity = "0";
-  setTimeout(() => {
-    cartData.splice(index, 1);
-    localStorage.setItem("cartItems", JSON.stringify(cartData));
-    location.reload();
-  }, 300);
 }
 
   function updateCartBadge() {
@@ -690,6 +665,30 @@ document.addEventListener("DOMContentLoaded", () => {
     <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
   `;
 });
+</script>
+<script>
+function increase(index) {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  cartData[index].qty++;
+  localStorage.setItem("cartItems", JSON.stringify(cartData));
+  location.reload(); // Refresh page to update view
+}
+
+function decrease(index) {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  if (cartData[index].qty > 1) {
+    cartData[index].qty--;
+    localStorage.setItem("cartItems", JSON.stringify(cartData));
+    location.reload();
+  }
+}
+
+function removeItem(index) {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  cartData.splice(index, 1); // Remove that product
+  localStorage.setItem("cartItems", JSON.stringify(cartData));
+  location.reload();
+}
 </script>
 </body>
 </html>
