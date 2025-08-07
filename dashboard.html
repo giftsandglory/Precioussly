@@ -5,40 +5,90 @@
   <title>Dashboard - Precioussly</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
-  <style>/* === Header & Announcement Bar Styles (from Resin.html) === */
-.site-header {
-  background-color: #ffffff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 16px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  min-height: 72px;
-}
-.right-icon {
-  width: 32px;
-  height: 32px;
-  object-fit: cover;
-  cursor: pointer;
-  border-radius: 50%;
-}
-.icon-size {
-  width: 28px;
-  height: 28px;
-}
-#announcementBar {
-  margin: 0;
-  padding: 6px 10px;
-  font-size: 13px;
-  color: #ffffff;
-  background: #000000;
-  font-weight: 500;
-  text-align: center;
-  font-family: 'Roboto Slab', serif;
-  min-height: 24px;
-  line-height: 22px;
-  user-select: none;
-}
+  <style>
+    .site-header {
+      background-color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 16px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+      min-height: 72px;
+    }
+    .right-icon {
+      width: 32px;
+      height: 32px;
+      object-fit: cover;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+    .icon-size {
+      width: 28px;
+      height: 28px;
+    }
+    .hamburger-wrapper {
+      width: 24px;
+      height: 20px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: transparent;
+      border: none;
+      padding: 0;
+    }
+    .hamburger-wrapper div {
+      width: 100%;
+      height: 3px;
+      background-color: #000;
+      border-radius: 2px;
+    }
+    .menu-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 4000;
+      transition: opacity 0.3s ease;
+      opacity: 0;
+    }
+    .menu-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+    .side-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translateX(-100%);
+      width: 80%;
+      height: 100%;
+      background-color: #ffffff;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+      padding: 20px 16px;
+      overflow-y: auto;
+      z-index: 5000;
+      font-family: 'Roboto Slab', serif;
+      transition: transform 0.4s ease;
+    }
+    .side-menu.active {
+      transform: translateX(0%);
+    }
+    #announcementBar {
+      margin: 0;
+      padding: 6px 10px;
+      font-size: 13px;
+      color: #ffffff;
+      background: #000000;
+      font-weight: 500;
+      text-align: center;
+      font-family: 'Roboto Slab', serif;
+      min-height: 24px;
+      line-height: 22px;
+      user-select: none;
+    }
     body {
       font-family: 'Roboto Slab', serif;
       margin: 0;
@@ -46,7 +96,6 @@
       background: #f8f8f8;
       color: #333;
     }
-
     .container {
       max-width: 600px;
       margin: 0 auto;
@@ -55,41 +104,33 @@
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
     .profile {
       text-align: center;
       margin-bottom: 20px;
     }
-
     .profile img {
       width: 80px;
       height: 80px;
       border-radius: 50%;
       object-fit: cover;
     }
-
     .profile h2 {
       margin: 10px 0 5px;
     }
-
     .orders {
       margin-top: 20px;
     }
-
     .order {
       border-bottom: 1px solid #ccc;
       padding: 12px 0;
     }
-
     .order:last-child {
       border-bottom: none;
     }
-
     .order p {
       margin: 4px 0;
       font-size: 14px;
     }
-
     .logout-btn {
       margin-top: 20px;
       display: block;
@@ -103,76 +144,101 @@
   </style>
 </head>
 <body>
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">×</span>
+  </div>
+  <div id="menuContent"></div>
+</nav>
 <header class="site-header">
-  <div></div>
-  <img src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" alt="Logo" style="height: 42px; object-fit: contain; cursor: pointer;" onclick="location.href='/'"/>
+  <div class="hamburger-wrapper" onclick="toggleMenu()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+  <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+    <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent;" />
+  </div>
   <div style="display: flex; align-items: center; gap: 12px;">
-    <img alt="Profile" class="right-icon icon-size" id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"/>
-    <a href="/cart" style="position: relative; display: inline-block;">
+    <img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
+    <img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"/>
+    <a href="/cart" style="position: relative; display: inline-block; margin-top: 5px;">
       <img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
-      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center;">0</span>
+      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
     </a>
   </div>
 </header>
 <div id="announcementBar">🧿</div>
-  <div class="container">
-    <div class="profile">
-      <img id="userImage" src="" alt="Profile Photo">
-      <h2 id="userName">Hello</h2>
-      <p id="userEmail"></p>
-    </div>
-
-    <div class="orders">
-      <h3>Your Orders</h3>
-      <div id="orderList">
-        <!-- Orders will be inserted here dynamically -->
-      </div>
-    </div>
-
-    <a class="logout-btn" href="#" onclick="logout()">Logout</a>
+<div class="container">
+  <div class="profile">
+    <img id="userImage" src="" alt="Profile Photo">
+    <h2 id="userName">Hello</h2>
+    <p id="userEmail"></p>
   </div>
-
-  <script>
-    // Get user data from localStorage
-    const name = localStorage.getItem("user_name");
-    const email = localStorage.getItem("user_email");
-    const photo = localStorage.getItem("user_photo");
-
-    // Redirect to home if not logged in
-    if (!name || !email || !photo) {
-      window.location.href = "/";
-    }
-
-    // Show user info
-    document.getElementById("userName").innerText = `Hello, ${name}`;
-    document.getElementById("userEmail").innerText = email;
-    document.getElementById("userImage").src = photo;
-
-    // Example: get order data from localStorage (or Google Sheet in future)
-    const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
-
-    const orderList = document.getElementById("orderList");
-    if (orders.length === 0) {
-      orderList.innerHTML = "<p>You have no orders yet.</p>";
-    } else {
-      orders.forEach(order => {
-        const div = document.createElement("div");
-        div.className = "order";
-        div.innerHTML = `
-          <p><strong>Order ID:</strong> #${order.id}</p>
-          <p><strong>Status:</strong> ${order.status}</p>
-          <p><strong>Items:</strong> ${order.items}</p>
-        `;
-        orderList.appendChild(div);
-      });
-    }
-
-    function logout() {
-      localStorage.clear();
-      window.location.href = "/";
-    }
-  </script>
+  <div class="orders">
+    <h3>Your Orders</h3>
+    <div id="orderList"></div>
+  </div>
+  <a class="logout-btn" href="#" onclick="logout()">Logout</a>
+</div>
 <script>
+  function toggleMenu() {
+    const menu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("menuOverlay");
+    const body = document.body;
+    const isOpen = menu.classList.contains("active");
+    if (isOpen) {
+      menu.classList.remove("active");
+      overlay.classList.remove("active");
+      body.classList.remove("no-scroll");
+    } else {
+      menu.classList.add("active");
+      overlay.classList.add("active");
+      body.classList.add("no-scroll");
+    }
+  }
+
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+    }
+  }
+
+  const name = localStorage.getItem("user_name");
+  const email = localStorage.getItem("user_email");
+  const photo = localStorage.getItem("user_photo");
+
+  if (!name || !email || !photo) {
+    window.location.href = "/";
+  }
+
+  document.getElementById("userName").innerText = `Hello, ${name}`;
+  document.getElementById("userEmail").innerText = email;
+  document.getElementById("userImage").src = photo;
+
+  const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
+  const orderList = document.getElementById("orderList");
+  if (orders.length === 0) {
+    orderList.innerHTML = "<p>You have no orders yet.</p>";
+  } else {
+    orders.forEach(order => {
+      const div = document.createElement("div");
+      div.className = "order";
+      div.innerHTML = `<p><strong>Order ID:</strong> #${order.id}</p><p><strong>Status:</strong> ${order.status}</p><p><strong>Items:</strong> ${order.items}</p>`;
+      orderList.appendChild(div);
+    });
+  }
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "/";
+  }
+
   function updateCartBadge() {
     const items = JSON.parse(localStorage.getItem("cartItems")) || [];
     let count = 0;
@@ -197,9 +263,9 @@
       }
     });
 
-  const photo = localStorage.getItem("user_photo");
-  if (photo) {
-    document.getElementById("profileIcon").src = photo;
+  const photoSaved = localStorage.getItem("user_photo");
+  if (photoSaved) {
+    document.getElementById("profileIcon").src = photoSaved;
   }
 </script>
 </body>
