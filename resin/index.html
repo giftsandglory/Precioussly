@@ -1026,17 +1026,22 @@ slider.addEventListener("touchend", e => {
   }
 </script>
 <script>
-  // 🟢 Show cart count only if items are in cart
-  const badge = document.getElementById("cartCountBadge");
-  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-  const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-  if (totalItems > 0) {
-    badge.textContent = totalItems;
-    badge.style.display = "flex";
-  } else {
-    badge.style.display = "none";
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) {
+      if (count > 0) {
+        badge.innerText = count;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+      }
+    }
   }
+
+  updateCartBadge(); // run on load
 </script>
-</body>
 </body>
 </html>
