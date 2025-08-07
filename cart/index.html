@@ -9,6 +9,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
 <style>
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.cart-item-animate {
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+.empty-cart-img {
+  animation: pulse 2s infinite;
+}
 .spinner {
   width: 16px;
   height: 16px;
@@ -154,6 +171,13 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.qty-btn:hover {
+  background: #2874f0;
+  color: white;
+  transform: scale(1.05);
 }
 
 .qty-count {
@@ -376,7 +400,7 @@ button {
             <button class="qty-btn" onclick="decrease(${index})">-</button>
             <span id="qty-${index}" class="qty-count">${item.qty}</span>
             <button class="qty-btn" onclick="increase(${index})">+</button>
-            <button class="qty-btn" style="background: #000; color: #fff;" onclick="removeItem(${index})">×</button>
+            <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M5 6h14M10 11v6m4-6v6m1-10V4H9v3H4v2h16V7h-5z"/></svg>
           </div>
         </div>
       `;
@@ -393,7 +417,7 @@ button {
     if (cartData.length === 0) {
   container.innerHTML = `
     <div style="text-align:center; margin-top: 30px;">
-      <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" />
+      <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
       <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
       <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
     </div>
@@ -632,7 +656,7 @@ document.addEventListener("DOMContentLoaded", () => {
   cartData.forEach((item, index) => {
     total += item.price * item.qty;
     const div = document.createElement("div");
-    div.className = "item";
+    div.className = "item cart-item-animate";
     div.innerHTML = `
       <img src="${item.photo}" />
       <div class="item-info">
