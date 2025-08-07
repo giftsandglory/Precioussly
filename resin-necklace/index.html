@@ -7,6 +7,36 @@
 <title>Product Grid</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
+.quantity-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 10px 0 14px;
+  background-color: white;
+  font-family: 'Roboto Slab', serif;
+}
+
+.quantity-btn {
+  flex: 0 0 40px;
+  height: 40px;
+  font-size: 20px;
+  color: #2563eb;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.quantity-display {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #222;
+}
 .icon-size {
   width: 10px;
   height: 10px;
@@ -432,6 +462,12 @@ function closePopup() {
 <div id="popupName" style="font-size:16px; font-weight:600; text-align:left; margin: 10px 6px 4px;"></div>
 <!-- Price -->
 <div id="popupPrice" style="margin:8px 6px 16px; font-size:14px; text-align:left;"></div>
+<!-- Quantity Bar -->
+<div class="quantity-bar">
+  <button class="quantity-btn" onclick="changePopupQty(-1)">−</button>
+  <div id="popupQty" class="quantity-display">1</div>
+  <button class="quantity-btn" onclick="changePopupQty(1)">+</button>
+</div>
 <!-- Add to Cart full-width button -->
 <button id="popupAddBtn" style="width:100%; background:#2563eb; color:#fff; border:1px solid #2563eb; border-radius:8px; padding:12px 16px; font-size:15px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
   Add to Cart
@@ -470,6 +506,7 @@ let selectedProduct = null;
 // Open popup with product details
 function openPopup(images, name, mrp, price, stock) {
   selectedProduct = { image: images[0], name, mrp, price };
+  document.getElementById("popupQty").innerText = "1";
 
   // Inject product name and price
   document.getElementById("popupName").innerText = name;
@@ -500,13 +537,14 @@ function openPopup(images, name, mrp, price, stock) {
     popupBtn.disabled = false;
     popupBtn.innerHTML = "Add to Cart";
     popupBtn.onclick = function () {
-      addToCartFromGrid(popupBtn, {
-        photo: images[0],
-        name,
-        mrp,
-        price
-      });
-    };
+  addToCartFromGrid(popupBtn, {
+    photo: images[0],
+    name,
+    mrp,
+    price,
+    qty: parseInt(document.getElementById("popupQty").innerText) || 1
+  });
+};
   }
 
   // Inject slider images
@@ -572,7 +610,15 @@ function closePopup() {
     popup.style.display = "none";
   }, 200);
 }
-
+// ✅ Quantity bar increase/decrease logic
+function changePopupQty(change) {
+  const qtyElement = document.getElementById("popupQty");
+  let current = parseInt(qtyElement.innerText);
+  current += change;
+  if (current < 1) current = 1;
+  if (current > 99) current = 99;
+  qtyElement.innerText = current;
+}
 // Add to cart logic
 function addToCartFromGrid(button, product) {
   const originalHTML = button.innerHTML;
@@ -586,11 +632,11 @@ function addToCartFromGrid(button, product) {
     // Add item to cart
     let cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
     const existing = cartItems.find(i => i.name === product.name);
-    if (existing) {
-      existing.qty += 1;
-    } else {
-      cartItems.push({ ...product, qty: 1 });
-    }
+if (existing) {
+  existing.qty += product.qty || 1;  // ✅ Add correct qty if already exists
+} else {
+  cartItems.push({ ...product, qty: product.qty || 1 }); // ✅ Store correct qty
+}
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     updateCartBadge();
