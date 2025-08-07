@@ -118,8 +118,8 @@ body.noscroll {
   justify-content: center;
 }
 .mini-spinner {
-  width: 20px;
-  height: 20px;
+  width: 16px;   /* ✅ smaller spinner to match button height */
+  height: 16px;
   border: 2px solid #fff;
   border-top: 2px solid rgba(255,255,255,0.2);
   border-radius: 50%;
@@ -203,17 +203,23 @@ body.noscroll {
     }
 
     .add-btn {
-  display: inline-block;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   margin-top: 6px;
-  padding: 6px 12px; /* Slim padding */
-  font-size: 13px;   /* Smaller font */
+  padding: 6px 12px;
+  font-size: 13px;
   background: #2563eb;
   color: white;
   border: 1px solid #2563eb;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s;
+  transition: background 0.3s ease;
   font-family: 'Roboto Slab', serif;
+
+  width: 100px;          /* ✅ FIXED WIDTH */
+  height: 36px;          /* ✅ FIXED HEIGHT */
+  box-sizing: border-box;
 }
 
     .add-btn:disabled {
@@ -221,10 +227,10 @@ body.noscroll {
       cursor: not-allowed;
     }
 
-    .add-btn:hover {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      transform: scale(1.03);
-    }
+.add-btn:hover {
+  background: #2563eb;
+  transform: none;
+}
   
 /* === HEADER + ANNOUNCEMENT BAR === */
 .site-header {
