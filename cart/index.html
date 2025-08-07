@@ -562,7 +562,10 @@ function updateSummary() {
       <input id="fullname" type="text" placeholder=" " required />
       <label for="fullname">Full Name</label>
     </div>
-
+  <div class="floating-input">
+  <input id="email" type="email" placeholder=" " readonly />
+  <label for="email">Email Address</label>
+</div>
       <div class="floating-input">
   <select id="state" required>
     <option disabled hidden selected value=""></option>
@@ -640,6 +643,13 @@ function updateSummary() {
 function openAddressPopup() {
   document.getElementById("addressPopup").style.display = "flex";
   document.body.style.overflow = "hidden";
+
+  // Autofill Full Name & Email if available
+  const name = localStorage.getItem("user_name");
+  const email = localStorage.getItem("user_email");
+
+  if (name) document.getElementById("fullname").value = name;
+  if (email) document.getElementById("email").value = email;
 }
 
 function closeAddressPopup() {
