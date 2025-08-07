@@ -1,28 +1,15 @@
 <!DOCTYPE html>
+
 <html>
 <head>
-  <meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/>
-<script async defer src="https://accounts.google.com/gsi/client"></script>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet"/>
-  <meta charset="UTF-8">
-  <title>Your Cart - Precioussly</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+<meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/>
+<script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
+<meta charset="utf-8"/>
+<title>Your Cart - Precioussly</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #ccc;
-  border-top: 2px solid #2874f0;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
 .site-header {
   background-color: #ffffff;
   display: flex;
@@ -295,56 +282,39 @@ button {
   outline: none;                            /* removes outline on click */
 }
 </style>
-</head>
+</meta></head>
 <body>
-  <header class="site-header">
-  <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div>
-    <div></div>
-    <div></div>
-  </div>
-
-  <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-    <img
-      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
-      alt="Precioussly Logo"
-      onclick="location.href = 'https://precioussly.com';"
-      style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease;"
-    />
-  </div>
-
-  <div style="display: flex; align-items: center; gap: 12px;">
-    <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
-
-    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon" onclick="handleProfileClick()" style="width: 28px; height: 28px;" />
-
+<header class="site-header">
+<div class="hamburger-wrapper" onclick="toggleMenu()">
+<div></div>
+<div></div>
+<div></div>
+</div>
+<div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+<img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease;"/>
+</div>
+<div style="display: flex; align-items: center; gap: 12px;">
+<img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
+<img alt="Profile" class="right-icon" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" style="width: 28px; height: 28px;"/>
 <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon" style="width: 28px; height: 28px;" />
-      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center;">0</span>
-    </a>
-  </div>
+<img alt="Cart" class="right-icon" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" style="width: 28px; height: 28px;"/>
+<span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center;">0</span>
+</a>
+</div>
 </header>
-
 <!-- Announcement Bar -->
 <div id="announcementBar">🧿</div>
-  <div class="container">
-    <div class="section-title">Confirm Order</div>
-
+<div class="container">
+<div class="section-title">Confirm Order</div>
 <div class="address">
-  <strong>Shipping Address</strong><br>
-  <div id="displayAddress" style="margin-top: 6px;"></div>
+<strong>Shipping Address</strong><br/>
+<div id="displayAddress" style="margin-top: 6px;"></div>
 <button onclick="openAddressPopup()" style="margin-top: 10px; padding: 8px 12px; background: #2874f0; color: #fff; border: none; border-radius: 6px; font-family: 'Roboto Slab', serif;">Add / Edit Address</button>
 </div>
-
-    <div class="items" id="cartItems"></div>
-
-
-
-    <div class="summary" id="summaryBox"></div>
-
-    <button class="proceed-btn" id="proceedBtn" onclick="alert('Proceeding to Payment...')">Proceed to Pay</button>
-  </div>
-
+<div class="items" id="cartItems"></div>
+<div class="summary" id="summaryBox"></div>
+<button class="proceed-btn" id="proceedBtn" onclick="alert('Proceeding to Payment...')">Proceed to Pay</button>
+</div>
 <script>
   const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
   const shippingAddress = localStorage.getItem("shippingAddress") || "";
@@ -378,7 +348,7 @@ button {
       container.appendChild(div);
     });
 
-    let deliveryFee = 0;
+    const deliveryFee = 65;
     document.getElementById("summaryBox").innerHTML = `
       <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
       <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
@@ -416,36 +386,14 @@ button {
 function updateSummary() {
   let total = 0;
   cartData.forEach(item => total += item.price * item.qty);
-
-  // 👇 Until delivery fee loads
-  if (typeof window.deliveryFee === "undefined") {
-    document.getElementById("summaryBox").innerHTML = `
-      <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-      <div class="summary-row">
-        <span>Delivery Fee</span>
-        <span class="spinner"></span>
-      </div>
-      <div class="summary-row" style="font-weight: bold; font-size: 18px;">
-        <span>Order Total</span>
-        <span class="spinner"></span>
-      </div>
-    `;
-    return;
-  }
-
-  const fee = window.deliveryFee;
-  const feeText = fee === 0
-    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
-    : `₹${fee}`;
-
+  const deliveryFee = 65;
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
-      <span>Order Total</span><span>₹${total + fee}</span>
-    </div>
+    <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
   `;
 }
+
   function removeItem(index) {
   const itemDiv = document.getElementsByClassName('item')[index];
   itemDiv.style.transition = "opacity 0.3s ease";
@@ -467,61 +415,57 @@ function updateSummary() {
 
   updateCartBadge();
 </script>
-
-
 <!-- MODERN ADDRESS POPUP START -->
 <div class="address-popup-overlay" id="addressPopup">
-  <div class="address-popup-box">
-    <span class="close-btn" onclick="closeAddressPopup()">×</span>
-
-    <input id="fullname" placeholder="Full Name" />
-    <select id="state" required>
-      <option disabled hidden selected value="">Select your state</option>
-      <option>Andhra Pradesh</option>
-      <option>Arunachal Pradesh</option>
-      <option>Assam</option>
-      <option>Bihar</option>
-      <option>Chandigarh</option>
-      <option>Chhattisgarh</option>
-      <option>Delhi</option>
-      <option>Goa</option>
-      <option>Gujarat</option>
-      <option>Haryana</option>
-      <option>Himachal Pradesh</option>
-      <option>Jammu and Kashmir</option>
-      <option>Jharkhand</option>
-      <option>Karnataka</option>
-      <option>Kerala</option>
-      <option>Ladakh</option>
-      <option>Madhya Pradesh</option>
-      <option>Maharashtra</option>
-      <option>Manipur</option>
-      <option>Meghalaya</option>
-      <option>Mizoram</option>
-      <option>Nagaland</option>
-      <option>Odisha</option>
-      <option>Puducherry</option>
-      <option>Punjab</option>
-      <option>Rajasthan</option>
-      <option>Sikkim</option>
-      <option>Tamil Nadu</option>
-      <option>Telangana</option>
-      <option>Tripura</option>
-      <option>Uttar Pradesh</option>
-      <option>Uttarakhand</option>
-      <option>West Bengal</option>
-    </select>
-    <input id="city" placeholder="City" />
-    <input id="pincode" placeholder="Pincode" />
-    <input id="address" placeholder="Your Full Address" />
-    <input id="phone" placeholder="Phone Number" />
-    <input id="altphone" placeholder="Alternate Phone (Optional)" />
-
-    <div class="button-row">
-      <button class="cancel-btn" onclick="closeAddressPopup()">Cancel</button>
-      <button class="whatsapp-btn" onclick="confirmAddress()">Confirm Address</button>
-    </div>
-  </div>
+<div class="address-popup-box">
+<span class="close-btn" onclick="closeAddressPopup()">×</span>
+<input id="fullname" placeholder="Full Name"/>
+<select id="state" required="">
+<option disabled="" hidden="" selected="" value="">Select your state</option>
+<option>Andhra Pradesh</option>
+<option>Arunachal Pradesh</option>
+<option>Assam</option>
+<option>Bihar</option>
+<option>Chandigarh</option>
+<option>Chhattisgarh</option>
+<option>Delhi</option>
+<option>Goa</option>
+<option>Gujarat</option>
+<option>Haryana</option>
+<option>Himachal Pradesh</option>
+<option>Jammu and Kashmir</option>
+<option>Jharkhand</option>
+<option>Karnataka</option>
+<option>Kerala</option>
+<option>Ladakh</option>
+<option>Madhya Pradesh</option>
+<option>Maharashtra</option>
+<option>Manipur</option>
+<option>Meghalaya</option>
+<option>Mizoram</option>
+<option>Nagaland</option>
+<option>Odisha</option>
+<option>Puducherry</option>
+<option>Punjab</option>
+<option>Rajasthan</option>
+<option>Sikkim</option>
+<option>Tamil Nadu</option>
+<option>Telangana</option>
+<option>Tripura</option>
+<option>Uttar Pradesh</option>
+<option>Uttarakhand</option>
+<option>West Bengal</option>
+</select>
+<input id="city" placeholder="City"/>
+<input id="pincode" placeholder="Pincode"/>
+<input id="address" placeholder="Your Full Address"/>
+<input id="phone" placeholder="Phone Number"/>
+<input id="altphone" placeholder="Alternate Phone (Optional)"/>
+<div class="button-row">
+<button class="cancel-btn" onclick="closeAddressPopup()">Cancel</button>
+<button class="whatsapp-btn" onclick="confirmAddress()">Confirm Address</button>
+</div>
+</div>
 </div>
 <script>
 function openAddressPopup() {
@@ -597,48 +541,6 @@ function confirmAddress() {
   }
 
   updateCartBadge();
-</script>
-<script>
-  const feeSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
-  const feeURL = `https://opensheet.elk.sh/${feeSheetID}/Sheet1`;
-
-  fetch(feeURL)
-    .then(res => res.json())
-    .then(data => {
-      const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-      let total = 0;
-      cartData.forEach(item => total += item.price * item.qty);
-
-      let fee = 0;
-      let feeText = "";
-
-      if (data[0] && data[0]["Delivery Fee"]) {
-        const value = data[0]["Delivery Fee"].trim();
-        if (value === "0") {
-          // If column is exactly 0 → Free Delivery
-          fee = 0;
-          feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
-        } else {
-          // Else use actual fee
-          fee = parseFloat(value);
-          feeText = `₹${fee}`;
-        }
-      } else {
-        // No fee column? fallback
-        fee = 0;
-        feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
-      }
-
-      // Set for other function use
-      window.deliveryFee = fee;
-
-      // Show on screen
-      document.getElementById("summaryBox").innerHTML = `
-        <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-        <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-        <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + fee}</span></div>
-      `;
-    });
 </script>
 </body>
 </html>
