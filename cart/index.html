@@ -408,7 +408,11 @@ button {
             <button class="qty-btn" onclick="decrease(${index})">-</button>
             <span id="qty-${index}" class="qty-count">${item.qty}</span>
             <button class="qty-btn" onclick="increase(${index})">+</button>
-            <button class="qty-btn" style="background: #000; color: #fff;" onclick="removeItem(${index})" title="Remove">
+            <button class="qty-btn" style="border: none; background: transparent; padding: 0;" onclick="removeItem(${index})" title="Remove">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#d11a2a" viewBox="0 0 24 24">
+    <path d="M9 3h6v1h5v2H4V4h5V3zm-3 5h12l-1.5 13h-9L6 8z"/>
+  </svg>
+</button>
   <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M5 6h14M10 11v6m4-6v6m1-10V4H9v3H4v2h16V7h-5z"/></svg>
 </button>
           </div>
