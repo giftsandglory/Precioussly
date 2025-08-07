@@ -340,9 +340,15 @@ button {
 
 
 
-    <div class="summary" id="summaryBox"></div>
+    <!-- START: Summary and Pay Section -->
+<div id="bottomBox">
+  <div class="summary" id="summaryBox"></div>
 
-    <button class="proceed-btn" id="proceedBtn" onclick="alert('Proceeding to Payment...')">Proceed to Pay</button>
+  <button class="proceed-btn" id="proceedBtn" onclick="alert('Proceeding to Payment...')">
+    Proceed to Pay
+  </button>
+</div>
+<!-- END: Summary and Pay Section -->
   </div>
 
 <script>
@@ -393,7 +399,7 @@ button {
     </div>
   `;
   document.getElementById("summaryBox").innerHTML = "";
-  document.querySelector(".proceed-btn").style.display = "none";
+  document.getElementById("bottomBox").style.display = "none";
 }
   });
 
@@ -653,7 +659,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
     document.getElementById("summaryBox").innerHTML = "";
-    document.querySelector(".proceed-btn").style.display = "none";
+    document.getElementById("bottomBox").style.display = "none";
     return;
   }
 
