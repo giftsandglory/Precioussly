@@ -333,6 +333,53 @@ button.remove-btn:hover {
   border-color: #2874f0;
 }
 
+
+/* FLOATING LABEL STYLE */
+.floating-label-group {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.floating-label-group input,
+.floating-label-group select {
+  width: 100%;
+  padding: 16px 16px 8px;
+  font-size: 15px;
+  border: 1.5px solid #dcdcdc;
+  border-radius: 12px;
+  background: #f9f9f9;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.floating-label-group input:focus,
+.floating-label-group select:focus {
+  border-color: #2874f0;
+  background: #fff;
+}
+
+.floating-label-group label {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  color: #aaa;
+  font-size: 15px;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.floating-label-group input:focus + label,
+.floating-label-group input:not(:placeholder-shown) + label,
+.floating-label-group select:focus + label,
+.floating-label-group select:not([value=""]) + label {
+  top: 6px;
+  left: 14px;
+  font-size: 12px;
+  color: #2874f0;
+  background: #fff;
+  padding: 0 4px;
+}
+
 </style>
 </head>
 <body>
@@ -492,55 +539,78 @@ function updateSummary() {
 <!-- MODERN ADDRESS POPUP START -->
 <div class="address-popup-overlay" id="addressPopup">
   <div class="address-popup-box">
-    
-
-    <input id="fullname" placeholder="Full Name" />
-    <select id="state" required>
-      <option disabled hidden selected value="">Select your state</option>
-      <option>Andhra Pradesh</option>
-      <option>Arunachal Pradesh</option>
-      <option>Assam</option>
-      <option>Bihar</option>
-      <option>Chandigarh</option>
-      <option>Chhattisgarh</option>
-      <option>Delhi</option>
-      <option>Goa</option>
-      <option>Gujarat</option>
-      <option>Haryana</option>
-      <option>Himachal Pradesh</option>
-      <option>Jammu and Kashmir</option>
-      <option>Jharkhand</option>
-      <option>Karnataka</option>
-      <option>Kerala</option>
-      <option>Ladakh</option>
-      <option>Madhya Pradesh</option>
-      <option>Maharashtra</option>
-      <option>Manipur</option>
-      <option>Meghalaya</option>
-      <option>Mizoram</option>
-      <option>Nagaland</option>
-      <option>Odisha</option>
-      <option>Puducherry</option>
-      <option>Punjab</option>
-      <option>Rajasthan</option>
-      <option>Sikkim</option>
-      <option>Tamil Nadu</option>
-      <option>Telangana</option>
-      <option>Tripura</option>
-      <option>Uttar Pradesh</option>
-      <option>Uttarakhand</option>
-      <option>West Bengal</option>
-    </select>
-    <input id="city" placeholder="City" />
-    <input id="pincode" placeholder="Pincode" />
-    <input id="address" placeholder="Your Full Address" />
-    <input id="phone" placeholder="Phone Number" />
-    <input id="altphone" placeholder="Alternate Phone (Optional)" />
-
- <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
-  <button onclick="confirmAddress()" style="background: #2874f0; color: white; border: none; border-radius: 12px; padding: 12px; font-size: 16px; font-family: 'Roboto Slab', serif;">Confirm Address</button>
-  <button onclick="closeAddressPopup()" style="background: white; color: black; border: 1px solid #ccc; border-radius: 12px; padding: 12px; font-size: 16px; font-family: 'Roboto Slab', serif;">Back</button>
+<div class="floating-label-group">
+  <input id="fullname" placeholder=" " required />
+  <label for="fullname">Full Name</label>
 </div>
+
+<div class="floating-label-group">
+  <select id="state" required>
+    <option value="" disabled selected hidden></option>
+    <option>Andhra Pradesh</option>
+    <option>Arunachal Pradesh</option>
+    <option>Assam</option>
+    <option>Bihar</option>
+    <option>Chandigarh</option>
+    <option>Chhattisgarh</option>
+    <option>Delhi</option>
+    <option>Goa</option>
+    <option>Gujarat</option>
+    <option>Haryana</option>
+    <option>Himachal Pradesh</option>
+    <option>Jammu and Kashmir</option>
+    <option>Jharkhand</option>
+    <option>Karnataka</option>
+    <option>Kerala</option>
+    <option>Ladakh</option>
+    <option>Madhya Pradesh</option>
+    <option>Maharashtra</option>
+    <option>Manipur</option>
+    <option>Meghalaya</option>
+    <option>Mizoram</option>
+    <option>Nagaland</option>
+    <option>Odisha</option>
+    <option>Puducherry</option>
+    <option>Punjab</option>
+    <option>Rajasthan</option>
+    <option>Sikkim</option>
+    <option>Tamil Nadu</option>
+    <option>Telangana</option>
+    <option>Tripura</option>
+    <option>Uttar Pradesh</option>
+    <option>Uttarakhand</option>
+    <option>West Bengal</option>
+  </select>
+  <label for="state">Select your state</label>
+</div>
+
+<div class="floating-label-group">
+  <input id="city" placeholder=" " required />
+  <label for="city">City</label>
+</div>
+
+<div class="floating-label-group">
+  <input id="pincode" placeholder=" " required />
+  <label for="pincode">Pincode</label>
+</div>
+
+<div class="floating-label-group">
+  <input id="address" placeholder=" " required />
+  <label for="address">Your Full Address</label>
+</div>
+
+<div class="floating-label-group">
+  <input id="phone" placeholder=" " required />
+  <label for="phone">Phone Number</label>
+</div>
+
+<div class="floating-label-group">
+  <input id="altphone" placeholder=" " />
+  <label for="altphone">Alternate Phone (Optional)</label>
+</div>
+<div class="button-row">
+      <button class="cancel-btn" onclick="closeAddressPopup()">Cancel</button>
+      <button class="whatsapp-btn" onclick="confirmAddress()">Confirm Address</button>
     </div>
   </div>
 </div>
