@@ -417,21 +417,18 @@ function updateSummary() {
   let total = 0;
   cartData.forEach(item => total += item.price * item.qty);
 
-  // 👇 Until delivery fee loads
-  if (typeof window.deliveryFee === "undefined") {
-    document.getElementById("summaryBox").innerHTML = `
-      <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-      <div class="summary-row">
-        <span>Delivery Fee</span>
-        <span class="spinner"></span>
-      </div>
-      <div class="summary-row" style="font-weight: bold; font-size: 18px;">
-        <span>Order Total</span>
-        <span class="spinner"></span>
-      </div>
-    `;
-    return;
-  }
+  const fee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+
+  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee}</span>`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+      <span>Order Total</span><span>₹${total + fee}</span>
+    </div>
+  `;
+}
 
   const fee = window.deliveryFee;
   const feeText = fee === 0
