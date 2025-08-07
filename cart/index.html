@@ -364,7 +364,7 @@ button {
       container.appendChild(div);
     });
 
-    const deliveryFee = 65;
+    let deliveryFee = 0;
     document.getElementById("summaryBox").innerHTML = `
       <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
       <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
@@ -402,11 +402,12 @@ button {
 function updateSummary() {
   let total = 0;
   cartData.forEach(item => total += item.price * item.qty);
-  const deliveryFee = 65;
+  const fee = window.deliveryFee || 0;
+
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>₹${fee}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + fee}</span></div>
   `;
 }
 
@@ -561,6 +562,19 @@ function confirmAddress() {
   }
 
   updateCartBadge();
+</script>
+<script>
+  const feeSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const feeURL = `https://opensheet.elk.sh/${feeSheetID}/Sheet1`;
+
+  fetch(feeURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data[0] && data[0]["Delivery Fee"]) {
+        window.deliveryFee = parseFloat(data[0]["Delivery Fee"]);
+        updateSummary(); // summary ab sahi fee dikhayega
+      }
+    });
 </script>
 </body>
 </html>
