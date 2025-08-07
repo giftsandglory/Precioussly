@@ -358,6 +358,8 @@ button.remove-btn:hover {
   color: #999;
   pointer-events: none;
   transition: all 0.2s ease;
+  line-height: 1; /* ✅ Add this line */
+  white-space: nowrap; /* ✅ Add this line to prevent wrapping */
 }
 
 .floating-input input:focus,
@@ -390,6 +392,7 @@ button.remove-btn:hover {
   padding-right: 48px;
   transition: border 0.3s;
   cursor: pointer;
+  text-indent: 1px; /* ✅ Add this */
 }
 .floating-input select:focus {
   border-color: #2874f0;
@@ -560,9 +563,9 @@ function updateSummary() {
       <label for="fullname">Full Name</label>
     </div>
 
-    <div class="floating-input">
-      <select id="state" required>
-        <option disabled hidden selected value="">Select your state</option>
+      <div class="floating-input">
+  <select id="state" required>
+    <option disabled hidden selected value=""></option>
         <option>Andhra Pradesh</option>
         <option>Arunachal Pradesh</option>
         <option>Assam</option>
