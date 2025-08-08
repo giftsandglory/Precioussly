@@ -728,26 +728,42 @@ function closeAddressPopup() {
   document.body.style.overflow = "";
 }
 
+
 function confirmAddress() {
-  const fullName = document.getElementById("fullname").value;
-  const state = document.getElementById("state").value;
-  const city = document.getElementById("city").value;
-  const pincode = document.getElementById("pincode").value;
-  const address = document.getElementById("address").value;
-  const phone = document.getElementById("phone").value;
-  const altphone = document.getElementById("altphone").value;
+  const fullName = document.getElementById("fullName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const state = document.getElementById("state").value.trim();
+  const city = document.getElementById("city").value.trim();
+  const pincode = document.getElementById("pincode").value.trim();
+  const fullAddress = document.getElementById("fullAddress").value.trim();
+  const phone = document.getElementById("phone").value.trim();
 
-  const finalAddress = `
-  <strong>${fullName}</strong><br>
-  ${address},<br>${city}, ${state} - ${pincode}<br>
-   <strong>${phone}</strong>${altphone ? '<br> Alt: <strong>' + altphone + '</strong>' : ''}
-`;
+  // ✅ Check if required fields are filled
+  if (!fullName || !email || !state || !city || !pincode || !fullAddress || !phone) {
+    alert("Please fill all required address fields.");
+    return; // ⛔ STOP here, don’t close popup
+  }
 
-  localStorage.setItem("shippingAddress", finalAddress);
-  document.getElementById("displayAddress").innerHTML = finalAddress;
-  closeAddressPopup();
+  // ✅ Save to localStorage
+  const addressData = {
+    fullName,
+    email,
+    state,
+    city,
+    pincode,
+    fullAddress,
+    phone,
+    alternatePhone: document.getElementById("alternatePhone").value.trim() || "",
+  };
+
+  localStorage.setItem("userAddress", JSON.stringify(addressData));
+
+  // ✅ Update UI with address (if needed)
+  document.getElementById("addressPopup").style.display = "none";
+  document.body.style.overflow = "";
+
+  loadAddress(); // already exists in your code
 }
-
 </script>
 <script>
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
