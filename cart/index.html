@@ -1052,11 +1052,44 @@ function payViaRazorpay() {
   // 👇 Replace with actual payment trigger later
 }
 
+
 function continueWithCOD() {
   document.getElementById("codPopup").style.display = "none";
   document.body.style.overflow = "";
-  alert("Placing Cash on Delivery Order...");
-  // 👇 Replace with actual order placing logic later
+
+  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+  const shippingAddress = localStorage.getItem("shippingAddress") || "";
+
+  let total = 0;
+  cartItems.forEach(item => {
+    total += item.price * item.qty;
+  });
+
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const codCharge = 89;
+  const grandTotal = total + deliveryFee + codCharge;
+
+  // Create new order object
+  const newOrder = {
+    items: cartItems,
+    address: shippingAddress,
+    paymentMethod: "Cash on Delivery",
+    deliveryFee: deliveryFee,
+    codCharge: codCharge,
+    total: grandTotal,
+    orderDate: new Date().toLocaleString()
+  };
+
+  // Save to 'orders' in localStorage
+  const existingOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+  existingOrders.push(newOrder);
+  localStorage.setItem("user_orders", JSON.stringify(existingOrders));
+
+  // Clear cart
+  localStorage.removeItem("cartItems");
+
+  // Redirect to dashboard
+  window.location.href = "/dashboard.html";
 }
 </script>
 <script>
