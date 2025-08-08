@@ -522,9 +522,7 @@ button.remove-btn:hover {
   <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
 </div>
-<script>
 
-</script>
   <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()">
   Proceed to Pay
 </button>
@@ -1035,22 +1033,14 @@ function updateSummary() {
   </div>
 </div>
 <script>
-let selectedPayment = "razorpay"; // default
-
-function updatePaymentMethod() {
-  const method = document.querySelector('input[name="paymentMethod"]:checked').value;
-  selectedPayment = method;
-  document.getElementById("proceedBtn").innerText =
-    method === "cod" ? "Continue with COD" : "Proceed to Pay";
-  updateSummary(); // update total with COD fee if needed
-}
-
 function handleProceed() {
   const selected = document.querySelector('input[name="paymentMethod"]:checked');
   if (selected && selected.value === 'cod') {
+    // Show Razorpay suggestion popup
     document.getElementById("codPopup").style.display = "flex";
     document.body.style.overflow = "hidden";
   } else {
+    // Continue with Razorpay flow
     payViaRazorpay();
   }
 }
@@ -1058,73 +1048,15 @@ function handleProceed() {
 function payViaRazorpay() {
   document.getElementById("codPopup").style.display = "none";
   document.body.style.overflow = "";
-
-  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
-  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const deliveryFee = window.deliveryFee || 0;
-  const finalAmount = (totalAmount + deliveryFee) * 100; // Razorpay amount in paise
-
-  const options = {
-    key: "rzp_live_S4Dmi0UXQYNAyV", // ✅ Your live key
-    amount: finalAmount,
-    currency: "INR",
-    name: "Precioussly",
-    description: "Order Payment",
-    handler: function (response) {
-      saveOrder("Paid via Razorpay");
-    },
-    prefill: {
-      name: localStorage.getItem("user_name") || "",
-      email: localStorage.getItem("user_email") || ""
-    },
-    theme: {
-      color: "#2874f0"
-    }
-  };
-
-  const rzp = new Razorpay(options);
-  rzp.open();
+  alert("Redirecting to Razorpay...");
+  // 👇 Replace with actual payment trigger later
 }
 
 function continueWithCOD() {
   document.getElementById("codPopup").style.display = "none";
   document.body.style.overflow = "";
-  saveOrder("Cash on Delivery");
-}
-
-function saveOrder(status) {
-  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
-  const address = localStorage.getItem("shippingAddress") || "N/A";
-  const email = localStorage.getItem("user_email") || "guest";
-  const name = localStorage.getItem("user_name") || "Guest";
-
-  if (cartItems.length === 0) {
-    alert("Cart is empty!");
-    return;
-  }
-
-  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const deliveryFee = window.deliveryFee || 0;
-
-  const order = {
-    id: Date.now(),
-    name,
-    email,
-    address,
-    status,
-    items: cartItems.map(item => `${item.name} x${item.qty}`).join(", "),
-    total: `₹${totalAmount + deliveryFee}`
-  };
-
-  const previousOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
-  previousOrders.push(order);
-  localStorage.setItem("user_orders", JSON.stringify(previousOrders));
-
-  // Clear cart
-  localStorage.removeItem("cartItems");
-
-  // Redirect to dashboard
-  window.location.href = "/dashboard.html";
+  alert("Placing Cash on Delivery Order...");
+  // 👇 Replace with actual order placing logic later
 }
 </script>
 <script>
