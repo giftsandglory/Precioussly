@@ -531,9 +531,8 @@ button.remove-btn:hover {
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
 </div>
 <div id="minimumNotice" style="display: none; text-align: center; color: #2874f0; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
-  Minimum order amount is ₹250 to proceed
 </div>
-  <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()">
+<button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display: none;">
   Proceed to Pay
 </button>
 </div>
@@ -1198,7 +1197,23 @@ function validateAddressFields() {
 }
 </script>
 <script>
+let minimumOrderValue = null; // nothing shown until fetched
+
+// ✅ Fetch minimum order value from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    if (data[0] && data[0]["minimum order"]) {
+      minimumOrderValue = parseInt(data[0]["minimum order"]);
+      document.getElementById("proceedBtn").style.display = "block"; // show button
+      document.getElementById("minimumNotice").style.display = "block"; // show message area
+      checkMinOrderCondition(); // run logic after fetch
+    }
+  });
+
 function checkMinOrderCondition() {
+  if (minimumOrderValue === null) return; // stop if not fetched yet
+
   const proceedBtn = document.getElementById("proceedBtn");
   const notice = document.getElementById("minimumNotice");
 
@@ -1210,7 +1225,9 @@ function checkMinOrderCondition() {
   const codFee = selectedPayment === "cod" ? 89 : 0;
   const grandTotal = total + deliveryFee + codFee;
 
-  if (grandTotal < 250) {
+  notice.innerText = `Minimum order amount is ₹${minimumOrderValue} to proceed`;
+
+  if (grandTotal < minimumOrderValue) {
     proceedBtn.style.opacity = "0.4";
     proceedBtn.disabled = true;
     proceedBtn.style.cursor = "not-allowed";
@@ -1223,14 +1240,14 @@ function checkMinOrderCondition() {
   }
 }
 
-// ✅ Call this whenever summary updates
+// ✅ Update whenever summary is updated
 const originalUpdateSummary = updateSummary;
 updateSummary = function () {
   originalUpdateSummary();
   checkMinOrderCondition();
-}
+};
 
-// ✅ Also run on page load
+// ✅ Run on page load (in case sheet fetched already)
 document.addEventListener("DOMContentLoaded", checkMinOrderCondition);
 </script>
 </body>
