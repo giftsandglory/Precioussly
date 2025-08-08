@@ -1034,13 +1034,20 @@ function updateSummary() {
 </div>
 <script>
 function handleProceed() {
+  const shippingAddress = localStorage.getItem("shippingAddress");
+
+  // ✅ Check if address is missing
+  if (!shippingAddress || shippingAddress.trim() === "") {
+    document.getElementById("addressRequiredPopup").style.display = "flex";
+    document.body.style.overflow = "hidden";
+    return; // stop further flow
+  }
+
   const selected = document.querySelector('input[name="paymentMethod"]:checked');
   if (selected && selected.value === 'cod') {
-    // Show Razorpay suggestion popup
     document.getElementById("codPopup").style.display = "flex";
     document.body.style.overflow = "hidden";
   } else {
-    // Continue with Razorpay flow
     payViaRazorpay();
   }
 }
@@ -1062,6 +1069,10 @@ function continueWithCOD() {
 <script>
 function closeCODPopup() {
   document.getElementById("codPopup").style.display = "none";
+  document.body.style.overflow = "";
+}
+function closeAddressRequiredPopup() {
+  document.getElementById("addressRequiredPopup").style.display = "none";
   document.body.style.overflow = "";
 }
 </script>
@@ -1107,6 +1118,38 @@ function payViaRazorpay() {
   rzp.open();
 }
 </script>
+<!-- ✅ ADDRESS REQUIRED POPUP -->
+<div class="address-popup-overlay" id="addressRequiredPopup">
+  <div class="address-popup-box" style="text-align: center; max-width: 320px;">
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">
+      Address Required
+    </div>
+    <div style="font-size: 15px; color: #444; margin-bottom: 16px; font-family: 'Roboto Slab', serif;">
+      Please add your shipping address before proceeding.
+    </div>
 
+    <div class="button-row" style="flex-direction: column; gap: 10px;">
+      <button onclick="openAddressPopup()" style="
+        background: white;
+        color: black;
+        border: 1.4px solid black;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 15px;
+        font-family: 'Roboto Slab', serif;
+      ">Add Address</button>
+
+      <button onclick="closeAddressRequiredPopup()" style="
+        background: white;
+        color: black;
+        border: 1.4px solid black;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 15px;
+        font-family: 'Roboto Slab', serif;
+      ">Back</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
