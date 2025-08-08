@@ -533,7 +533,9 @@ button.remove-btn:hover {
 <div id="minimumNotice" style="display: none; text-align: center; color: #2874f0; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
 </div>
 <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display: none;">
-  Proceed to Pay
+  <span id="proceedBtnText">Proceed to Pay</span>
+  <span id="proceedBtnSpinner" class="spinner" style="margin-left: 8px; display: none;"></span>
+</button>
 </button>
 </div>
 <!-- END: Summary and Pay Section -->
@@ -1066,12 +1068,7 @@ function handleProceed() {
   }
 }
 
-function payViaRazorpay() {
-  document.getElementById("codPopup").style.display = "none";
-  document.body.style.overflow = "";
-  alert("Redirecting to Razorpay...");
-  // 👇 Replace with actual payment trigger later
-}
+
 
 function continueWithCOD() {
   document.getElementById("codPopup").style.display = "none";
@@ -1249,6 +1246,59 @@ updateSummary = function () {
 
 // ✅ Run on page load (in case sheet fetched already)
 document.addEventListener("DOMContentLoaded", checkMinOrderCondition);
+</script>
+<script>
+function payViaRazorpay() {
+  // Hide COD popup if open
+  document.getElementById("codPopup").style.display = "none";
+  document.body.style.overflow = "";
+
+  // Show spinner, hide button text
+  document.getElementById("proceedBtnText").style.display = "none";
+  document.getElementById("proceedBtnSpinner").style.display = "inline-block";
+
+  // Wait for 1 second before launching Razorpay
+  setTimeout(() => {
+    const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let totalAmount = 0;
+    cartData.forEach(item => totalAmount += item.price * item.qty);
+
+    const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+    const codCharge = 0; // No charge for Razorpay
+    const finalAmount = totalAmount + deliveryFee + codCharge;
+
+    const options = {
+      key: "rzp_live_S4Dmi0UXQYNAyV",
+      amount: finalAmount * 100,
+      currency: "INR",
+      name: "Precioussly",
+      description: "Secure Payment",
+      image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+      handler: function (response) {
+        // ✅ On successful payment
+        window.location.href = "https://precioussly.com/thankyou-razorpay";
+      },
+      prefill: {
+        name: localStorage.getItem("user_name") || "",
+        email: localStorage.getItem("user_email") || "",
+        contact: document.getElementById("phone")?.value || ""
+      },
+      notes: {
+        address: localStorage.getItem("shippingAddress") || ""
+      },
+      theme: {
+        color: "#2874f0"
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+    // Reset button after opening Razorpay
+    document.getElementById("proceedBtnText").style.display = "inline";
+    document.getElementById("proceedBtnSpinner").style.display = "none";
+  }, 1000);
+}
 </script>
 </body>
 </html>
