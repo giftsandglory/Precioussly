@@ -446,6 +446,19 @@ button.remove-btn:hover {
 
     <!-- START: Summary and Pay Section -->
 <div id="bottomBox">
+<div class="summary" id="summaryBox">
+  <div class="summary-row">
+    <span>Item Total</span>
+    <span><span class="spinner"></span></span>
+  </div>
+  <div class="summary-row">
+    <span>Delivery Fee</span>
+    <span><span class="spinner"></span></span>
+  </div>
+  <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+    <span>Order Total</span>
+    <span><span class="spinner"></span></span>
+  </div>
   <div class="summary" id="summaryBox"></div>
 <div style="margin-top: 10px;">
   <label style="font-size: 15px; font-weight: bold;">Choose Payment Method:</label><br>
@@ -505,12 +518,7 @@ button.remove-btn:hover {
       container.appendChild(div);
     });
 
-    let deliveryFee = 0;
-    document.getElementById("summaryBox").innerHTML = `
-      <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-      <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
-      <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
-    `;
+    
 
     if (cartData.length === 0) {
   container.innerHTML = `
@@ -825,13 +833,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Summary section
-  let deliveryFee = 0;
-  document.getElementById("summaryBox").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
-  `;
-});
+  
 </script>
 <script>
 function increase(index) {
