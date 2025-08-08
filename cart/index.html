@@ -456,6 +456,7 @@ button.remove-btn:hover {
   background-color: #fff;
 }
 </style>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
   <header class="site-header">
@@ -1040,7 +1041,7 @@ function handleProceed() {
     document.body.style.overflow = "hidden";
   } else {
     // Continue with Razorpay flow
-    alert("Proceeding to Razorpay Payment...");
+    payViaRazorpay();
   }
 }
 
@@ -1064,5 +1065,48 @@ function closeCODPopup() {
   document.body.style.overflow = "";
 }
 </script>
+
+<script>
+function payViaRazorpay() {
+  document.getElementById("codPopup").style.display = "none";
+  document.body.style.overflow = "";
+
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let totalAmount = 0;
+  cartData.forEach(item => totalAmount += item.price * item.qty);
+
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const codCharge = 0; // Razorpay has no cod charge
+  const finalAmount = totalAmount + deliveryFee + codCharge;
+
+  const options = {
+    key: "rzp_live_S4Dmi0UXQYNAyV",
+    amount: finalAmount * 100,
+    currency: "INR",
+    name: "Precioussly",
+    description: "Secure Payment",
+    image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+    handler: function (response) {
+      alert("Payment Successful! Razorpay ID: " + response.razorpay_payment_id);
+      // You can redirect to order confirmation or store order info here
+    },
+    prefill: {
+      name: localStorage.getItem("user_name") || "",
+      email: localStorage.getItem("user_email") || "",
+      contact: document.getElementById("phone")?.value || ""
+    },
+    notes: {
+      address: localStorage.getItem("shippingAddress") || ""
+    },
+    theme: {
+      color: "#2874f0"
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+</script>
+
 </body>
 </html>
