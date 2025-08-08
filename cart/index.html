@@ -764,8 +764,9 @@ function confirmAddress() {
     });
 </script>
 <script>
+window.cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+
 document.addEventListener("DOMContentLoaded", () => {
-  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
   const shippingAddress = localStorage.getItem("shippingAddress") || "";
 
   if (shippingAddress) {
@@ -775,7 +776,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("cartItems");
   let total = 0;
 
-  cartData.forEach((item, index) => {
+  window.cartData.forEach((item, index) => {
     total += item.price * item.qty;
     const div = document.createElement("div");
     div.className = "item cart-item-animate";
@@ -796,7 +797,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // If cart is empty
-  if (cartData.length === 0) {
+  if (window.cartData.length === 0) {
     container.innerHTML = `
       <div style="text-align:center; margin-top: 30px;">
         <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" />
@@ -810,10 +811,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Summary section
-  let deliveryFee = 0;
+  let deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const feeText = deliveryFee === 0
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
     <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
   `;
 });
@@ -823,7 +828,11 @@ function increase(index) {
   const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
   cartData[index].qty++;
   localStorage.setItem("cartItems", JSON.stringify(cartData));
-  location.reload(); // Refresh page to update view
+
+  document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
+
+  if (typeof updateCartBadge === "function") updateCartBadge();
+  if (typeof updateSummary === "function") updateSummary();
 }
 
 function decrease(index) {
@@ -831,15 +840,40 @@ function decrease(index) {
   if (cartData[index].qty > 1) {
     cartData[index].qty--;
     localStorage.setItem("cartItems", JSON.stringify(cartData));
-    location.reload();
+
+    document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
+
+    if (typeof updateCartBadge === "function") updateCartBadge();
+    if (typeof updateSummary === "function") updateSummary();
   }
 }
 
 function removeItem(index) {
   const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-  cartData.splice(index, 1); // Remove that product
+  cartData.splice(index, 1); // Remove the item from array
   localStorage.setItem("cartItems", JSON.stringify(cartData));
-  location.reload();
+  location.reload(); // Page reload to re-render all cart items
+}
+</script>
+<script>
+function updateSummary() {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cartData.forEach(item => {
+    total += item.price * item.qty;
+  });
+
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 100;
+
+  const feeText = deliveryFee === 0
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
+  `;
 }
 </script>
 </body>
