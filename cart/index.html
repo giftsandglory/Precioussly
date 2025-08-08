@@ -227,6 +227,48 @@ body {
 .proceed-btn:hover {
   background: #1565c0;               /* darker blue on hover */
 }
+.payment-method-box {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 10px;
+  background: #f9f9f9;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  font-family: 'Roboto Slab', serif;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.payment-option input[type="radio"] {
+  display: none;
+}
+
+.custom-radio {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #2874f0;
+  border-radius: 50%;
+  margin-right: 10px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.payment-option input[type="radio"]:checked + .custom-radio::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: #2874f0;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+}
 
 button {
   font-family: inherit;
@@ -443,7 +485,20 @@ button.remove-btn:hover {
     <div class="items" id="cartItems"></div>
 
 
+<!-- ULTRA PREMIUM PAYMENT OPTIONS -->
+<div class="payment-method-box" id="paymentMethodBox">
+  <label class="payment-option">
+    <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
+    <span class="custom-radio"></span>
+    Pay via Razorpay (No Extra Charge)
+  </label>
 
+  <label class="payment-option">
+    <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
+    <span class="custom-radio"></span>
+    Cash on Delivery (+₹89)
+  </label>
+</div>
     <!-- START: Summary and Pay Section -->
 <div id="bottomBox">
   <div class="summary" id="summaryBox">
@@ -872,6 +927,37 @@ function updateSummary() {
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
     <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
     <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
+  `;
+}
+</script>
+<script>
+let selectedPayment = "razorpay"; // default
+function updatePaymentMethod() {
+  const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+  selectedPayment = method;
+  updateSummary();
+}
+
+// Override updateSummary to include COD charge
+function updateSummary() {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
+
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const codFee = selectedPayment === "cod" ? 89 : 0;
+
+  const feeText = deliveryFee === 0
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  const grandTotal = total + deliveryFee + codFee;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    ${selectedPayment === "cod" ? `<div class="summary-row"><span>COD Charges</span><span>₹89</span></div>` : ""}
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${grandTotal}</span></div>
   `;
 }
 </script>
