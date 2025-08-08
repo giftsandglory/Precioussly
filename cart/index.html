@@ -447,6 +447,20 @@ button.remove-btn:hover {
     <!-- START: Summary and Pay Section -->
 <div id="bottomBox">
   <div class="summary" id="summaryBox"></div>
+<div style="margin-top: 10px;">
+  <label style="font-size: 15px; font-weight: bold;">Choose Payment Method:</label><br>
+  <div style="margin-top: 6px;">
+    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+      <input type="radio" name="payment" value="razorpay" checked onchange="handlePaymentMethod()" />
+      Pay via Razorpay
+    </label>
+    <label style="display: flex; align-items: center; gap: 8px;">
+      <input type="radio" name="payment" value="cod" onchange="handlePaymentMethod()" />
+      Cash on Delivery (₹89 extra)
+    </label>
+  </div>
+</div>
+
 
   <button class="proceed-btn" id="proceedBtn" onclick="alert('Proceeding to Payment...')">
     Proceed to Pay
@@ -754,6 +768,7 @@ function confirmAddress() {
 
       // Set for other function use
       window.deliveryFee = fee;
+      updateSummary();
 
       // Show on screen
       document.getElementById("summaryBox").innerHTML = `
@@ -842,5 +857,12 @@ function removeItem(index) {
   location.reload();
 }
 </script>
+
+<script>
+function handlePaymentMethod() {
+  updateSummary(); // Call the summary updater whenever payment method changes
+}
+</script>
+
 </body>
 </html>
