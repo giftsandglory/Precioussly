@@ -446,13 +446,11 @@ button.remove-btn:hover {
 
     <!-- START: Summary and Pay Section -->
 <div id="bottomBox">
-  
-<div class="summary" id="summaryBox">
+  <div class="summary" id="summaryBox">
   <div class="summary-row"><span>Item Total</span><span><span class="spinner"></span></span></div>
   <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
 </div>
-
 
   <button class="proceed-btn" id="proceedBtn" onclick="alert('Proceeding to Payment...')">
     Proceed to Pay
@@ -497,12 +495,7 @@ button.remove-btn:hover {
       container.appendChild(div);
     });
 
-    let deliveryFee = 0;
-    document.getElementById("summaryBox").innerHTML = `
-      <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-      <div class="summary-row"><span>Delivery Fee</span><span>₹${deliveryFee}</span></div>
-      <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
-    `;
+    
 
     if (cartData.length === 0) {
   container.innerHTML = `
