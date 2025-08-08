@@ -245,29 +245,31 @@ body {
   cursor: pointer;
 }
 
+/* ✅ ULTRA-PREMIUM RADIO BUTTON DESIGN */
 .payment-option input[type="radio"] {
   display: none;
 }
 
 .custom-radio {
-  width: 18px;
-  height: 18px;
-  border: 2px solid #2874f0;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid #2874f0;
   border-radius: 50%;
-  margin-right: 10px;
   position: relative;
-  flex-shrink: 0;
+  margin-right: 12px;
+  display: inline-block;
 }
 
-.payment-option input[type="radio"]:checked + .custom-radio::after {
+.payment-option input[type="radio"]:checked + .custom-radio::before {
   content: '';
   width: 10px;
   height: 10px;
-  background: #2874f0;
+  background-color: #2874f0;
   border-radius: 50%;
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 button {
