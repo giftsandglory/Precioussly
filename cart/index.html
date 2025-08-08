@@ -1075,6 +1075,11 @@ function closeAddressRequiredPopup() {
   document.getElementById("addressRequiredPopup").style.display = "none";
   document.body.style.overflow = "";
 }
+function openAddressAndClosePopup() {
+  document.getElementById("addressRequiredPopup").style.display = "none";
+  document.body.style.overflow = "";
+  openAddressPopup(); // Already defined elsewhere
+}
 </script>
 
 <script>
@@ -1128,16 +1133,15 @@ function payViaRazorpay() {
       Please add your shipping address before proceeding.
     </div>
 
-    <div class="button-row" style="flex-direction: column; gap: 10px;">
-      <button onclick="openAddressPopup()" style="
-        background: white;
-        color: black;
-        border: 1.4px solid black;
-        border-radius: 12px;
-        padding: 12px;
-        font-size: 15px;
-        font-family: 'Roboto Slab', serif;
-      ">Add Address</button>
+   <button onclick="openAddressAndClosePopup()" style="
+  background: #2874f0;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 15px;
+  font-family: 'Roboto Slab', serif;
+">Add Address</button>
 
       <button onclick="closeAddressRequiredPopup()" style="
         background: white;
