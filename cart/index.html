@@ -1108,41 +1108,5 @@ function payViaRazorpay() {
 }
 </script>
 
-
-<script>
-function handleProceed() {
-  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
-  const address = localStorage.getItem("shippingAddress") || "No Address";
-  const paymentMethod = selectedPayment || "razorpay";
-
-  if (cartItems.length === 0) {
-    alert("Cart is empty!");
-    return;
-  }
-
-  const orderId = "OD" + Date.now(); // Unique ID using timestamp
-  const itemList = cartItems.map(item => `${item.name} (x${item.qty})`).join(", ");
-
-  const newOrder = {
-    id: orderId,
-    status: "Order Placed",
-    items: itemList,
-    address: address,
-    payment: paymentMethod
-  };
-
-  const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
-  orders.push(newOrder);
-  localStorage.setItem("user_orders", JSON.stringify(orders));
-
-  // Clear cart after placing order
-  localStorage.removeItem("cartItems");
-  updateCartBadge();
-
-  // Redirect to dashboard
-  window.location.href = "/dashboard.html";
-}
-</script>
-
 </body>
 </html>
