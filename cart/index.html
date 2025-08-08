@@ -127,11 +127,15 @@ body {
   align-items: center;
   margin-bottom: 16px;
   gap: 12px;
-  padding: 14px;
-  border-radius: 12px;
+  padding: 16px;
+  border-radius: 14px;
   background: #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
   animation: fadeInUp 0.4s ease forwards;
+  transition: box-shadow 0.3s;
+}
+.item:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .item {
@@ -204,6 +208,14 @@ body {
 .summary {
   font-size: 15px;
   margin-top: 12px;
+}
+#summaryBox {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-top: 20px;
 }
 
 .summary-row {
