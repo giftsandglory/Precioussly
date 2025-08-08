@@ -1036,13 +1036,10 @@ function updateSummary() {
 function handleProceed() {
   const selected = document.querySelector('input[name="paymentMethod"]:checked');
   if (selected && selected.value === 'cod') {
-    // Show Razorpay suggestion popup
-    document.getElementById("codPopup").style.display = "flex";
-    document.body.style.overflow = "hidden";
-  } else {
-    // Continue with Razorpay flow
-    payViaRazorpay();
-  }
+  document.getElementById("codPopup").style.display = "flex";
+  document.body.style.overflow = "hidden";
+} else {
+  payViaRazorpay(); // ✅ Call real Razorpay function
 }
 
 function payViaRazorpay() {
@@ -1065,7 +1062,6 @@ function closeCODPopup() {
   document.body.style.overflow = "";
 }
 </script>
-
 <script>
 function payViaRazorpay() {
   document.getElementById("codPopup").style.display = "none";
@@ -1080,15 +1076,15 @@ function payViaRazorpay() {
   const finalAmount = totalAmount + deliveryFee + codCharge;
 
   const options = {
-    key: "rzp_live_S4Dmi0UXQYNAyV",
-    amount: finalAmount * 100,
+    key: "rzp_live_S4Dmi0UXQYNAyV", // ✅ Use your LIVE key
+    amount: finalAmount * 100, // Amount in paise
     currency: "INR",
     name: "Precioussly",
     description: "Secure Payment",
     image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
     handler: function (response) {
       alert("Payment Successful! Razorpay ID: " + response.razorpay_payment_id);
-      // You can redirect to order confirmation or store order info here
+      // 🟢 Here you can redirect or place order
     },
     prefill: {
       name: localStorage.getItem("user_name") || "",
@@ -1107,6 +1103,5 @@ function payViaRazorpay() {
   rzp.open();
 }
 </script>
-
 </body>
 </html>
