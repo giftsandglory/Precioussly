@@ -727,9 +727,23 @@ function openAddressPopup() {
   // Autofill Full Name & Email if available
   const name = localStorage.getItem("user_name");
   const email = localStorage.getItem("user_email");
-
   if (name) document.getElementById("fullname").value = name;
   if (email) document.getElementById("email").value = email;
+
+  // ✅ Load saved full address values if available
+  const savedState = localStorage.getItem("addr_state");
+  const savedCity = localStorage.getItem("addr_city");
+  const savedPincode = localStorage.getItem("addr_pincode");
+  const savedFullAddress = localStorage.getItem("addr_full");
+  const savedPhone = localStorage.getItem("addr_phone");
+  const savedAltPhone = localStorage.getItem("addr_alt");
+
+  if (savedState) document.getElementById("state").value = savedState;
+  if (savedCity) document.getElementById("city").value = savedCity;
+  if (savedPincode) document.getElementById("pincode").value = savedPincode;
+  if (savedFullAddress) document.getElementById("address").value = savedFullAddress;
+  if (savedPhone) document.getElementById("phone").value = savedPhone;
+  if (savedAltPhone) document.getElementById("altphone").value = savedAltPhone;
 // ✅ Attach input listeners to validate in real-time
 ["fullname", "state", "city", "pincode", "address", "phone"].forEach(id => {
   document.getElementById(id).addEventListener("input", validateAddressFields);
@@ -757,10 +771,16 @@ function confirmAddress() {
    <strong>${phone}</strong>${altphone ? '<br> Alt: <strong>' + altphone + '</strong>' : ''}
 `;
 
+  // ✅ Save full display address
   localStorage.setItem("shippingAddress", finalAddress);
-  document.getElementById("displayAddress").innerHTML = finalAddress;
-  closeAddressPopup();
-}
+
+  // ✅ Save each field for popup autofill
+  localStorage.setItem("addr_state", state);
+  localStorage.setItem("addr_city", city);
+  localStorage.setItem("addr_pincode", pincode);
+  localStorage.setItem("addr_full", address);
+  localStorage.setItem("addr_phone", phone);
+  localStorage.setItem("addr_alt", altphone);
 
 </script>
 <script>
