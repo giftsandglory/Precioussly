@@ -724,23 +724,38 @@ function openAddressPopup() {
   document.getElementById("addressPopup").style.display = "flex";
   document.body.style.overflow = "hidden";
 
-  // Autofill Full Name & Email if available
+  // ✅ Autofill Full Name & Email if available
   const name = localStorage.getItem("user_name");
   const email = localStorage.getItem("user_email");
-
   if (name) document.getElementById("fullname").value = name;
   if (email) document.getElementById("email").value = email;
-// ✅ Attach input listeners to validate in real-time
-["fullname", "state", "city", "pincode", "address", "phone"].forEach(id => {
-  document.getElementById(id).addEventListener("input", validateAddressFields);
-});
 
+  // ✅ Autofill address details from saved data
+  const saved = localStorage.getItem("addressDetails");
+  if (saved) {
+    const details = JSON.parse(saved);
+    if (details.fullName) document.getElementById("fullname").value = details.fullName;
+    if (details.state) document.getElementById("state").value = details.state;
+    if (details.city) document.getElementById("city").value = details.city;
+    if (details.pincode) document.getElementById("pincode").value = details.pincode;
+    if (details.address) document.getElementById("address").value = details.address;
+    if (details.phone) document.getElementById("phone").value = details.phone;
+    if (details.altphone) document.getElementById("altphone").value = details.altphone;
+  }
+
+  // ✅ Enable/disable confirm button based on filled fields
+  ["fullname", "state", "city", "pincode", "address", "phone"].forEach(id => {
+    document.getElementById(id).addEventListener("input", validateAddressFields);
+  });
+
+  validateAddressFields(); // trigger once to set confirm button
 }
 
 function closeAddressPopup() {
   document.getElementById("addressPopup").style.display = "none";
   document.body.style.overflow = "";
 }
+
 
 function confirmAddress() {
   const fullName = document.getElementById("fullname").value;
@@ -752,15 +767,31 @@ function confirmAddress() {
   const altphone = document.getElementById("altphone").value;
 
   const finalAddress = `
-  <strong>${fullName}</strong><br>
-  ${address},<br>${city}, ${state} - ${pincode}<br>
-   <strong>${phone}</strong>${altphone ? '<br> Alt: <strong>' + altphone + '</strong>' : ''}
-`;
+    <strong>${fullName}</strong><br>
+    ${address},<br>${city}, ${state} - ${pincode}<br>
+    <strong>${phone}</strong>${altphone ? '<br> Alt: <strong>' + altphone + '</strong>' : ''}
+  `;
 
+  // ✅ Save formatted display string
   localStorage.setItem("shippingAddress", finalAddress);
+
+  // ✅ Save all form field values
+  localStorage.setItem("addressDetails", JSON.stringify({
+    fullName,
+    state,
+    city,
+    pincode,
+    address,
+    phone,
+    altphone
+  }));
+
+  // ✅ Show on screen
   document.getElementById("displayAddress").innerHTML = finalAddress;
+
   closeAddressPopup();
 }
+</script>
 
 </script>
 <script>
