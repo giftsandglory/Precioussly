@@ -525,19 +525,19 @@ button.remove-btn:hover {
 }
   });
 
-
 function updateSummary() {
   let total = 0;
   cartData.forEach(item => total += item.price * item.qty);
 
-  const fee = 0; // always 0 now
-  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
+  const fee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+
+  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee}</span>`;
 
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
     <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
     <div class="summary-row" style="font-weight: bold; font-size: 18px;">
-      <span>Order Total</span><span>₹${total}</span>
+      <span>Order Total</span><span>₹${total + fee}</span>
     </div>
   `;
 }
@@ -735,7 +735,51 @@ function confirmAddress() {
 
   updateCartBadge();
 </script>
+<script>
+  const feeSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const feeURL = `https://opensheet.elk.sh/${feeSheetID}/Sheet1`;
 
+  fetch(feeURL)
+    .then(res => res.json())
+    .then(data => {
+      const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+      let total = 0;
+      cartData.forEach(item => total += item.price * item.qty);
+
+      let fee = 0;
+      let feeText = "";
+
+      if (data[0] && data[0]["Delivery Fee"]) {
+        const value = data[0]["Delivery Fee"].trim();
+        if (value === "0") {
+          // If column is exactly 0 → Free Delivery
+          fee = 0;
+          feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
+        } else {
+          // Else use actual fee
+          fee = parseFloat(value);
+          feeText = `₹${fee}`;
+        }
+      } else {
+        // No fee column? fallback
+        fee = 0;
+        feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
+      }
+
+      // Set for other function use
+      window.deliveryFee = fee;
+      updateSummary();
+
+      // Show on screen
+      document.getElementById("deliveryRow").style.display = "flex";
+      document.getElementById("deliveryRow").innerHTML = `
+        <span>Delivery Fee</span><span>${feeText}</span>
+      `;
+      document.getElementById("orderTotalRow").innerHTML = `
+        <span>Order Total</span><span>₹${total + fee}</span>
+      `;
+    });
+</script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
