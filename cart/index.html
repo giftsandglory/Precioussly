@@ -523,42 +523,7 @@ button.remove-btn:hover {
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
 </div>
 <script>
-function saveOrderAndRedirect() {
-  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
-  const address = localStorage.getItem("shippingAddress") || "N/A";
-  const email = localStorage.getItem("user_email") || "guest";
-  const name = localStorage.getItem("user_name") || "Guest";
 
-  if (cartItems.length === 0) {
-    alert("Cart is empty!");
-    return;
-  }
-
-  const paymentMethod = selectedPayment === "cod" ? "Cash on Delivery" : "Paid via Razorpay";
-
-  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const deliveryFee = window.deliveryFee || 0;
-
-  const order = {
-    id: Date.now(),  // unique order id
-    name,
-    email,
-    address,
-    status: paymentMethod,
-    items: cartItems.map(item => `${item.name} x${item.qty}`).join(", "),
-    total: `₹${totalAmount + deliveryFee}`
-  };
-
-  const previousOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
-  previousOrders.push(order);
-  localStorage.setItem("user_orders", JSON.stringify(previousOrders));
-
-  // Clear cart
-  localStorage.removeItem("cartItems");
-
-  // Redirect to dashboard
-  window.location.href = "/dashboard.html";
-}
 </script>
   <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()">
   Proceed to Pay
