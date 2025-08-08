@@ -771,12 +771,10 @@ function confirmAddress() {
       updateSummary();
 
       // Show on screen
-      document.getElementById("deliveryRow").style.display = "flex";
-      document.getElementById("deliveryRow").innerHTML = `
-        <span>Delivery Fee</span><span>${feeText}</span>
-      `;
-      document.getElementById("orderTotalRow").innerHTML = `
-        <span>Order Total</span><span>₹${total + fee}</span>
+      document.getElementById("summaryBox").innerHTML = `
+        <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+        <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+        <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + fee}</span></div>
       `;
     });
 </script>
