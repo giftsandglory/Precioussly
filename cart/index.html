@@ -9,6 +9,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
 <style>
+#minimumNotice {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
 @keyframes fadeInUp {
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -522,7 +530,9 @@ button.remove-btn:hover {
   <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
 </div>
-
+<div id="minimumNotice" style="display: none; text-align: center; color: #2874f0; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
+  Minimum order amount is ₹250 to proceed
+</div>
   <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()">
   Proceed to Pay
 </button>
@@ -1186,6 +1196,42 @@ function validateAddressFields() {
     btn.style.cursor = "not-allowed";
   }
 }
+</script>
+<script>
+function checkMinOrderCondition() {
+  const proceedBtn = document.getElementById("proceedBtn");
+  const notice = document.getElementById("minimumNotice");
+
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
+
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const codFee = selectedPayment === "cod" ? 89 : 0;
+  const grandTotal = total + deliveryFee + codFee;
+
+  if (grandTotal < 250) {
+    proceedBtn.style.opacity = "0.4";
+    proceedBtn.disabled = true;
+    proceedBtn.style.cursor = "not-allowed";
+    notice.style.display = "block";
+  } else {
+    proceedBtn.style.opacity = "1";
+    proceedBtn.disabled = false;
+    proceedBtn.style.cursor = "pointer";
+    notice.style.display = "none";
+  }
+}
+
+// ✅ Call this whenever summary updates
+const originalUpdateSummary = updateSummary;
+updateSummary = function () {
+  originalUpdateSummary();
+  checkMinOrderCondition();
+}
+
+// ✅ Also run on page load
+document.addEventListener("DOMContentLoaded", checkMinOrderCondition);
 </script>
 </body>
 </html>
