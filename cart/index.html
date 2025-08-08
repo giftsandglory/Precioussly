@@ -562,6 +562,7 @@ button.remove-btn:hover {
   `;
   document.getElementById("summaryBox").innerHTML = "";
   document.getElementById("bottomBox").style.display = "none";
+  document.getElementById("paymentMethodBox").style.display = "none";
 }
   });
 
@@ -861,8 +862,11 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     document.getElementById("summaryBox").innerHTML = "";
     document.getElementById("bottomBox").style.display = "none";
+  document.getElementById("paymentMethodBox").style.display = "none";
     return;
   }
+
+  document.getElementById("paymentMethodBox").style.display = "block";
 
   // Summary section
   let deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
