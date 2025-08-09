@@ -1500,7 +1500,6 @@ function showProgress(subtotal){
 }
 
 // ====== 4) Manual apply / clear ======
-
 function applyCouponManually(){
   const input = document.getElementById("couponInput");
   const code = (input.value||"").trim().toUpperCase();
@@ -1508,24 +1507,19 @@ function applyCouponManually(){
 
   const found = allCoupons.find(c=>c.code.toUpperCase()===code);
   window.manualLock = true;
-
   if (found){
     window.appliedCoupon = found;
-    localStorage.setItem("appliedCoupon", JSON.stringify(found)); // ✅ save to storage
   } else {
-    window.appliedCoupon = null;
-    localStorage.removeItem("appliedCoupon"); // ✅ clear storage on invalid
+    window.appliedCoupon = null; // not found
     alert("Invalid coupon");
   }
-  updateSummary(); // re-render with coupon line
+  updateSummary(); // re-render with new coupon
 }
-
 
 function clearManualCoupon(){
   window.manualLock = false;
   window.appliedCoupon = null;
   document.getElementById("couponInput").value = "";
-  
   updateSummary();
 }
 
@@ -1538,19 +1532,6 @@ function loadCoupons(){
         .filter(r => r.Title && r.MinAmount && r.Code && r.Discount) // same columns as index
         .map(parseCouponRow)
         .sort((a,b)=>a.min-b.min);
-        // ✅ Restore saved coupon if any
-    const savedCoupon = localStorage.getItem("appliedCoupon");
-    if (savedCoupon) {
-      try {
-        const parsed = JSON.parse(savedCoupon);
-        // Only restore if still valid in new coupon list
-        const match = window.allCoupons.find(c => c.code === parsed.code);
-        if (match) {
-          window.appliedCoupon = match;
-          window.manualLock = true; // so it doesn't auto-switch
-        }
-      } catch(e){}
-    }
       renderCouponCards();
       updateSummary(); // first render with coupons available
     })
@@ -1584,16 +1565,6 @@ if (coupWrap){
       couponToUse = coupon;
       discount = amount;
       window.appliedCoupon = coupon || null;
-      if (couponToUse) {
-  localStorage.setItem("appliedCoupon", JSON.stringify(couponToUse));
-} else {
-  localStorage.removeItem("appliedCoupon");
-}
-      if (coupon) {
-        localStorage.setItem("appliedCoupon", JSON.stringify(coupon)); // ✅ save auto-applied
-      } else {
-        localStorage.removeItem("appliedCoupon"); // no coupon
-      }
     }
   }
   const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
