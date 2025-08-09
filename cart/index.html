@@ -1697,5 +1697,31 @@ if (couponToUse && document.getElementById("couponInput")) {
   });
 })();
 </script>
+<script>
+(function () {
+  function forceCloseRazorpayPopup() {
+    var el = document.getElementById('codPopup');
+    if (el) el.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  // Always close popup on page load
+  document.addEventListener('DOMContentLoaded', forceCloseRazorpayPopup);
+
+  // Detect back from Thank-You page & reload cart
+  window.addEventListener('pageshow', function (e) {
+    var cameFromOrder = localStorage.getItem('lastOrderClearedCart') === '1';
+    var nav = performance.getEntriesByType('navigation')[0];
+    var fromBFCache = e.persisted || (nav && nav.type === 'back_forward');
+
+    if (cameFromOrder && fromBFCache) {
+      localStorage.removeItem('lastOrderClearedCart');
+      location.reload(); // ✅ Back karte hi cart reload hoga
+    } else {
+      forceCloseRazorpayPopup(); // normal case me sirf popup close
+    }
+  });
+})();
+</script>
 </body>
 </html>
