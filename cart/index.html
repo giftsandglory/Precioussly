@@ -1477,8 +1477,7 @@ function showAppliedTag(subtotal){
     return;
   }
   const amount = discountOnSubtotal(subtotal, appliedCoupon);
-  tag.innerHTML = `Applied: <strong>${appliedCoupon.code}</strong> — You saved ₹${amount}
-    <span class="remove" onclick="clearManualCoupon()">Remove</span>`;
+  tag.innerHTML = `Applied: <strong>${appliedCoupon.code}</strong> — You saved ₹${amount}`;
   tag.style.display = "inline-block";
 }
 
