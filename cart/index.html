@@ -1262,53 +1262,96 @@ function openAddressAndClosePopup() {
 </script>
 
 <script>
-function payViaRazorpay() {
-  document.getElementById("codPopup").style.display = "none";
-  document.body.style.overflow = "";
+  // Razorpay ko 1s spinner ke baad open karne ke liye final function
+  function payViaRazorpay() {
+    // Koi popup khula ho to band
+    try {
+      document.getElementById("codPopup").style.display = "none";
+      document.body.style.overflow = "";
+    } catch (e) {}
 
-  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-  let totalAmount = 0;
-  cartData.forEach(item => totalAmount += item.price * item.qty);
+    // --- Amounts (coupon ko minus karke) ---
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
 
-  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
-  const codCharge = 0; // Razorpay has no cod charge
-  const finalAmount = totalAmount + deliveryFee + codCharge;
+    // Applied coupon ka discount (agar min meet ho raha hai)
+    let discount = 0;
+    try {
+      if (window.appliedCoupon && subtotal >= window.appliedCoupon.min) {
+        // discountOnSubtotal helper aapke file me upar defined hai
+        discount = discountOnSubtotal(subtotal, window.appliedCoupon);
+      }
+    } catch (e) {}
 
-  const options = {
-    key: "rzp_live_S4Dmi0UXQYNAyV",
-    amount: finalAmount * 100,
-    currency: "INR",
-    name: "Precioussly",
-    description: "Secure Payment",
-    image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
-    handler: function (response) {
-  // --- amounts ---
-  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
-  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-  const grandTotal = itemsTotal + deliveryFee; // Razorpay par COD fee 0
+    const finalAmount = Math.max(1, subtotal + deliveryFee - discount); // safeguard
 
-  // --- order object ---
-  const order = {
-    id: "RZP-" + (response.razorpay_payment_id || Date.now()),
-    method: "Razorpay",
-    items,
-    amounts: { itemsTotal, deliveryFee, codFee: 0, grandTotal },
-    address: localStorage.getItem("shippingAddress") || "",
-    createdAt: new Date().toISOString()
-  };
-  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-  orders.unshift(order);
-  localStorage.setItem("orders", JSON.stringify(orders));
+    // Prefill details (address/localStorage se)
+    const name  = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").fullname) || (localStorage.getItem("user_name") || "");
+    const email = localStorage.getItem("user_email") || "";
+    const phone = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone) || "";
 
-  // --- clear cart + flag for BFCache ---
-  localStorage.setItem("cartItems", "[]");
-  try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
-  localStorage.setItem("lastOrderClearedCart", "1");
+    const options = {
+      key: "rzp_live_S4Dmi0UXQYNAyV",               // ✅ aapka live Key ID
+      amount: Math.round(finalAmount * 100),        // paise
+      currency: "INR",
+      name: "Precioussly",
+      description: "Secure Payment",
+      image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+      prefill: { name: name, email: email, contact: phone },
+      notes: { address: localStorage.getItem("shippingAddress") || "" },
+      theme: { color: "#2874f0" },
 
-  // thank you page for prepaid
-  window.location.href = "https://precioussly.com/thankyou-razorpay";
-},
+      handler: function (response) {
+        // --- Success ke baad order ko localStorage me save + cart clear ---
+        const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+        const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+        const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+        const applied = window.appliedCoupon ? window.appliedCoupon.code : null;
+        const discountAmt = discount; // upar calculate
+
+        const grandTotal = Math.max(0, itemsTotal + deliveryFee - discountAmt);
+
+        const order = {
+          id: "RZP-" + (response.razorpay_payment_id || Date.now()),
+          method: "Razorpay",
+          items,
+          coupon: applied,
+          amounts: { itemsTotal, deliveryFee, codFee: 0, discount: discountAmt, grandTotal },
+          address: localStorage.getItem("shippingAddress") || "",
+          createdAt: new Date().toISOString()
+        };
+
+        const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+        orders.unshift(order);
+        localStorage.setItem("orders", JSON.stringify(orders));
+
+        localStorage.setItem("cartItems", "[]");
+        try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+        localStorage.setItem("lastOrderClearedCart", "1");
+
+        window.location.href = "https://precioussly.com/thankyou-razorpay";
+      },
+
+      modal: {
+        // User ne Razorpay close kar diya → spinner/reset states
+        ondismiss: function () {
+          const proceedBtn = document.getElementById("proceedBtn");
+          if (proceedBtn) {
+            proceedBtn.classList.remove("is-loading");
+            proceedBtn.removeAttribute("aria-busy");
+          }
+          document.querySelectorAll(".popup-razorpay-btn.is-loading").forEach(b=>{
+            b.classList.remove("is-loading");
+            b.removeAttribute("aria-busy");
+          });
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  }
 </script>
 <!-- ✅ FINAL ADDRESS REQUIRED POPUP -->
 <div class="address-popup-overlay" id="addressRequiredPopup">
