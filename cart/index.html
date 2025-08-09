@@ -719,7 +719,15 @@ function updateSummary() {
       <label for="fullname">Full Name</label>
     </div>
   <div class="floating-input">
-  <input id="email" type="email" placeholder=" " readonly />
+  <input
+    id="email"
+    type="email"
+    placeholder=" "
+    inputmode="email"
+    autocomplete="email"
+    autocapitalize="off"
+    spellcheck="false"
+  />
   <label for="email">Email Address</label>
 </div>
       <div class="floating-input">
