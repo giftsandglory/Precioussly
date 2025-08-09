@@ -1053,114 +1053,52 @@ function updateSummary() {
     <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${grandTotal}</span></div>
   `;
 }
+</script>
 <!-- ✅ COD Razorpay Suggestion Popup -->
-<style>
-  /* spinner + text toggle (shared by Razorpay & COD buttons) */
-  .popup-razorpay-btn { position: relative; width: 100%; }
-  .popup-razorpay-btn .btn-spinner {
-    position: absolute; inset: 0;
-    display: none; align-items: center; justify-content: center;
-  }
-  .popup-razorpay-btn.is-loading .btn-label { opacity: 0; }
-  .popup-razorpay-btn.is-loading .btn-spinner { display: flex; }
-  .popup-razorpay-btn .btn-spinner::after{
-    content:""; width:22px; height:22px; border-radius:50%;
-    border:3px solid rgba(0,0,0,.2); border-top-color: rgba(0,0,0,.7);
-    animation: spin 0.9s linear infinite;
-  }
-  @keyframes spin { to{ transform: rotate(360deg);} }
-
-  .address-popup-overlay{
-    position:fixed; inset:0; background:rgba(0,0,0,.35);
-    display:none; align-items:center; justify-content:center; z-index:9999;
-  }
-  .address-popup-box{
-    background:#fff; border-radius:16px; padding:16px; margin:0 16px;
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
-  }
-  .button-row{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
-</style>
-
 <div class="address-popup-overlay" id="codPopup">
-  <div class="address-popup-box" style="text-align:center; max-width:320px;">
-    <div style="font-size:18px; font-weight:bold; margin-bottom:8px;">
-      Faster Delivery with Razorpay
-    </div>
-    <div style="font-size:15px; color:#444; margin-bottom:16px;">
+  <div class="address-popup-box" style="text-align: center; max-width: 320px;">
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">Faster Delivery with Razorpay</div>
+    <div style="font-size: 15px; color: #444; margin-bottom: 16px;">
       Orders paid online are processed and shipped faster.<br>Want to switch?
     </div>
 
-    <div class="button-row">
-      <!-- Pay via Razorpay -->
+    <div class="button-row" style="flex-direction: column; gap: 10px; margin-top: 16px;">
       <button class="popup-razorpay-btn" onclick="startRazorpayWithSpinner(this)" style="
-        background:#2874f0; color:#fff; border:none; border-radius:12px;
-        padding:12px; font-size:16px; font-family:'Roboto Slab',serif;">
-        <span class="btn-label">Pay via Razorpay</span>
-        <span class="btn-spinner" aria-hidden="true"></span>
-      </button>
+  background: #2874f0;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;
+">
+  <span class="btn-label">Pay via Razorpay</span>
+  <span class="btn-spinner" aria-hidden="true"></span>
+</button>
 
-      <!-- Continue with COD (spinner 2s then redirect) -->
-      <button id="codContinueBtn" class="popup-razorpay-btn" onclick="continueWithCOD()" style="
-        background:#fff; color:#000; border:1.4px solid #000; border-radius:12px;
-        padding:12px; font-size:16px; font-family:'Roboto Slab',serif;">
-        <span class="btn-label">Continue with COD</span>
-        <span class="btn-spinner" aria-hidden="true"></span>
-      </button>
+      <button onclick="continueWithCOD()" style="
+        background: white;
+        color: black;
+        border: 1.4px solid #000;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 16px;
+        font-family: 'Roboto Slab', serif;
+      ">Continue with COD</button>
 
-      <!-- Back -->
       <button onclick="closeCODPopup()" style="
-        background:#fff; color:#000; border:1.4px solid #000; border-radius:12px;
-        padding:12px; font-size:16px; font-family:'Roboto Slab',serif;">
-        Back
-      </button>
+        background: white;
+        color: black;
+        border: 1.4px solid #000;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 16px;
+        font-family: 'Roboto Slab', serif;
+      ">Back</button>
     </div>
   </div>
 </div>
-
 <script>
-  // Open/close helpers
-  function openCODPopup(){
-    document.getElementById('codPopup').style.display='flex';
-    document.body.style.overflow='hidden';
-  }
-  function closeCODPopup(){
-    document.getElementById('codPopup').style.display='none';
-    document.body.style.overflow='';
-  }
-
-  // Razorpay button: show spinner briefly, then call your Razorpay flow
-  function startRazorpayWithSpinner(btn){
-    btn.classList.add('is-loading');
-    btn.setAttribute('aria-busy','true');
-    setTimeout(() => {
-      btn.classList.remove('is-loading');
-      btn.removeAttribute('aria-busy');
-      closeCODPopup();
-      // TODO: yahan apna Razorpay init code call karo
-      if (typeof payViaRazorpay === 'function') payViaRazorpay();
-    }, 1000); // 1s spinner for Razorpay
-  }
-
-  // COD button: show spinner for 2s then redirect to thankyou-cod
-  function continueWithCOD(){
-    const btn = document.getElementById('codContinueBtn');
-    btn.classList.add('is-loading');
-    btn.setAttribute('aria-busy','true');
-
-    closeCODPopup(); // optional: popup band kar do
-
-    setTimeout(() => {
-      btn.classList.remove('is-loading');
-      btn.removeAttribute('aria-busy');
-      window.location.href = 'https://precioussly.com/thankyou-cod';
-    }, 2000); // exact 2 seconds
-  }
-
-  // Back/forward cache se aane par stuck spinner reset
-  window.addEventListener('pageshow', () => {
-    document.querySelectorAll('.popup-razorpay-btn.is-loading')
-      .forEach(el => el.classList.remove('is-loading'));
-  });
   // show the 1s spinner then trigger Razorpay
   function setLoading(btn, on) {
     if (!btn) return;
@@ -1382,12 +1320,6 @@ updateSummary = function () {
 
 // ✅ Run on page load (in case sheet fetched already)
 document.addEventListener("DOMContentLoaded", checkMinOrderCondition);
-</script>
-<script>
-  // If user comes back from thankyou page, ensure any loading state is reset
-  window.addEventListener("pageshow", () => {
-    document.querySelectorAll(".is-loading").forEach(el => el.classList.remove("is-loading"));
-  });
 </script>
 </body>
 </html>
