@@ -9,18 +9,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
 <style>
-/* COD button ko bhi same centering/spinner behavior dene ke liye */
-.cod-btn{
-  position: relative;
-  display: grid;
-  place-items: center;
-}
-
-/* COD button ke spinner ka color (white bg par clearly dikhne ke liye) */
-.cod-btn .btn-spinner{
-  border-color: rgba(0,0,0,0.35);
-  border-top-color: #000;
-}
 .proceed-btn,
 .popup-razorpay-btn{
   position: relative;
@@ -1088,18 +1076,15 @@ function updateSummary() {
   <span class="btn-spinner" aria-hidden="true"></span>
 </button>
 
-      <button id="codContinueBtn" class="cod-btn" onclick="continueWithCOD(this)" style="
-  background: white;
-  color: black;
-  border: 1.4px solid #000;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 16px;
-  font-family: 'Roboto Slab', serif;
-">
-  <span class="btn-label">Continue with COD</span>
-  <span class="btn-spinner" aria-hidden="true"></span>
-</button>
+      <button onclick="continueWithCOD()" style="
+        background: white;
+        color: black;
+        border: 1.4px solid #000;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 16px;
+        font-family: 'Roboto Slab', serif;
+      ">Continue with COD</button>
 
       <button onclick="closeCODPopup()" style="
         background: white;
@@ -1115,31 +1100,15 @@ function updateSummary() {
 </div>
 <script>
   // show the 1s spinner then trigger Razorpay
-  <script>
-  // Reuse the helper from your file
   function setLoading(btn, on) {
     if (!btn) return;
     if (on) {
       btn.classList.add('is-loading');
       btn.setAttribute('aria-busy','true');
-      btn.style.pointerEvents = 'none';
     } else {
       btn.classList.remove('is-loading');
       btn.removeAttribute('aria-busy');
-      btn.style.pointerEvents = '';
     }
-  }
-
-  function continueWithCOD(btnEl) {
-    // Popup open rahega taki spinner visible ho
-    const btn = btnEl || document.getElementById('codContinueBtn');
-    setLoading(btn, true);
-
-    // Exactly 2 seconds ka spinner, then redirect
-    setTimeout(() => {
-      try { sessionStorage.setItem('codSpinnerUsed','1'); } catch(e) {}
-      window.location.href = 'https://precioussly.com/thankyou-cod';
-    }, 2000);
   }
 
   function startRazorpayWithSpinner(btnEl) {
@@ -1351,29 +1320,6 @@ updateSummary = function () {
 
 // ✅ Run on page load (in case sheet fetched already)
 document.addEventListener("DOMContentLoaded", checkMinOrderCondition);
-</script>
-<script>
-  // Back aane par hamesha reset
-  window.addEventListener('pageshow', function() {
-    const codBtn = document.getElementById('codContinueBtn');
-    if (codBtn) { 
-      codBtn.classList.remove('is-loading');
-      codBtn.removeAttribute('aria-busy');
-      codBtn.style.pointerEvents = '';
-    }
-    const proceedBtn = document.getElementById('proceedBtn');
-    if (proceedBtn) {
-      proceedBtn.classList.remove('is-loading');
-      proceedBtn.removeAttribute('aria-busy');
-      proceedBtn.style.pointerEvents = '';
-    }
-    const codPopup = document.getElementById('codPopup');
-    if (codPopup) {
-      // ensure popup accidentally open na rahe
-      codPopup.style.display = 'none';
-      document.body.style.overflow = '';
-    }
-  });
 </script>
 </body>
 </html>
