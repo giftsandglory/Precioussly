@@ -302,29 +302,89 @@ body.noscroll {
   line-height: 22px;
   user-select: none;
 }
-/* === Popup Animation & Layout === */
-@keyframes popupFadeIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
+/* === Popup Animation & Layout (ULTRA SMOOTH) === */
+#productPopup {
+  /* overlay */
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.28);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+
+  opacity: 0;
+  transition: opacity 280ms ease;
+  will-change: opacity;
+}
+#productPopup.is-open { opacity: 1; }
+
+.popup-card {
+  background: #f7f7f7;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 320px;
+  margin: 20px;
+  padding: 16px;
+  position: relative;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+
+  /* start state */
+  transform: translateY(10px) scale(.985);
+  opacity: 0;
+  will-change: transform, opacity;
+  transition:
+    transform 420ms cubic-bezier(.22,1,.36,1),
+    opacity 280ms ease;
+}
+.popup-card.enter {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+.popup-card.leave {
+  transform: translateY(8px) scale(.985);
+  opacity: 0;
 }
 
-@keyframes popupFadeOut {
-  from { transform: scale(1); opacity: 1; }
-  to   { transform: scale(0.95); opacity: 0; }
+/* Popup slider images smoother */
+.popup-slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 14px;
+
+  opacity: 0;
+  transform: translateY(6px) scale(.985);
+  transition:
+    opacity 260ms ease,
+    transform 360ms cubic-bezier(.22,1,.36,1);
+  pointer-events: none;
+  z-index: 0;
+}
+.popup-slide.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  z-index: 1;
 }
 
-.popup-visible {
-  display: flex !important;
-  animation: popupFadeIn 0.25s ease-out forwards;
-}
+/* Dots subtle */
+.popup-dot { transition: background 200ms ease, width 240ms ease; }
+.popup-dot.active { background: rgba(0,0,0,0.7); width: 22px; }
 
-.popup-hidden {
-  animation: popupFadeOut 0.2s ease-in forwards;
-}
-* {
-  -webkit-tap-highlight-color: transparent;
-  -webkit-focus-ring-color: transparent;
-  outline: none;
+/* Micro-interactions */
+.add-btn { transition: transform 120ms ease, box-shadow 120ms ease; }
+.add-btn:active { transform: scale(.98); }
+.quantity-bar button:active { transform: scale(.95); }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  #productPopup, .popup-card, .popup-slide, .add-btn { transition: none !important; }
 }
 </style>
 </head>
@@ -466,18 +526,9 @@ product.appendChild(infoWrapper);
     });
   });
 </script>
-<script>
-function closePopup() {
-  document.getElementById("popupOverlay").style.display = "none";
-}
-  document.getElementById("productPopup").addEventListener("click", function (e) {
-    if (e.target.id === "productPopup") {
-      closePopup();
-    }
-  });
-</script>
-<div id="productPopup" class="popup-hidden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#00000099; z-index:9999; justify-content:center; align-items:center;">
-<div onclick="event.stopPropagation()" style="background:#f5f5f5; border-radius:20px; max-width:320px; width:90%; margin: 20px; padding:16px; position:relative; border: 2px solid #ccc;">
+
+<div id="productPopup">
+  <div class="popup-card" onclick="event.stopPropagation()">
 <!-- Close button -->
 
 <!-- Square image 1:1 -->
@@ -626,23 +677,22 @@ function openPopup(images, name, mrp, price, stock) {
       else showPopupSlide((currentPopupIndex - 1 + popupSlides.length) % popupSlides.length);
     }
   });
-  // Show popup
-  const popup = document.getElementById("productPopup");
-  popup.classList.remove("popup-hidden");
-  popup.classList.add("popup-visible");
-  popup.style.display = "flex";
-  document.body.classList.add("noscroll");
-}
+// Show popup (ultra smooth)
+const popup = document.getElementById("productPopup");
+const card  = popup.querySelector(".popup-card");
+
+popup.style.display = "flex";      // mount
+// next frame -> add classes so transition runs
+requestAnimationFrame(() => {
+  popup.classList.add("is-open");
+  card.classList.remove("leave");
+  card.classList.add("enter");
+});
+document.body.classList.add("noscroll");
 
 // Close popup
-function closePopup() {
-  const popup = document.getElementById("productPopup");
-  popup.classList.remove("popup-visible");
-  popup.classList.add("popup-hidden");
-  document.body.classList.remove("noscroll");
-  setTimeout(() => {
-    popup.style.display = "none";
-  }, 200);
+;
+  card.addEventListener("transitionend", onDone);
 }
 // ✅ Quantity bar increase/decrease logic
 function changePopupQty(change) {
@@ -731,5 +781,35 @@ if (existing) {
 
   updateCartBadge();
 </script>
+
+<script>
+function closePopup() {
+  const popup = document.getElementById("productPopup");
+  if (!popup) return;
+  const card = popup.querySelector(".popup-card");
+  if (!card) return;
+
+  card.classList.remove("enter");
+  card.classList.add("leave");
+  popup.classList.remove("is-open");
+  document.body.classList.remove("noscroll");
+
+  const onDone = (e) => {
+    if (e.target !== card) return;
+    popup.style.display = "none";
+    card.removeEventListener("transitionend", onDone);
+  };
+  card.addEventListener("transitionend", onDone);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("productPopup");
+  if (!overlay) return;
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closePopup();
+  });
+});
+</script>
+
 </body>
 </html>
