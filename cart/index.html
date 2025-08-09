@@ -498,6 +498,28 @@ button.remove-btn:hover {
   border-color: #2874f0;
   background-color: #fff;
 }
+/* ===== Coupons strip (same look as index) ===== */
+.coupon-strip{display:flex;overflow-x:auto;gap:10px;padding:10px 12px;background:transparent;scroll-behavior:smooth}
+.coupon-card{background:#e9fef1;border:1px solid #c5ecd6;border-radius:10px;padding:8px 10px;width:220px;box-shadow:0 1px 3px rgba(0,0,0,.04);flex-shrink:0;display:flex;flex-direction:column;justify-content:center}
+.coupon-card h3{font-size:15px;font-weight:bold;margin:0;color:#064c2c}
+.coupon-card p{font-size:12px;margin:2px 0 6px;color:#064c2c}
+.code-row{display:flex;align-items:center;gap:6px}
+.code-box{background:#d5f5e5;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;color:#064c2c;letter-spacing:.3px}
+
+/* ===== Apply box row ===== */
+.coupon-apply-row{display:flex;gap:8px;margin:8px 12px 2px}
+.apply-input{flex:1;padding:12px 12px;border:1.2px solid #dcdcdc;border-radius:12px;background:#fff;font-size:14px}
+.apply-btn{padding:12px 16px;border:1.4px solid #000;background:#fff;color:#000;border-radius:12px;font-size:14px;font-family:'Roboto Slab',serif}
+
+/* ===== Progress text + bar ===== */
+.coupon-progress{margin:6px 12px 2px}
+.progress-text{font-size:13px;color:#333;margin-bottom:6px}
+.progress-bar{height:8px;background:#eee;border-radius:999px;overflow:hidden}
+.progress-bar .bar{height:100%;width:0;background:#2874f0;transition:width .35s ease}
+
+/* Applied coupon tag (mini pill) */
+.applied-tag{margin:8px 12px 0;font-size:13px;background:#f0f7ff;border:1px solid #cfe3ff;color:#0b3d91;padding:6px 10px;border-radius:999px;display:none}
+.applied-tag .remove{color:#2874f0;text-decoration:underline;cursor:pointer;margin-left:6px}
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -557,6 +579,22 @@ button.remove-btn:hover {
     <span class="custom-radio"></span>
     Cash on Delivery (+₹89)
   </label>
+</div>
+<!-- ===== Coupons (fetched from same Google Sheet as index) ===== -->
+<div id="couponSection" style="margin-top:10px;">
+  <div id="couponContainerCart" class="coupon-strip" style="display:none;"></div>
+
+  <div class="coupon-apply-row">
+    <input id="couponInput" class="apply-input" placeholder="Enter coupon code">
+    <button class="apply-btn" onclick="applyCouponManually()">Apply</button>
+  </div>
+
+  <div id="appliedCouponTag" class="applied-tag"></div>
+
+  <div id="couponProgressWrap" class="coupon-progress" style="display:none;">
+    <div id="couponProgressText" class="progress-text"></div>
+    <div class="progress-bar"><div id="couponProgressBar" class="bar"></div></div>
+  </div>
 </div>
     <!-- START: Summary and Pay Section -->
 <div id="bottomBox">
@@ -1373,48 +1411,178 @@ function checkMinOrderCondition() {
   }
 }
 
-// ✅ Update whenever summary is updated
-const originalUpdateSummary = updateSummary;
-updateSummary = function () {
-  originalUpdateSummary();
-  checkMinOrderCondition();
-};
 
-// ✅ Run on page load (in case sheet fetched already)
-document.addEventListener("DOMContentLoaded", checkMinOrderCondition);
-</script>
-<!-- 👇 Ye block bilkul </body> ke just upar paste karein -->
-<script>
-  // BFCache se wapas aane par UI ko storage ke saath sync
-  function syncCartUIWithStorage() {
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    if (items.length === 0) {
-      // badge hide/update
-      try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
-      // empty cart UI ke liye refresh
-      location.reload();
-    }
-  }
+// ====== 1) CONFIG: use the SAME sheet as index.html coupons  ======
+const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
+// Index renders coupons by reading Title / MinAmount / Code / Discount columns
 
-  window.addEventListener("pageshow", function (e) {
-    // koi button loading state me na rahe
-    document.querySelectorAll(".is-loading").forEach(btn => {
-      btn.classList.remove("is-loading");
-      btn.removeAttribute("aria-busy");
-    });
+// ====== 2) State ======
+window.allCoupons = [];            // raw coupons from sheet
+window.appliedCoupon = null;       // {code,title,min,amount,isPercent,raw}
+window.manualLock = false;         // if user applied manually, don't auto-switch
 
-    // back/forward se aaye hain?
-    const nav = performance.getEntriesByType("navigation")[0];
-    const cameFromBFCache = e.persisted || (nav && nav.type === "back_forward");
+// ====== 3) Helpers ======
+function parseCouponRow(r){
+  const title = (r.Title||"").trim();
+  const code  = (r.Code||"").trim();
+  const min   = Number(String(r.MinAmount||"0").replace(/[^\d.]/g,"")) || 0;
+  const raw   = (r.Discount||"").trim(); // supports "50" or "10%"
+  const isPercent = /%$/.test(raw);
+  const value = Number(raw.replace(/[^\d.]/g,"")) || 0;
+  return { title, code, min, raw, isPercent, value };
+}
 
-    if (cameFromBFCache) {
-      // ek baar hi reload ho — loop na bane
-      if (localStorage.getItem("lastOrderClearedCart")) {
-        localStorage.removeItem("lastOrderClearedCart");
-        syncCartUIWithStorage();
-      }
+function discountOnSubtotal(subtotal, c){
+  if (!c) return 0;
+  let d = c.isPercent ? Math.floor(subtotal * c.value/100) : c.value;
+  d = Math.max(0, Math.min(d, subtotal)); // never exceed items total
+  return d;
+}
+
+function bestCouponFor(subtotal){
+  let best = null, bestAmt = 0;
+  allCoupons.forEach(c=>{
+    if (subtotal >= c.min){
+      const amt = discountOnSubtotal(subtotal, c);
+      if (amt > bestAmt){ best = c; bestAmt = amt; }
     }
   });
+  return {coupon: best, amount: bestAmt};
+}
+
+function renderCouponCards(){
+  const holder = document.getElementById("couponContainerCart");
+  if (!holder) return;
+  holder.innerHTML = allCoupons.map(c=>`
+    <div class="coupon-card" onclick="document.getElementById('couponInput').value='${c.code}'">
+      <h3>${c.title}</h3>
+      <p>Min. Order ₹${c.min.toLocaleString()}</p>
+      <div class="code-row">
+        <span class="code-box">${c.code}</span>
+        <span style="font-size:12px;color:#064c2c;">Save ${c.raw}</span>
+      </div>
+    </div>
+  `).join("");
+  holder.style.display = allCoupons.length ? "flex" : "none";
+}
+
+function showAppliedTag(subtotal){
+  const tag = document.getElementById("appliedCouponTag");
+  if (!tag) return;
+
+  if (!appliedCoupon){
+    tag.style.display = "none";
+    return;
+  }
+  const amount = discountOnSubtotal(subtotal, appliedCoupon);
+  tag.innerHTML = `Applied: <strong>${appliedCoupon.code}</strong> — You saved ₹${amount}
+    <span class="remove" onclick="clearManualCoupon()">Remove</span>`;
+  tag.style.display = "inline-block";
+}
+
+function showProgress(subtotal){
+  const wrap = document.getElementById("couponProgressWrap");
+  if (!wrap) return;
+  // find next coupon threshold > subtotal
+  const next = [...allCoupons].sort((a,b)=>a.min-b.min).find(c => c.min > subtotal);
+  if (!next){
+    wrap.style.display = "none";
+    return;
+  }
+  const need = next.min - subtotal;
+  const text = document.getElementById("couponProgressText");
+  const bar  = document.getElementById("couponProgressBar");
+  text.textContent = `Add ₹${need} more to unlock ${next.raw} (code ${next.code})`;
+  const pct = Math.max(0, Math.min(100, Math.round((subtotal/next.min)*100)));
+  bar.style.width = pct + "%";
+  wrap.style.display = "block";
+}
+
+// ====== 4) Manual apply / clear ======
+function applyCouponManually(){
+  const input = document.getElementById("couponInput");
+  const code = (input.value||"").trim().toUpperCase();
+  if (!code) return;
+
+  const found = allCoupons.find(c=>c.code.toUpperCase()===code);
+  window.manualLock = true;
+  if (found){
+    window.appliedCoupon = found;
+  } else {
+    window.appliedCoupon = null; // not found
+    alert("Invalid coupon");
+  }
+  updateSummary(); // re-render with new coupon
+}
+
+function clearManualCoupon(){
+  window.manualLock = false;
+  window.appliedCoupon = null;
+  document.getElementById("couponInput").value = "";
+  updateSummary();
+}
+
+// ====== 5) Load coupons once ======
+function loadCoupons(){
+  fetch(couponSheetURL)
+    .then(r=>r.json())
+    .then(rows=>{
+      window.allCoupons = rows
+        .filter(r => r.Title && r.MinAmount && r.Code && r.Discount) // same columns as index
+        .map(parseCouponRow)
+        .sort((a,b)=>a.min-b.min);
+      renderCouponCards();
+      updateSummary(); // first render with coupons available
+    })
+    .catch(()=>{ /* fail silently */ });
+}
+document.addEventListener("DOMContentLoaded", loadCoupons);
+
+// ====== 6) ONE clean updateSummary (items + delivery + COD + coupon) ======
+function updateSummary(){
+  const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
+  const subtotal = cart.reduce((s,it)=>s + (Number(it.price)*Number(it.qty)), 0);
+
+  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const codFee = (typeof window.selectedPayment !== "undefined" && window.selectedPayment==="cod") ? 89 : 0;
+
+  // auto-pick the best coupon unless user manually locked one
+  let couponToUse = null, discount = 0;
+  if (allCoupons.length){
+    if (window.manualLock && window.appliedCoupon){
+      couponToUse = window.appliedCoupon;
+      // respect min amount even for manual apply
+      discount = (subtotal >= couponToUse.min) ? discountOnSubtotal(subtotal, couponToUse) : 0;
+    } else {
+      const {coupon, amount} = bestCouponFor(subtotal);
+      couponToUse = coupon;
+      discount = amount;
+      window.appliedCoupon = coupon || null;
+    }
+  }
+  const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
+
+  const feeText = (deliveryFee === 0)
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    ${codFee ? `<div class="summary-row"><span>COD Charges</span><span>₹${codFee}</span></div>` : ""}
+    ${discount ? `<div class="summary-row"><span>Coupon (${couponToUse.code})</span><span>-₹${discount}</span></div>` : ""}
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${grand}</span></div>
+  `;
+
+  // UI helpers
+  showAppliedTag(subtotal);
+  showProgress(subtotal);
+
+  // keep your “Minimum Order” logic alive if present
+  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
+}
+
+// Ensure other places call our summary (qty +/- already call updateSummary in your file)
 </script>
 </body>
 </html>
