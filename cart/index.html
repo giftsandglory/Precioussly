@@ -464,31 +464,25 @@ button.remove-btn:hover {
   background-color: #fff;
 }
 /* COD button loading state (keeps size & color same) */
-.cod-btn {
-  position: relative;              /* allow absolute spinner centering */
-}
-.cod-btn.is-loading {
-  color: transparent;              /* text hide without size change */
-}
+/* ✅ COD button loading behavior */
+.cod-btn { position: relative; }
+.cod-btn .btn-label { transition: opacity .15s ease; }
+.cod-btn.is-loading .btn-label { visibility: hidden; }   /* size same, text invisible */
 
-/* center spinner that matches COD button (black outline on white) */
-.cod-btn .btn-spinner {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+/* ✅ perfect center spinner */
+.cod-btn .btn-spinner{
   width: 18px; height: 18px;
-  border: 2px solid #000;          /* match COD outline */
-  border-top-color: transparent;   /* makes the spin effect */
+  border: 2px solid #000;          /* COD outline match */
+  border-top-color: transparent;
   border-radius: 50%;
-  animation: spin 1s linear infinite; /* uses your existing @keyframes spin */
-  opacity: 0;                      /* hidden by default */
+  animation: spin 1s linear infinite;
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%); /* center */
+  display: none;                     /* hidden by default */
   pointer-events: none;
 }
-
-/* show spinner only while loading */
-.cod-btn.is-loading .btn-spinner {
-  opacity: 1;
-}
+.cod-btn.is-loading .btn-spinner{ display: inline-block; }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -1081,8 +1075,12 @@ function updateSummary() {
   font-size: 16px;
   font-family: 'Roboto Slab', serif;
   width: 100%;
+  display: inline-flex;           /* center helpers */
+  align-items: center;
+  justify-content: center;
+  position: relative;
 ">
-  Continue with COD
+  <span class="btn-label">Continue with COD</span>
   <span class="btn-spinner" aria-hidden="true"></span>
 </button>
 
@@ -1311,6 +1309,17 @@ updateSummary = function () {
 
 // ✅ Run on page load (in case sheet fetched already)
 document.addEventListener("DOMContentLoaded", checkMinOrderCondition);
+</script>
+<script>
+/* Browser back/forward cache se wapas aane par button ko reset karo */
+window.addEventListener('pageshow', function (e) {
+  const btn = document.getElementById('codContinueBtn');
+  if (btn) {
+    btn.classList.remove('is-loading');
+    btn.removeAttribute('aria-disabled');
+    btn.style.pointerEvents = '';
+  }
+});
 </script>
 </body>
 </html>
