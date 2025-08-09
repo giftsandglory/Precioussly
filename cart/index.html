@@ -1621,6 +1621,12 @@ if (coupWrap){
       window.appliedCoupon = coupon || null;
     }
   }
+  // ✅ Auto-fill the input box with applied coupon code
+if (couponToUse && document.getElementById("couponInput")) {
+  document.getElementById("couponInput").value = couponToUse.code;
+} else if (!couponToUse && !window.manualLock) {
+  document.getElementById("couponInput").value = "";
+}
   const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
 
   const feeText = (deliveryFee === 0)
