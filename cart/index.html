@@ -1148,13 +1148,9 @@ function handleProceed() {
 }
 
 function continueWithCOD(btnEl) {
-  // Close popup UI
-  document.getElementById("codPopup").style.display = "none";
-  document.body.style.overflow = "";
-
-  // Show spinner on the clicked COD button for 2 seconds
+  // ✅ Do NOT close popup; keep it visible while spinner runs
   if (btnEl) {
-    btnEl.classList.add('is-loading');
+    btnEl.classList.add('is-loading');   // hides label, shows spinner
     btnEl.setAttribute('aria-busy','true');
   }
 
@@ -1166,45 +1162,6 @@ function continueWithCOD(btnEl) {
     // Place COD order locally and redirect
     placeCODOrderAndRedirect();
   }, 2000);
-}
-
-function placeCODOrderAndRedirect() {
-  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-  // Compute totals
-  let subtotal = 0;
-  cartData.forEach(i => subtotal += (i.price * i.qty));
-  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
-  const codCharge = 89;
-  const grandTotal = subtotal + deliveryFee + codCharge;
-
-  // Build order object
-  const orderId = 'COD-' + Date.now();
-  const address = localStorage.getItem("shippingAddress") || "";
-  const order = {
-    id: orderId,
-    paymentMethod: "COD",
-    status: "Placed",
-    createdAt: new Date().toISOString(),
-    address: address,
-    items: cartData,
-    amounts: {
-      subtotal: subtotal,
-      deliveryFee: deliveryFee,
-      codCharge: codCharge,
-      total: grandTotal
-    }
-  };
-
-  // Save to localStorage "orders" array (append)
-  const existing = JSON.parse(localStorage.getItem("orders") || "[]");
-  existing.push(order);
-  localStorage.setItem("orders", JSON.stringify(existing));
-
-  // Clear cart after placing order
-  localStorage.removeItem("cartItems");
-
-  // Redirect to COD thank-you page
-  window.location.href = "https://precioussly.com/thankyou-cod";
 }
 </script>
 <script>
