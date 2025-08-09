@@ -9,35 +9,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
 <style>
-.proceed-btn,
-.popup-razorpay-btn{
-  position: relative;
-  display: grid;          /* center label normally */
-  place-items: center;    /* keeps label perfectly centered */
-}
-
-.btn-label { display: inline-block; }
-
-/* Spinner: perfectly centered overlay */
-.btn-spinner{
-  position: absolute;
-  /* center regardless of padding/line-height quirks */
-  inset: 0;              /* top:0; right:0; bottom:0; left:0 */
-  margin: auto;          /* centers the fixed-size circle */
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255,255,255,0.45);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-  display: none;
-  pointer-events: none;
-}
-
-/* When loading */
-.is-loading .btn-label { visibility: hidden; }
-.is-loading .btn-spinner { display: block; }
-.is-loading { pointer-events: none; }
 #minimumNotice {
   animation: fadeIn 0.3s ease;
 }
@@ -492,6 +463,32 @@ button.remove-btn:hover {
   border-color: #2874f0;
   background-color: #fff;
 }
+/* COD button loading state (keeps size & color same) */
+.cod-btn {
+  position: relative;              /* allow absolute spinner centering */
+}
+.cod-btn.is-loading {
+  color: transparent;              /* text hide without size change */
+}
+
+/* center spinner that matches COD button (black outline on white) */
+.cod-btn .btn-spinner {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px; height: 18px;
+  border: 2px solid #000;          /* match COD outline */
+  border-top-color: transparent;   /* makes the spin effect */
+  border-radius: 50%;
+  animation: spin 1s linear infinite; /* uses your existing @keyframes spin */
+  opacity: 0;                      /* hidden by default */
+  pointer-events: none;
+}
+
+/* show spinner only while loading */
+.cod-btn.is-loading .btn-spinner {
+  opacity: 1;
+}
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -561,9 +558,8 @@ button.remove-btn:hover {
 </div>
 <div id="minimumNotice" style="display: none; text-align: center; color: #2874f0; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
 </div>
-<button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display:none;">
-  <span class="btn-label">Proceed to Pay</span>
-  <span class="btn-spinner" aria-hidden="true"></span>
+<button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display: none;">
+  Proceed to Pay
 </button>
 </div>
 <!-- END: Summary and Pay Section -->
@@ -1022,12 +1018,15 @@ function updatePaymentMethod() {
   const method = document.querySelector('input[name="paymentMethod"]:checked').value;
   selectedPayment = method;
 
-  const labelEl = document.querySelector('#proceedBtn .btn-label');
-  if (labelEl) {
-    labelEl.textContent = (method === "cod") ? "Continue with COD" : "Proceed to Pay";
+  // ✅ Change button text based on selected method
+  const payBtn = document.getElementById("proceedBtn");
+  if (method === "cod") {
+    payBtn.innerText = "Continue with COD";
+  } else {
+    payBtn.innerText = "Proceed to Pay";
   }
 
-  updateSummary(); // keeps COD charges logic
+  updateSummary(); // also refresh total with COD fee if needed
 }
 
 
@@ -1063,28 +1062,29 @@ function updateSummary() {
     </div>
 
     <div class="button-row" style="flex-direction: column; gap: 10px; margin-top: 16px;">
-      <button class="popup-razorpay-btn" onclick="startRazorpayWithSpinner(this)" style="
-  background: #2874f0;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 16px;
-  font-family: 'Roboto Slab', serif;
-">
-  <span class="btn-label">Pay via Razorpay</span>
-  <span class="btn-spinner" aria-hidden="true"></span>
-</button>
-
-      <button onclick="continueWithCOD()" style="
-        background: white;
-        color: black;
-        border: 1.4px solid #000;
+      <button onclick="payViaRazorpay()" style="
+        background: #2874f0;
+        color: white;
+        border: none;
         border-radius: 12px;
         padding: 12px;
         font-size: 16px;
         font-family: 'Roboto Slab', serif;
-      ">Continue with COD</button>
+      ">Pay via Razorpay</button>
+
+      <button id="codContinueBtn" class="cod-btn" onclick="continueWithCOD()" style="
+  background: white;
+  color: black;
+  border: 1.4px solid #000;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;
+  width: 100%;
+">
+  Continue with COD
+  <span class="btn-spinner" aria-hidden="true"></span>
+</button>
 
       <button onclick="closeCODPopup()" style="
         background: white;
@@ -1099,56 +1099,47 @@ function updateSummary() {
   </div>
 </div>
 <script>
-  // show the 1s spinner then trigger Razorpay
-  function setLoading(btn, on) {
-    if (!btn) return;
-    if (on) {
-      btn.classList.add('is-loading');
-      btn.setAttribute('aria-busy','true');
-    } else {
-      btn.classList.remove('is-loading');
-      btn.removeAttribute('aria-busy');
-    }
-  }
-
-  function startRazorpayWithSpinner(btnEl) {
-    setLoading(btnEl, true);
-    setTimeout(() => {
-      setLoading(btnEl, false);
-      payViaRazorpay();  // opens Razorpay
-    }, 1000);
-  }
-</script>
-<script>
 function handleProceed() {
   const shippingAddress = localStorage.getItem("shippingAddress");
 
-  // If address missing → show required popup
+  // ✅ Check if address is missing
   if (!shippingAddress || shippingAddress.trim() === "") {
     document.getElementById("addressRequiredPopup").style.display = "flex";
     document.body.style.overflow = "hidden";
-    return;
+    return; // stop further flow
   }
 
   const selected = document.querySelector('input[name="paymentMethod"]:checked');
-  const method = selected ? selected.value : "razorpay";
-
-  if (method === "cod") {
-    // COD → show suggestion popup (no spinner here)
+  if (selected && selected.value === 'cod') {
     document.getElementById("codPopup").style.display = "flex";
     document.body.style.overflow = "hidden";
   } else {
-    // Razorpay → show 1s spinner on Proceed button, then open Razorpay
-    const btn = document.getElementById("proceedBtn");
-    startRazorpayWithSpinner(btn);
+    payViaRazorpay();
   }
 }
 
-function continueWithCOD() {
+function payViaRazorpay() {
   document.getElementById("codPopup").style.display = "none";
   document.body.style.overflow = "";
-  alert("Placing Cash on Delivery Order...");
-  // 👇 Replace with actual order placing logic later
+  alert("Redirecting to Razorpay...");
+  // 👇 Replace with actual payment trigger later
+}
+
+
+function continueWithCOD() {
+  // close popup visualy nahi kar rahe so user ko loader clearly dikhe
+  var btn = document.getElementById('codContinueBtn');
+  if (btn) {
+    // lock interactions + show spinner
+    btn.classList.add('is-loading');
+    btn.setAttribute('aria-disabled', 'true');
+    btn.style.pointerEvents = 'none';
+  }
+
+  // exact 2 seconds ke baad redirect
+  setTimeout(function () {
+    window.location.href = 'https://precioussly.com/thankyou-cod';
+  }, 2000);
 }
 </script>
 <script>
