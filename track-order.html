@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>How to Track Your Order | Precioussly</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ink:#0b0b0b;
+      --muted:#474747;
+      --soft:#757575;
+      --card:#ffffff;
+      --bg:#f7f7f8;
+      --line:#e9e9ec;
+      --brand:#2874f0;
+      --ok:#12b76a;
+      --warn:#f79009;
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+      --radius: 18px;
+      --radius-sm:14px;
+      --radius-lg:22px;
+      --spacing:14px;
+    }
+    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+    html,body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Roboto Slab', serif; }
+    img,svg{ display:block; }
+
+    /* Container */
+    .wrap{ max-width:760px; margin:16px auto 100px; padding:0 12px; }
+
+    /* Hero */
+    .hero{
+      display:flex; gap:12px; align-items:center;
+      background:var(--card); border:1px solid var(--line);
+      border-radius:var(--radius-lg); padding:18px;
+      box-shadow:var(--shadow);
+    }
+    .hero svg{ flex:0 0 56px; width:56px; height:56px; }
+    .hero h1{ margin:0 0 6px; font-size:22px; font-weight:700; }
+    .hero p{ margin:0; color:var(--muted); font-size:15px; line-height:1.6; }
+
+    /* Cards */
+    .card{
+      background:var(--card); border:1px solid var(--line);
+      border-radius:var(--radius); padding:18px; margin-top:16px;
+      box-shadow:var(--shadow);
+    }
+    .card h2{ font-size:18px; margin:0 0 8px; }
+
+    /* Timeline */
+    .timeline{ display:grid; gap:12px; margin-top:6px; }
+    .step{
+      display:grid; grid-template-columns:34px 1fr; gap:12px; align-items:start;
+      padding:12px; border:1px dashed #dbdbdf; border-radius:var(--radius-sm); background:#fff;
+    }
+    .step svg{ width:26px; height:26px; }
+    .step b{ display:block; margin-bottom:2px; font-size:15px; }
+    .step span{ color:var(--soft); font-size:14px; line-height:1.55; }
+
+    /* Ticks */
+    .tick{ display:grid; grid-template-columns:22px 1fr; gap:10px; align-items:start; margin:10px 0; }
+    .tick svg{ width:18px; height:18px; }
+
+    /* Buttons */
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      border:none; cursor:pointer; font-family:inherit; font-weight:700; letter-spacing:.2px; font-size:15px;
+      padding:14px 18px; border-radius:14px; transition:transform .02s ease;
+      width:100%;
+    }
+    .btn:active{ transform:scale(.985); }
+    .btn-primary{ background:var(--brand); color:#fff; }
+    .btn-whatsapp{ background:#25D366; color:#fff; }
+    .btn-row{ display:grid; gap:10px; margin-top:12px; }
+    .btn svg{ width:18px; height:18px; }
+
+    /* Details/FAQs */
+    details{
+      border:1px solid var(--line); background:#fff; border-radius:12px; padding:12px 14px; margin-top:8px;
+    }
+    summary{ cursor:pointer; font-weight:700; }
+    details p{ margin:8px 0 0; color:var(--muted); font-size:14px; line-height:1.6; }
+
+    .note{ text-align:center; color:var(--soft); font-size:13px; margin-top:16px; }
+
+    /* Safe mobile spacing */
+    @media (max-width:480px){
+      .wrap{ padding:0 12px; }
+      .hero{ gap:10px; padding:16px; }
+      .hero h1{ font-size:20px; }
+      .btn{ padding:13px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <!-- HERO -->
+    <section class="hero">
+      <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <circle cx="24" cy="24" r="22" stroke="#12b76a" stroke-width="2"/>
+        <path d="M16 24.5l5.5 5.5L33 18" stroke="#12b76a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <h1>How to track your order</h1>
+        <p>
+          Your order has been placed — <b>no need to worry</b> 😊.
+          We will process your parcel and share your <b>Tracking ID on WhatsApp within 24 hours</b> (by the next working day at the latest).
+        </p>
+      </div>
+    </section>
+
+    <!-- PROCESS -->
+    <section class="card">
+      <h2>What happens next?</h2>
+      <div class="timeline">
+        <div class="step">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M7 3h10a2 2 0 0 1 2 2v14l-3-2-3 2-3-2-3 2V5a2 2 0 0 1 2-2Z" stroke="#2874f0" stroke-width="1.6"/>
+            <path d="M9 8h6M9 12h6" stroke="#2874f0" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <b>1) Order Placed</b>
+            <span>We’ve safely received your order.</span>
+          </div>
+        </div>
+        <div class="step">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3 7.5 12 3l9 4.5-9 4.5L3 7.5Z" stroke="#2874f0" stroke-width="1.6" />
+            <path d="M12 21V7.5" stroke="#2874f0" stroke-width="1.6"/>
+            <path d="M3 7.5v9L12 21l9-4.5v-9" stroke="#2874f0" stroke-width="1.6"/>
+          </svg>
+          <div>
+            <b>2) Packing & Handover</b>
+            <span>Your item is packed and handed over to the courier.</span>
+          </div>
+        </div>
+        <div class="step">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M2 7h11v7H2zM13 10h4l3 3v1h-7z" stroke="#2874f0" stroke-width="1.6" stroke-linejoin="round"/>
+            <circle cx="6" cy="17.5" r="2" stroke="#2874f0" stroke-width="1.6"/>
+            <circle cx="17" cy="17.5" r="2" stroke="#2874f0" stroke-width="1.6"/>
+          </svg>
+          <div>
+            <b>3) Shipped</b>
+            <span>Once dispatched, your <b>Tracking ID will be shared on WhatsApp</b>.</span>
+          </div>
+        </div>
+        <div class="step">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z" stroke="#12b76a" stroke-width="1.6"/>
+            <circle cx="12" cy="10" r="2.5" stroke="#12b76a" stroke-width="1.6"/>
+          </svg>
+          <div>
+            <b>4) Out for Delivery → Delivered</b>
+            <span>On the delivery day, the courier may call or message you.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT YOU CAN DO -->
+    <section class="card">
+      <h2>What should you do?</h2>
+
+      <div class="tick">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12l4 4 10-10" stroke="#12b76a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>Please allow up to <b>24 hours</b> for your Tracking ID to arrive on WhatsApp (next working day at the latest).</div>
+      </div>
+
+      <div class="tick">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7h16M4 12h10M4 17h8" stroke="#2874f0" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div>Keep your <b>WhatsApp active</b> and reachable on the number used during checkout.</div>
+      </div>
+
+      <div class="tick">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 6v6l4 2" stroke="#f79009" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="12" r="9.2" stroke="#f79009" stroke-width="1.6"/>
+        </svg>
+        <div>If you don’t receive a message after 24 hours, tap <b>WhatsApp Support</b> below and we’ll help you immediately.</div>
+      </div>
+
+      <div class="btn-row">
+        <a id="waBtn" class="btn btn-whatsapp" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M17.5 6.5A7.5 7.5 0 0 0 5.8 17.9L4 20l2.4-.7A7.5 7.5 0 1 0 17.5 6.5Z" stroke="#fff" stroke-width="1.6"/>
+            <path d="M9.5 9.5c.2-.6.5-.7.9-.7.3 0 .6 0 .9.5.3.6.2 1-.1 1.5-.4.5-.4.6 0 1 .3.3 1 .9 1.7 1.2.8.4 1 .3 1.4 0 .4-.2.9-1 1.1-1.3.3-.3.6-.3 1 0 .4.2 1 .7 1 .9 0 .3-.1 1.1-1 2-.9.8-1.8.9-3 .5-1.2-.4-2.7-1.4-3.6-2.3-.9-.9-1.8-2.4-2.1-3.2-.3-.8-.1-1.6.1-2Z" fill="#fff"/>
+          </svg>
+          WhatsApp Support
+        </a>
+        <button class="btn btn-primary" onclick="history.back()">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M10 6l-6 6 6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 12h16" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Back
+        </button>
+      </div>
+
+      <div class="note">Note: We never send random payment links on WhatsApp. Only official updates are shared.</div>
+    </section>
+
+    <!-- FAQs -->
+    <section class="card">
+      <h2>FAQs</h2>
+      <details>
+        <summary>When will I receive my Tracking ID?</summary>
+        <p>Within <b>24 hours</b> on WhatsApp (by the next working day at the latest).</p>
+      </details>
+      <details>
+        <summary>I didn’t get any WhatsApp message. What should I do?</summary>
+        <p>Please check your network/WhatsApp first. If 24 hours have passed, tap <b>WhatsApp Support</b> above and we’ll assist you.</p>
+      </details>
+      <details>
+        <summary>The tracking link isn’t opening.</summary>
+        <p>Try a different browser or mobile data. If the issue persists, send us a quick screen recording over WhatsApp.</p>
+      </details>
+    </section>
+  </main>
+
+  <script>
+    // WhatsApp support link (set your number with country code)
+    const WA_NUMBER = '918586057887'; // e.g., 91XXXXXXXXXX
+    const waBtn = document.getElementById('waBtn');
+
+    function buildWAText(){
+      const msg = `Hello Precioussly Team,%0A%0AI placed an order and haven't received my Tracking ID yet.%0ACould you please help?`;
+      return `https://wa.me/${WA_NUMBER}?text=${msg}`;
+    }
+    function updateWALink(){ if(waBtn) waBtn.href = buildWAText(); }
+    updateWALink();
+  </script>
+</body>
+</html>
