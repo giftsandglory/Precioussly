@@ -522,6 +522,9 @@ button.remove-btn:hover {
 .applied-tag .remove{color:#2874f0;text-decoration:underline;cursor:pointer;margin-left:6px}
 /* Hide coupons by default; JS will show when cart has items */
 #couponSection{display:none;}
+
+/* Hide the 'Remove' link next to applied coupon */
+.applied-tag .remove { display: none !important; }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -1477,7 +1480,8 @@ function showAppliedTag(subtotal){
     return;
   }
   const amount = discountOnSubtotal(subtotal, appliedCoupon);
-  tag.innerHTML = `Applied: <strong>${appliedCoupon.code}</strong> — You saved ₹${amount}`;
+  tag.innerHTML = `Applied: <strong>${appliedCoupon.code}</strong> — You saved ₹${amount}
+    <span class="remove" onclick="clearManualCoupon()">Remove</span>`;
   tag.style.display = "inline-block";
 }
 
