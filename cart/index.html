@@ -520,6 +520,8 @@ button.remove-btn:hover {
 /* Applied coupon tag (mini pill) */
 .applied-tag{margin:8px 12px 0;font-size:13px;background:#f0f7ff;border:1px solid #cfe3ff;color:#0b3d91;padding:6px 10px;border-radius:999px;display:none}
 .applied-tag .remove{color:#2874f0;text-decoration:underline;cursor:pointer;margin-left:6px}
+/* Hide coupons by default; JS will show when cart has items */
+#couponSection{display:none;}
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -1542,6 +1544,12 @@ document.addEventListener("DOMContentLoaded", loadCoupons);
 function updateSummary(){
   const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
   const subtotal = cart.reduce((s,it)=>s + (Number(it.price)*Number(it.qty)), 0);
+  // ---- show/hide coupons when cart empty ----
+const coupWrap = document.getElementById("couponSection");
+if (coupWrap){
+  const hasItems = subtotal > 0 && cart.length > 0;
+  coupWrap.style.display = hasItems ? "block" : "none";
+}
 
   const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
   const codFee = (typeof window.selectedPayment !== "undefined" && window.selectedPayment==="cod") ? 89 : 0;
