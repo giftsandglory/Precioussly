@@ -1076,15 +1076,18 @@ function updateSummary() {
   <span class="btn-spinner" aria-hidden="true"></span>
 </button>
 
-      <button onclick="continueWithCOD()" style="
-        background: white;
-        color: black;
-        border: 1.4px solid #000;
-        border-radius: 12px;
-        padding: 12px;
-        font-size: 16px;
-        font-family: 'Roboto Slab', serif;
-      ">Continue with COD</button>
+      <button onclick="continueWithCOD(this)" style="
+    background: white;
+    color: black;
+    border: 1.4px solid #000;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 16px;
+    font-family: 'Roboto Slab', serif;
+  ">
+  <span class="btn-label">Continue with COD</span>
+  <span class="btn-spinner" aria-hidden="true"></span>
+</button>
 
       <button onclick="closeCODPopup()" style="
         background: white;
@@ -1144,11 +1147,64 @@ function handleProceed() {
   }
 }
 
-function continueWithCOD() {
+function continueWithCOD(btnEl) {
+  // Close popup UI
   document.getElementById("codPopup").style.display = "none";
   document.body.style.overflow = "";
-  alert("Placing Cash on Delivery Order...");
-  // 👇 Replace with actual order placing logic later
+
+  // Show spinner on the clicked COD button for 2 seconds
+  if (btnEl) {
+    btnEl.classList.add('is-loading');
+    btnEl.setAttribute('aria-busy','true');
+  }
+
+  setTimeout(() => {
+    if (btnEl) {
+      btnEl.classList.remove('is-loading');
+      btnEl.removeAttribute('aria-busy');
+    }
+    // Place COD order locally and redirect
+    placeCODOrderAndRedirect();
+  }, 2000);
+}
+
+function placeCODOrderAndRedirect() {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  // Compute totals
+  let subtotal = 0;
+  cartData.forEach(i => subtotal += (i.price * i.qty));
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const codCharge = 89;
+  const grandTotal = subtotal + deliveryFee + codCharge;
+
+  // Build order object
+  const orderId = 'COD-' + Date.now();
+  const address = localStorage.getItem("shippingAddress") || "";
+  const order = {
+    id: orderId,
+    paymentMethod: "COD",
+    status: "Placed",
+    createdAt: new Date().toISOString(),
+    address: address,
+    items: cartData,
+    amounts: {
+      subtotal: subtotal,
+      deliveryFee: deliveryFee,
+      codCharge: codCharge,
+      total: grandTotal
+    }
+  };
+
+  // Save to localStorage "orders" array (append)
+  const existing = JSON.parse(localStorage.getItem("orders") || "[]");
+  existing.push(order);
+  localStorage.setItem("orders", JSON.stringify(existing));
+
+  // Clear cart after placing order
+  localStorage.removeItem("cartItems");
+
+  // Redirect to COD thank-you page
+  window.location.href = "https://precioussly.com/thankyou-cod";
 }
 </script>
 <script>
