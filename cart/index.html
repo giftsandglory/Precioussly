@@ -284,7 +284,7 @@
       const code = (document.getElementById("couponInput").value || "").trim().toUpperCase();
       const found = coupons.find(c=>c.Code===code);
       if(!found){ toast("Invalid coupon code"); return; }
-      if(subtotal() < found.MinAmount){ toast(`Add items worth ₹${found.MinAmount - subtotal()} more to use ${found.Code}`); return; }
+      if(subtotal() < found.MinAmount){ toast(\`Add items worth ₹\${found.MinAmount - subtotal()} more to use \${found.Code}\`); return; }
       appliedCoupon = found;
       localStorage.setItem("appliedCouponCode", found.Code);
       showAppliedNote(true);
@@ -302,8 +302,8 @@
       const note = document.getElementById("appliedNote");
       if(!appliedCoupon){ note.style.display="none"; return; }
       note.style.display="block";
-      note.innerHTML = `Applied: <b>${appliedCoupon.Code}</b> (₹${appliedCoupon.Discount} off)
-        <button class="remove-coupon-btn" onclick="clearCoupon()">Remove</button>`;
+      note.innerHTML = \`Applied: <b>\${appliedCoupon.Code}</b> (₹\${appliedCoupon.Discount} off)
+        <button class="remove-coupon-btn" onclick="clearCoupon()">Remove</button>\`;
       if(!isManual){
         const best = bestCouponFor(subtotal());
         if(best && appliedCoupon && best.Code !== appliedCoupon.Code){
@@ -324,24 +324,24 @@
       if(appliedCoupon && subtotal() < appliedCoupon.MinAmount){ appliedCoupon = null; localStorage.removeItem("appliedCouponCode"); }
 
       const couponOff = appliedCoupon ? appliedCoupon.Discount : 0;
-      const deliveryText = deliveryFee === 0 ? '<span style="color:green">Free Delivery</span>' : `₹${deliveryFee}`;
+      const deliveryText = deliveryFee === 0 ? '<span style="color:green">Free Delivery</span>' : \`₹\${deliveryFee}\`;
 
-      document.getElementById("sumItems").innerText = `₹${items}`;
+      document.getElementById("sumItems").innerText = \`₹\${items}\`;
       document.getElementById("sumDelivery").innerHTML = deliveryText;
       document.getElementById("codRow").style.display = isCOD ? "flex" : "none";
-      document.getElementById("sumCOD").innerText = `₹${codFee}`;
+      document.getElementById("sumCOD").innerText = \`₹\${codFee}\`;
       document.getElementById("couponRow").style.display = couponOff>0 ? "flex" : "none";
-      document.getElementById("sumCoupon").innerText = `-₹${couponOff}`;
+      document.getElementById("sumCoupon").innerText = \`-₹\${couponOff}\`;
 
       const grand = Math.max(0, items + deliveryFee + codFee - couponOff);
-      document.getElementById("sumTotal").innerText = `₹${grand}`;
+      document.getElementById("sumTotal").innerText = \`₹\${grand}\`;
     }
 
     /* ====== QTY HANDLERS ====== */
     function persist(){ localStorage.setItem("cartItems", JSON.stringify(cartData)); }
-    function increase(i){ cartData[i].qty++; persist(); document.getElementById(`qty-${i}`).innerText=cartData[i].qty; autoApplyBestCoupon(); renderSummary(); updateCartBadge(); }
+    function increase(i){ cartData[i].qty++; persist(); document.getElementById(\`qty-\${i}\`).innerText=cartData[i].qty; autoApplyBestCoupon(); renderSummary(); updateCartBadge(); }
     function decrease(i){
-      if(cartData[i].qty>1){ cartData[i].qty--; persist(); document.getElementById(`qty-${i}`).innerText=cartData[i].qty; autoApplyBestCoupon(); renderSummary(); updateCartBadge(); }
+      if(cartData[i].qty>1){ cartData[i].qty--; persist(); document.getElementById(\`qty-\${i}\`).innerText=cartData[i].qty; autoApplyBestCoupon(); renderSummary(); updateCartBadge(); }
     }
     function removeItem(i){
       cartData.splice(i,1); persist(); autoApplyBestCoupon(); renderCart(); renderSummary(); updateCartBadge();
@@ -390,7 +390,7 @@
       const isLoggedIn = localStorage.getItem("user_email");
       if(isLoggedIn){ location.href="/dashboard"; }
       else{
-        location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+        location.href = \`https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent\`;
       }
     }
     function updateCartBadge(){
