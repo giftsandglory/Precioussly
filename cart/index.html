@@ -34,6 +34,11 @@
   display: none;
   pointer-events: none;
 }
+/* Make spinner visible on white-outline buttons */
+.btn--outline .btn-spinner{
+  border-color: rgba(0,0,0,0.35);
+  border-top-color: #000;
+}
 
 /* When loading */
 .is-loading .btn-label { visibility: hidden; }
@@ -1077,7 +1082,7 @@ function updateSummary() {
   <span class="btn-spinner" aria-hidden="true"></span>
 </button>
 
-      <button class="popup-razorpay-btn" onclick="continueWithCOD(this)" style="
+      <button class="popup-razorpay-btn btn--outline" onclick="continueWithCOD(this)" style="
   background: white;
   color: black;
   border: 1.4px solid #000;
@@ -1086,16 +1091,9 @@ function updateSummary() {
   font-size: 16px;
   font-family: 'Roboto Slab', serif;
 ">
-
-      <button onclick="closeCODPopup()" style="
-        background: white;
-        color: black;
-        border: 1.4px solid #000;
-        border-radius: 12px;
-        padding: 12px;
-        font-size: 16px;
-        font-family: 'Roboto Slab', serif;
-      ">Back</button>
+  <span class="btn-label">Continue with COD</span>
+  <span class="btn-spinner" aria-hidden="true"></span>
+</button>
     </div>
   </div>
 </div>
