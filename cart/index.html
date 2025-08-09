@@ -522,9 +522,6 @@ button.remove-btn:hover {
 .applied-tag .remove{color:#2874f0;text-decoration:underline;cursor:pointer;margin-left:6px}
 /* Hide coupons by default; JS will show when cart has items */
 #couponSection{display:none;}
-
-/* Hide the 'Remove' link next to applied coupon */
-.applied-tag .remove { display: none !important; }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -1480,8 +1477,7 @@ function showAppliedTag(subtotal){
     return;
   }
   const amount = discountOnSubtotal(subtotal, appliedCoupon);
-  tag.innerHTML = `Applied: <strong>${appliedCoupon.code}</strong> — You saved ₹${amount}
-    <span class="remove" onclick="clearManualCoupon()">Remove</span>`;
+  tag.innerHTML = `Applied: <strong>${appliedCoupon.code}</strong> — You saved ₹${amount}`;
   tag.style.display = "inline-block";
 }
 
@@ -1513,6 +1509,7 @@ function applyCouponManually(){
   window.manualLock = true;
   if (found){
     window.appliedCoupon = found;
+    localStorage.setItem("appliedCoupon", JSON.stringify(found)); // ✅ save to storage
   } else {
     window.appliedCoupon = null; // not found
     alert("Invalid coupon");
@@ -1536,6 +1533,19 @@ function loadCoupons(){
         .filter(r => r.Title && r.MinAmount && r.Code && r.Discount) // same columns as index
         .map(parseCouponRow)
         .sort((a,b)=>a.min-b.min);
+        // ✅ Restore saved coupon if any
+    const savedCoupon = localStorage.getItem("appliedCoupon");
+    if (savedCoupon) {
+      try {
+        const parsed = JSON.parse(savedCoupon);
+        // Only restore if still valid in new coupon list
+        const match = window.allCoupons.find(c => c.code === parsed.code);
+        if (match) {
+          window.appliedCoupon = match;
+          window.manualLock = true; // so it doesn't auto-switch
+        }
+      } catch(e){}
+    }
       renderCouponCards();
       updateSummary(); // first render with coupons available
     })
@@ -1569,6 +1579,11 @@ if (coupWrap){
       couponToUse = coupon;
       discount = amount;
       window.appliedCoupon = coupon || null;
+      if (coupon) {
+        localStorage.setItem("appliedCoupon", JSON.stringify(coupon)); // ✅ save auto-applied
+      } else {
+        localStorage.removeItem("appliedCoupon"); // no coupon
+      }
     }
   }
   const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
