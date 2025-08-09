@@ -771,7 +771,7 @@ function openAddressPopup() {
   if (savedAddressObj.phone) document.getElementById("phone").value = savedAddressObj.phone;
   if (savedAddressObj.altphone) document.getElementById("altphone").value = savedAddressObj.altphone;
 // ✅ Attach input listeners to validate in real-time
-["fullname", "state", "city", "pincode", "address", "phone"].forEach(id => {
+["fullname", "state", "city", "pincode", "address", "phone", "altphone"].forEach(id => {
   document.getElementById(id).addEventListener("input", validateAddressFields);
 });
 
