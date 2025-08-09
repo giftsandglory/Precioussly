@@ -1507,13 +1507,24 @@ function applyCouponManually(){
 
   const found = allCoupons.find(c=>c.code.toUpperCase()===code);
   window.manualLock = true;
+
+  const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
+  const subtotal = cart.reduce((s,it)=>s + (Number(it.price)*Number(it.qty)), 0);
+
   if (found){
-    window.appliedCoupon = found;
+    if (subtotal >= found.min) {
+      window.appliedCoupon = found;
+    } else {
+      alert(`Minimum order ₹${found.min} required for this coupon.`);
+      window.appliedCoupon = null;
+      input.value = "";
+    }
   } else {
-    window.appliedCoupon = null; // not found
     alert("Invalid coupon");
+    window.appliedCoupon = null;
   }
-  updateSummary(); // re-render with new coupon
+  
+  updateSummary();
 }
 
 function clearManualCoupon(){
