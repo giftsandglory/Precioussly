@@ -1661,5 +1661,41 @@ if (couponToUse && document.getElementById("couponInput")) {
 </script>
 
   <script src="coupon-persist.js"></script>
+  <script>
+/* --- Always force-close the Razorpay suggestion popup on load/back --- */
+(function () {
+  function forceCloseRazorpayPopup() {
+    var el = document.getElementById('codPopup');
+    if (el) el.style.display = 'none';
+    // restore scroll in case body was locked by the popup
+    document.body.style.overflow = '';
+  }
+
+  // Close once DOM is ready (fresh load)
+  document.addEventListener('DOMContentLoaded', forceCloseRazorpayPopup);
+
+  // Close whenever page is shown again (includes back/forward via BFCache)
+  window.addEventListener('pageshow', function (e) {
+    forceCloseRazorpayPopup();
+
+    // If user came back from a Thank You page after placing order,
+    // we may want a clean UI. We used this flag while redirecting.
+    var cameFromOrder = localStorage.getItem('lastOrderClearedCart') === '1';
+    var nav = performance.getEntriesByType('navigation')[0];
+    var fromBFCache = e.persisted || (nav && nav.type === 'back_forward');
+
+    if (cameFromOrder && fromBFCache) {
+      // Optional: hard refresh for a fresh state (prevents any stale overlay)
+      localStorage.removeItem('lastOrderClearedCart');
+      setTimeout(function(){ location.reload(); }, 0);
+    }
+  });
+
+  // Also close when tab returns to foreground (edge cases)
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) forceCloseRazorpayPopup();
+  });
+})();
+</script>
 </body>
 </html>
