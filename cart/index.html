@@ -10,10 +10,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
 <style>
 .proceed-btn,
-.popup-razorpay-btn{
+.popup-razorpay-btn,
+.cod-inline-btn {
   position: relative;
-  display: grid;          /* center label normally */
-  place-items: center;    /* keeps label perfectly centered */
+  display: grid;
+  place-items: center;
 }
 
 .btn-label { display: inline-block; }
@@ -1076,18 +1077,15 @@ function updateSummary() {
   <span class="btn-spinner" aria-hidden="true"></span>
 </button>
 
-      <button onclick="continueWithCOD(this)" style="
-    background: white;
-    color: black;
-    border: 1.4px solid #000;
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 16px;
-    font-family: 'Roboto Slab', serif;
-  ">
-  <span class="btn-label">Continue with COD</span>
-  <span class="btn-spinner" aria-hidden="true"></span>
-</button>
+      <button class="popup-razorpay-btn" onclick="continueWithCOD(this)" style="
+  background: white;
+  color: black;
+  border: 1.4px solid #000;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;
+">
 
       <button onclick="closeCODPopup()" style="
         background: white;
@@ -1163,6 +1161,19 @@ function continueWithCOD(btnEl) {
     placeCODOrderAndRedirect();
   }, 2000);
 }
+</script>
+<script>
+  function placeCODOrderAndRedirect() {
+    // (Optional) save order data to localStorage here
+
+    // Close popup before leaving (optional, harmless)
+    const pop = document.getElementById('codPopup');
+    if (pop) pop.style.display = 'none';
+    document.body.style.overflow = "";
+
+    // Redirect to your COD thank-you page
+    window.location.href = "https://precioussly.com/thankyou-cod";
+  }
 </script>
 <script>
 function closeCODPopup() {
@@ -1333,6 +1344,14 @@ updateSummary = function () {
 
 // ✅ Run on page load (in case sheet fetched already)
 document.addEventListener("DOMContentLoaded", checkMinOrderCondition);
+</script>
+<script>
+  window.addEventListener('pageshow', function (e) {
+    document.querySelectorAll('.is-loading').forEach(btn => {
+      btn.classList.remove('is-loading');
+      btn.removeAttribute('aria-busy');
+    });
+  });
 </script>
 </body>
 </html>
