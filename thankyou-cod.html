@@ -201,5 +201,15 @@
       <p class="footnote">We appreciate your trust in us.</p>
     </section>
   </main>
+  <script>
+  // When the page loads, push a new state
+  history.pushState(null, "", location.href);
+
+  // Listen for back button presses
+  window.addEventListener("popstate", function () {
+    // Redirect to homepage instead of going back
+    window.location.href = "https://precioussly.com/";
+  });
+</script>
 </body>
 </html>
