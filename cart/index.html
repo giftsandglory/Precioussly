@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/>
-<script async defer src="https://accounts.google.com/gsi/client"></script>
+<script sync defer src="https://accounts.google.com/gsi/client"></script>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet"/>
   <meta charset="UTF-8">
   <title>Your Cart - Precioussly</title>
@@ -1174,14 +1174,34 @@ function continueWithCOD(btnEl) {
 </script>
 <script>
   function placeCODOrderAndRedirect() {
-    // (Optional) save order data to localStorage here
+    // --- amounts ---
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    const codFee = 89;
+    const grandTotal = itemsTotal + deliveryFee + codFee;
 
-    // Close popup before leaving (optional, harmless)
-    const pop = document.getElementById('codPopup');
-    if (pop) pop.style.display = 'none';
-    document.body.style.overflow = "";
+    // --- order object (dashboard ke liye useful) ---
+    const order = {
+      id: "COD-" + Date.now(),
+      method: "COD",
+      items,
+      amounts: { itemsTotal, deliveryFee, codFee, grandTotal },
+      address: localStorage.getItem("shippingAddress") || "",
+      createdAt: new Date().toISOString()
+    };
+    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    orders.unshift(order);
+    localStorage.setItem("orders", JSON.stringify(orders));
 
-    // Redirect to your COD thank-you page
+    // --- clear cart before redirect ---
+    localStorage.setItem("cartItems", "[]");
+    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+
+    // BFCache se wapas aane par hard refresh karane ke liye flag
+    localStorage.setItem("lastOrderClearedCart", "1");
+
+    // thank you page
     window.location.href = "https://precioussly.com/thankyou-cod";
   }
 </script>
@@ -1222,25 +1242,33 @@ function payViaRazorpay() {
     description: "Secure Payment",
     image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
     handler: function (response) {
-      alert("Payment Successful! Razorpay ID: " + response.razorpay_payment_id);
-      // You can redirect to order confirmation or store order info here
-    },
-    prefill: {
-      name: localStorage.getItem("user_name") || "",
-      email: localStorage.getItem("user_email") || "",
-      contact: document.getElementById("phone")?.value || ""
-    },
-    notes: {
-      address: localStorage.getItem("shippingAddress") || ""
-    },
-    theme: {
-      color: "#2874f0"
-    }
-  };
+  // --- amounts ---
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const grandTotal = itemsTotal + deliveryFee; // Razorpay par COD fee 0
 
-  const rzp = new Razorpay(options);
-  rzp.open();
-}
+  // --- order object ---
+  const order = {
+    id: "RZP-" + (response.razorpay_payment_id || Date.now()),
+    method: "Razorpay",
+    items,
+    amounts: { itemsTotal, deliveryFee, codFee: 0, grandTotal },
+    address: localStorage.getItem("shippingAddress") || "",
+    createdAt: new Date().toISOString()
+  };
+  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  orders.unshift(order);
+  localStorage.setItem("orders", JSON.stringify(orders));
+
+  // --- clear cart + flag for BFCache ---
+  localStorage.setItem("cartItems", "[]");
+  try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+  localStorage.setItem("lastOrderClearedCart", "1");
+
+  // thank you page for prepaid
+  window.location.href = "https://precioussly.com/thankyou-razorpay";
+},
 </script>
 <!-- ✅ FINAL ADDRESS REQUIRED POPUP -->
 <div class="address-popup-overlay" id="addressRequiredPopup">
@@ -1355,13 +1383,46 @@ updateSummary = function () {
 // ✅ Run on page load (in case sheet fetched already)
 document.addEventListener("DOMContentLoaded", checkMinOrderCondition);
 </script>
+<!-- 👇 Ye block bilkul </body> ke just upar paste karein -->
 <script>
-  window.addEventListener('pageshow', function (e) {
-    document.querySelectorAll('.is-loading').forEach(btn => {
-      btn.classList.remove('is-loading');
-      btn.removeAttribute('aria-busy');
+  // BFCache se wapas aane par UI ko storage ke saath sync
+  function syncCartUIWithStorage() {
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    if (items.length === 0) {
+      // badge hide/update
+      try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+      // empty cart UI ke liye refresh
+      location.reload();
+    }
+  }
+
+  window.addEventListener("pageshow", function (e) {
+    // koi button loading state me na rahe
+    document.querySelectorAll(".is-loading").forEach(btn => {
+      btn.classList.remove("is-loading");
+      btn.removeAttribute("aria-busy");
     });
+
+    // back/forward se aaye hain?
+    const nav = performance.getEntriesByType("navigation")[0];
+    const cameFromBFCache = e.persisted || (nav && nav.type === "back_forward");
+
+    if (cameFromBFCache) {
+      // ek baar hi reload ho — loop na bane
+      if (localStorage.getItem("lastOrderClearedCart")) {
+        localStorage.removeItem("lastOrderClearedCart");
+        syncCartUIWithStorage();
+      }
+    }
   });
+</script>
+<script>
+  localStorage.setItem("cartItems","[]");
+  localStorage.setItem("lastOrderClearedCart","1");
+</script>
+<script>
+  localStorage.setItem("cartItems","[]");
+  localStorage.setItem("lastOrderClearedCart","1");
 </script>
 </body>
 </html>
