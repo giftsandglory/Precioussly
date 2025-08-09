@@ -201,5 +201,19 @@
       <p class="footnote">We appreciate your trust in us.</p>
     </section>
   </main>
+  <script>
+// When the page is shown from browser back/forward cache, redirect to homepage
+window.addEventListener("pageshow", function(event) {
+  // If the user navigated back to this page
+  if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+    window.location.href = "https://precioussly.com/";
+  }
+});
+
+// Also handle popstate for some browsers
+window.addEventListener("popstate", function() {
+  window.location.href = "https://precioussly.com/";
+});
+</script>
 </body>
 </html>
