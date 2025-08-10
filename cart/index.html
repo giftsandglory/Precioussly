@@ -955,6 +955,32 @@ function confirmAddress() {
       // Set for other function use
       window.deliveryFee = fee;
 
+      // COD charges from sheet (column: COD charges)
+      try {
+        if (data[0] && data[0]["COD charges"]) {
+          var codVal = String(data[0]["COD charges"]).trim();
+          window.codCharge = Number(codVal.replace(/[^\d.]/g, "")) || 0;
+        }
+      } catch(e) { window.codCharge = window.codCharge || 0; }
+
+      // Update COD label text dynamically
+      try {
+        var codInput = document.querySelector('input[name="paymentMethod"][value="cod"]');
+        if (codInput) {
+          var codLabel = codInput.parentElement;
+          // ensure a span exists for text
+          if (!codLabel.querySelector('#codLabelText')) {
+            var radioSpan = codLabel.querySelector('.custom-radio');
+            if (radioSpan) {
+              radioSpan.insertAdjacentHTML('afterend', ' <span id="codLabelText"></span>');
+              // remove trailing text nodes if any
+            }
+          }
+          var lbl = codLabel.querySelector('#codLabelText');
+          if (lbl) lbl.textContent = 'Cash on Delivery (+₹' + window.codCharge + ')';
+        }
+      } catch(e) {}
+
       // Show on screen
       document.getElementById("summaryBox").innerHTML = `
         <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
@@ -965,6 +991,7 @@ function confirmAddress() {
     });
 </script>
 <script>
+window.codCharge = 89; // default until sheet loads
 window.cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1104,7 +1131,7 @@ function updateSummary() {
   cartData.forEach(item => total += item.price * item.qty);
 
   const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
-  const codFee = selectedPayment === "cod" ? 89 : 0;
+  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
 
   const feeText = deliveryFee === 0
     ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
@@ -1115,7 +1142,7 @@ function updateSummary() {
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
     <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-    ${selectedPayment === "cod" ? `<div class="summary-row"><span>COD Charges</span><span>₹89</span></div>` : ""}
+    ${selectedPayment === "cod" ? `<div class="summary-row"><span>COD Charges</span><span>₹${Number(window.codCharge)||0}</span></div>` : ""}
     <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${grandTotal}</span></div>
   `;
 }
@@ -1238,7 +1265,7 @@ function continueWithCOD(btnEl) {
     const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
     const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-    const codFee = 89;
+    const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
     const grandTotal = itemsTotal + deliveryFee + codFee;
 
     // --- order object (dashboard ke liye useful) ---
@@ -1458,7 +1485,7 @@ function checkMinOrderCondition() {
   cartData.forEach(item => total += item.price * item.qty);
 
   const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
-  const codFee = selectedPayment === "cod" ? 89 : 0;
+  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
   const grandTotal = total + deliveryFee + codFee;
 
   notice.innerText = `Minimum order amount is ₹${minimumOrderValue} to proceed`;
@@ -1625,7 +1652,7 @@ if (coupWrap){
 }
 
   const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-  const codFee = (typeof window.selectedPayment !== "undefined" && window.selectedPayment==="cod") ? 89 : 0;
+  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
 
   // auto-pick the best coupon unless user manually locked one
   let couponToUse = null, discount = 0;
