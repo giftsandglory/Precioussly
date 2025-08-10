@@ -543,15 +543,19 @@ button.remove-btn:hover {
   </div>
 
   <div style="display: flex; align-items: center; gap: 12px;">
-    <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
+<!-- Search icon -->
+<img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
 
-    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon" onclick="handleProfileClick()" style="width: 28px; height: 28px;" />
+<!-- Profile icon -->
+<img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
 
+<!-- Cart icon with badge -->
 <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon" style="width: 28px; height: 28px;" />
-      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center;">0</span>
-    </a>
-  </div>
+  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
+  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+</a>
+</div>
+</div>
 </header>
 
 <!-- Announcement Bar -->
@@ -573,7 +577,7 @@ button.remove-btn:hover {
   <label class="payment-option">
     <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
     <span class="custom-radio"></span>
-    Pay via Razorpay (Free Delivery)
+    Pay via Razorpay (No Extra Charge)
   </label>
 
   <label class="payment-option">
