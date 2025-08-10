@@ -1762,5 +1762,17 @@ if (couponToUse && document.getElementById("couponInput")) {
 </script>
 
 <script>document.addEventListener("DOMContentLoaded", function(){ try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {} });</script>
+
+<!-- ✅ Auto-move Payment Method box just above the Proceed button -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var box = document.getElementById('paymentMethodBox');
+  var fast = document.getElementById('fastDeliveryRow');
+  if (box && fast && fast.parentNode) {
+    fast.parentNode.insertBefore(box, fast); // place box right above the fast-delivery row
+  }
+});
+</script>
+
 </body>
 </html>
