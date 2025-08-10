@@ -755,6 +755,26 @@ down-toggle {
 
 }
 
+
+/* --- OVERRIDES: Certified strip appears 3s after refresh, no blank space before --- */
+.certified-strip {
+  /* keep flex but collapse space */
+  max-height: 0;
+  padding: 0 14px;
+  margin: 0 12px;
+  opacity: 0;
+  overflow: hidden;
+}
+.certified-strip.show {
+  /* expand + fade in */
+  max-height: 2000px;
+  padding: 16px 14px;
+  margin: 18px 12px;
+  opacity: 1;
+  transform: none;
+  transition: max-height 0.5s ease, opacity 0.5s ease, padding 0.5s ease, margin 0.5s ease;
+}
+
 </style>
 </head>
 <body>
@@ -1248,7 +1268,7 @@ fetch("https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/She
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var cs = document.getElementById('certifiedStrip');
-  if (cs) { setTimeout(function(){ cs.classList.add('show'); }, 1000); }
+  if (cs) { setTimeout(function(){ cs.classList.add('show'); }, 2500); }
 });
 </script>
 
