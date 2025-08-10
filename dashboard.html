@@ -1,20 +1,318 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <meta name="google-signin-client_id" content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com">
   <meta charset="UTF-8" />
-  <title>Dashboard - Precioussly</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Precioussly</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
-.site-header {
+  .header-logo-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo-img {
+  width: 110px;
+  height: auto;
+  object-fit: contain;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+  .icon-size {
+  width: 10px;
+  height: 10px;
+}
+  .product-badge {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.coupon-strip {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  scroll-behavior: smooth;
+}
+.coupon-card {
+  background: #e9fef1;
+  border: 1px solid #c5ecd6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  width: 220px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.coupon-card h3 {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  color: #064c2c;
+}
+.coupon-card p {
+  font-size: 12px;
+  margin: 2px 0 6px;
+  color: #064c2c;
+}
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.code-box {
+  background: #d5f5e5;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #064c2c;
+  letter-spacing: 0.3px;
+}
+.copy-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.copy-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #064c2c;
+  stroke-width: 2;
+}
+.copy-btn:hover {
+  opacity: 0.6;
+}
+.strip-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 42px;
+  height: 42px;
+  background: rgba(0, 0, 0, 0.4); /* ✅ fixed background */
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 0;
+
+  /* ✅ Prevent tap glow & outlines */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-focus-ring-color: transparent;
+  outline: none;
+
+  /* ✅ Remove hover scale effect */
+  transition: none;
+}
+
+.strip-nav-btn:hover,
+.strip-nav-btn:active,
+.strip-nav-btn:focus {
+  background: rgba(0, 0, 0, 0.4); /* ❌ no change on hover/tap */
+  transform: translateY(-50%);   /* ❌ no zoom */
+}
+
+.strip-nav-left {
+  left: 8px;
+}
+
+.strip-nav-right {
+  right: 8px;
+}
+
+/* 👇 Arrow position adjust if needed */
+.strip-nav-btn span {
+  display: inline-block;
+  transform: translate(0, -2px); /* 🔼 Up 2px */
+}
+.image-strip-container {
+  display: flex;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.strip-media {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  object-fit: cover;
+  max-height: 320px;
+}
+
+.strip-media[controls] {
+  background: #000;
+}
+  .menu-divider {
+  width: 100vw;
+  height: 1px;
+  background-color: #e1dcd5;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+  .dropdown-icon {
+  font-size: 18px;
+  color: #000; /* black arrow */
+  font-family: 'Roboto Slab', serif;
+}
+  .header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 17px;
+  font-weight: 400;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+}
+  
+
+.side-menu.active {
+  left: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  z-index: 4000;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.menu-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.menu-link, .submenu-link {
+  display: block;
+  color: #5a3d2b;
+  text-decoration: none;
+  padding: 10px;
+  font-weight: 500;
+}
+
+.submenu-container {
+  margin-left: 15px;
+  padding-left: 10px;
+}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .site-header {
   background-color: #ffffff;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
+  padding: 20px 16px; /* 🔁 increased from 12px */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  min-height: 60px;
+  min-height: 72px;   /* ✅ added for height consistency */
 }
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hamburger-wrapper {
+  width: 24px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+
+  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue Android highlight */
+  touch-action: manipulation;               /* ✅ Prevent default touch delay */
+}
+
+    .hamburger-wrapper div {
+  width: 100%;
+  height: 3px;
+  background-color: #000; /* ✅ black */
+  border-radius: 2px;
+}
+
+    .logo-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .insta-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .insta-handle {
+  font-size: 17px;
+  color: #000; /* ✅ black */
+  font-weight: 500;
+}
+
+    .insta-handle a {
+      text-decoration: none;
+      color: #000;
+    }
+
+    .insta-handle a:hover {
+      text-decoration: underline;
+    }
+
     .right-icon {
   width: 32px;
   height: 32px;
@@ -25,227 +323,825 @@
   touch-action: manipulation;
 }
 
-.icon-size {
-  width: 32px;
-  height: 32px;
-}
-    .hamburger-wrapper {
-      width: 24px;
-      height: 20px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      background-color: transparent;
-      border: none;
-      padding: 0;
-    }
-    .hamburger-wrapper div {
-      width: 100%;
-      height: 3px;
-      background-color: #000;
-      border-radius: 2px;
-    }
-    .menu-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.4);
-      display: none;
-      z-index: 4000;
-      transition: opacity 0.3s ease;
-      opacity: 0;
-    }
-    .menu-overlay.active {
-      display: block;
-      opacity: 1;
-    }
-    .side-menu {
-      position: fixed;
-      top: 0;
-      left: 0;
-      transform: translateX(-100%);
-      width: 80%;
-      height: 100%;
-      background-color: #ffffff;
-      box-shadow: 4px 0 16px rgba(0,0,0,0.1);
-      padding: 20px 16px;
-      overflow-y: auto;
-      z-index: 5000;
-      font-family: 'Roboto Slab', serif;
-      transition: transform 0.4s ease;
-    }
-    .side-menu.active {
-      transform: translateX(0%);
-    }
-    #announcementBar {
-      margin: 0;
-      padding: 6px 10px;
-      font-size: 13px;
-      color: #ffffff;
-      background: #000000;
-      font-weight: 500;
-      text-align: center;
-      font-family: 'Roboto Slab', serif;
-      min-height: 24px;
-      line-height: 22px;
-      user-select: none;
-    }
-    body {
-  font-family: 'Roboto Slab', serif;
-  margin: 0;
-  padding: 0;
-  background-color: #ffffff;
-  color: #333;
+    .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */ /* REMOVE THIS */
+  /* padding-top: 100px; */  /* REMOVE THIS */
+  z-index: 3000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
 }
 
-    .profile {
-      text-align: center;
-      margin-bottom: 20px;
+    .popup-box {
+  background-color: #ffffff;         /* white like header */
+  border: 2px solid #000;         /* premium brown */
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.4s ease;
+  pointer-events: none;
+  width: 90vw;
+  max-width: 320px;
+  position: absolute;
+  top: 120px;
+}
+
+    .popup-logo-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
     }
-    .profile img {
-      width: 80px;
-      height: 80px;
+
+    .popup-logo {
+      width: 64px;
+      height: 64px;
       border-radius: 50%;
       object-fit: cover;
     }
-    .profile h2 {
-      margin: 10px 0 5px;
+
+    .popup-insta {
+      font-size: 16px;
+      font-weight: 500;
+      color: #5a3d2b;
     }
-    .orders {
-      margin-top: 20px;
+
+    .popup-insta a {
+      color: #5a3d2b;
+      text-decoration: none;
     }
-    .order {
-      border-bottom: 1px solid #ccc;
-      padding: 12px 0;
+
+    .popup-insta a:hover {
+      text-decoration: underline;
     }
-    .order:last-child {
-      border-bottom: none;
+
+    .popup-text {
+      color: #5a3d2b;
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 90%;
+      word-wrap: break-word;
     }
-    .order p {
-      margin: 4px 0;
-      font-size: 14px;
-    }
-    .order {
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 14px;
-  margin-bottom: 14px;
-}
-.logout-btn {
-  display: inline-block;
-  padding: 8px 20px;
-  font-size: 14px;
-  border: 1.5px solid #000;
-  color: #000;
-  background: transparent;
-  border-radius: 24px;
-  font-family: 'Roboto Slab', serif;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  text-decoration: none;
-}
-.logout-btn:hover {
-  background: #f5f5f5;
+
+    .close-btn {
+  position: absolute;
+  top: 8px;                 /* 🟢 adjust vertically inside */
+  right: 8px;               /* 🟢 adjust horizontally inside */
+  width: 22px;              /* 🟢 smaller size */
+  height: 22px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;          /* 🟢 smaller font */
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 
-.logout-btn:hover {
-  background: #f5f5f5;
+.close-btn:hover {
+  transform: scale(1.1);     /* hover zoom effect */
 }
-    .container {
-  max-width: 460px;
-  margin: 0 auto;
-  padding: 20px 16px;
+
+    #announcementBar {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #ffffff;
+  background: #000000;
+  border-top: none;
+  border-bottom: none;
+  font-weight: 500;
+  text-align: center;
+  font-family: 'Roboto Slab', serif; /* ✅ Use Roboto Slab */
+  min-height: 24px;
+  line-height: 22px;
+  user-select: none;
 }
-.section-title {
+
+    @media (max-width: 480px) {
+      .logo-img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .insta-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      .insta-handle {
+        font-size: 15px;
+      }
+
+      
+
+      .hamburger-wrapper {
+        width: 22px;
+        height: 18px;
+      }
+
+      .hamburger-wrapper div {
+        height: 2.5px;
+      }
+    }
+  .overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.popup-box.active {
+  opacity: 1;
+  transform: translateY(-10px); /* Final position slightly above */
+  pointer-events: auto;
+}
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+  user-select: none;  /* 👈 Yeh line add karo */
+}
+.menu-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+}
+}
+}
+
+.menu-title {
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 12px;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 6px;
+  color: #000; /* 🔁 black */
+  font-family: 'Roboto Slab', serif;
 }
-  </style>
+
+.menu-close {
+  font-size: 24px;
+  font-weight: bold;
+  color: #000; /* ✅ black color */
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.menu-close:hover {
+  transform: scale(1.2);
+}
+
+/* Updated side-menu for premium look */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translateX(-100%);
+  width: 80%;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+  padding: 20px 16px;
+  overflow-y: auto;
+  z-index: 5000;
+  font-family: 'Roboto Slab', serif;
+
+  /* ✅ Ultra smooth animation */
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.side-menu.active {
+  transform: translateX(0%);
+}
+
+.menu-link {
+  font-size: 17px;
+  color: #000;
+  text-decoration: none;
+  padding: 14px 18px 14px 24px;
+  font-weight: 500;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: none !important; /* ✅ Remove the line */
+}
+
+.submenu-link {
+  font-size: 15px;
+  color: #444;
+  padding: 10px 20px 10px 36px;
+  text-decoration: none;
+  font-weight: 400;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #eaeaea; /* ✅ Light line for submenu */
+}
+down-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px 14px 24px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  border-bottom: 1px solid #e1dcd5;
+  cursor: pointer;
+}
+
+.down-icon {
+  font-size: 18px;
+  color: #000; /* 🔁 black */
+}
+.menu-text, .header-title {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -ms-user-select: none !important;
+}
+  body.no-scroll {
+    overflow: hidden;
+    height: 100vh;
+    touch-action: none;
+  }
+  .fade-slider {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+}
+
+.fade-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.fade-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 1;
+}
+.fade-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  z-index: 5;
+}
+
+.fade-dot {
+  width: 14px;
+  height: 6px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.15); /* soft black */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.fade-dot.active {
+  background-color: rgba(0, 0, 0, 0.35); /* slightly darker */
+}
+  
+
+/* --- sticky links at top of side menu (aligned) --- */
+.menu-fixed {
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 2;
+  padding: 0 0 8px 0;   /* no extra top spacing */
+  /* no border line here so it looks same as list */
+}
+
+.menu-fixed .home-link {
+  display: block;
+  padding: 14px 18px 14px 24px;  /* same as .menu-link */
+  font-family: 'Roboto Slab', serif;
+  font-size: 17px;
+  color: #000;
+  text-decoration: none;
+  margin: 0;
+}
+
+/* green theme button, aligned with left edge via margin-left */
+.menu-fixed .track-btn {
+  display: inline-block;
+  margin-left: 24px;   /* align with text of other menu items */
+  margin-top: 6px;
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #064c2c;
+  background: #e9fef1;
+  border: 1.5px solid #c5ecd6;
+  padding: 9px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+
+.menu-fixed .track-btn:active { transform: scale(0.98); }
+
+
+</style>
 </head>
 <body>
-<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-<nav class="side-menu" id="sideMenu">
-  <div class="menu-header">
-    <span class="menu-title">Menu</span>
-    <span class="menu-close" onclick="toggleMenu()">×</span>
-  </div>
-  <div id="menuContent"></div>
-</nav>
-<header class="site-header">
+  <header class="site-header">
   <div class="hamburger-wrapper" onclick="toggleMenu()">
     <div></div>
     <div></div>
     <div></div>
   </div>
-  <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-    <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent;" />
+
+ <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+  <img
+    src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+    alt="Precioussly Logo"
+    onclick="location.href = 'https://precioussly.com';"
+    style="
+      width: 110px;
+      height: auto;
+      object-fit: contain;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    "
+  />
+</div>
+</div>
+
+ <div style="display: flex; align-items: center; gap: 12px;">
+<!-- Search icon -->
+<img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
+
+<!-- Profile icon -->
+<img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
+
+<!-- Cart icon with badge -->
+<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
+  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+</a>
+</div>
+</div>
   </div>
-  <div style="display: flex; align-items: center; gap: 12px;">
-    <!-- Search icon -->
-    <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" 
-         alt="Search" 
-         class="right-icon" 
-         style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
-
-    <!-- Profile icon -->
-    <img id="profileIcon" 
-         src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" 
-         alt="Profile" 
-         class="right-icon icon-size" 
-         onclick="handleProfileClick()" 
-         style="cursor: pointer;" />
-
-    <!-- Cart icon with badge -->
-    <a href="https://www.precioussly.com/cart" 
-       style="position: relative; display: inline-block; margin-top: 5px;">
-      <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" 
-           alt="Cart" 
-           class="right-icon icon-size" />
-      <span id="cartCountBadge" 
-            style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">
-        0
-      </span>
-    </a>
 </div>
 </header>
-<div id="announcementBar">🧿</div>
-<main>
-  <div class="container">
-  <div class="profile">
-    <img id="userImage" src="" alt="Profile Photo">
-    <h2 id="userName">Hello</h2>
-    <p id="userEmail"></p>
-  </div>
-  
-  </div>
-  <div style="text-align: center;">
-  <a class="logout-btn" href="#" onclick="logout()">Logout</a>
+
+  <!-- Announcement Bar -->
+  <div id="announcementBar">🧿</div>
+  <div style="position: relative; overflow: hidden;">
+<div id="fadeSlider" class="fade-slider"></div>
+<div class="fade-dots" id="fadeDots"></div>
 </div>
+<div id="couponContainer" class="coupon-strip"></div>
+
+<div id="categorySection" style="padding: 16px 12px; display: flex; flex-wrap: wrap; gap: 12px;"></div>
+
+
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+<!-- Menu Overlay -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+<!-- Side Menu -->
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">✕</span>
+  </div>
+<!-- 🔒 Always-visible links -->
+<div class="menu-fixed">
+  <a href="https://precioussly.com/" class="home-link">Home</a>
+  <a href="https://precioussly.com/track-order" class="track-btn">Track Order</a>
 </div>
+
+<!-- scrollable area for the rest of menu items from Google Sheet -->
+<div id="menuContent"></div>
+
+</nav>
+
+<!-- 🔽 Final Working Script -->
 <script>
-  function toggleMenu() {
-    const menu = document.getElementById("sideMenu");
-    const overlay = document.getElementById("menuOverlay");
-    const body = document.body;
-    const isOpen = menu.classList.contains("active");
-    if (isOpen) {
-      menu.classList.remove("active");
-      overlay.classList.remove("active");
-      body.classList.remove("no-scroll");
-    } else {
-      menu.classList.add("active");
-      overlay.classList.add("active");
-      body.classList.add("no-scroll");
-    }
+  // Announcement Bar from Google Sheet
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
+  // Popup function
+  function togglePopup() {
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = overlay.querySelector(".popup-box");
+    const isOpen = overlay.classList.contains("active");
+    overlay.classList.toggle("active", !isOpen);
+    popupBox.classList.toggle("active", !isOpen);
   }
 
+  // Hamburger toggle function
+function toggleMenu() {
+  const menu = document.getElementById("sideMenu");
+  const overlay = document.getElementById("menuOverlay");
+  const body = document.body;
+
+  const isOpen = menu.classList.contains("active");
+
+  if (isOpen) {
+    menu.classList.remove("active");
+    overlay.classList.remove("active");
+    body.classList.remove("no-scroll");
+  } else {
+    menu.classList.add("active");
+    overlay.classList.add("active");
+    body.classList.add("no-scroll");
+  }
+}
+  // 🔽 POPUP DATA FROM SHEET
+  const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
+
+  fetch(sheetURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const row = data[0];
+        const logo = document.querySelector(".popup-logo");
+        if (row.popup_logo) logo.src = row.popup_logo;
+
+        const popupText = document.querySelector(".popup-text");
+        if (row.popup_text) popupText.innerHTML = row.popup_text;
+
+        const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
+        instaLinks.forEach(link => {
+          if (row.popup_insta_link) link.href = row.popup_insta_link;
+          if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
+        });
+      }
+    });
+
+  // 🔽 MENU DATA FROM SHEET
+  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+
+  fetch(menuURL)
+    .then(res => res.json())
+    .then(data => {
+      const menuContent = document.getElementById("menuContent");
+      const grouped = {};
+
+      data.forEach(item => {
+        const menu = item.Menu?.trim();
+        const sub = item.Submenu?.trim();
+        const link = item.Link?.trim();
+        if (!menu) return;
+
+        if (sub) {
+          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+          grouped[menu].subs.push({ name: sub, link });
+        } else {
+          grouped[menu] = { link, subs: [] };
+        }
+      });
+
+      Object.entries(grouped).forEach(([menu, info]) => {
+  if (info.subs.length === 0) {
+    menuContent.innerHTML += `<a href="${info.link}" class="menu-link">${menu}</a>`;
+  } else {
+    const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+    menuContent.innerHTML += `
+      <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+        <span>${menu}</span>
+        <span class="dropdown-icon">›</span>
+      </div>
+      <div class="submenu-container" id="${menuId}" style="display: none;">
+        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link">› ${s.name}</a>`).join("")}
+      </div>
+    `;
+  }
+});
+    });
+    function toggleSubmenu(id) {
+  const submenu = document.getElementById(id);
+  submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+}
+// 🟢 Wide Media (Image/Video) Strip from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    const strip = document.getElementById("imageStrip");
+    data.forEach(row => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.trim().endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url.trim();
+        el.controls = true;
+        el.muted = true;
+        el.loop = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url.trim();
+      }
+
+      el.className = "strip-media";
+      strip.appendChild(el);
+      setTimeout(() => {
+  const itemWidth = strip.children[0]?.offsetWidth || 0;
+  if (itemWidth) strip.scrollLeft = itemWidth;
+}, 300);
+    });
+  });
+let currentIndex = 0;
+let slides = [];
+let dots = [];
+const slider = document.getElementById("fadeSlider");
+const dotsContainer = document.getElementById("fadeDots");
+
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    data.forEach((row, index) => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url;
+        el.loop = true;
+        el.muted = true;
+        el.autoplay = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url;
+      }
+
+      el.className = "fade-slide";
+      if (index === 0) el.classList.add("active");
+
+      slider.appendChild(el);
+      slides.push(el);
+
+      // dots
+      const dot = document.createElement("div");
+      dot.className = "fade-dot";
+      if (index === 0) dot.classList.add("active");
+      dot.addEventListener("click", () => showSlide(index));
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
+    });
+  });
+
+function showSlide(index) {
+  slides[currentIndex]?.classList.remove("active");
+  dots[currentIndex]?.classList.remove("active");
+
+  currentIndex = index;
+
+  slides[currentIndex]?.classList.add("active");
+  dots[currentIndex]?.classList.add("active");
+}
+
+function showNextSlide() {
+  showSlide((currentIndex + 1) % slides.length);
+}
+
+function showPrevSlide() {
+  showSlide((currentIndex - 1 + slides.length) % slides.length);
+}
+
+// Swipe gesture
+let startX = 0;
+slider.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+});
+slider.addEventListener("touchend", e => {
+  const deltaX = e.changedTouches[0].clientX - startX;
+  if (Math.abs(deltaX) > 50) {
+    if (deltaX < 0) showNextSlide();
+    else showPrevSlide();
+  }
+});
+</script>
+<script>
+const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
+
+fetch(couponSheetURL)
+  .then(res => res.json())
+  .then(data => {
+    const container = document.getElementById("couponContainer");
+    data.forEach(c => {
+      if (!c.Title || !c.MinAmount || !c.Code || !c.Discount) return;
+      const html = `
+        <div class="coupon-card">
+          <h3>${c.Title}</h3>
+          <p>Buy for min of ₹${c.MinAmount}</p>
+          <div class="code-row">
+            <div class="code-box">${c.Code}</div>
+            <div class="copy-btn" onclick="navigator.clipboard.writeText('${c.Code}')">
+              <svg viewBox="0 0 24 24">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4
+                         a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </div>
+          </div>
+        </div>`;
+      container.innerHTML += html;
+    });
+  });
+</script>
+<script>
+const categorySheetURL = "https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/Sheet1";
+
+fetch(categorySheetURL)
+  .then(res => res.json())
+  .then(rows => {
+    const container = document.getElementById("categorySection");
+    const grouped = {};
+
+    rows.forEach(row => {
+      const section = row.section?.trim();
+      const name = row["category name"]?.trim();
+      const img = row.image?.trim();
+      const link = row.link?.trim() || "#";
+      if (!section || !name || !img) return;
+      if (!grouped[section]) grouped[section] = [];
+      grouped[section].push({ name, img, link });
+    });
+
+    Object.entries(grouped).forEach(([section, items]) => {
+      const sectionTitle = document.createElement("h3");
+      sectionTitle.innerText = section;
+      sectionTitle.style.width = "100%";
+      sectionTitle.style.fontFamily = "'Roboto Slab', serif";
+      sectionTitle.style.fontSize = "17px";
+      sectionTitle.style.fontWeight = "400";
+      sectionTitle.style.margin = "0";
+      sectionTitle.style.padding = "0";
+      sectionTitle.style.textAlign = "center";
+
+      container.appendChild(sectionTitle);
+
+      items.forEach(item => {
+        const card = document.createElement("a");
+        card.href = item.link;
+        card.style.textDecoration = "none";
+        card.style.width = "calc(50% - 6px)";
+        card.style.border = "none";
+        card.style.borderRadius = "18px";
+        card.style.background = "transparent";
+        card.style.boxShadow = "none";
+        card.style.fontFamily = "'Roboto Slab', serif";
+card.style.webkitTapHighlightColor = "transparent";
+card.style.outline = "none";
+card.style.userSelect = "none";
+
+
+        card.innerHTML = `
+          <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 18px; display: block;" />
+          <div style="text-align: center; padding-top: 6px; font-size: 15px; font-weight: 500; font-family: 'Roboto Slab', serif; color: #000;">
+            ${item.name}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    });
+  });
+  </script>
+  <script>
+fetch("https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/Sheet1")
+  .then(res => res.json())
+  .then(rows => {
+    const menuContainer = document.getElementById("menuContent");
+
+    const categorySet = new Set(); // to avoid duplicates
+
+    rows.forEach(row => {
+      const section = row.section?.trim();
+      const name = row["category name"]?.trim();
+      const link = row.link?.trim() || "#";
+
+      if (!name || !link || categorySet.has(name)) return;
+
+      categorySet.add(name);
+
+      const menuItem = document.createElement("a");
+      menuItem.href = link;
+      menuItem.className = "menu-link";
+      menuItem.innerText = name;
+      menuContainer.appendChild(menuItem);
+    });
+  });
+</script>
+
+<script>
+  function handleCredentialResponse(response) {
+    const data = jwt_decode(response.credential);
+    alert("Welcome " + data.name + " (" + data.email + ")");
+  }
+
+  
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+<script>
+  function clearStorage() {
+    localStorage.clear();
+    sessionStorage.clear();
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+<script>
+  // If redirected from Google login
+  if (window.location.hash.includes("access_token")) {
+    const accessToken = window.location.hash.split("=")[1].split("&")[0];
+    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+      localStorage.setItem("user_name", data.name);
+      localStorage.setItem("user_email", data.email);
+      localStorage.setItem("user_photo", data.picture);
+      location.href = "https://precioussly.com"; // redirect clean
+    });
+  }
+
+  // Show profile photo if already logged in
+  const photo = localStorage.getItem("user_photo");
+  if (photo) {
+    document.getElementById("profileIcon").src = photo;
+  }
+
+  // When user taps profile icon
   function handleProfileClick() {
     const isLoggedIn = localStorage.getItem("user_email");
     if (isLoggedIn) {
@@ -254,54 +1150,24 @@
       window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
     }
   }
-
-  const name = localStorage.getItem("user_name");
-  const email = localStorage.getItem("user_email");
-  const photo = localStorage.getItem("user_photo");
-
-  if (!name || !email || !photo) {
-    window.location.href = "/";
-  }
-
-  document.getElementById("userName").innerText = `Hello, ${name}`;
-  document.getElementById("userEmail").innerText = email;
-  document.getElementById("userImage").src = photo;
-
-  
-
-  function logout() {
-    localStorage.clear();
-    window.location.href = "/";
-  }
-
+</script>
+<script>
   function updateCartBadge() {
     const items = JSON.parse(localStorage.getItem("cartItems")) || [];
     let count = 0;
     items.forEach(item => count += item.qty);
     const badge = document.getElementById("cartCountBadge");
     if (badge) {
-      if (count > 0) {
-        badge.innerText = count;
-        badge.style.display = "flex";
-      } else {
-        badge.style.display = "none";
-      }
-    }
+  if (count > 0) {
+    badge.innerText = count;
+    badge.style.display = "flex";
+  } else {
+    badge.style.display = "none";
   }
+}
+  }
+  // Call once on page load
   updateCartBadge();
-
-  fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
-    .then(res => res.json())
-    .then(data => {
-      if (data.length > 0 && data[0]["(announcement_text)"]) {
-        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
-      }
-    });
-
-  const photoSaved = localStorage.getItem("user_photo");
-  if (photoSaved) {
-    document.getElementById("profileIcon").src = photoSaved;
-  }
 </script>
 </body>
 </html>
