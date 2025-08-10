@@ -524,6 +524,31 @@ button.remove-btn:hover {
 #couponSection{display:none;}
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style>
+/* ---- Fast Delivery pill ---- */
+.fast-delivery-wrap{
+  margin:0; padding:0;
+  display:flex; justify-content:center; align-items:center;
+}
+.fast-delivery-pill{
+  margin:0; padding:0;              /* gap 0 */
+  height:34px;                      /* slim */
+  border:1.2px solid #dcdcdc;
+  border-radius:8px;                /* same feel as proceed button */
+  display:inline-flex; align-items:center;
+  overflow:hidden;                  /* ensures slim look */
+}
+.fast-delivery-icon{
+  width:30px; height:30px;          /* icon bada dikhe */
+  object-fit:contain; display:block;
+  margin:0;                         /* no extra space */
+}
+.fast-delivery-text{
+  font-family:'Roboto Slab',serif; font-size:14px; color:#333; line-height:1;
+  margin:0; padding:0 8px 0 4px;    /* inner text thoda readable; set to 0 for absolute zero spacing */
+}
+</style>
 </head>
 <body>
   <header class="site-header">
@@ -607,16 +632,29 @@ button.remove-btn:hover {
 </div>
 <div id="minimumNotice" style="display: none; text-align: center; color: #2874f0; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
 </div><!-- Fast Delivery Notice (left-aligned, above pay button) -->
-<div id="fastDeliveryRow" style="display:flex;align-items:center;gap:6px;margin:2px 0;">
+<div id="fastDeliveryRow" style="display:flex;align-items:center;gap:0px;margin-top:0px;margin-bottom:0px;line-height:1;">
   <img src="https://i.postimg.cc/TPcvSnLK/1000053157-removebg-preview.png"
        alt="Fast Delivery"
-       style="width:32px;height:32px;object-fit:contain;display:block;" />
-  <span style="font-family: 'Roboto Slab', serif; font-size:14px; color:#333;">
+       style="width:80px;height:80px;object-fit:contain;display:block;" />
+  <span style="font-family: 'Roboto Slab', serif; font-size:14px; color:#333; line-height:1;">
     <strong>Fast Delivery:</strong> Arrives in 4-5 days
   </span>
 </div>
 
 <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display:none;">
+
+<!-- Fast Delivery (center, slim rectangle) -->
+<div id="fastDeliveryWrap" class="fast-delivery-wrap">
+  <div class="fast-delivery-pill">
+    <img
+      src="https://i.postimg.cc/TPcvSnLK/1000053157-removebg-preview.png"
+      alt="Fast Delivery" class="fast-delivery-icon" />
+    <span class="fast-delivery-text">
+      <strong>Fast Delivery:</strong> Arrives in 4-5 days
+    </span>
+  </div>
+</div>
+
   <span class="btn-label">Proceed to Pay</span>
   <span class="btn-spinner" aria-hidden="true"></span>
 </button>
