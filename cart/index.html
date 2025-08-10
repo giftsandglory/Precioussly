@@ -524,31 +524,6 @@ button.remove-btn:hover {
 #couponSection{display:none;}
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-<style>
-/* ---- Fast Delivery pill ---- */
-.fast-delivery-wrap{
-  margin:0; padding:0;
-  display:flex; justify-content:center; align-items:center;
-}
-.fast-delivery-pill{
-  margin:0; padding:0;              /* gap 0 */
-  height:34px;                      /* slim */
-  border:1.2px solid #dcdcdc;
-  border-radius:8px;                /* same feel as proceed button */
-  display:inline-flex; align-items:center;
-  overflow:hidden;                  /* ensures slim look */
-}
-.fast-delivery-icon{
-  width:30px; height:30px;          /* icon bada dikhe */
-  object-fit:contain; display:block;
-  margin:0;                         /* no extra space */
-}
-.fast-delivery-text{
-  font-family:'Roboto Slab',serif; font-size:14px; color:#333; line-height:1;
-  margin:0; padding:0 8px 0 4px;    /* inner text thoda readable; set to 0 for absolute zero spacing */
-}
-</style>
 </head>
 <body>
   <header class="site-header">
@@ -642,19 +617,6 @@ button.remove-btn:hover {
 </div>
 
 <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display:none;">
-
-<!-- Fast Delivery (center, slim rectangle) -->
-<div id="fastDeliveryWrap" class="fast-delivery-wrap">
-  <div class="fast-delivery-pill">
-    <img
-      src="https://i.postimg.cc/TPcvSnLK/1000053157-removebg-preview.png"
-      alt="Fast Delivery" class="fast-delivery-icon" />
-    <span class="fast-delivery-text">
-      <strong>Fast Delivery:</strong> Arrives in 4-5 days
-    </span>
-  </div>
-</div>
-
   <span class="btn-label">Proceed to Pay</span>
   <span class="btn-spinner" aria-hidden="true"></span>
 </button>
