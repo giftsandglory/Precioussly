@@ -659,7 +659,48 @@ down-toggle {
 .fade-dot.active {
   background-color: rgba(0, 0, 0, 0.35); /* slightly darker */
 }
-  </style>
+  
+
+/* --- sticky links at top of side menu (aligned) --- */
+.menu-fixed {
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 2;
+  padding: 0 0 8px 0;   /* no extra top spacing */
+  /* no border line here so it looks same as list */
+}
+
+.menu-fixed .home-link {
+  display: block;
+  padding: 14px 18px 14px 24px;  /* same as .menu-link */
+  font-family: 'Roboto Slab', serif;
+  font-size: 17px;
+  color: #000;
+  text-decoration: none;
+  margin: 0;
+}
+
+/* green theme button, aligned with left edge via margin-left */
+.menu-fixed .track-btn {
+  display: inline-block;
+  margin-left: 24px;   /* align with text of other menu items */
+  margin-top: 6px;
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #064c2c;
+  background: #e9fef1;
+  border: 1.5px solid #c5ecd6;
+  padding: 9px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+
+.menu-fixed .track-btn:active { transform: scale(0.98); }
+
+
+</style>
 </head>
 <body>
   <header class="site-header">
@@ -716,18 +757,7 @@ down-toggle {
 
 
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-<nav class="side-menu" id="sideMenu">
-  <div class="menu-header">
-  <div class="menu-brand">
-    <img src="https://i.postimg.cc/SsVSF0Z8/1000047275-modified.jpg" alt="Logo" class="menu-logo" />
-    <span class="menu-text">Precioussly</span>
-  </div>
-  <span class="menu-close" onclick="toggleMenu()">✕</span>
-</div>
 
-  
-  <div id="menuContent"></div>
-</nav>
 <!-- Menu Overlay -->
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 
@@ -737,8 +767,15 @@ down-toggle {
     <span class="menu-title">Menu</span>
     <span class="menu-close" onclick="toggleMenu()">✕</span>
   </div>
-  <hr style="border: none; border-top: 1px solid #e1dcd5; margin: 10px 0;">
-  <div id="menuContent"></div>
+<!-- 🔒 Always-visible links -->
+<div class="menu-fixed">
+  <a href="https://precioussly.com/" class="home-link">Home</a>
+  <a href="https://precioussly.com/track-order" class="track-btn">Track Order</a>
+</div>
+
+<!-- scrollable area for the rest of menu items from Google Sheet -->
+<div id="menuContent"></div>
+
 </nav>
 
 <!-- 🔽 Final Working Script -->
