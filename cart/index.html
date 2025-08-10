@@ -961,6 +961,7 @@ function confirmAddress() {
         <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
         <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + fee}</span></div>
       `;
+      try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
     });
 </script>
 <script>
@@ -1080,10 +1081,12 @@ function updateSummary() {
 }
 </script>
 <script>
-let selectedPayment = "razorpay"; // default
+let selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || "razorpay"; // default from current radio
+window.selectedPayment = selectedPayment;
 function updatePaymentMethod() {
   const method = document.querySelector('input[name="paymentMethod"]:checked').value;
   selectedPayment = method;
+  window.selectedPayment = method;
 
   const labelEl = document.querySelector('#proceedBtn .btn-label');
   if (labelEl) {
@@ -1732,5 +1735,7 @@ if (couponToUse && document.getElementById("couponInput")) {
   });
 })();
 </script>
+
+<script>document.addEventListener("DOMContentLoaded", function(){ try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {} });</script>
 </body>
 </html>
