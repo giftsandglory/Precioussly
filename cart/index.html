@@ -643,6 +643,31 @@ button.remove-btn{
   border-radius: 10px !important;
 }
 
+
+/* === Adjust Remove button position for better alignment with quantity bar === */
+.actions-row{
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-top: 8px !important;
+}
+
+button.remove-btn{
+  position: relative !important;
+  top: 2px !important;   /* move slightly down */
+  right: -4px !important; /* move slightly to the right */
+  height: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 14px !important;
+  font-size: 14.5px !important;
+  line-height: 1 !important;
+  border: 1.4px solid #2874f0 !important;
+  border-radius: 10px !important;
+}
+
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
