@@ -578,6 +578,11 @@ button.remove-btn:hover {
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
+  <!-- Confirmation sound (preload for instant start) -->
+<audio id="confirmSound"
+       src="https://files.catbox.moe/qkc0il.mp3"
+       preload="auto"
+       playsinline></audio>
   <header class="site-header">
   <div class="hamburger-wrapper" onclick="toggleMenu()">
     <div></div>
@@ -1332,8 +1337,20 @@ function continueWithCOD(btnEl) {
     const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
     const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-    const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+    const codFee = (selectedPayment === "cod" ? (Number(window.codCharge) || 0) : 0);
     const grandTotal = itemsTotal + deliveryFee + codFee;
+
+    // Yahan pe aapka order save karne / spinner lagane ka code aayega
+    // Example: show spinner, save order to localStorage or send to server, etc.
+
+    // Pehle sound play karo
+    playConfirm();
+
+    // Chhota delay do taaki sound start ho jaye phir redirect kare
+    setTimeout(function () {
+        window.location.href = "https://precioussly.com/thankyou-cod";
+    }, 150);
+}
 
     // --- order object (dashboard ke liye useful) ---
     const order = {
@@ -1356,8 +1373,11 @@ function continueWithCOD(btnEl) {
     localStorage.setItem("lastOrderClearedCart", "1");
 
     // thank you page
-    sessionStorage.setItem('playConfirmAudio','1');
-window.location.href = "https://precioussly.com/thankyou-cod";
+    // PLAY SOUND FIRST, then redirect after a tiny delay
+playConfirm();
+setTimeout(function () {
+  window.location.href = "https://precioussly.com/thankyou-cod";
+}, 150);
   }
 </script>
 <script>
@@ -1445,8 +1465,10 @@ function openAddressAndClosePopup() {
         try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
         localStorage.setItem("lastOrderClearedCart", "1");
 
-        sessionStorage.setItem('playConfirmAudio','1');
-window.location.href = "https://precioussly.com/thankyou-razorpay";
+        playConfirm();
+setTimeout(function () {
+  window.location.href = "https://precioussly.com/thankyou-razorpay";
+}, 150);
       },
 
       modal: {
@@ -1833,5 +1855,15 @@ if (couponToUse && document.getElementById("couponInput")) {
 </script>
 
 <script>document.addEventListener("DOMContentLoaded", function(){ try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {} });</script>
+<script>
+  function playConfirm() {
+    try {
+      const a = document.getElementById('confirmSound');
+      if (!a) return;
+      a.currentTime = 0;
+      a.play().catch(()=>{ /* ignore */ });
+    } catch(e) {}
+  }
+</script>
 </body>
 </html>
