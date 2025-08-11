@@ -1314,42 +1314,62 @@ function handleProceed() {
   }
 }
 
+
 function continueWithCOD(btnEl) {
-  // ✅ Do NOT close popup; keep it visible while spinner runs
+  // ✅ 1) Sound immediately on click (user gesture ke andar)
+  try { playConfirm(); } catch (e) {}
+
+  // ✅ 2) Spinner ON
   if (btnEl) {
-    btnEl.classList.add('is-loading');   // hides label, shows spinner
+    btnEl.classList.add('is-loading');
     btnEl.setAttribute('aria-busy','true');
   }
 
+  // ✅ 3) Chhota delay (UX ke liye), phir order + redirect
   setTimeout(() => {
     if (btnEl) {
       btnEl.classList.remove('is-loading');
       btnEl.removeAttribute('aria-busy');
     }
-    // Place COD order locally and redirect
     placeCODOrderAndRedirect();
-  }, 2000);
+  }, 800); // 800–1000ms good; 2000ms mat rakho
 }
 </script>
 <script>
-  function placeCODOrderAndRedirect() {
-    // --- amounts ---
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
-    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-    const codFee = (selectedPayment === "cod" ? (Number(window.codCharge) || 0) : 0);
-    const grandTotal = itemsTotal + deliveryFee + codFee;
+function placeCODOrderAndRedirect() {
+  // --- amounts ---
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const codFee = Number(window.codCharge) || 0; // ✅ COD me hamesha codFee
+  const grandTotal = itemsTotal + deliveryFee + codFee;
 
-    // Yahan pe aapka order save karne / spinner lagane ka code aayega
-    // Example: show spinner, save order to localStorage or send to server, etc.
+  // --- (optional but recommended) order save for dashboard ---
+  const order = {
+    id: "COD-" + Date.now(),
+    method: "COD",
+    items,
+    amounts: { itemsTotal, deliveryFee, codFee, grandTotal },
+    address: localStorage.getItem("shippingAddress") || "",
+    createdAt: new Date().toISOString()
+  };
+  try {
+    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    orders.unshift(order);
+    localStorage.setItem("orders", JSON.stringify(orders));
+  } catch (e) {}
 
-    // Pehle sound play karo
-    playConfirm();
+  // --- clear cart & badge ---
+  localStorage.setItem("cartItems", "[]");
+  try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
 
-    // Chhota delay do taaki sound start ho jaye phir redirect kare
-    setTimeout(function () {
-        window.location.href = "https://precioussly.com/thankyou-cod";
-    }, 150);
+  // --- sound: best is to play ON CLICK, but fallback yahan bhi try kar lete hain ---
+  try { playConfirm(); } catch(e){}
+
+  // --- quick redirect ---
+  setTimeout(function () {
+    window.location.href = "https://precioussly.com/thankyou-cod";
+  }, 150);
 }
 
     // --- order object (dashboard ke liye useful) ---
