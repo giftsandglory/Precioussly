@@ -569,17 +569,7 @@ button.remove-btn:hover {
 
 
 <!-- ULTRA PREMIUM PAYMENT OPTIONS -->
-<div class="payment-method-box" id="paymentMethodBox">
-  <label class="payment-option">
-    <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
-    <span class="custom-radio"></span>
-    Pay via Razorpay (Free Delivery)
-  </label>
 
-  <label class="payment-option">
-    <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
-    <span class="custom-radio"></span> <span id="codLabelText">Cash on Delivery</span></label>
-</div>
 <!-- ===== Coupons (fetched from same Google Sheet as index) ===== -->
 <div id="couponSection" style="margin-top:10px;">
   <div id="couponContainerCart" class="coupon-strip" style="display:none;"></div>
@@ -602,6 +592,17 @@ button.remove-btn:hover {
   <div class="summary-row"><span>Item Total</span><span><span class="spinner"></span></span></div>
   <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
+</div>
+<div class="payment-method-box" id="paymentMethodBox">
+  <label class="payment-option">
+    <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
+    <span class="custom-radio"></span>
+    Pay via Razorpay (Free Delivery)
+  </label>
+
+  <label class="payment-option">
+    <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
+    <span class="custom-radio"></span> <span id="codLabelText">Cash on Delivery</span></label>
 </div>
 <div id="minimumNotice" style="display: none; text-align: center; color: #2874f0; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
 </div><!-- Fast Delivery Notice (left-aligned, above pay button) -->
