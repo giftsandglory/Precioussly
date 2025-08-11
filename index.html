@@ -991,7 +991,19 @@ down-toggle {
   background: inherit !important;
   color: inherit !important;
 }
+/* Prevent Track Order color change on click */
+.menu-link:active,
+.menu-link--primary:active {
+  background: inherit !important;
+  color: inherit !important;
+  transform: none !important;
+}
 
+/* Remove bold text for Track Order and Home */
+.menu-link,
+.menu-link--primary {
+  font-weight: 500 !important; /* normal weight */
+}
 </style>
 </head>
 <body>
@@ -1117,7 +1129,7 @@ down-toggle {
     document.querySelectorAll('#sideMenu a.menu-link, #sideMenu .home-link').forEach(a => {
       try {
         const path = new URL(a.href).pathname.replace(/\/+$/, '');
-        if (path === here) a.style.fontWeight = '700';
+        
       } catch (_) {}
     });
   });
