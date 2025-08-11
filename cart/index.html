@@ -1356,7 +1356,8 @@ function continueWithCOD(btnEl) {
     localStorage.setItem("lastOrderClearedCart", "1");
 
     // thank you page
-    window.location.href = "https://precioussly.com/thankyou-cod";
+    sessionStorage.setItem('playConfirmAudio','1');
+window.location.href = "https://precioussly.com/thankyou-cod";
   }
 </script>
 <script>
@@ -1444,7 +1445,8 @@ function openAddressAndClosePopup() {
         try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
         localStorage.setItem("lastOrderClearedCart", "1");
 
-        window.location.href = "https://precioussly.com/thankyou-razorpay";
+        sessionStorage.setItem('playConfirmAudio','1');
+window.location.href = "https://precioussly.com/thankyou-razorpay";
       },
 
       modal: {
