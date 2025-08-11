@@ -236,6 +236,15 @@
   const name = localStorage.getItem("user_name");
   const email = localStorage.getItem("user_email");
   const photo = localStorage.getItem("user_photo");
+  function sendUserToSheet(name, email) {
+    if (!email) return;
+    fetch("https://script.google.com/macros/s/AKfycbwywAxoiiN4AsnHqtxq4_k9Rsx3DrvFtsD8DUxt6J0Ku2WnfEeee_3jQd19SdSvmbeK4w/exec", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email })
+    }).catch(() => {});
+  }
+
 
   if (!name || !email || !photo) {
     window.location.href = "/";
@@ -244,6 +253,8 @@
   document.getElementById("userName").innerText = `Hello, ${name}`;
   document.getElementById("userEmail").innerText = email;
   document.getElementById("userImage").src = photo;
+  sendUserToSheet(name, email);
+
 
   
 
