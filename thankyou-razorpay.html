@@ -54,5 +54,14 @@
     <p>We'll ship your order shortly.</p>
     <a href="https://precioussly.com/">Continue Shopping</a>
   </div>
+  <script>
+document.addEventListener("DOMContentLoaded", function() {
+    const audio = new Audio("https://precioussly.com/order-confirmation.mp3");
+    audio.play().catch(err => {
+        console.warn("Autoplay blocked, playing after user interaction", err);
+        document.body.addEventListener("click", () => audio.play(), { once: true });
+    });
+});
+</script>
 </body>
 </html>
