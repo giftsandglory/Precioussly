@@ -574,6 +574,40 @@ button.remove-btn:hover {
   font-weight: 500;
   color: #222;
 }
+
+/* === Compact quantity bar + alignment with Remove button === */
+.quantity-bar{
+  padding: 2px 6px !important;
+  gap: 10px !important;
+  height: 34px !important;
+  margin: 6px 0 0 0 !important;
+}
+.quantity-bar button svg{
+  width: 16px !important;
+  height: 16px !important;
+}
+.quantity-display{
+  font-size: 14px !important;
+  min-width: 18px !important;
+}
+/* Make Remove button same height and perfectly centered */
+button.remove-btn{
+  height: 34px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 12px !important;
+  border-radius: 8px !important;
+}
+/* Keep the row tight and aligned under the photo */
+.item .item-info > div:nth-child(3){
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:6px;
+}
+
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
