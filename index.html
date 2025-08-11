@@ -9,6 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+
+  /* 🔵 Disable blue tap highlight everywhere */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-focus-ring-color: transparent;
+  outline: none;
+}
   .header-logo-container {
   position: absolute;
   left: 50%;
@@ -892,7 +899,7 @@ down-toggle {
 .submenu-link:hover,
 .dropdown-toggle:hover { background: transparent !important; }
 
-#sideMenu a:focus { outline: 2px solid #0003; outline-offset: 2px; }
+
 
 
 /* === MENU – ULTRA SMOOTH OPEN/CLOSE (OVERRIDES) === */
