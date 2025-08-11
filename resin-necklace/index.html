@@ -388,22 +388,30 @@ body.noscroll {
 }
 
 /* === WhatsApp share button on popup === */
+
+
+
+
+/* WhatsApp share button new position (right-bottom of photo) */
+.popup-media{ position: relative; }
+
 .wh-share {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  background: #25D366;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(0,0,0,.08);
-  box-shadow: 0 6px 20px rgba(0,0,0,.15);
-  z-index: 5;
+  bottom: -28px; /* photo ke neeche le jane ke liye */
+  right: 0;      /* right side align */
+  width: auto;
+  height: auto;
+  background: transparent; /* white box hata diya */
+  border: none;
+  box-shadow: none;
 }
-.wh-share svg { width: 20px; height: 20px; fill: #fff; }
+
+.wh-share img {
+  width: 26px; /* icon size control */
+  height: 26px;
+  display: block;
+  object-fit: contain;
+}
 
 </style>
 </head>
@@ -570,18 +578,18 @@ product.appendChild(infoWrapper);
 <div id="productPopup">
   <div class="popup-card" onclick="event.stopPropagation()">
 
-<!-- WhatsApp Share -->
-<a id="whShare" class="wh-share" href="#" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
-  <svg viewBox="0 0 32 32" aria-hidden="true">
-    <path d="M19.11 17.53c-.26-.13-1.53-.76-1.77-.84-.24-.09-.42-.13-.6.13-.18.26-.69.84-.84 1.02-.16.18-.31.2-.57.07-.26-.13-1.07-.39-2.05-1.24-.76-.67-1.27-1.49-1.42-1.75-.15-.26-.02-.4.11-.53.11-.12.26-.31.39-.46.13-.15.17-.26.26-.44.09-.18.04-.33-.02-.46-.07-.13-.6-1.45-.82-1.99-.22-.53-.44-.46-.6-.46h-.52c-.18 0-.46.07-.7.33-.24.26-.92.9-.92 2.18s.94 2.53 1.07 2.7c.13.18 1.86 2.84 4.51 3.98.63.27 1.12.43 1.5.54.63.2 1.2.17 1.65.1.5-.07 1.53-.62 1.75-1.21.22-.59.22-1.1.15-1.21-.06-.11-.24-.18-.5-.31zM16 4.6A11.36 11.36 0 0 0 4.62 15.94c0 2 .52 3.55 1.7 5.33L4 28l6.9-2.26c1.7.93 3.1 1.26 5.1 1.26A11.36 11.36 0 1 0 16 4.6zm0 20.5c-1.77 0-3.14-.46-4.8-1.3l-.35-.18-4.09 1.34 1.33-3.98-.2-.36c-1.1-1.78-1.57-3.25-1.57-5.02A9.68 9.68 0 1 1 16 25.1z"/>
-  </svg>
-</a>
+
 
 <!-- Close button -->
 
 <!-- Square image 1:1 -->
 <!-- Sliding photos here -->
-<div id="popupSlider"></div>
+<div class="popup-media">
+  <div id="popupSlider"></div>
+  <a id="whShare" class="wh-share" href="#" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
+    <img src="https://i.postimg.cc/fLMF5X4j/file-00000000fcd061f8a087874368df7c79.png" alt="Share on WhatsApp">
+  </a>
+</div>
 <div id="popupDots" class="popup-dots"></div>
 <!-- Product name on left -->
 <div id="popupName" style="font-size:16px; font-weight:600; text-align:left; margin: 10px 6px 4px;"></div>
