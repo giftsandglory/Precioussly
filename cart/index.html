@@ -574,100 +574,6 @@ button.remove-btn:hover {
   font-weight: 500;
   color: #222;
 }
-
-/* === Compact quantity bar + alignment with Remove button === */
-.quantity-bar{
-  padding: 2px 6px !important;
-  gap: 10px !important;
-  height: 34px !important;
-  margin: 6px 0 0 0 !important;
-}
-.quantity-bar button svg{
-  width: 16px !important;
-  height: 16px !important;
-}
-.quantity-display{
-  font-size: 14px !important;
-  min-width: 18px !important;
-}
-/* Make Remove button same height and perfectly centered */
-button.remove-btn{
-  height: 34px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 12px !important;
-  border-radius: 8px !important;
-}
-/* Keep the row tight and aligned under the photo */
-.item .item-info > div:nth-child(3){
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-top:6px;
-}
-
-
-/* === PERFECT ALIGNMENT: quantity bar + Remove === */
-.actions-row{
-  display: grid !important;
-  grid-template-columns: auto auto;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  margin-top: 8px !important;
-  min-height: 36px !important;
-}
-
-.quantity-bar{
-  height: 36px !important;
-  padding: 2px 8px !important;
-  gap: 10px !important;
-  border: 1.4px solid #d6dbe3 !important; /* same thickness as outlined buttons */
-  border-radius: 10px !important;
-}
-
-.quantity-bar button svg{ width: 16px !important; height: 16px !important; }
-.quantity-display{ font-size: 14.5px !important; min-width: 20px !important; line-height: 1 !important; }
-
-button.remove-btn{
-  height: 36px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 14px !important;
-  font-size: 14.5px !important;
-  line-height: 1 !important;
-  border: 1.4px solid #2874f0 !important;
-  border-radius: 10px !important;
-}
-
-
-/* === Adjust Remove button position for better alignment with quantity bar === */
-.actions-row{
-  display: flex !important;
-  align-items: flex-start !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  margin-top: 8px !important;
-}
-
-button.remove-btn{
-  position: relative !important;
-  top: 2px !important;   /* move slightly down */
-  right: -4px !important; /* move slightly to the right */
-  height: 36px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 14px !important;
-  font-size: 14.5px !important;
-  line-height: 1 !important;
-  border: 1.4px solid #2874f0 !important;
-  border-radius: 10px !important;
-}
-
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -790,7 +696,7 @@ button.remove-btn{
         <div class="item-info">
   <div class="item-name">${item.name}</div>
   <div class="item-price">₹${item.price}</div>
-  <div class="actions-row">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
     <div class="quantity-bar" style="margin:0;">
       <button onclick="decrease(${index})">
         <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
@@ -1164,7 +1070,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="item-info">
   <div class="item-name">${item.name}</div>
   <div class="item-price">₹${item.price}</div>
-  <div class="actions-row">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
     <div class="quantity-bar" style="margin:0;">
       <button onclick="decrease(${index})">
         <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
