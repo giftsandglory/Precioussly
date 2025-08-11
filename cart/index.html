@@ -569,17 +569,7 @@ button.remove-btn:hover {
 
 
 <!-- ULTRA PREMIUM PAYMENT OPTIONS -->
-<div class="payment-method-box" id="paymentMethodBox">
-  <label class="payment-option">
-    <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
-    <span class="custom-radio"></span>
-    Pay via Razorpay (Free Delivery)
-  </label>
 
-  <label class="payment-option">
-    <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
-    <span class="custom-radio"></span> <span id="codLabelText">Cash on Delivery</span></label>
-</div>
 <!-- ===== Coupons (fetched from same Google Sheet as index) ===== -->
 <div id="couponSection" style="margin-top:10px;">
   <div id="couponContainerCart" class="coupon-strip" style="display:none;"></div>
@@ -604,17 +594,7 @@ button.remove-btn:hover {
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
 </div>
 <div id="minimumNotice" style="display: none; text-align: center; color: #2874f0; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
-</div><!-- Fast Delivery Notice (left-aligned, above pay button) -->
-<div id="fastDeliveryRow" style="display:flex;align-items:center;gap:0px;margin-top:0px;margin-bottom:0px;line-height:1;">
-  <img src="https://i.postimg.cc/TPcvSnLK/1000053157-removebg-preview.png"
-       alt="Fast Delivery"
-       style="width:80px;height:80px;object-fit:contain;display:block;" />
-  <span style="font-family: 'Roboto Slab', serif; font-size:14px; color:#333; line-height:1;">
-    <strong>Fast Delivery:</strong> Arrives in 4-5 days
-  </span>
-</div>
-<!-- ULTRA PREMIUM PAYMENT OPTIONS (moved just above Proceed button) -->
-<div class="payment-method-box" id="paymentMethodBox" style="margin-top:12px;">
+</div><!-- Fast Delivery Notice (left-aligned, above pay button) --><div class="payment-method-box" id="paymentMethodBox">
   <label class="payment-option">
     <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
     <span class="custom-radio"></span>
@@ -623,13 +603,17 @@ button.remove-btn:hover {
 
   <label class="payment-option">
     <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
-    <span class="custom-radio"></span>
-    <span id="codLabelText">Cash on Delivery</span>
-  </label>
+    <span class="custom-radio"></span> <span id="codLabelText">Cash on Delivery</span></label>
 </div>
 
-
-
+<div id="fastDeliveryRow" style="display:flex;align-items:center;gap:0px;margin-top:0px;margin-bottom:0px;line-height:1;">
+  <img src="https://i.postimg.cc/TPcvSnLK/1000053157-removebg-preview.png"
+       alt="Fast Delivery"
+       style="width:80px;height:80px;object-fit:contain;display:block;" />
+  <span style="font-family: 'Roboto Slab', serif; font-size:14px; color:#333; line-height:1;">
+    <strong>Fast Delivery:</strong> Arrives in 4-5 days
+  </span>
+</div>
 <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display:none; margin-top:0px;">
   <span class="btn-label">Proceed to Pay</span>
   <span class="btn-spinner" aria-hidden="true"></span>
