@@ -1315,64 +1315,38 @@ function handleProceed() {
 }
 
 
-function continueWithCOD(btnEl) {
-  // ✅ 1) Sound immediately on click (user gesture ke andar)
-  try { playConfirm(); } catch (e) {}
 
-  // ✅ 2) Spinner ON
-  if (btnEl) {
+function continueWithCOD(btnEl){
+  // Sound immediately (user gesture)
+  try{ playConfirm(); }catch(e){}
+
+  // Spinner UX
+  if(btnEl){
     btnEl.classList.add('is-loading');
     btnEl.setAttribute('aria-busy','true');
   }
 
-  // ✅ 3) Chhota delay (UX ke liye), phir order + redirect
-  setTimeout(() => {
-    if (btnEl) {
+  // Short delay, then place order + redirect
+  setTimeout(()=>{
+    if(btnEl){
       btnEl.classList.remove('is-loading');
       btnEl.removeAttribute('aria-busy');
     }
     placeCODOrderAndRedirect();
-  }, 800); // 800–1000ms good; 2000ms mat rakho
+  }, 800);
 }
 </script>
 <script>
-function placeCODOrderAndRedirect() {
+function placeCODOrderAndRedirect(){
   // --- amounts ---
-  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+  const items = JSON.parse(localStorage.getItem("cartItems")||"[]");
+  const itemsTotal = items.reduce((s,it)=> s + (Number(it.price)*Number(it.qty)), 0);
   const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-  const codFee = Number(window.codCharge) || 0; // ✅ COD me hamesha codFee
+  const codFee = Number(window.codCharge)||0;
   const grandTotal = itemsTotal + deliveryFee + codFee;
 
-  // --- (optional but recommended) order save for dashboard ---
-  const order = {
-    id: "COD-" + Date.now(),
-    method: "COD",
-    items,
-    amounts: { itemsTotal, deliveryFee, codFee, grandTotal },
-    address: localStorage.getItem("shippingAddress") || "",
-    createdAt: new Date().toISOString()
-  };
-  try {
-    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-    orders.unshift(order);
-    localStorage.setItem("orders", JSON.stringify(orders));
-  } catch (e) {}
-
-  // --- clear cart & badge ---
-  localStorage.setItem("cartItems", "[]");
-  try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
-
-  // --- sound: best is to play ON CLICK, but fallback yahan bhi try kar lete hain ---
-  try { playConfirm(); } catch(e){}
-
-  // --- quick redirect ---
-  setTimeout(function () {
-    window.location.href = "https://precioussly.com/thankyou-cod";
-  }, 150);
-}
-
-    // --- order object (dashboard ke liye useful) ---
+  // --- (optional) save order for dashboard ---
+  try{
     const order = {
       id: "COD-" + Date.now(),
       method: "COD",
@@ -1381,24 +1355,21 @@ function placeCODOrderAndRedirect() {
       address: localStorage.getItem("shippingAddress") || "",
       createdAt: new Date().toISOString()
     };
-    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    const orders = JSON.parse(localStorage.getItem("orders")||"[]");
     orders.unshift(order);
     localStorage.setItem("orders", JSON.stringify(orders));
+  }catch(e){}
 
-    // --- clear cart before redirect ---
-    localStorage.setItem("cartItems", "[]");
-    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+  // --- clear cart + badge ---
+  localStorage.setItem("cartItems","[]");
+  try{ if(typeof updateCartBadge==="function") updateCartBadge(); }catch(e){}
 
-    // BFCache se wapas aane par hard refresh karane ke liye flag
-    localStorage.setItem("lastOrderClearedCart", "1");
-
-    // thank you page
-    // PLAY SOUND FIRST, then redirect after a tiny delay
-playConfirm();
-setTimeout(function () {
-  window.location.href = "https://precioussly.com/thankyou-cod";
-}, 150);
-  }
+  // --- reliable redirect (handles www / non-www) ---
+  setTimeout(()=>{ 
+    window.location.assign(`${location.origin}/thankyou-cod`);
+    // OR: window.location.replace(`${location.origin}/thankyou-cod`);
+  }, 150);
+}
 </script>
 <script>
 function closeCODPopup() {
