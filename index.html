@@ -775,6 +775,144 @@ down-toggle {
   transition: max-height 0.5s ease, opacity 0.5s ease, padding 0.5s ease, margin 0.5s ease;
 }
 
+
+
+/* === MENU (NO HOVER / NO ANIMATION) – OVERRIDES === */
+
+/* Overlay: just show/hide, no fade */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: none;
+  z-index: 4000;
+  opacity: 1 !important;
+  transition: none !important;
+}
+.menu-overlay.active { display: block; }
+
+/* Drawer: instant open/close, bigger width & padding */
+.side-menu {
+  position: fixed;
+  top: 0; left: 0;
+  width: 84vw;
+  max-width: 380px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: 4px 0 16px rgba(0,0,0,.1);
+  padding: 16px 12px;
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: none !important;
+  z-index: 5000;
+}
+.side-menu.active { transform: translateX(0); }
+
+/* Header row */
+.menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px 12px;
+  border-bottom: 1px solid #eaeaea;
+  margin-bottom: 12px;
+}
+.menu-title {
+  font-family: 'Roboto Slab', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+}
+.menu-close {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid #000;
+  border-radius: 10px;
+  font-size: 18px; font-weight: 700; color: #000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: none !important;
+}
+.menu-close:hover { transform: none !important; }
+
+/* Sticky “Home” + “Track Order” block */
+.menu-fixed { position: sticky; top: 0; background: #fff; padding-bottom: 8px; z-index: 2; }
+.menu-fixed a { text-decoration: none; color: #000; font-family: 'Roboto Slab', serif; }
+.menu-fixed .home-link { display: block; padding: 14px 16px; font-size: 17px; }
+.menu-fixed .track-btn {
+  display: block;
+  margin: 6px 16px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #e9fef1;
+  border: 1.5px solid #c5ecd6;
+  font-size: 16px; font-weight: 600; text-align: center;
+}
+
+/* Main list */
+.menu-link,
+.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px;
+  min-height: 48px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  text-decoration: none;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #f1f1f1;
+  background: transparent;
+}
+.dropdown-icon,
+.caret { font-size: 18px; line-height: 1; color: #000; }
+
+/* Submenus */
+.submenu-container,
+.submenu {
+  display: none;
+  background: #fafafa;
+  padding-left: 8px;
+}
+.submenu-container.open,
+.submenu.open { display: block; }
+.submenu-link {
+  display: block;
+  padding: 12px 16px 12px 24px;
+  font-size: 15px; color: #333;
+  text-decoration: none;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+/* Kill hovers */
+.menu-link:hover,
+.submenu-link:hover,
+.dropdown-toggle:hover { background: transparent !important; }
+
+#sideMenu a:focus { outline: 2px solid #0003; outline-offset: 2px; }
+
+
+/* === MENU – ULTRA SMOOTH OPEN/CLOSE (OVERRIDES) === */
+.menu-overlay{
+  opacity:0;
+  transition: opacity .35s cubic-bezier(.22,1,.36,1) !important; /* smooth fade */
+}
+.menu-overlay.active{opacity:1; display:block;}
+
+.side-menu {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.8s cubic-bezier(.25, 1, .3, 1) !important; /* smoother & slower */
+}
+.side-menu.active{ transform: translateX(0); }
+
+/* keep items still: no hover color, but give crisp separators */
+.menu-link, .submenu-link, .dropdown-toggle{ transition: none !important; }
+
 </style>
 </head>
 <body>
@@ -853,9 +991,6 @@ down-toggle {
 
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 
-<!-- Menu Overlay -->
-<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-
 <!-- Side Menu -->
 <nav class="side-menu" id="sideMenu">
   <div class="menu-header">
@@ -864,14 +999,52 @@ down-toggle {
   </div>
 <!-- 🔒 Always-visible links -->
 <div class="menu-fixed">
-  <a href="https://precioussly.com/" class="home-link">Home</a>
   <a href="https://precioussly.com/track-order" class="track-btn">Track Order</a>
+  <a href="https://precioussly.com/" class="home-link">Home</a>
 </div>
 
 <!-- scrollable area for the rest of menu items from Google Sheet -->
 <div id="menuContent"></div>
 
 </nav>
+
+<script>
+  document.addEventListener('click', function (e) {
+    const menu = document.getElementById('sideMenu');
+    if (!menu.contains(e.target)) return;
+    const toggle = e.target.closest('.dropdown-toggle');
+    if (toggle) {
+      const next = toggle.nextElementSibling;
+      if (next && (next.classList.contains('submenu-container') || next.classList.contains('submenu'))) {
+        const isOpen = next.classList.contains('open') || next.style.display === 'block';
+        next.classList.toggle('open', !isOpen);
+        next.style.display = isOpen ? 'none' : 'block';
+      }
+      e.preventDefault();
+      return;
+    }
+    const a = e.target.closest('a');
+    if (a && a.href) {
+      toggleMenu();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      const menu = document.getElementById('sideMenu');
+      if (menu.classList.contains('active')) toggleMenu();
+    }
+  });
+  window.addEventListener('load', function () {
+    const here = location.pathname.replace(/\/+$/, '');
+    document.querySelectorAll('#sideMenu a.menu-link, #sideMenu .home-link').forEach(a => {
+      try {
+        const path = new URL(a.href).pathname.replace(/\/+$/, '');
+        if (path === here) a.style.fontWeight = '700';
+      } catch (_) {}
+    });
+  });
+</script>
+
 
 <!-- 🔽 Final Working Script -->
 <script>
