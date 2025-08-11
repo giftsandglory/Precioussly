@@ -1323,6 +1323,7 @@ function handleProceed() {
   }
 }
 
+
 function continueWithCOD(btnEl) {
   // Button par spinner dikhao
   if (btnEl) {
@@ -1330,24 +1331,26 @@ function continueWithCOD(btnEl) {
     btnEl.setAttribute('aria-busy','true');
   }
 
-  // Bilkul 2 second wait
+  // 1 second baad sound play
+  setTimeout(() => {
+    playCODConfirm();
+  }, 1000); // 1000 ms = 1 second
+
+  // Bilkul 2 second wait ke baad spinner stop + redirect
   setTimeout(() => {
     if (btnEl) {
       btnEl.classList.remove('is-loading');
       btnEl.removeAttribute('aria-busy');
     }
 
-    // 🔊 2s ke baad sound chalayein
-    playCODConfirm();
-
-    // Audio ko start hone ke liye chhota gap, phir redirect logic
+    // Audio start ho chuka hoga, ab redirect
     setTimeout(() => {
       placeCODOrderAndRedirect();
     }, 150);
 
-  }, 500);
+  }, 2000); // 2000 ms = 2 seconds
 }
-</script>
+
 <script>
   function placeCODOrderAndRedirect() {
     // --- amounts ---
