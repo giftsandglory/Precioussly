@@ -593,8 +593,7 @@ button.remove-btn:hover {
   <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
 </div>
-<div id="minimumNotice" style="display: none; text-align: center; color: #2874f0; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
-</div><!-- Fast Delivery Notice (left-aligned, above pay button) --><div class="payment-method-box" id="paymentMethodBox">
+<!-- Fast Delivery Notice (left-aligned, above pay button) --><div class="payment-method-box" id="paymentMethodBox">
   <label class="payment-option">
     <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
     <span class="custom-radio"></span>
@@ -613,7 +612,9 @@ button.remove-btn:hover {
   <span style="font-family: 'Roboto Slab', serif; font-size:14px; color:#333; line-height:1;">
     <strong>Fast Delivery:</strong> Arrives in 5-7 days
   </span>
+</div><div id="minimumNotice" style="display: none; text-align: center; color: #2874f0; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
 </div>
+
 <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display:none; margin-top:0px;">
   <span class="btn-label">Proceed to Pay</span>
   <span class="btn-spinner" aria-hidden="true"></span>
