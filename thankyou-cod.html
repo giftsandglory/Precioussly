@@ -152,6 +152,10 @@
   </style>
 </head>
 <body>
+<!-- 🔊 Confirmation sound (keep just under <body>) -->
+<audio id="confirmSound" preload="auto" src="https://drive.google.com/uc?export=download&id=1JbYL8Y5p-N_JUzIIblXj36X16uM3nmqs"></audio>
+
+
   <main class="wrap">
     <section class="card" role="status" aria-live="polite">
       <!-- Animated success mark (no SVG) -->
@@ -201,14 +205,41 @@
       <p class="footnote">We appreciate your trust in us.</p>
     </section>
   </main>
-  <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const audio = new Audio("https://precioussly.com/order-confirmation.mp3");
-    audio.play().catch(err => {
-        console.warn("Autoplay blocked, playing after user interaction", err);
-        document.body.addEventListener("click", () => audio.play(), { once: true });
-    });
-});
+
+<script>
+(function () {
+  const shouldPlay = sessionStorage.getItem('playConfirmAudio') === '1';
+  const audio = document.getElementById('confirmSound');
+
+  async function tryPlay() {
+    if (!audio) return;
+    try {
+      audio.currentTime = 0;
+      await audio.play();
+      // clear the flag so it doesn't replay on refresh
+      sessionStorage.removeItem('playConfirmAudio');
+    } catch (e) {
+      // If autoplay blocked, try again shortly
+      setTimeout(tryPlay, 250);
+    }
+  }
+
+  if (shouldPlay) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      tryPlay();
+    } else {
+      document.addEventListener('DOMContentLoaded', tryPlay);
+    }
+  }
+
+  // Extra safety if page comes from back/forward cache
+  window.addEventListener('pageshow', function () {
+    if (sessionStorage.getItem('playConfirmAudio') === '1') {
+      tryPlay();
+    }
+  });
+})();
 </script>
+
 </body>
 </html>
