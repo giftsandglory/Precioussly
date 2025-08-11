@@ -1,249 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <meta name="google-signin-client_id" content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard - Precioussly</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-/* 🔵 Disable blue tap highlight everywhere */
-* {
-  -webkit-tap-highlight-color: transparent;
-  -webkit-focus-ring-color: transparent;
-  outline: none;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background-color: #ffffff;
-  font-family: 'Segoe UI', sans-serif;
-}
-
 .site-header {
   background-color: #ffffff;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 16px; /* match index */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  min-height: 72px;   /* height consistency */
-}
-
-.hamburger-wrapper {
-  width: 24px;
-  height: 20px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.hamburger-wrapper div {
-  width: 100%;
-  height: 3px;
-  background-color: #000;
-  border-radius: 2px;
-}
-
-.right-icon {
-  width: 32px;
-  height: 32px;
-  object-fit: cover;
-  cursor: pointer;
-  border-radius: 50%;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-.icon-size {
-  width: 10px;  /* exact as index */
-  height: 10px;
-}
-
-#announcementBar {
-  margin: 0;
-  padding: 6px 10px;
-  font-size: 13px;
-  color: #ffffff;
-  background: #000000;
-  border-top: none;
-  border-bottom: none;
-  font-weight: 500;
-  text-align: center;
-  font-family: 'Roboto Slab', serif;
-  min-height: 24px;
-  line-height: 22px;
-  user-select: none;
-}
-
-/* ===== MENU (same as index) ===== */
-.menu-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.45);
-  display: none;
-  z-index: 4000;
-  opacity: 1 !important;
-  transition: none !important;
-}
-.menu-overlay.active { display: block; }
-
-.side-menu {
-  position: fixed;
-  top: 0; left: 0;
-  width: 84vw;
-  max-width: 380px;
-  height: 100vh;
-  background: #fff;
-  box-shadow: 4px 0 16px rgba(0,0,0,.1);
-  padding: 16px 12px;
-  overflow-y: auto;
-  transform: translateX(-100%);
-  transition: transform 0.8s cubic-bezier(.25, 1, .3, 1) !important; /* ultra smooth */
-  z-index: 5000;
-  font-family: 'Roboto Slab', serif;
-  will-change: transform;
-  backface-visibility: hidden;
-}
-.side-menu.active{ transform: translateX(0); }
-
-.menu-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 4px 12px;
-  border-bottom: 1px solid #eaeaea;
-  margin-bottom: 12px;
-}
-.menu-title {
-  font-family: 'Roboto Slab', serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: #000;
-}
-.menu-close {
-  width: 36px; height: 36px;
-  display: flex; align-items: center; justify-content: center;
-  border: 1px solid #000;
-  border-radius: 10px;
-  font-size: 18px; font-weight: 700; color: #000;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: none !important;
-}
-
-.menu-fixed { position: sticky; top: 0; background: #fff; padding-bottom: 8px; z-index: 2; }
-.menu-fixed a { text-decoration: none; color: #000; font-family: 'Roboto Slab', serif; }
-.menu-fixed .home-link { display: block; padding: 14px 16px; font-size: 17px; }
-.menu-fixed .track-btn {
-  display: block;
-  margin: 6px 16px 0;
   padding: 12px 14px;
-  border-radius: 12px;
-  background: #e9fef1;
-  border: 1.5px solid #c5ecd6;
-  font-size: 16px; font-weight: 600; text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  min-height: 60px;
 }
-
-.menu-link, .dropdown-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 14px 16px;
-  min-height: 48px;
-  font-size: 17px;
-  font-weight: 500 !important; /* prevent bold */
-  color: #000;
-  text-decoration: none;
+    .right-icon {
+      width: 32px;
+      height: 32px;
+      object-fit: cover;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+    .icon-size {
+      width: 28px;
+      height: 28px;
+    }
+    .hamburger-wrapper {
+      width: 24px;
+      height: 20px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: transparent;
+      border: none;
+      padding: 0;
+    }
+    .hamburger-wrapper div {
+      width: 100%;
+      height: 3px;
+      background-color: #000;
+      border-radius: 2px;
+    }
+    .menu-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 4000;
+      transition: opacity 0.3s ease;
+      opacity: 0;
+    }
+    .menu-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+    .side-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translateX(-100%);
+      width: 80%;
+      height: 100%;
+      background-color: #ffffff;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+      padding: 20px 16px;
+      overflow-y: auto;
+      z-index: 5000;
+      font-family: 'Roboto Slab', serif;
+      transition: transform 0.4s ease;
+    }
+    .side-menu.active {
+      transform: translateX(0%);
+    }
+    #announcementBar {
+      margin: 0;
+      padding: 6px 10px;
+      font-size: 13px;
+      color: #ffffff;
+      background: #000000;
+      font-weight: 500;
+      text-align: center;
+      font-family: 'Roboto Slab', serif;
+      min-height: 24px;
+      line-height: 22px;
+      user-select: none;
+    }
+    body {
   font-family: 'Roboto Slab', serif;
-  border-bottom: 1px solid #f1f1f1;
-  background: transparent;
-  transition: none !important;
-}
-.dropdown-icon, .caret { font-size: 18px; line-height: 1; color: #000; }
-
-.submenu-container, .submenu {
-  display: none;
-  background: #fafafa;
-  padding-left: 8px;
-}
-.submenu-container.open, .submenu.open { display: block; }
-.submenu-link {
-  display: block;
-  padding: 12px 16px 12px 24px;
-  font-size: 15px; color: #333;
-  text-decoration: none;
-  font-family: 'Roboto Slab', serif;
-  border-bottom: 1px solid #f1f1f1;
-  transition: none !important;
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  color: #333;
 }
 
-/* Unified button list look */
-#sideMenu #menuContent{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  padding: 8px 16px 18px !important;
+    .profile {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .profile img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .profile h2 {
+      margin: 10px 0 5px;
+    }
+    .orders {
+      margin-top: 20px;
+    }
+    .order {
+      border-bottom: 1px solid #ccc;
+      padding: 12px 0;
+    }
+    .order:last-child {
+      border-bottom: none;
+    }
+    .order p {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+    .order {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 14px;
+  margin-bottom: 14px;
 }
-#sideMenu .menu-link{
-  display:block;
-  text-align:center;
-  padding:10px 14px;
-  border:1px solid #dcdcdc !important;
-  border-radius:12px;
-  background:#ffffff;
-  color:#111 !important;
-  font-family:'Roboto Slab', serif;
-  font-size:17px;
-  font-weight:500 !important;
-  text-decoration:none;
-  min-height:auto;
-  box-shadow:0 1px 2px rgba(0,0,0,.03) !important;
-  -webkit-tap-highlight-color: transparent;
-  outline:none;
-}
-#sideMenu .menu-link--primary{
-  background:#e9fef1 !important;
-  border:1.5px solid #c5ecd6 !important;
-  color:#064c2c !important;
-  font-weight:600 !important;
-}
-/* Do not change size or color on tap */
-#sideMenu .menu-link:active,
-#sideMenu .menu-link--primary:active{
-  background: inherit !important;
-  color: inherit !important;
-  transform: none !important;
-}
-/* Remove hover variations */
-#sideMenu .menu-link:hover,
-#sideMenu .menu-link--primary:hover{
-  background: inherit !important;
-  color: inherit !important;
-}
-
-/* utility */
-body.no-scroll { overflow: hidden; height: 100vh; touch-action: none; }
-
-/* container */
-.container {
-  max-width: 460px;
-  margin: 0 auto;
-  padding: 20px 16px;
-}
-.profile { text-align: center; margin-bottom: 20px; }
-.profile img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
-.profile h2 { margin: 10px 0 5px; }
 .logout-btn {
   display: inline-block;
   padding: 8px 20px;
@@ -254,241 +142,144 @@ body.no-scroll { overflow: hidden; height: 100vh; touch-action: none; }
   border-radius: 24px;
   font-family: 'Roboto Slab', serif;
   font-weight: 500;
+  transition: all 0.3s ease;
   text-decoration: none;
 }
-.logout-btn:hover { background: #f5f5f5; }
+.logout-btn:hover {
+  background: #f5f5f5;
+}
+
+.logout-btn:hover {
+  background: #f5f5f5;
+}
+    .container {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 6px;
+}
   </style>
 </head>
 <body>
-  <!-- Overlay & Side Menu -->
-  <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-  <nav class="side-menu" id="sideMenu">
-    <div class="menu-header">
-      <span class="menu-title">Menu</span>
-      <span class="menu-close" onclick="toggleMenu()">✕</span>
-    </div>
-    <!-- Sticky quick links (same position/order as index) -->
-    <div id="menuContent">
-      <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
-      <a href="https://precioussly.com/" class="menu-link">Home</a>
-    </div>
-  </nav>
-
-  <!-- Header (exactly like index) -->
-  <header class="site-header">
-    <div class="hamburger-wrapper" onclick="toggleMenu()">
-      <div></div>
-      <div></div>
-      <div></div>
-    </div>
-
-    <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-      <img
-        src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
-        alt="Precioussly Logo"
-        onclick="location.href = 'https://precioussly.com';"
-        style="
-          width: 110px;
-          height: auto;
-          object-fit: contain;
-          cursor: pointer;
-          transition: opacity 0.3s ease;
-          -webkit-tap-highlight-color: transparent;
-        "
-      />
-    </div>
-
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <!-- Search icon -->
-      <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
-
-      <!-- Profile icon -->
-      <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
-
-      <!-- Cart icon with badge -->
-      <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-        <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-        <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
-      </a>
-    </div>
-  </header>
-
-  <!-- Announcement Bar -->
-  <div id="announcementBar">🧿</div>
-
-  <!-- Dashboard content -->
-  <main class="container">
-    <div class="profile">
-      <img id="userImage" src="" alt="Profile Photo">
-      <h2 id="userName">Hello</h2>
-      <p id="userEmail"></p>
-    </div>
-    <div style="text-align: center;">
-      <a class="logout-btn" href="#" onclick="logout()">Logout</a>
-    </div>
-  </main>
-
-  <!-- Scripts (matching index for header/menu behavior) -->
-  <script>
-    // Toggle drawer
-    function toggleMenu() {
-      const menu = document.getElementById("sideMenu");
-      const overlay = document.getElementById("menuOverlay");
-      const body = document.body;
-      const isOpen = menu.classList.contains("active");
-      if (isOpen) {
-        menu.classList.remove("active");
-        overlay.classList.remove("active");
-        body.classList.remove("no-scroll");
-      } else {
-        menu.classList.add("active");
-        overlay.classList.add("active");
-        body.classList.add("no-scroll");
-      }
-    }
-
-    // Close on ESC and on link click (same UX as index)
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') {
-        const menu = document.getElementById('sideMenu');
-        if (menu.classList.contains('active')) toggleMenu();
-      }
-    });
-    document.addEventListener('click', function (e) {
-      const menu = document.getElementById('sideMenu');
-      if (!menu.contains(e.target)) return;
-      const a = e.target.closest('a');
-      if (a && a.href) toggleMenu();
-    });
-  </script>
-
-  <script>
-    // Announcement Bar from Google Sheet (same source as index)
-    const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
-    const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
-    fetch(announceURL)
-      .then(res => res.json())
-      .then(data => {
-        if (data.length > 0 && data[0]["(announcement_text)"]) {
-          document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
-        }
-      });
-  </script>
-
-  <script>
-    // Populate Menu items from sheet (same logic as index first menu builder)
-    const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
-    const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
-
-    fetch(menuURL)
-      .then(res => res.json())
-      .then(data => {
-        const menuContent = document.getElementById("menuContent");
-        const grouped = {};
-
-        data.forEach(item => {
-          const menu = item.Menu?.trim();
-          const sub = item.Submenu?.trim();
-          const link = item.Link?.trim();
-          if (!menu) return;
-
-          if (sub) {
-            if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
-            grouped[menu].subs.push({ name: sub, link });
-          } else {
-            grouped[menu] = { link, subs: [] };
-          }
-        });
-
-        Object.entries(grouped).forEach(([menu, info]) => {
-          if (info.subs.length === 0) {
-            menuContent.innerHTML += `<a href="\${info.link}" class="menu-link">\${menu}</a>`;
-          } else {
-            const menuId = menu.replace(/\s+/g, '-') + '-submenu';
-            menuContent.innerHTML += \`
-              <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('\${menuId}')">
-                <span>\${menu}</span>
-                <span class="dropdown-icon">›</span>
-              </div>
-              <div class="submenu-container" id="\${menuId}" style="display: none;">
-                \${info.subs.map(s => \`<a href="\${s.link}" class="submenu-link">› \${s.name}</a>\`).join("")}
-              </div>
-            \`;
-          }
-        });
-      });
-
-    function toggleSubmenu(id) {
-      const submenu = document.getElementById(id);
-      submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
-    }
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
-  <script>
-    // If redirected from Google login
-    if (window.location.hash.includes("access_token")) {
-      const accessToken = window.location.hash.split("=")[1].split("&")[0];
-      fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: \`Bearer \${accessToken}\` }
-      })
-      .then(res => res.json())
-      .then(data => {
-        localStorage.setItem("user_name", data.name);
-        localStorage.setItem("user_email", data.email);
-        localStorage.setItem("user_photo", data.picture);
-        location.href = "https://precioussly.com"; // redirect clean
-      });
-    }
-
-    // Show profile photo if already logged in
-    const photo = localStorage.getItem("user_photo");
-    if (photo) {
-      document.getElementById("profileIcon").src = photo;
-    }
-
-    // When user taps profile icon
-    function handleProfileClick() {
-      const isLoggedIn = localStorage.getItem("user_email");
-      if (isLoggedIn) {
-        window.location.href = "/dashboard";
-      } else {
-        window.location.href = \`https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent\`;
-      }
-    }
-
-    function logout() {
-      localStorage.clear();
-      window.location.href = "/";
-    }
-
-    function updateCartBadge() {
-      const items = JSON.parse(localStorage.getItem("cartItems")) || [];
-      let count = 0;
-      items.forEach(item => count += item.qty);
-      const badge = document.getElementById("cartCountBadge");
-      if (badge) {
-        if (count > 0) {
-          badge.innerText = count;
-          badge.style.display = "flex";
-        } else {
-          badge.style.display = "none";
-        }
-      }
-    }
-    updateCartBadge();
-
-    // Protect dashboard: if not logged-in, send to home
-    const nameSaved = localStorage.getItem("user_name");
-    const emailSaved = localStorage.getItem("user_email");
-    const photoSaved = localStorage.getItem("user_photo");
-    if (!nameSaved || !emailSaved || !photoSaved) {
-      window.location.href = "/";
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">×</span>
+  </div>
+  <div id="menuContent"></div>
+</nav>
+<header class="site-header">
+  <div class="hamburger-wrapper" onclick="toggleMenu()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+  <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+    <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent;" />
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
+    <img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"/>
+    <a href="/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+      <img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
+      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+    </a>
+  </div>
+</header>
+<div id="announcementBar">🧿</div>
+<main>
+  <div class="container">
+  <div class="profile">
+    <img id="userImage" src="" alt="Profile Photo">
+    <h2 id="userName">Hello</h2>
+    <p id="userEmail"></p>
+  </div>
+  
+  </div>
+  <div style="text-align: center;">
+  <a class="logout-btn" href="#" onclick="logout()">Logout</a>
+</div>
+</div>
+<script>
+  function toggleMenu() {
+    const menu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("menuOverlay");
+    const body = document.body;
+    const isOpen = menu.classList.contains("active");
+    if (isOpen) {
+      menu.classList.remove("active");
+      overlay.classList.remove("active");
+      body.classList.remove("no-scroll");
     } else {
-      document.getElementById("userName").innerText = \`Hello, \${nameSaved}\`;
-      document.getElementById("userEmail").innerText = emailSaved;
-      document.getElementById("userImage").src = photoSaved;
+      menu.classList.add("active");
+      overlay.classList.add("active");
+      body.classList.add("no-scroll");
     }
-  </script>
+  }
+
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+    }
+  }
+
+  const name = localStorage.getItem("user_name");
+  const email = localStorage.getItem("user_email");
+  const photo = localStorage.getItem("user_photo");
+
+  if (!name || !email || !photo) {
+    window.location.href = "/";
+  }
+
+  document.getElementById("userName").innerText = `Hello, ${name}`;
+  document.getElementById("userEmail").innerText = email;
+  document.getElementById("userImage").src = photo;
+
+  
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "/";
+  }
+
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) {
+      if (count > 0) {
+        badge.innerText = count;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+  }
+  updateCartBadge();
+
+  fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
+  const photoSaved = localStorage.getItem("user_photo");
+  if (photoSaved) {
+    document.getElementById("profileIcon").src = photoSaved;
+  }
+</script>
 </body>
 </html>
