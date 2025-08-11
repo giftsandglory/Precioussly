@@ -1263,6 +1263,20 @@ function updateSummary() {
     </div>
   </div>
 </div>
+<!-- 🔊 COD confirmation sound (preloaded) -->
+<script>
+  // MP3 ko pehle se load kar lo taa ki play instant ho
+  window.codConfirmAudio = new Audio("https://files.catbox.moe/qkc0il.mp3");
+  window.codConfirmAudio.preload = "auto";
+
+  function playCODConfirm() {
+    try {
+      const a = window.codConfirmAudio;
+      a.currentTime = 0;
+      a.play().catch(()=>{});
+    } catch(e) {}
+  }
+</script>
 <script>
   // show the 1s spinner then trigger Razorpay
   function setLoading(btn, on) {
@@ -1310,19 +1324,27 @@ function handleProceed() {
 }
 
 function continueWithCOD(btnEl) {
-  // ✅ Do NOT close popup; keep it visible while spinner runs
+  // Button par spinner dikhao
   if (btnEl) {
-    btnEl.classList.add('is-loading');   // hides label, shows spinner
+    btnEl.classList.add('is-loading');
     btnEl.setAttribute('aria-busy','true');
   }
 
+  // Bilkul 2 second wait
   setTimeout(() => {
     if (btnEl) {
       btnEl.classList.remove('is-loading');
       btnEl.removeAttribute('aria-busy');
     }
-    // Place COD order locally and redirect
-    placeCODOrderAndRedirect();
+
+    // 🔊 2s ke baad sound chalayein
+    playCODConfirm();
+
+    // Audio ko start hone ke liye chhota gap, phir redirect logic
+    setTimeout(() => {
+      placeCODOrderAndRedirect();
+    }, 150);
+
   }, 2000);
 }
 </script>
