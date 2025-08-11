@@ -1097,7 +1097,7 @@ down-toggle {
     document.querySelectorAll('#sideMenu a.menu-link, #sideMenu .home-link').forEach(a => {
       try {
         const path = new URL(a.href).pathname.replace(/\/+$/, '');
-        if (path === here) a.style.fontWeight = '700';
+        
       } catch (_) {}
     });
   });
