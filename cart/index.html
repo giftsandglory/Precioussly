@@ -573,7 +573,7 @@ button.remove-btn:hover {
   <label class="payment-option">
     <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
     <span class="custom-radio"></span>
-    Pay via Razorpay (No Extra Charge)
+    Pay via Razorpay (Free Delivery)
   </label>
 
   <label class="payment-option">
@@ -1762,17 +1762,5 @@ if (couponToUse && document.getElementById("couponInput")) {
 </script>
 
 <script>document.addEventListener("DOMContentLoaded", function(){ try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {} });</script>
-
-<!-- ✅ Auto-move Payment Method box just above the Proceed button -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  var box = document.getElementById('paymentMethodBox');
-  var fast = document.getElementById('fastDeliveryRow');
-  if (box && fast && fast.parentNode) {
-    fast.parentNode.insertBefore(box, fast); // place box right above the fast-delivery row
-  }
-});
-</script>
-
 </body>
 </html>
