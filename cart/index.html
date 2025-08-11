@@ -613,6 +613,22 @@ button.remove-btn:hover {
     <strong>Fast Delivery:</strong> Arrives in 4-5 days
   </span>
 </div>
+<!-- ULTRA PREMIUM PAYMENT OPTIONS (moved just above Proceed button) -->
+<div class="payment-method-box" id="paymentMethodBox" style="margin-top:12px;">
+  <label class="payment-option">
+    <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
+    <span class="custom-radio"></span>
+    Pay via Razorpay (Free Delivery)
+  </label>
+
+  <label class="payment-option">
+    <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
+    <span class="custom-radio"></span>
+    <span id="codLabelText">Cash on Delivery</span>
+  </label>
+</div>
+
+
 
 <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display:none; margin-top:0px;">
   <span class="btn-label">Proceed to Pay</span>
