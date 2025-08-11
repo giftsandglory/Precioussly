@@ -522,6 +522,58 @@ button.remove-btn:hover {
 .applied-tag .remove{color:#2874f0;text-decoration:underline;cursor:pointer;margin-left:6px}
 /* Hide coupons by default; JS will show when cart has items */
 #couponSection{display:none;}
+
+/* ===== Quantity bar (from product popup) ===== */
+.quantity-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  width: fit-content;
+  margin: 14px auto;
+  padding: 4px 10px;
+  gap: 16px;
+}
+
+.quantity-bar button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  outline: none !important;               /* ✅ Removes dotted focus */
+  box-shadow: none !important;            /* ✅ No glow */
+  -webkit-tap-highlight-color: transparent !important;  /* ✅ Remove Android/iOS grey flash */
+  user-select: none;                      /* ✅ Prevents accidental text selection */
+  touch-action: manipulation;            /* ✅ Better touch response */
+}
+
+.quantity-bar button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.quantity-bar button:active {
+  background: transparent !important;
+}
+
+
+
+.quantity-display {
+  font-size: 15px;
+  min-width: 20px;
+  text-align: center;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 500;
+  color: #222;
+}
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -642,19 +694,25 @@ button.remove-btn:hover {
       div.innerHTML = `
         <img src="${item.photo}" />
         <div class="item-info">
-          <div class="item-name">${item.name}</div>
-          <div class="item-price">₹${item.price}</div>
-          <div class="qty-controls">
-            <button class="qty-btn" onclick="decrease(${index})">-</button>
-            <span id="qty-${index}" class="qty-count">${item.qty}</span>
-            <button class="qty-btn" onclick="increase(${index})">+</button>
-            <button class="qty-btn" style="font-family: 'Roboto Slab', serif; font-size: 14px; width: auto; min-width: 70px; padding: 6px 12px; border: 1px solid #2874f0; color: #2874f0; background: #fff; border-radius: 8px;" onclick="removeItem(${index})">
-  Remove
-</button>
-  <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M5 6h14M10 11v6m4-6v6m1-10V4H9v3H4v2h16V7h-5z"/></svg>
-</button>
-          </div>
-        </div>
+  <div class="item-name">${item.name}</div>
+  <div class="item-price">₹${item.price}</div>
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+    <div class="quantity-bar" style="margin:0;">
+      <button onclick="decrease(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+      <button onclick="increase(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+  </div>
+</div>
       `;
       container.appendChild(div);
     });
@@ -1010,15 +1068,25 @@ document.addEventListener("DOMContentLoaded", () => {
     div.innerHTML = `
       <img src="${item.photo}" />
       <div class="item-info">
-        <div class="item-name">${item.name}</div>
-        <div class="item-price">₹${item.price}</div>
-        <div class="qty-controls">
-          <button class="qty-btn" onclick="decrease(${index})">-</button>
-          <span id="qty-${index}" class="qty-count">${item.qty}</span>
-          <button class="qty-btn" onclick="increase(${index})">+</button>
-          <button class="remove-btn" onclick="removeItem(${index})" style="margin-left: 8px; padding: 6px 12px; font-family: 'Roboto Slab', serif; font-size: 13px; background: transparent; border: 1px solid #2874f0; color: #2874f0; border-radius: 6px;">Remove</button>
-        </div>
-      </div>
+  <div class="item-name">${item.name}</div>
+  <div class="item-price">₹${item.price}</div>
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+    <div class="quantity-bar" style="margin:0;">
+      <button onclick="decrease(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+      <button onclick="increase(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+  </div>
+</div>
     `;
     container.appendChild(div);
   });
