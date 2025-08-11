@@ -576,6 +576,8 @@ button.remove-btn:hover {
 }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
 </head>
 <body>
   <!-- Confirmation sound (preload for instant start) -->
@@ -1856,5 +1858,23 @@ if (couponToUse && document.getElementById("couponInput")) {
     } catch(e) {}
   }
 </script>
+
+<script>
+// Ensure cart stays empty and UI refreshes after coming back from Thank You
+(function(){
+  if (localStorage.getItem("lastOrderClearedCart") === "1") {
+    localStorage.setItem("cartItems","[]");
+    try{ if (typeof updateCartBadge === "function") updateCartBadge(); }catch(e){}
+    localStorage.removeItem("lastOrderClearedCart");
+  }
+})();
+
+window.addEventListener("pageshow", function (e) {
+  if (e.persisted) {
+    window.location.reload();
+  }
+});
+</script>
+
 </body>
 </html>
