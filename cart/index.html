@@ -1340,9 +1340,7 @@ function continueWithCOD(btnEl) {
       id: "COD-" + Date.now(),
       method: "COD",
       items,
-      amounts: { itemsTotal, deliveryFee, codFee, grandTotal 
-    playOrderSound();
-},
+      amounts: { itemsTotal, deliveryFee, codFee, grandTotal },
       address: localStorage.getItem("shippingAddress") || "",
       createdAt: new Date().toISOString()
     };
@@ -1446,8 +1444,7 @@ function openAddressAndClosePopup() {
         try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
         localStorage.setItem("lastOrderClearedCart", "1");
 
-        playOrderSound();
-        setTimeout(function(){ window.location.href = "https://precioussly.com/thankyou-razorpay"; }, 600);
+        window.location.href = "https://precioussly.com/thankyou-razorpay";
       },
 
       modal: {
@@ -1834,20 +1831,5 @@ if (couponToUse && document.getElementById("couponInput")) {
 </script>
 
 <script>document.addEventListener("DOMContentLoaded", function(){ try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {} });</script>
-<audio id="orderSound" src="order confirmation sound.mp3" preload="auto"></audio>
-
-<script>
-// Plays the confirmation sound safely (without breaking if blocked)
-function playOrderSound(){
-  try {
-    var el = document.getElementById('orderSound');
-    if (!el) return;
-    el.currentTime = 0;
-    var p = el.play();
-    if (p && typeof p.then === 'function') { p.catch(function(){ /* ignore */ }); }
-  } catch(e){}
-}
-</script>
-
 </body>
 </html>
