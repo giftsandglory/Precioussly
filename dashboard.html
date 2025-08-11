@@ -169,6 +169,61 @@
   padding-bottom: 6px;
 }
   </style>
+
+<style>
+/* === Make dashboard header + announcement same as index === */
+.site-header{
+  background-color:#ffffff;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 16px;       /* index wali padding */
+  box-shadow:0 2px 10px rgba(0,0,0,0.06);
+  min-height:72px;         /* index wali height */
+}
+
+/* hamburger button */
+.hamburger-wrapper{
+  width:24px;height:20px;cursor:pointer;
+  display:flex;flex-direction:column;justify-content:space-between;
+  background:transparent;border:0;padding:0;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.hamburger-wrapper div{width:100%;height:3px;background:#000;border-radius:2px;}
+
+/* right icons (search/profile/cart) */
+.right-icon{
+  width:32px;height:32px;object-fit:cover;cursor:pointer;border-radius:50%;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+
+/* announcement bar (exact from index) */
+#announcementBar{
+  margin:0;padding:6px 10px;font-size:13px;color:#fff;background:#000;
+  font-weight:500;text-align:center;font-family:'Roboto Slab',serif;
+  min-height:24px;line-height:22px;user-select:none;border-top:none;border-bottom:none;
+}
+
+/* side menu + overlay same behavior */
+.menu-overlay{
+  position:fixed;top:0;left:0;width:100vw;height:100vh;
+  background:rgba(0,0,0,0.4);display:none;z-index:4000;
+  transition:opacity .3s ease;opacity:0;
+}
+.menu-overlay.active{display:block;opacity:1;}
+
+.side-menu{
+  position:fixed;top:0;left:0;transform:translateX(-100%);
+  width:80%;height:100%;background:#fff;box-shadow:4px 0 16px rgba(0,0,0,.1);
+  padding:20px 16px;overflow-y:auto;z-index:5000;font-family:'Roboto Slab',serif;
+  transition:transform .4s cubic-bezier(.4,0,.2,1);
+}
+.side-menu.active{transform:translateX(0%);}
+
+/* body lock while menu open */
+body.no-scroll{overflow:hidden;height:100vh;touch-action:none;}
+</style>
+
 </head>
 <body>
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
@@ -179,24 +234,41 @@
   </div>
   <div id="menuContent"></div>
 </nav>
+
 <header class="site-header">
+  <!-- Hamburger -->
   <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div>
-    <div></div>
-    <div></div>
+    <div></div><div></div><div></div>
   </div>
-  <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-    <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent;" />
+
+  <!-- Center-left logo -->
+  <div style="display:flex;align-items:center;position:absolute;left:70px;top:6px;">
+    <img
+      alt="Precioussly Logo"
+      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+      onclick="location.href='https://precioussly.com';"
+      style="width:110px;height:auto;object-fit:contain;cursor:pointer;transition:opacity .3s ease;-webkit-tap-highlight-color:transparent;"
+    />
   </div>
-  <div style="display: flex; align-items: center; gap: 12px;">
-    <img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
-    <img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"/>
-    <a href="/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-      <img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
-      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+
+  <!-- Right icons -->
+  <div style="display:flex;align-items:center;gap:12px;">
+    <!-- Search -->
+    <img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
+         style="border-radius:0;width:25px;height:26px;margin-top:2px;" />
+    <!-- Profile -->
+    <img alt="Profile" id="profileIcon" class="right-icon" onclick="handleProfileClick()"
+         src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" />
+    <!-- Cart + badge -->
+    <a href="/cart" style="position:relative;display:inline-block;margin-top:5px;">
+      <img alt="Cart" class="right-icon" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" />
+      <span id="cartCountBadge"
+        style="position:absolute;top:-6px;right:-6px;background:#fff;color:#000;font-size:12px;border:1px solid grey;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;">0</span>
     </a>
   </div>
 </header>
+<div id="announcementBar">🧿</div>
+
 <div id="announcementBar">🧿</div>
 <main>
   <div class="container">
@@ -285,5 +357,45 @@
     document.getElementById("profileIcon").src = photoSaved;
   }
 </script>
+
+<script>
+function toggleMenu(){
+  const menu = document.getElementById("sideMenu");
+  const overlay = document.getElementById("menuOverlay");
+  const body = document.body;
+  const isOpen = menu && menu.classList.contains("active");
+  if(isOpen){
+    if(menu) menu.classList.remove("active");
+    if(overlay) overlay.classList.remove("active");
+    body.classList.remove("no-scroll");
+  }else{
+    if(menu) menu.classList.add("active");
+    if(overlay) overlay.classList.add("active");
+    body.classList.add("no-scroll");
+  }
+}
+
+const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+if (document.getElementById("announcementBar")) {
+  fetch(announceURL).then(r=>r.json()).then(d=>{
+    try{
+      if(d.length>0 && d[0]["(announcement_text)"]){
+        document.getElementById("announcementBar").innerText = d[0]["(announcement_text)"];
+      }
+    }catch(e){ /* ignore */ }
+  }).catch(()=>{});
+}
+
+(function setProfileFromLocal(){
+  try{
+    const photoSaved = localStorage.getItem("user_photo");
+    if (photoSaved && document.getElementById("profileIcon")) {
+      document.getElementById("profileIcon").src = photoSaved;
+    }
+  }catch(e){}
+})();
+</script>
+
 </body>
 </html>
