@@ -576,15 +576,8 @@ button.remove-btn:hover {
 }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-<meta http-equiv="Pragma" content="no-cache">
 </head>
 <body>
-  <!-- Confirmation sound (preload for instant start) -->
-<audio id="confirmSound"
-       src="https://files.catbox.moe/qkc0il.mp3"
-       preload="auto"
-       playsinline></audio>
   <header class="site-header">
   <div class="hamburger-wrapper" onclick="toggleMenu()">
     <div></div>
@@ -1316,39 +1309,33 @@ function handleProceed() {
   }
 }
 
-
-
-function continueWithCOD(btnEl){
-  // Sound immediately (user gesture)
-  try{ playConfirm(); }catch(e){}
-
-  // Spinner UX
-  if(btnEl){
-    btnEl.classList.add('is-loading');
+function continueWithCOD(btnEl) {
+  // ✅ Do NOT close popup; keep it visible while spinner runs
+  if (btnEl) {
+    btnEl.classList.add('is-loading');   // hides label, shows spinner
     btnEl.setAttribute('aria-busy','true');
   }
 
-  // Short delay, then place order + redirect
-  setTimeout(()=>{
-    if(btnEl){
+  setTimeout(() => {
+    if (btnEl) {
       btnEl.classList.remove('is-loading');
       btnEl.removeAttribute('aria-busy');
     }
+    // Place COD order locally and redirect
     placeCODOrderAndRedirect();
-  }, 800);
+  }, 2000);
 }
 </script>
 <script>
-function placeCODOrderAndRedirect(){
-  // --- amounts ---
-  const items = JSON.parse(localStorage.getItem("cartItems")||"[]");
-  const itemsTotal = items.reduce((s,it)=> s + (Number(it.price)*Number(it.qty)), 0);
-  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-  const codFee = Number(window.codCharge)||0;
-  const grandTotal = itemsTotal + deliveryFee + codFee;
+  function placeCODOrderAndRedirect() {
+    // --- amounts ---
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+    const grandTotal = itemsTotal + deliveryFee + codFee;
 
-  // --- (optional) save order for dashboard ---
-  try{
+    // --- order object (dashboard ke liye useful) ---
     const order = {
       id: "COD-" + Date.now(),
       method: "COD",
@@ -1357,21 +1344,20 @@ function placeCODOrderAndRedirect(){
       address: localStorage.getItem("shippingAddress") || "",
       createdAt: new Date().toISOString()
     };
-    const orders = JSON.parse(localStorage.getItem("orders")||"[]");
+    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
     orders.unshift(order);
     localStorage.setItem("orders", JSON.stringify(orders));
-  }catch(e){}
 
-  // --- clear cart + badge ---
-  localStorage.setItem("cartItems","[]");
-  try{ if(typeof updateCartBadge==="function") updateCartBadge(); }catch(e){}
+    // --- clear cart before redirect ---
+    localStorage.setItem("cartItems", "[]");
+    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
 
-  // --- reliable redirect (handles www / non-www) ---
-  setTimeout(()=>{ 
-    window.location.assign(`${location.origin}/thankyou-cod`);
-    // OR: window.location.replace(`${location.origin}/thankyou-cod`);
-  }, 150);
-}
+    // BFCache se wapas aane par hard refresh karane ke liye flag
+    localStorage.setItem("lastOrderClearedCart", "1");
+
+    // thank you page
+    window.location.href = "https://precioussly.com/thankyou-cod";
+  }
 </script>
 <script>
 function closeCODPopup() {
@@ -1458,10 +1444,7 @@ function openAddressAndClosePopup() {
         try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
         localStorage.setItem("lastOrderClearedCart", "1");
 
-        playConfirm();
-setTimeout(function () {
-  window.location.href = "https://precioussly.com/thankyou-razorpay";
-}, 150);
+        window.location.href = "https://precioussly.com/thankyou-razorpay";
       },
 
       modal: {
@@ -1848,33 +1831,5 @@ if (couponToUse && document.getElementById("couponInput")) {
 </script>
 
 <script>document.addEventListener("DOMContentLoaded", function(){ try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {} });</script>
-<script>
-  function playConfirm() {
-    try {
-      const a = document.getElementById('confirmSound');
-      if (!a) return;
-      a.currentTime = 0;
-      a.play().catch(()=>{ /* ignore */ });
-    } catch(e) {}
-  }
-</script>
-
-<script>
-// Ensure cart stays empty and UI refreshes after coming back from Thank You
-(function(){
-  if (localStorage.getItem("lastOrderClearedCart") === "1") {
-    localStorage.setItem("cartItems","[]");
-    try{ if (typeof updateCartBadge === "function") updateCartBadge(); }catch(e){}
-    localStorage.removeItem("lastOrderClearedCart");
-  }
-})();
-
-window.addEventListener("pageshow", function (e) {
-  if (e.persisted) {
-    window.location.reload();
-  }
-});
-</script>
-
 </body>
 </html>
