@@ -608,6 +608,41 @@ button.remove-btn{
   margin-top:6px;
 }
 
+
+/* === PERFECT ALIGNMENT: quantity bar + Remove === */
+.actions-row{
+  display: grid !important;
+  grid-template-columns: auto auto;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-top: 8px !important;
+  min-height: 36px !important;
+}
+
+.quantity-bar{
+  height: 36px !important;
+  padding: 2px 8px !important;
+  gap: 10px !important;
+  border: 1.4px solid #d6dbe3 !important; /* same thickness as outlined buttons */
+  border-radius: 10px !important;
+}
+
+.quantity-bar button svg{ width: 16px !important; height: 16px !important; }
+.quantity-display{ font-size: 14.5px !important; min-width: 20px !important; line-height: 1 !important; }
+
+button.remove-btn{
+  height: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 14px !important;
+  font-size: 14.5px !important;
+  line-height: 1 !important;
+  border: 1.4px solid #2874f0 !important;
+  border-radius: 10px !important;
+}
+
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -730,7 +765,7 @@ button.remove-btn{
         <div class="item-info">
   <div class="item-name">${item.name}</div>
   <div class="item-price">₹${item.price}</div>
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+  <div class="actions-row">
     <div class="quantity-bar" style="margin:0;">
       <button onclick="decrease(${index})">
         <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
@@ -1104,7 +1139,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="item-info">
   <div class="item-name">${item.name}</div>
   <div class="item-price">₹${item.price}</div>
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+  <div class="actions-row">
     <div class="quantity-bar" style="margin:0;">
       <button onclick="decrease(${index})">
         <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
