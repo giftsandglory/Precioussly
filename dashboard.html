@@ -1,132 +1,285 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard • Preciously</title>
-
-  <!-- BEGIN: SAME-AS-INDEX HEAD ASSETS -->
-  <!-- Copy the exact links from index.html below (fonts/css/js).
-       You can keep these as-is if your project already uses them. -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/base.css">
-  <link rel="stylesheet" href="/assets/css/header.css">
-  <link rel="stylesheet" href="/assets/css/announcement.css">
-  <script defer src="/assets/js/header.js"></script>
-  <!-- END: SAME-AS-INDEX HEAD ASSETS -->
-
-  <!-- Optional: dashboard normalizer to force identical heights (safe) -->
+  <meta charset="UTF-8" />
+  <title>Dashboard - Precioussly</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
   <style>
-    :root { --header-h: 64px; --announce-h: 36px; --header-icon: 28px; }
-    .site-header { height: var(--header-h); display:flex; align-items:center; gap: 12px; padding: 0 12px; }
-    .site-header .menu-toggle { width: 40px; height: 40px; display:grid; place-items:center; border:0; background:transparent; }
-    .site-header .site-logo { display:inline-flex; align-items:center; height: 40px; }
-    .site-header .site-logo img { height: 32px; display:block; }
-    .site-header .icon-btn, .site-header .cart-btn, .site-header .avatar-bubble {
-      width: var(--header-icon); height: var(--header-icon); display:inline-grid; place-items:center;
+.site-header {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  min-height: 60px;
+}
+    .right-icon {
+      width: 32px;
+      height: 32px;
+      object-fit: cover;
+      cursor: pointer;
+      border-radius: 50%;
     }
-    .avatar-bubble { border-radius: 999px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; font-weight: 600; }
-    .cart-btn { position: relative; }
-    .cart-btn .badge { position:absolute; top:-8px; right:-10px; min-width: 18px; height:18px; padding:0 4px; border-radius:9px; font-size:12px; line-height:18px; text-align:center; background:#0a7; color:#fff; }
-    .announcement-bar { background:#000; color:#fff; text-align:center; font-family: "Roboto Slab", serif; font-size: 14px;
-      min-height: var(--announce-h); line-height: var(--announce-h); padding: 0 12px; }
-    /* Mobile drawer (structure only; style comes from your existing CSS) */
-    .mobile-drawer { position: fixed; inset: 0 35% 0 0; transform: translateX(-100%); background:#fff; z-index: 1000; transition: transform .25s ease; overflow-y:auto; }
-    .mobile-drawer.open { transform: translateX(0); }
-    .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 999; }
-    body { margin:0; }
-    main { padding-top: calc(var(--header-h) + var(--announce-h)); }
-    @media (min-width: 768px) {
-      .mobile-drawer { inset: 0 60% 0 0; }
+    .icon-size {
+      width: 28px;
+      height: 28px;
     }
+    .hamburger-wrapper {
+      width: 24px;
+      height: 20px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: transparent;
+      border: none;
+      padding: 0;
+    }
+    .hamburger-wrapper div {
+      width: 100%;
+      height: 3px;
+      background-color: #000;
+      border-radius: 2px;
+    }
+    .menu-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 4000;
+      transition: opacity 0.3s ease;
+      opacity: 0;
+    }
+    .menu-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+    .side-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translateX(-100%);
+      width: 80%;
+      height: 100%;
+      background-color: #ffffff;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+      padding: 20px 16px;
+      overflow-y: auto;
+      z-index: 5000;
+      font-family: 'Roboto Slab', serif;
+      transition: transform 0.4s ease;
+    }
+    .side-menu.active {
+      transform: translateX(0%);
+    }
+    #announcementBar {
+      margin: 0;
+      padding: 6px 10px;
+      font-size: 13px;
+      color: #ffffff;
+      background: #000000;
+      font-weight: 500;
+      text-align: center;
+      font-family: 'Roboto Slab', serif;
+      min-height: 24px;
+      line-height: 22px;
+      user-select: none;
+    }
+    body {
+  font-family: 'Roboto Slab', serif;
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  color: #333;
+}
+
+    .profile {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .profile img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .profile h2 {
+      margin: 10px 0 5px;
+    }
+    .orders {
+      margin-top: 20px;
+    }
+    .order {
+      border-bottom: 1px solid #ccc;
+      padding: 12px 0;
+    }
+    .order:last-child {
+      border-bottom: none;
+    }
+    .order p {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+    .order {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.logout-btn {
+  display: inline-block;
+  padding: 8px 20px;
+  font-size: 14px;
+  border: 1.5px solid #000;
+  color: #000;
+  background: transparent;
+  border-radius: 24px;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+.logout-btn:hover {
+  background: #f5f5f5;
+}
+
+.logout-btn:hover {
+  background: #f5f5f5;
+}
+    .container {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 6px;
+}
   </style>
 </head>
 <body>
-
-  <!-- START: SITE HEADER (copied from index.html) -->
-  <header id="siteHeader" class="site-header">
-    <button id="menuToggle" class="menu-toggle" aria-label="Open menu">
-      <span aria-hidden="true">☰</span>
-    </button>
-
-    <a href="/" class="site-logo" aria-label="Preciously">
-      <img src="/assets/logo.svg" alt="Preciously">
-    </a>
-
-    <button id="searchBtn" class="icon-btn" aria-label="Search">🔍</button>
-
-    <a href="/account.html" class="avatar-bubble" id="userBubble" aria-label="Account">g</a>
-
-    <a href="/cart.html" class="cart-btn" aria-label="Cart">
-      <span class="cart-icon" aria-hidden="true">🛒</span>
-      <span id="cartBadge" class="badge">0</span>
-    </a>
-  </header>
-  <!-- END: SITE HEADER -->
-
-  <!-- START: ANNOUNCEMENT BAR (copied from index.html) -->
-  <div id="announcementBar" class="announcement-bar">
-    Free Delivery | COD Available | Min Order ₹299
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">×</span>
   </div>
-  <!-- END: ANNOUNCEMENT BAR -->
+  <div id="menuContent"></div>
+</nav>
+<header class="site-header">
+  <div class="hamburger-wrapper" onclick="toggleMenu()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+  <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+    <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent;" />
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
+    <img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"/>
+    <a href="/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+      <img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
+      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+    </a>
+  </div>
+</header>
+<div id="announcementBar">🧿</div>
+<main>
+  <div class="container">
+  <div class="profile">
+    <img id="userImage" src="" alt="Profile Photo">
+    <h2 id="userName">Hello</h2>
+    <p id="userEmail"></p>
+  </div>
+  
+  </div>
+  <div style="text-align: center;">
+  <a class="logout-btn" href="#" onclick="logout()">Logout</a>
+</div>
+</div>
+<script>
+  function toggleMenu() {
+    const menu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("menuOverlay");
+    const body = document.body;
+    const isOpen = menu.classList.contains("active");
+    if (isOpen) {
+      menu.classList.remove("active");
+      overlay.classList.remove("active");
+      body.classList.remove("no-scroll");
+    } else {
+      menu.classList.add("active");
+      overlay.classList.add("active");
+      body.classList.add("no-scroll");
+    }
+  }
 
-  <!-- START: MOBILE DRAWER / MENU (copied from index.html) -->
-  <nav id="mobileNav" class="mobile-drawer" aria-hidden="true">
-    <div style="padding:16px 14px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;">
-      <a href="/" style="display:block; padding:12px 4px; text-decoration:none; color:#111;">Home</a>
-      <a href="/shop.html" style="display:block; padding:12px 4px; text-decoration:none; color:#111;">Shop</a>
-      <a href="/track-order" style="display:block; padding:12px 4px; text-decoration:none; color:#111;">Track Order</a>
-      <a href="/contact.html" style="display:block; padding:12px 4px; text-decoration:none; color:#111;">Contact</a>
-    </div>
-  </nav>
-  <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
-  <!-- END: MOBILE DRAWER / MENU -->
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+    }
+  }
 
-  <!-- PAGE CONTENT -->
-  <main>
-    <section style="max-width:1100px; margin:0 auto; padding:16px;">
-      <h1 style="font-family:'Roboto Slab', serif; margin:0 0 12px;">Your Dashboard</h1>
-      <p>Replace this area with your dashboard content. Header and announcement bar are identical to index.html.</p>
-    </section>
-  </main>
+  const name = localStorage.getItem("user_name");
+  const email = localStorage.getItem("user_email");
+  const photo = localStorage.getItem("user_photo");
 
-  <!-- BEGIN: SAME-AS-INDEX INLINE HEADER SCRIPT (only if your index uses inline; safe to keep) -->
-  <script>
-    (function(){
-      const toggle = document.getElementById('menuToggle');
-      const drawer = document.getElementById('mobileNav');
-      const backdrop = document.getElementById('drawerBackdrop');
+  if (!name || !email || !photo) {
+    window.location.href = "/";
+  }
 
-      function openDrawer(){ drawer.classList.add('open'); backdrop.hidden = false; document.body.style.overflow = 'hidden'; }
-      function closeDrawer(){ drawer.classList.remove('open'); backdrop.hidden = true; document.body.style.overflow = ''; }
+  document.getElementById("userName").innerText = `Hello, ${name}`;
+  document.getElementById("userEmail").innerText = email;
+  document.getElementById("userImage").src = photo;
 
-      if(toggle && drawer && backdrop){
-        toggle.addEventListener('click', openDrawer);
-        backdrop.addEventListener('click', closeDrawer);
+  
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "/";
+  }
+
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) {
+      if (count > 0) {
+        badge.innerText = count;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
       }
+    }
+  }
+  updateCartBadge();
 
-      // Cart badge sync
-      const badge = document.getElementById('cartBadge');
-      try {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const totalQty = cart.reduce((n, i) => n + (i.qty || i.quantity || 0), 0);
-        if (badge) {
-          badge.textContent = String(totalQty);
-          badge.style.display = totalQty > 0 ? 'inline-block' : 'none';
-        }
-      } catch(e){ /* ignore */ }
+  fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
 
-      // User bubble initial (if you store user in localStorage e.g. {name:'Ashu'})
-      const userBubble = document.getElementById('userBubble');
-      try {
-        const u = JSON.parse(localStorage.getItem('pp_user') || 'null');
-        if (userBubble && u && u.name) userBubble.textContent = (u.name.trim()[0] || 'U').toLowerCase();
-      } catch(e){ /* ignore */ }
-    })();
-  </script>
-  <!-- END: SAME-AS-INDEX INLINE HEADER SCRIPT -->
-
+  const photoSaved = localStorage.getItem("user_photo");
+  if (photoSaved) {
+    document.getElementById("profileIcon").src = photoSaved;
+  }
+</script>
 </body>
 </html>
