@@ -164,67 +164,7 @@
   border-bottom: 1px solid #ddd;
   padding-bottom: 6px;
 }
-  
-
-/* ===== Header: make it match category page ===== */
-* { -webkit-tap-highlight-color: transparent; }
-
-.site-header{
-  position: relative;
-  padding: 12px 16px;
-  min-height: 64px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Center logo perfectly regardless of left/right content */
-.logo-wrap{
-  position: absolute;
-  left: 50%;
-  top: 8px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-}
-.logo-wrap img{
-  width: 120px;
-  height: auto;
-  object-fit: contain;
-  cursor: pointer;
-  transition: opacity .3s ease;
-}
-
-/* Right side action icons */
-.actions{
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-/* Icon sizes (profile + cart = 36px round), search a bit smaller */
-.icon-size{ width: 36px; height: 36px; }
-#searchIcon{ width: 28px; height: 28px; margin-top: 0; border-radius: 0; }
-
-/* Ensure the base icon style doesn’t shrink them */
-.right-icon{ width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
-
-/* Cart badge placement/size tidy */
-.cart-link{ position: relative; display: inline-block; }
-#cartCountBadge{
-  position: absolute; top: -5px; right: -5px;
-  background: #fff; color: #000;
-  font-size: 11px; line-height: 18px;
-  border: 1px solid #999;
-  border-radius: 50%;
-  width: 18px; height: 18px;
-  display: flex; align-items: center; justify-content: center;
-}
-
-/* Hamburger a touch crisper */
-.hamburger-wrapper{ width: 26px; height: 20px; }
-.hamburger-wrapper div{ height: 2px; }
-</style>
+  </style>
 </head>
 <body>
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
@@ -236,31 +176,20 @@
   <div id="menuContent"></div>
 </nav>
 <header class="site-header">
-  <!-- Left: Hamburger -->
   <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div><div></div><div></div>
+    <div></div>
+    <div></div>
+    <div></div>
   </div>
-
-  <!-- Center: Logo (centered like category page) -->
-  <a class="logo-wrap" href="https://precioussly.com">
-    <img alt="Precioussly Logo"
-         src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" />
-  </a>
-
-  <!-- Right: Search, Profile, Cart -->
-  <div class="actions">
-    <img id="searchIcon" alt="Search"
-         src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" />
-
-    <img alt="Profile" id="profileIcon"
-         class="right-icon icon-size"
-         onclick="handleProfileClick()"
-         src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" />
-
-    <a href="/cart" class="cart-link">
-      <img alt="Cart" class="right-icon icon-size"
-           src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" />
-      <span id="cartCountBadge">0</span>
+  <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+    <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent;" />
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
+    <img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"/>
+    <a href="/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+      <img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
+      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
     </a>
   </div>
 </header>
