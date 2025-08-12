@@ -412,6 +412,78 @@ body.noscroll {
   70%  { transform: scale(0.98); }
   100% { transform: scale(1); }
 }
+
+/* === Auto Description (Details box) === */
+.desc-box {
+  margin: 10px 6px 0;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.desc-box summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 14px;
+  font-weight: 700;
+  font-size: 15px;
+}
+.desc-box summary::-webkit-details-marker { display: none; }
+.desc-box[open] summary { border-bottom: 1px solid rgba(0,0,0,0.06); }
+.desc-text {
+  padding: 10px 16px 14px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.desc-text ul { margin: 0; padding-left: 18px; }
+.desc-text li { margin: 8px 0; }
+
+
+/* === Fixed popup size + inner scroll === */
+.popup-card{
+  max-height: 88vh;              /* card won't grow beyond this */
+  display: flex;
+  flex-direction: column;
+}
+.popup-body{
+  overflow-y: auto;               /* scroll inside */
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 10px;
+}
+
+/* Summary chevron */
+.desc-box summary {
+  position: relative;
+  padding-right: 28px;            /* room for chevron */
+}
+.desc-box summary::after{
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 8px; height: 8px;
+  border-right: 2px solid #222;
+  border-bottom: 2px solid #222;
+  transform: translateY(-60%) rotate(-45deg); /* closed */
+  transition: transform .2s ease;
+}
+.desc-box[open] summary::after{
+  transform: translateY(-30%) rotate(45deg);  /* open */
+}
+/* Hide inner scrollbars (no thin line) */
+.popup-body,
+.desc-text {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* Old Edge/IE */
+  overscroll-behavior: contain;   /* no edge glow */
+}
+.popup-body::-webkit-scrollbar,
+.desc-text::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;                  /* Chrome/Safari */
+  background: transparent;
+}
 </style>
 </head>
 <body>
@@ -460,6 +532,18 @@ body.noscroll {
 <div id="content"></div>
 <script>
 const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
+// Robust: read "Description" even if header has spaces/case variants
+function getSheetDescription(row){
+  const keys = [
+    "Description","description","Desc","desc","Product Description","product description",
+    "Description ", " Description", "DESCRIPTION"
+  ];
+  for (const k of keys){
+    if (row[k] && String(row[k]).trim()) return String(row[k]);
+  }
+  return "";
+}
+
 
 fetch(SHEET_URL)
   .then(res => res.json())
@@ -492,7 +576,7 @@ fetch(SHEET_URL)
       img.alt = item["Product Name"];
       img.onclick = () => {
   const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-  openPopup(allPhotos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"]);
+  openPopup(allPhotos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"], getSheetDescription(item));
 };
       product.appendChild(img);
 
@@ -573,12 +657,13 @@ product.appendChild(infoWrapper);
     );
     if (!item) return;
     const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-    openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]));
+    openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]), getSheetDescription(item));
   }
 </script>
 
 <div id="productPopup">
   <div class="popup-card" onclick="event.stopPropagation()">
+<div class="popup-body">
 
 
 
@@ -598,6 +683,12 @@ product.appendChild(infoWrapper);
 <!-- Price -->
 <div id="popupPrice" style="margin:8px 6px 16px; font-size:14px; text-align:left;"></div>
 <!-- Quantity Bar -->
+<!-- Auto SEO Description -->
+<details id="popupDetails" class="desc-box">
+  <summary>Details</summary>
+  <div id="popupDescText" class="desc-text"></div>
+</details>
+
 <div class="quantity-bar premium-bar">
   <button onclick="changePopupQty(-1)">
     <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
@@ -619,6 +710,7 @@ product.appendChild(infoWrapper);
 <button onclick="closePopup()" style="width:100%; margin-top:10px; background:#f0f0f0; color:#333; border:1px solid #bbb; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
   Back
 </button>
+</div>
 </div>
 </div>
 <div id="addedToast" style="
@@ -644,10 +736,75 @@ product.appendChild(infoWrapper);
   <span style="line-height: 1;">Item added to cart</span>
 </div>
 <script>
+
+/* ====== SETTINGS ====== */
+const WHATSAPP_NUMBER = "8586057887";
+const BRAND_NAME = "precioussly";
+
+/* ====== Description Generator ====== */
+function generateSeoDescription(name) {
+  const lower = (name || "").toLowerCase();
+  const colors = ["red","blue","green","pink","black","white","purple","yellow","gold","silver","beige","brown","orange"];
+  const colorFound = colors.find(c => lower.includes(c));
+  const categories = [
+    { keys:["necklace","pendant","locket"], label:"necklace", use:"daily wear, parties and gifting" },
+    { keys:["ring"], label:"ring", use:"everyday elegance and special moments" },
+    { keys:["bracelet","bangle"], label:"bracelet", use:"stacking or solo style" },
+    { keys:["earring","stud","jhumka"], label:"earrings", use:"casual to festive looks" },
+    { keys:["keychain","key ring","key-ring"], label:"keychain", use:"bag charm or keys" },
+    { keys:["car","toy"], label:"mini collectible", use:"desk decor or gifting" },
+  ];
+  let cat = { label: "handmade piece", use: "gifting and everyday use" };
+  for (const c of categories) {
+    if (c.keys.some(k => lower.includes(k))) { cat = c; break; }
+  }
+  const niceName = name || "Beautiful Piece";
+  const colorTxt = colorFound ? `${colorFound} ` : "";
+  const line1 = `Premium ${colorTxt}${cat.label} — crafted for comfort and long-lasting shine.`;
+  const line2 = `Perfect for ${cat.use}.`;
+  const line3 = `Want a custom version? Message us on WhatsApp: ${WHATSAPP_NUMBER}.`;
+  const line4 = BRAND_NAME;
+  const sentence = `${niceName}: a premium ${colorTxt}${cat.label} designed for ${cat.use}. Lightweight, comfortable and gift-ready.`;
+  return { bullets: [line1, line2, line3, line4], sentence };
+}
+
+/* ====== Inject JSON-LD Product schema (SEO) ====== */
+function injectProductSchema({name, price, mrp, image, description}) {
+  try {
+    const id = "product-jsonld";
+    const old = document.getElementById(id);
+    if (old) old.remove();
+    const data = {
+      "@context":"https://schema.org",
+      "@type":"Product",
+      "name": name,
+      "image": [image].filter(Boolean),
+      "description": description,
+      "brand": { "@type":"Brand", "name": BRAND_NAME },
+      "offers": {
+        "@type":"Offer",
+        "priceCurrency":"INR",
+        "price": String(price || ""),
+        "availability":"https://schema.org/InStock",
+        "url": location.href
+      }
+    };
+    if (mrp && price && mrp > price) {
+      data.offers["highPrice"] = String(mrp);
+      data.offers["lowPrice"]  = String(price);
+    }
+    const tag = document.createElement("script");
+    tag.type = "application/ld+json";
+    tag.id = id;
+    tag.textContent = JSON.stringify(data);
+    document.head.appendChild(tag);
+  } catch(e) {}
+}
+
 let selectedProduct = null;
 
 // Open popup with product details
-function openPopup(images, name, mrp, price, stock) {
+function openPopup(images, name, mrp, price, stock, sheetDesc) {
   selectedProduct = { image: images[0], name, mrp, price };
   // Build a shareable link that re-opens this popup
   const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
@@ -656,6 +813,10 @@ function openPopup(images, name, mrp, price, stock) {
   const whEl = document.getElementById('whShare');
   if (whEl) {
     whEl.href = `https://wa.me/?text=${encodeURIComponent(shareMsg)}`;
+    whEl.onclick = function() {
+      const d = document.getElementById('popupDetails');
+      if (d) d.open = false;
+    };
   }
 
   try { history.replaceState(null, "", shareUrl); } catch (e) {}
@@ -681,6 +842,40 @@ function openPopup(images, name, mrp, price, stock) {
   }
 
   document.getElementById("popupPrice").innerHTML = priceHTML;
+// === Build description from Google Sheet (and hide if empty)
+const detailsEl = document.getElementById("popupDetails");
+const descBox   = document.getElementById("popupDescText");
+const fromSheet = (sheetDesc || "").trim();
+
+// Always start collapsed
+if (detailsEl) detailsEl.open = false;
+
+if (fromSheet) {
+  // ✅ Description available → show section and fill text
+  detailsEl.style.display = "block";
+  // Show exactly what you wrote in the sheet (no fake lines)
+  descBox.textContent = fromSheet;
+} else {
+  // ❌ No description → hide the whole section
+  detailsEl.style.display = "none";
+  descBox.textContent = "";
+}
+
+// ✅ SEO schema: use sheet description if present, else empty
+injectProductSchema({
+  name,
+  price,
+  mrp,
+  image: images[0],
+  description: fromSheet
+});
+// Always start with Details collapsed
+  try {
+    const detailsEl = document.getElementById("popupDetails");
+    if (detailsEl) detailsEl.open = false;
+  } catch(_) {}
+
+
 
   // Add to cart button
   const popupBtn = document.getElementById("popupAddBtn");
