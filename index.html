@@ -1478,20 +1478,53 @@ fetch("https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/She
 </script>
 <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
 <script>
-  // If redirected from Google login
-  if (window.location.hash.includes("access_token")) {
-    const accessToken = window.location.hash.split("=")[1].split("&")[0];
-    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    })
-    .then(res => res.json())
-    .then(data => {
-      localStorage.setItem("user_name", data.name);
-      localStorage.setItem("user_email", data.email);
-      localStorage.setItem("user_photo", data.picture);
-      location.href = "https://precioussly.com"; // redirect clean
-    });
+  // 🔗 paste the URL you copied from Apps Script here:
+  const SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwL_5G9gF0aK2QJhwcD6wR_BHf4k1E_tcesQ_XJV-jj_1zfNoGW9IpOCF3FUD3x2jzoQg/exec';
+
+  // Send name/email/photo to your Sheet (form-encoded, no preflight)
+  function sendLoginToSheet({ name, email, photo }) {
+    try {
+      const payload = new URLSearchParams({ name, email, photo });
+      if (navigator.sendBeacon) {
+        // Sends even if we navigate away right after
+        navigator.sendBeacon(SHEET_WEBAPP_URL, payload);
+      } else {
+        // Fallback
+        fetch(SHEET_WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: payload.toString(),
+          mode: 'no-cors'
+        });
+      }
+    } catch (e) {
+      console.warn('sendLoginToSheet failed:', e);
+    }
   }
+</script>
+<script>
+// If redirected from Google login
+if (window.location.hash.includes("access_token")) {
+  const accessToken = window.location.hash.split("=")[1].split("&")[0];
+  fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  .then(res => res.json())
+  .then(data => {
+    localStorage.setItem("user_name", data.name);
+    localStorage.setItem("user_email", data.email);
+    localStorage.setItem("user_photo", data.picture);
+
+    // ⬇️ Ye line yahin paste karni hai
+    sendLoginToSheet({
+      name: data.name || '',
+      email: (data.email || '').toLowerCase(),
+      photo: data.picture || ''
+    });
+
+    location.href = "https://precioussly.com"; // redirect clean
+  });
+}
 
   // Show profile photo if already logged in
   const photo = localStorage.getItem("user_photo");
