@@ -485,27 +485,6 @@ body.noscroll {
   background: transparent;
 }
 </style>
-<style>
-/* === Fixed popup size + inner scroll (LOCKED HEIGHT) === */
-.popup-card{
-  width: 90%;
-  max-width: 320px;
-  height: min(86vh, 620px);
-  max-height: 86vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.popup-body{
-  flex: 1 1 auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 12px;
-}
-#popupSlider{
-  min-height: 300px;
-}
-</style>
 </head>
 <body>
 <header class="site-header">
@@ -881,6 +860,24 @@ if (fromSheet) {
   detailsEl.style.display = "none";
   descBox.textContent = "";
 }
+
+
+// === Adjust popup height based on description presence ===
+try {
+  const card = document.querySelector(".popup-card");
+  if (card) {
+    if (fromSheet) {
+      // Description available → lock height so inner scroll handles overflow
+      card.style.height = "min(86vh, 620px)";
+      card.style.maxHeight = "86vh";
+    } else {
+      // No description → let card size shrink naturally
+      card.style.height = "auto";
+      card.style.maxHeight = "88vh";
+    }
+  }
+} catch(e) { /* no-op */ }
+// === end adjust height ===
 
 // ✅ SEO schema: use sheet description if present, else empty
 injectProductSchema({
