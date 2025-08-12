@@ -485,50 +485,97 @@ body.noscroll {
   background: transparent;
 }
 </style>
-</head>
-<body>
-<header class="site-header">
-  <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div>
-    <div></div>
-    <div></div>
-  </div>
+<style>
 
-  <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-  <img
-    src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
-    alt="Precioussly Logo"
-    onclick="location.href = 'https://precioussly.com';"
-    style="
+/* === Side Menu (same as index.html look) === */
+.menu-overlay{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.45);
+  display:none; z-index:4000;
+  opacity:0; transition:opacity .35s cubic-bezier(.22,1,.36,1);
+}
+.menu-overlay.active{ display:block; opacity:1; }
+
+.side-menu{
+  position:fixed; top:0; left:0;
+  width:84vw; max-width:380px; height:100vh;
+  background:#fff; box-shadow:4px 0 16px rgba(0,0,0,.1);
+  padding:16px 12px; overflow-y:auto;
+  transform:translateX(-100%);
+  transition:transform .8s cubic-bezier(.25,1,.3,1);
+  z-index:5000; font-family:'Roboto Slab', serif;
+}
+.side-menu.active{ transform:translateX(0); }
+
+.menu-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 4px 12px; border-bottom:1px solid #eaeaea; margin-bottom:12px;
+}
+.menu-title{ font-size:18px; font-weight:600; color:#000; font-family:'Roboto Slab', serif; }
+.menu-close{
+  width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+  border:1px solid #000; border-radius:10px; font-size:18px; font-weight:700; color:#000;
+  cursor:pointer; -webkit-tap-highlight-color:transparent;
+}
+
+/* Unified button list (green first button) */
+#sideMenu #menuContent{ display:flex; flex-direction:column; gap:10px; padding:8px 16px 18px; }
+#sideMenu .menu-link{
+  display:block; text-align:center; padding:10px 14px;
+  border:1px solid #dcdcdc; border-radius:12px; background:#fff;
+  color:#111; font-family:'Roboto Slab', serif; font-size:17px; font-weight:500; text-decoration:none;
+  box-shadow:0 1px 2px rgba(0,0,0,.03);
+}
+#menuContent .menu-link:first-child{
+  background:#e9fef1; border:1.5px solid #c5ecd6; color:#064c2c; font-weight:600;
+}
+
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/></head>
+<body><header class="site-header">
+<!-- SIDE MENU STRUCTURE from Resin.html -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+<div class="menu-header">
+<span class="menu-title">Menu</span>
+<span class="menu-close" onclick="toggleMenu()">×</span>
+</div>
+<div id="menuContent"></div>
+</nav>
+<div class="hamburger-wrapper" onclick="toggleMenu()">
+<div></div>
+<div></div>
+<div></div>
+</div>
+<div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+<img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="
       width: 110px;
       height: auto;
       object-fit: contain;
       cursor: pointer;
       transition: opacity 0.3s ease;
       -webkit-tap-highlight-color: transparent;
-    "
-  />
+    "/>
 </div>
-
-  <div style="display: flex; align-items: center; gap: 12px;">
-    <!-- Search icon -->
-    <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
-
-    <!-- Profile icon -->
-    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
-
-    <!-- Cart icon with badge -->
-    <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-      <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-      <span id="cartCountBadge"
-      style="position:absolute; top:-6px; right:-6px; background:white; color:black;
-             font-size:12px; border:1px solid grey; border-radius:50%; width:18px; height:18px;
-             display:none; align-items:center; justify-content:center;"></span>
-    </a>
-  </div>
+<div style="display: flex; align-items: center; gap: 12px;">
+<!-- Search icon -->
+<img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
+<!-- Profile icon -->
+<img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" style="cursor: pointer;"/>
+<!-- Cart icon with badge -->
+<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+<img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
+<span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+</a>
+</div>
 </header>
-<!-- Announcement Bar -->
 <div id="announcementBar">🧿</div>
+
+<!-- Announcement Bar -->
+
+<!-- Menu overlay + drawer (same as index.html) -->
+
+
 <div id="content"></div>
 <script>
 const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
@@ -641,8 +688,6 @@ product.appendChild(infoWrapper);
     maybeOpenFromURL();
   });
 </script>
-
-
 <script>
   function getParam(name) {
     const u = new URLSearchParams(location.search);
@@ -660,47 +705,41 @@ product.appendChild(infoWrapper);
     openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]), getSheetDescription(item));
   }
 </script>
-
 <div id="productPopup">
-  <div class="popup-card" onclick="event.stopPropagation()">
+<div class="popup-card" onclick="event.stopPropagation()">
 <div class="popup-body">
-
-
-
 <!-- Close button -->
-
 <!-- Square image 1:1 -->
 <!-- Sliding photos here -->
 <div class="popup-media">
-  <div id="popupSlider"></div>
-  <a id="whShare" class="wh-share" href="#" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
-    <img src="https://i.postimg.cc/fLMF5X4j/file-00000000fcd061f8a087874368df7c79.png" alt="Share on WhatsApp">
-  </a>
+<div id="popupSlider"></div>
+<a aria-label="Share on WhatsApp" class="wh-share" href="#" id="whShare" rel="noopener" target="_blank">
+<img alt="Share on WhatsApp" src="https://i.postimg.cc/fLMF5X4j/file-00000000fcd061f8a087874368df7c79.png"/>
+</a>
 </div>
-<div id="popupDots" class="popup-dots"></div>
+<div class="popup-dots" id="popupDots"></div>
 <!-- Product name on left -->
 <div id="popupName" style="font-size:16px; font-weight:600; text-align:left; margin: 10px 6px 4px;"></div>
 <!-- Price -->
 <div id="popupPrice" style="margin:8px 6px 16px; font-size:14px; text-align:left;"></div>
 <!-- Quantity Bar -->
 <!-- Auto SEO Description -->
-<details id="popupDetails" class="desc-box">
-  <summary>Details</summary>
-  <div id="popupDescText" class="desc-text"></div>
+<details class="desc-box" id="popupDetails">
+<summary>Details</summary>
+<div class="desc-text" id="popupDescText"></div>
 </details>
-
 <div class="quantity-bar premium-bar">
-  <button onclick="changePopupQty(-1)">
-    <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-      <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-  </button>
-  <div id="popupQty" class="quantity-display">1</div>
-  <button onclick="changePopupQty(1)">
-    <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-      <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-  </button>
+<button onclick="changePopupQty(-1)">
+<svg fill="none" height="20" viewbox="0 0 24 24" width="20">
+<path d="M6 12h12" stroke="#2563eb" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</button>
+<div class="quantity-display" id="popupQty">1</div>
+<button onclick="changePopupQty(1)">
+<svg fill="none" height="20" viewbox="0 0 24 24" width="20">
+<path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</button>
 </div>
 <!-- Add to Cart full-width button -->
 <button id="popupAddBtn" style="width:100%; background:#2563eb; color:#fff; border:1px solid #2563eb; border-radius:8px; padding:12px 16px; font-size:15px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
@@ -732,9 +771,9 @@ product.appendChild(infoWrapper);
   white-space: nowrap;
   height: 38px;
 ">
-  <img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" />
-  <span style="line-height: 1;">Item added to cart</span>
-</div>
+<img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+<span style="line-height: 1;">Item added to cart</span>
+</img></div>
 <script>
 
 /* ====== SETTINGS ====== */
@@ -1078,7 +1117,6 @@ if (existing) {
 
 updateCartBadge(false); // ✅ no bounce on refresh
 </script>
-
 <script>
 function closePopup() {
   const popup = document.getElementById("productPopup");
@@ -1108,6 +1146,363 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+<script>
+// identical function used on index.html
+function toggleMenu(){
+  const menu = document.getElementById("sideMenu");
+  const overlay = document.getElementById("menuOverlay");
+  const body = document.body;
+  const open = menu.classList.contains("active");
+  if (open){
+    menu.classList.remove("active");
+    overlay.classList.remove("active");
+    body.classList.remove("no-scroll");
+  }else{
+    menu.classList.add("active");
+    overlay.classList.add("active");
+    body.classList.add("no-scroll");
+  }
+}
+// Close on ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const menu = document.getElementById('sideMenu');
+    if (menu && menu.classList.contains('active')) toggleMenu();
+  }
+});
 
-</body>
+// ===== MENU DATA FROM SHEET (same sheet as index.html) =====
+const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+
+fetch(menuURL)
+  .then(res => res.json())
+  .then(rows => {
+    const menuContent = document.getElementById("menuContent");
+    if (!menuContent) return;
+
+    // Group by Menu with optional Submenu
+    const grouped = {};
+    rows.forEach(r => {
+      const menu = (r.Menu || "").trim();
+      const sub  = (r.Submenu || "").trim();
+      const link = (r.Link || "").trim();
+      if (!menu) return;
+      if (sub){
+        if (!grouped[menu]) grouped[menu] = { link:null, subs:[] };
+        grouped[menu].subs.push({ name:sub, link });
+      }else{
+        grouped[menu] = { link, subs:[] };
+      }
+    });
+
+    // Build top-level buttons (no dropdowns to match screenshot UX)
+    Object.entries(grouped).forEach(([name, info]) => {
+      const a = document.createElement('a');
+      a.href = info.link || "#";
+      a.className = "menu-link";
+      a.textContent = name;
+      menuContent.appendChild(a);
+    });
+  });
+</script>
+<script async="" defer="" src="https://accounts.google.com/gsi/client"></script><script>
+  document.addEventListener('click', function (e) {
+    const menu = document.getElementById('sideMenu');
+    if (!menu.contains(e.target)) return;
+    const toggle = e.target.closest('.dropdown-toggle');
+    if (toggle) {
+      const next = toggle.nextElementSibling;
+      if (next && (next.classList.contains('submenu-container') || next.classList.contains('submenu'))) {
+        const isOpen = next.classList.contains('open') || next.style.display === 'block';
+        next.classList.toggle('open', !isOpen);
+        next.style.display = isOpen ? 'none' : 'block';
+      }
+      e.preventDefault();
+      return;
+    }
+    const a = e.target.closest('a');
+    if (a && a.href) {
+      toggleMenu();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      const menu = document.getElementById('sideMenu');
+      if (menu.classList.contains('active')) toggleMenu();
+    }
+  });
+  window.addEventListener('load', function () {
+    const here = location.pathname.replace(/\/+$/, '');
+    document.querySelectorAll('#sideMenu a.menu-link, #sideMenu .home-link').forEach(a => {
+      try {
+        const path = new URL(a.href).pathname.replace(/\/+$/, '');
+        
+      } catch (_) {}
+    });
+  });
+</script><script>
+  // Announcement Bar from Google Sheet
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
+  // Popup function
+  function togglePopup() {
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = overlay.querySelector(".popup-box");
+    const isOpen = overlay.classList.contains("active");
+    overlay.classList.toggle("active", !isOpen);
+    popupBox.classList.toggle("active", !isOpen);
+  }
+
+  // Hamburger toggle function
+    menu.classList.add("active");
+    overlay.classList.add("active");
+    body.classList.add("no-scroll");
+  }
+}
+  // 🔽 POPUP DATA FROM SHEET
+  const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
+
+  fetch(sheetURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const row = data[0];
+        const logo = document.querySelector(".popup-logo");
+        if (row.popup_logo) logo.src = row.popup_logo;
+
+        const popupText = document.querySelector(".popup-text");
+        if (row.popup_text) popupText.innerHTML = row.popup_text;
+
+        const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
+        instaLinks.forEach(link => {
+          if (row.popup_insta_link) link.href = row.popup_insta_link;
+          if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
+        });
+      }
+    });
+
+  // 🔽 MENU DATA FROM SHEET
+  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+
+  fetch(menuURL)
+    .then(res => res.json())
+    .then(data => {
+      const menuContent = document.getElementById("menuContent");
+      const grouped = {};
+
+      data.forEach(item => {
+        const menu = item.Menu?.trim();
+        const sub = item.Submenu?.trim();
+        const link = item.Link?.trim();
+        if (!menu) return;
+
+        if (sub) {
+          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+          grouped[menu].subs.push({ name: sub, link });
+        } else {
+          grouped[menu] = { link, subs: [] };
+        }
+      });
+
+      Object.entries(grouped).forEach(([menu, info]) => {
+  if (info.subs.length === 0) {
+    menuContent.innerHTML += `<a href="${info.link}" class="menu-link">${menu}</a>`;
+  } else {
+    const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+    menuContent.innerHTML += `
+      <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+        <span>${menu}</span>
+        <span class="dropdown-icon">›</span>
+      </div>
+      <div class="submenu-container" id="${menuId}" style="display: none;">
+        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link">› ${s.name}</a>`).join("")}
+      </div>
+    `;
+  }
+});
+    });
+    function toggleSubmenu(id) {
+  const submenu = document.getElementById(id);
+  submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+}
+// 🟢 Wide Media (Image/Video) Strip from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    const strip = document.getElementById("imageStrip");
+    data.forEach(row => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.trim().endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url.trim();
+        el.controls = true;
+        el.muted = true;
+        el.loop = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url.trim();
+      }
+
+      el.className = "strip-media";
+      strip.appendChild(el);
+      setTimeout(() => {
+  const itemWidth = strip.children[0]?.offsetWidth || 0;
+  if (itemWidth) strip.scrollLeft = itemWidth;
+}, 300);
+    });
+  });
+let currentIndex = 0;
+let slides = [];
+let dots = [];
+const slider = document.getElementById("fadeSlider");
+const dotsContainer = document.getElementById("fadeDots");
+
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    data.forEach((row, index) => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url;
+        el.loop = true;
+        el.muted = true;
+        el.autoplay = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url;
+      }
+
+      el.className = "fade-slide";
+      if (index === 0) el.classList.add("active");
+
+      slider.appendChild(el);
+      slides.push(el);
+
+      // dots
+      const dot = document.createElement("div");
+      dot.className = "fade-dot";
+      if (index === 0) dot.classList.add("active");
+      dot.addEventListener("click", () => showSlide(index));
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
+    });
+  });
+
+function showSlide(index) {
+  slides[currentIndex]?.classList.remove("active");
+  dots[currentIndex]?.classList.remove("active");
+
+  currentIndex = index;
+
+  slides[currentIndex]?.classList.add("active");
+  dots[currentIndex]?.classList.add("active");
+}
+
+function showNextSlide() {
+  showSlide((currentIndex + 1) % slides.length);
+}
+
+function showPrevSlide() {
+  showSlide((currentIndex - 1 + slides.length) % slides.length);
+}
+
+// Swipe gesture
+let startX = 0;
+slider.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+});
+slider.addEventListener("touchend", e => {
+  const deltaX = e.changedTouches[0].clientX - startX;
+  if (Math.abs(deltaX) > 50) {
+    if (deltaX < 0) showNextSlide();
+    else showPrevSlide();
+  }
+});
+</script><script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script><script>
+  // If redirected from Google login
+  if (window.location.hash.includes("access_token")) {
+    const accessToken = window.location.hash.split("=")[1].split("&")[0];
+    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+      localStorage.setItem("user_name", data.name);
+      localStorage.setItem("user_email", data.email);
+      localStorage.setItem("user_photo", data.picture);
+      location.href = "https://precioussly.com"; // redirect clean
+    });
+  }
+
+  // Show profile photo if already logged in
+  const photo = localStorage.getItem("user_photo");
+  if (photo) {
+    document.getElementById("profileIcon").src = photo;
+  }
+
+  // When user taps profile icon
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+    }
+  }
+</script><script>
+  const WA_NUMBER = "918586057887"; // 91 + 8586057887
+  const DEFAULT_MSG = "Hi Precioussly! I need help with my order.";
+
+  (function () {
+    const wa = document.getElementById("waBtn");
+    if (wa) {
+      const msg = encodeURIComponent(DEFAULT_MSG);
+      wa.href = `https://wa.me/${WA_NUMBER}?text=${msg}`;
+    }
+  })();
+
+  (function () {
+  const header = document.querySelector(".site-header");
+  if (!header) return;
+
+  let lastY = window.scrollY;
+  const TOL = 4; // px tolerance to avoid jitter
+
+  window.addEventListener("scroll", () => {
+    const y = window.scrollY;
+    const delta = y - lastY;
+    const movingDown = delta > TOL;
+    const movingUp   = delta < -TOL;
+
+    // ✅ Required behavior: UP => show, DOWN => hide
+    if (movingDown) {
+      header.classList.add("header-hidden");   // hide
+    } else if (movingUp) {
+      header.classList.remove("header-hidden"); // show
+    }
+    lastY = y;
+  }, { passive: true });
+})();
+</script></body>
 </html>
