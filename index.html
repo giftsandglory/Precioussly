@@ -1596,11 +1596,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Floating Buttons: WhatsApp + Back to Top -->
 <div class="fab-stack">
-  <button id="toTopBtn" class="fab-btn" aria-label="Back to top" title="Back to top">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18 15l-6-6-6 6"></path>
-    </svg>
-  </button>
   <a id="waBtn" class="fab-btn" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" rel="noopener" target="_blank">
     <img src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png" alt="WhatsApp">
   </a>
@@ -1619,28 +1614,6 @@ document.addEventListener('DOMContentLoaded', function() {
   })();
 
   (function () {
-    const toTop = document.getElementById("toTopBtn");
-    const showAfter = 200;
-    function onScroll() {
-      if (!toTop) return;
-      if (window.scrollY > showAfter) {
-        toTop.classList.add("show");
-      } else {
-        toTop.classList.remove("show");
-      }
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    if (toTop) {
-      toTop.addEventListener("click", () => {
-        try { window.scrollTo({ top: 0, behavior: "smooth" }); }
-        catch(e){ window.scrollTo(0, 0); }
-      });
-    }
-  })();
-
-  
-(function () {
   const header = document.querySelector(".site-header");
   if (!header) return;
 
