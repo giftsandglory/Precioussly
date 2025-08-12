@@ -1478,53 +1478,20 @@ fetch("https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/She
 </script>
 <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
 <script>
-  // 🔗 paste the URL you copied from Apps Script here:
-  const SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwL_5G9gF0aK2QJhwcD6wR_BHf4k1E_tcesQ_XJV-jj_1zfNoGW9IpOCF3FUD3x2jzoQg/exec';
-
-  // Send name/email/photo to your Sheet (form-encoded, no preflight)
-  function sendLoginToSheet({ name, email, photo }) {
-    try {
-      const payload = new URLSearchParams({ name, email, photo });
-      if (navigator.sendBeacon) {
-        // Sends even if we navigate away right after
-        navigator.sendBeacon(SHEET_WEBAPP_URL, payload);
-      } else {
-        // Fallback
-        fetch(SHEET_WEBAPP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: payload.toString(),
-          mode: 'no-cors'
-        });
-      }
-    } catch (e) {
-      console.warn('sendLoginToSheet failed:', e);
-    }
-  }
-</script>
-<script>
-// If redirected from Google login
-if (window.location.hash.includes("access_token")) {
-  const accessToken = window.location.hash.split("=")[1].split("&")[0];
-  fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  .then(res => res.json())
-  .then(data => {
-    localStorage.setItem("user_name", data.name);
-    localStorage.setItem("user_email", data.email);
-    localStorage.setItem("user_photo", data.picture);
-
-    // ⬇️ Ye line yahin paste karni hai
-    sendLoginToSheet({
-      name: data.name || '',
-      email: (data.email || '').toLowerCase(),
-      photo: data.picture || ''
+  // If redirected from Google login
+  if (window.location.hash.includes("access_token")) {
+    const accessToken = window.location.hash.split("=")[1].split("&")[0];
+    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+      localStorage.setItem("user_name", data.name);
+      localStorage.setItem("user_email", data.email);
+      localStorage.setItem("user_photo", data.picture);
+      location.href = "https://precioussly.com"; // redirect clean
     });
-
-    location.href = "https://precioussly.com"; // redirect clean
-  });
-}
+  }
 
   // Show profile photo if already logged in
   const photo = localStorage.getItem("user_photo");
@@ -1567,6 +1534,276 @@ document.addEventListener('DOMContentLoaded', function() {
   if (cs) { setTimeout(function(){ cs.classList.add('show'); }, 1600); }
 });
 </script>
+<!-- ======= ADMIN LAUNCHER (only for allowed email) ======= -->
+<style>
+  .admin-fab {
+    position: fixed; right: 16px; bottom: 16px; z-index: 9999;
+    width: 52px; height: 52px; border-radius: 50%;
+    background:#111; color:#fff; display:none; align-items:center; justify-content:center;
+    font-size: 22px; font-weight: 700; border: 1px solid #333; cursor:pointer;
+  }
+  .admin-panel {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 9998; display:none;
+    align-items: center; justify-content: center;
+  }
+  .admin-card {
+    width: min(100vw - 24px, 960px);
+    max-height: 88vh; overflow: auto;
+    background: #fff; border-radius: 16px; padding: 16px; border: 1px solid #e5e5e5;
+    font-family: 'Roboto Slab', serif;
+  }
+  .admin-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .admin-tabs { display:flex; gap:8px; margin: 8px 0 16px; flex-wrap: wrap; }
+  .admin-tabs button { padding: 8px 12px; border:1px solid #ddd; background:#fafafa; border-radius: 10px; cursor:pointer; }
+  .admin-tabs button.active { background:#111; color:#fff; border-color:#111; }
+  .admin-section { display:none; gap:12px; }
+  .admin-section.show { display:block; }
+  .admin-row { display:flex; gap:12px; flex-wrap: wrap; }
+  .admin-field { flex:1 1 280px; display:flex; flex-direction:column; gap:6px; }
+  .admin-field input, .admin-field textarea { padding:10px 12px; border:1px solid #ddd; border-radius:10px; font-family:inherit; }
+  .admin-actions { display:flex; gap:10px; flex-wrap:wrap; }
+  .admin-table { width:100%; border-collapse: collapse; margin-top:10px; }
+  .admin-table th, .admin-table td { border:1px solid #eee; padding:8px; font-size:14px; text-align:left; }
+  .admin-close { border:1px solid #111; background:#fff; color:#111; border-radius: 10px; padding:8px 12px; cursor:pointer; }
+  .save-btn { background:#e9fef1; color:#064c2c; border:1.5px solid #c5ecd6; border-radius: 10px; padding:10px 14px; cursor:pointer; font-weight:600;}
+  .danger-btn { background:#fff5f5; color:#8a1f1f; border:1px solid #f3c7c7; border-radius: 10px; padding:8px 12px; cursor:pointer;}
+  .toast {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: 84px; background:#111; color:#fff; padding:10px 14px; border-radius:10px; display:none; z-index: 10000;
+  }
+</style>
 
+<div id="adminFab" class="admin-fab" title="Admin">✎</div>
+
+<div id="adminPanel" class="admin-panel">
+  <div class="admin-card">
+    <div class="admin-header">
+      <h3 style="margin:0; font-weight:600;">Admin Controls</h3>
+      <button class="admin-close" onclick="closeAdmin()">Close</button>
+    </div>
+
+    <div class="admin-tabs">
+      <button data-tab="tab-ann" class="active">Announcement</button>
+      <button data-tab="tab-media">Media Slider</button>
+      <button data-tab="tab-menu">Menu</button>
+      <button data-tab="tab-coupons">Coupons</button>
+      <button data-tab="tab-categories">Categories</button>
+    </div>
+
+    <!-- Announcement -->
+    <div id="tab-ann" class="admin-section show">
+      <div class="admin-row">
+        <div class="admin-field">
+          <label>Announcement Text</label>
+          <textarea id="annText" rows="3" placeholder="Minimum order amount is 149 to proceed"></textarea>
+        </div>
+      </div>
+      <div class="admin-actions">
+        <button class="save-btn" onclick="saveAnnouncement()">Save Announcement</button>
+      </div>
+    </div>
+
+    <!-- Media -->
+    <div id="tab-media" class="admin-section">
+      <div class="admin-row">
+        <div class="admin-field">
+          <label>New Media URL (image or .mp4)</label>
+          <input id="mediaUrl" placeholder="https://...">
+        </div>
+      </div>
+      <div class="admin-actions">
+        <button class="save-btn" onclick="mediaAdd()">Add to Slider</button>
+        <button class="danger-btn" onclick="mediaDelete()">Delete this URL</button>
+      </div>
+      <div style="margin-top:10px; font-size:13px; color:#555;">Note: Slider sheet uses column <b>(media_url)</b>.</div>
+    </div>
+
+    <!-- Menu -->
+    <div id="tab-menu" class="admin-section">
+      <div class="admin-row">
+        <div class="admin-field"><label>Menu</label><input id="menuMenu" placeholder="e.g., Shop"></div>
+        <div class="admin-field"><label>Submenu (optional)</label><input id="menuSub" placeholder="e.g., Keychains"></div>
+        <div class="admin-field"><label>Link</label><input id="menuLink" placeholder="https://..."></div>
+      </div>
+      <div class="admin-actions">
+        <button class="save-btn" onclick="menuUpsert()">Upsert</button>
+        <button class="danger-btn" onclick="menuDelete()">Delete</button>
+      </div>
+      <div style="margin-top:10px; font-size:13px; color:#555;">Keys: <b>Menu</b> + optional <b>Submenu</b>. Columns: Menu, Submenu, Link</div>
+    </div>
+
+    <!-- Coupons -->
+    <div id="tab-coupons" class="admin-section">
+      <div class="admin-row">
+        <div class="admin-field"><label>Code (key)</label><input id="cpCode" placeholder="SAVE10"></div>
+        <div class="admin-field"><label>Title</label><input id="cpTitle" placeholder="New User Offer"></div>
+        <div class="admin-field"><label>Min Amount</label><input id="cpMin" type="number" placeholder="149"></div>
+        <div class="admin-field"><label>Discount</label><input id="cpDisc" placeholder="10%"></div>
+      </div>
+      <div class="admin-actions">
+        <button class="save-btn" onclick="couponUpsert()">Upsert</button>
+        <button class="danger-btn" onclick="couponDelete()">Delete</button>
+      </div>
+      <div style="margin-top:10px; font-size:13px; color:#555;">Columns: Title, MinAmount, Code, Discount • Key: <b>Code</b></div>
+    </div>
+
+    <!-- Categories -->
+    <div id="tab-categories" class="admin-section">
+      <div class="admin-row">
+        <div class="admin-field"><label>Category Name (key)</label><input id="catName" placeholder="Leather Keychains"></div>
+        <div class="admin-field"><label>Section</label><input id="catSection" placeholder="Popular"></div>
+        <div class="admin-field"><label>Image URL</label><input id="catImage" placeholder="https://..."></div>
+        <div class="admin-field"><label>Link</label><input id="catLink" placeholder="https://..."></div>
+      </div>
+      <div class="admin-actions">
+        <button class="save-btn" onclick="categoryUpsert()">Upsert</button>
+        <button class="danger-btn" onclick="categoryDelete()">Delete</button>
+      </div>
+      <div style="margin-top:10px; font-size:13px; color:#555;">Columns: section, category name, image, link • Key: <b>category name</b></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script>
+/** ====== CONFIG (EDIT) ====== */
+const GAS_URL = 'https://script.google.com/macros/s/REPLACE_WITH_YOUR_DEPLOYMENT/exec';
+const API_KEY = 'CHANGE_ME_TO_A_RANDOM_LONG_SECRET'; // same as backend
+const ALLOWED_EMAILS = ['ritiktyagi0033@gmail.com']; // jinko Admin dikhna chahiye
+/** =========================== */
+
+const $ = sel => document.querySelector(sel);
+
+function showToast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 1800);
+}
+
+function openAdmin() { $('#adminPanel').style.display = 'flex'; }
+function closeAdmin() { $('#adminPanel').style.display = 'none'; }
+
+function switchTab(id) {
+  document.querySelectorAll('.admin-tabs button').forEach(b=>b.classList.toggle('active', b.dataset.tab===id));
+  document.querySelectorAll('.admin-section').forEach(s=>s.classList.toggle('show', s.id===id));
+}
+document.querySelectorAll('.admin-tabs button').forEach(btn=>{
+  btn.addEventListener('click',()=>switchTab(btn.dataset.tab));
+});
+
+function apiCall(action, payload={}) {
+  return fetch(GAS_URL+'?action='+encodeURIComponent(action), {
+    method: 'POST',
+    headers: {
+      'Content-Type':'application/json',
+      'x-api-key': API_KEY
+    },
+    body: JSON.stringify(payload)
+  }).then(r=>r.json());
+}
+
+/** ====== ANNOUNCEMENT ====== */
+function saveAnnouncement() {
+  const txt = $('#annText').value.trim();
+  apiCall('announcement.set', { announcement_text: txt }).then(res=>{
+    if (res.ok) { showToast('Announcement updated'); }
+    else showToast('Error: ' + (res.error||''));
+  }).catch(e=>showToast('Error: '+e));
+}
+
+/** ====== MEDIA ====== */
+function mediaAdd() {
+  const url = $('#mediaUrl').value.trim();
+  if (!url) return showToast('Enter media URL');
+  apiCall('media.add', { media_url: url }).then(res=>{
+    if (res.ok) showToast('Media added / exists');
+    else showToast('Error: ' + (res.error||'')); 
+  }).catch(e=>showToast('Error: '+e));
+}
+function mediaDelete() {
+  const url = $('#mediaUrl').value.trim();
+  if (!url) return showToast('Enter media URL to delete');
+  apiCall('media.delete', { media_url: url }).then(res=>{
+    if (res.ok) showToast(res.result?.deleted ? 'Deleted' : 'Not found');
+    else showToast('Error: ' + (res.error||'')); 
+  }).catch(e=>showToast('Error: '+e));
+}
+
+/** ====== MENU ====== */
+function menuUpsert() {
+  const Menu = $('#menuMenu').value.trim();
+  const Submenu = $('#menuSub').value.trim();
+  const Link = $('#menuLink').value.trim();
+  if (!Menu) return showToast('Menu required');
+  apiCall('menu.upsert', { Menu, Submenu, Link }).then(res=>{
+    if (res.ok) showToast('Saved');
+    else showToast('Error: ' + (res.error||'')); 
+  }).catch(e=>showToast('Error: '+e));
+}
+function menuDelete() {
+  const Menu = $('#menuMenu').value.trim();
+  const Submenu = $('#menuSub').value.trim();
+  if (!Menu) return showToast('Menu required');
+  apiCall('menu.delete', { Menu, Submenu }).then(res=>{
+    if (res.ok) showToast(res.result?.deleted ? 'Deleted' : 'Not found');
+    else showToast('Error: ' + (res.error||'')); 
+  }).catch(e=>showToast('Error: '+e));
+}
+
+/** ====== COUPONS ====== */
+function couponUpsert() {
+  const Code = $('#cpCode').value.trim();
+  if (!Code) return showToast('Code required');
+  const Title = $('#cpTitle').value.trim();
+  const MinAmount = $('#cpMin').value.trim();
+  const Discount = $('#cpDisc').value.trim();
+  apiCall('coupon.upsert', { Code, Title, MinAmount, Discount }).then(res=>{
+    if (res.ok) showToast('Saved');
+    else showToast('Error: ' + (res.error||'')); 
+  }).catch(e=>showToast('Error: '+e));
+}
+function couponDelete() {
+  const Code = $('#cpCode').value.trim();
+  if (!Code) return showToast('Code required');
+  apiCall('coupon.delete', { Code }).then(res=>{
+    if (res.ok) showToast(res.result?.deleted ? 'Deleted' : 'Not found');
+    else showToast('Error: ' + (res.error||'')); 
+  }).catch(e=>showToast('Error: '+e));
+}
+
+/** ====== CATEGORIES ====== */
+function categoryUpsert() {
+  const catName = $('#catName').value.trim();
+  if (!catName) return showToast('Category Name required');
+  const section = $('#catSection').value.trim();
+  const image   = $('#catImage').value.trim();
+  const link    = $('#catLink').value.trim();
+  apiCall('category.upsert', { 'category name': catName, section, image, link }).then(res=>{
+    if (res.ok) showToast('Saved');
+    else showToast('Error: ' + (res.error||'')); 
+  }).catch(e=>showToast('Error: '+e));
+}
+function categoryDelete() {
+  const catName = $('#catName').value.trim();
+  if (!catName) return showToast('Category Name required');
+  apiCall('category.delete', { 'category name': catName }).then(res=>{
+    if (res.ok) showToast(res.result?.deleted ? 'Deleted' : 'Not found');
+    else showToast('Error: ' + (res.error||'')); 
+  }).catch(e=>showToast('Error: '+e));
+}
+
+/** ====== ACCESS CONTROL ====== */
+/* FAB sirf tab dikhana hai jab localStorage me user_email allowed list me ho */
+(function initAdmin() {
+  const email = (localStorage.getItem('user_email')||'').toLowerCase();
+  if (ALLOWED_EMAILS.includes(email)) {
+    const fab = $('#adminFab');
+    fab.style.display = 'flex';
+    fab.onclick = openAdmin;
+  }
+  // Tabs default active already set by HTML; no more needed
+})();
+</script>
 </body>
 </html>
