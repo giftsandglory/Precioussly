@@ -1170,8 +1170,7 @@ down-toggle {
 
 <!-- scrollable area for the rest of menu items from Google Sheet -->
 <div id="menuContent">
-  <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
-  <a href="https://precioussly.com/" class="menu-link">Home</a></div>
+</div>
 
 </nav>
 
@@ -1512,31 +1511,7 @@ card.style.userSelect = "none";
     });
   });
   </script>
-  <script>
-fetch("https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/Sheet1")
-  .then(res => res.json())
-  .then(rows => {
-    const menuContainer = document.getElementById("menuContent");
-
-    const categorySet = new Set(); // to avoid duplicates
-
-    rows.forEach(row => {
-      const section = row.section?.trim();
-      const name = row["category name"]?.trim();
-      const link = row.link?.trim() || "#";
-
-      if (!name || !link || categorySet.has(name)) return;
-
-      categorySet.add(name);
-
-      const menuItem = document.createElement("a");
-      menuItem.href = link;
-      menuItem.className = "menu-link";
-      menuItem.innerText = name;
-      menuContainer.appendChild(menuItem);
-    });
-  });
-</script>
+  
 
 <script>
   function handleCredentialResponse(response) {
