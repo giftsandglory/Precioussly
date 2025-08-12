@@ -425,7 +425,21 @@ body.noscroll {
   display: block;
   object-fit: contain;
 }
-
+/* === Cart badge ultra-smooth pop === */
+#cartCountBadge{
+  transform-origin: center;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.bounce-badge{
+  animation: badge-pop 420ms cubic-bezier(.22,1,.36,1);
+}
+@keyframes badge-pop{
+  0%   { transform: scale(0.92); }
+  40%  { transform: scale(1.08); }
+  70%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
 </style>
 </head>
 <body>
@@ -462,7 +476,10 @@ body.noscroll {
     <!-- Cart icon with badge -->
     <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
       <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+      <span id="cartCountBadge"
+      style="position:absolute; top:-6px; right:-6px; background:white; color:black;
+             font-size:12px; border:1px solid grey; border-radius:50%; width:18px; height:18px;
+             display:none; align-items:center; justify-content:center;"></span>
     </a>
   </div>
 </header>
@@ -843,23 +860,38 @@ if (existing) {
       window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
     }
   }
+  
+  function updateCartBadge(animate = true) {
+  const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let count = 0;
+  items.forEach(item => count += item.qty);
 
-  function updateCartBadge() {
-    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
-    let count = 0;
-    items.forEach(item => count += item.qty);
-    const badge = document.getElementById("cartCountBadge");
-    if (badge) {
-      if (count > 0) {
-        badge.innerText = count;
-        badge.style.display = "flex";
-      } else {
-        badge.style.display = "none";
-      }
+  const badge = document.getElementById("cartCountBadge");
+  if (!badge) return;
+
+  const prev = Number(badge.dataset.count || 0);
+
+  if (count > 0) {
+    badge.innerText = count;
+    badge.style.display = "flex";
+
+    if (animate && count !== prev) {
+      badge.classList.remove("bounce-badge");
+      void badge.offsetWidth;             // reflow
+      badge.classList.add("bounce-badge");
+      badge.addEventListener("animationend", () => {
+        badge.classList.remove("bounce-badge");
+      }, { once: true });
     }
+  } else {
+    badge.innerText = "";                  // ✅ no “0”
+    badge.style.display = "none";          // ✅ hide when empty
   }
 
-  updateCartBadge();
+  badge.dataset.count = count;
+}
+
+updateCartBadge(false); // ✅ no bounce on refresh
 </script>
 
 <script>
