@@ -1,12 +1,529 @@
 <!DOCTYPE html>
-
-<html lang="en">
+<html>
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Product Grid</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
+  <meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/>
+<script sync defer src="https://accounts.google.com/gsi/client"></script>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <title>Your Cart - Precioussly</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
 <style>
+.proceed-btn,
+.popup-razorpay-btn,
+.cod-inline-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.btn-label { display: inline-block; }
+
+/* Spinner: perfectly centered overlay */
+.btn-spinner{
+  position: absolute;
+  /* center regardless of padding/line-height quirks */
+  inset: 0;              /* top:0; right:0; bottom:0; left:0 */
+  margin: auto;          /* centers the fixed-size circle */
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  display: none;
+  pointer-events: none;
+}
+/* Make spinner visible on white-outline buttons */
+.btn--outline .btn-spinner{
+  border-color: rgba(0,0,0,0.35);
+  border-top-color: #000;
+}
+
+/* When loading */
+.is-loading .btn-label { visibility: hidden; }
+.is-loading .btn-spinner { display: block; }
+.is-loading { pointer-events: none; }
+#minimumNotice {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.cart-item-animate {
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+.empty-cart-img {
+  animation: pulse 2s infinite;
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-top: 2px solid #2874f0;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.site-header {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  min-height: 56px;
+  position: relative;
+}
+
+.hamburger-wrapper {
+  width: 24px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: transparent;
+  border: none;
+}
+
+.hamburger-wrapper div {
+  width: 100%;
+  height: 3px;
+  background-color: #000;
+  border-radius: 2px;
+}
+
+.right-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+
+
+#announcementBar {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #ffffff;
+  background: #000000;
+  font-weight: 500;
+  text-align: center;
+  font-family: 'Roboto Slab', serif;
+  min-height: 24px;
+  line-height: 22px;
+  user-select: none;
+}
+body {
+  font-family: 'Roboto Slab', serif;
+  margin: 0;
+  background: #fff;
+  color: #111;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 12px;
+  padding-bottom: 100px; /* ✅ This ensures button has room on small screens */
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.address {
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+#displayAddress strong {
+  font-size: 16px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+  animation: fadeInUp 0.4s ease forwards;
+  transition: box-shadow 0.3s;
+}
+.item:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 10px;
+}
+
+.item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.item-price {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qty-btn {
+  border: 1px solid #ddd;
+  background: #f9f9f9;
+  color: #111;
+  font-size: 15px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn:hover {
+  background: #2874f0;
+  color: white;
+  transform: scale(1.05);
+}
+
+.qty-count {
+  font-size: 15px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.payment {
+  font-size: 15px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.summary {
+  font-size: 15px;
+  margin-top: 12px;
+}
+#summaryBox {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-top: 20px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.proceed-btn {
+  background: #2874f0;               /* Flipkart blue */
+  color: #fff;                       /* white text */
+  font-family: 'Roboto Slab', serif; /* Roboto Slab font */
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+.proceed-btn:hover {
+  background: #1565c0;               /* darker blue on hover */
+}
+.payment-method-box {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 10px;
+  background: #f9f9f9;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  font-family: 'Roboto Slab', serif;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ✅ ULTRA-PREMIUM RADIO BUTTON DESIGN */
+.payment-option input[type="radio"] {
+  display: none;
+}
+
+.custom-radio {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid #2874f0;
+  border-radius: 50%;
+  position: relative;
+  margin-right: 12px;
+  display: inline-block;
+}
+
+.payment-option input[type="radio"]:checked + .custom-radio::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background-color: #2874f0;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* POLISHED ADDRESS POPUP */
+.address-popup-overlay {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  padding: 20px;
+}
+
+.address-popup-box {
+  background: #fff;
+  width: 100%;
+  max-width: 360px;
+  padding: 16px 16px 12px;
+  border-radius: 14px;
+  border: 2px solid #bbb; /* ✅ Darker border */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  overflow-y: auto;
+  max-height: 92vh;
+}
+
+.address-popup-box input,
+.address-popup-box select {
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  border: 1.2px solid #dcdcdc;
+  border-radius: 10px;
+  background: #f9f9f9;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.address-popup-box input:focus,
+.address-popup-box select:focus {
+  border-color: #888;
+  background: #fff;
+}
+
+.close-btn {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #fff;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.cancel-btn {
+  background: #f0f0f0;
+  color: #444;
+  padding: 12px;
+  border: none;
+  border-radius: 30px;
+  flex: 1;
+  font-weight: 600;
+}
+
+.whatsapp-btn {
+  background: #000;
+  color: #fff;
+  padding: 12px;
+  border: none;
+  border-radius: 30px;
+  flex: 1;
+  font-weight: 600;
+}
+* {
+  -webkit-tap-highlight-color: transparent; /* removes blue highlight */
+  outline: none;                            /* removes outline on click */
+}
+
+button.remove-btn:hover {
+  background: #2874f0;
+  color: white;
+  border-color: #2874f0;
+}
+.floating-input {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.floating-input input,
+.floating-input select {
+  width: 100%;
+  padding: 16px 12px 6px;
+  font-size: 15px;
+  border: 1.5px solid #ccc;
+  border-radius: 12px;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.floating-input label {
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  background: #fff;
+  padding: 0 4px;
+  font-size: 15px;
+  color: #999;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  line-height: 1; /* ✅ Add this line */
+  white-space: nowrap; /* ✅ Add this line to prevent wrapping */
+}
+
+.floating-input input:focus,
+.floating-input select:focus {
+  border-color: #2874f0;
+}
+
+.floating-input input:focus + label,
+.floating-input input:not(:placeholder-shown) + label,
+.floating-input select:focus + label,
+.floating-input select:valid + label {
+  top: -8px;
+  left: 10px;
+  font-size: 12px;
+  color: #2874f0;
+}
+/* 🔽 ULTRA PREMIUM DROPDOWN STYLING 🔽 */
+.floating-input select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  font-family: 'Roboto Slab', serif;
+  font-size: 15px;
+  font-weight: 500;
+  background-color: #fff;
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="%232874f0" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 18px 18px;
+  padding-right: 48px;
+  transition: border 0.3s;
+  cursor: pointer;
+  text-indent: 1px; /* ✅ Add this */
+}
+.floating-input select:focus {
+  border-color: #2874f0;
+  background-color: #fff;
+}
+/* ===== Coupons strip (same look as index) ===== */
+.coupon-strip{display:flex;overflow-x:auto;gap:10px;padding:10px 12px;background:transparent;scroll-behavior:smooth}
+.coupon-card{background:#e9fef1;border:1px solid #c5ecd6;border-radius:10px;padding:8px 10px;width:220px;box-shadow:0 1px 3px rgba(0,0,0,.04);flex-shrink:0;display:flex;flex-direction:column;justify-content:center}
+.coupon-card h3{font-size:15px;font-weight:bold;margin:0;color:#064c2c}
+.coupon-card p{font-size:12px;margin:2px 0 6px;color:#064c2c}
+.code-row{display:flex;align-items:center;gap:6px}
+.code-box{background:#d5f5e5;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;color:#064c2c;letter-spacing:.3px}
+
+/* ===== Apply box row ===== */
+.coupon-apply-row{display:flex;gap:8px;margin:8px 12px 2px}
+.apply-input{flex:1;padding:12px 12px;border:1.2px solid #dcdcdc;border-radius:12px;background:#fff;font-size:14px}
+.apply-btn{padding:12px 16px;border:1.4px solid #000;background:#fff;color:#000;border-radius:12px;font-size:14px;font-family:'Roboto Slab',serif}
+
+/* ===== Progress text + bar ===== */
+.coupon-progress{margin:6px 12px 2px}
+.progress-text{font-size:13px;color:#333;margin-bottom:6px}
+.progress-bar{height:8px;background:#eee;border-radius:999px;overflow:hidden}
+.progress-bar .bar{height:100%;width:0;background:#2874f0;transition:width .35s ease}
+
+/* Applied coupon tag (mini pill) */
+.applied-tag{margin:8px 12px 0;font-size:13px;background:#f0f7ff;border:1px solid #cfe3ff;color:#0b3d91;padding:6px 10px;border-radius:999px;display:none}
+.applied-tag .remove{color:#2874f0;text-decoration:underline;cursor:pointer;margin-left:6px}
+/* Hide coupons by default; JS will show when cart has items */
+#couponSection{display:none;}
+
+/* ===== Quantity bar (from product popup) ===== */
 .quantity-bar {
   display: flex;
   justify-content: center;
@@ -57,365 +574,11 @@
   font-weight: 500;
   color: #222;
 }
-.icon-size {
-  width: 10px;
-  height: 10px;
-}
-body.noscroll {
-  overflow: hidden;
-  height: 100vh;
-}
-/* 👇 SIMPLE popup slider (fade only) */
-#popupSlider{
-  position: relative;
-  min-height: 300px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;             /* no overflow peeking */
-}
-
-.popup-slide{
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  max-width: 300px;
-  aspect-ratio: 1/1;
-  object-fit: cover;
-  border-radius: 14px;
-  opacity: 0;
-  transition: opacity 180ms ease-in-out;  /* ✅ only fade */
-  pointer-events: none;
-  z-index: 0;
-}
-.popup-slide.active{
-  opacity: 1;
-  pointer-events: auto;
-  z-index: 1;
-}
-
-/* Dots – no width animation */
-.popup-dots{
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 10px;
-}
-.popup-dot{
-  width: 12px;
-  height: 6px;
-  border-radius: 10px;
-  background: rgba(0,0,0,0.18);
-}
-.popup-dot.active{
-  background: rgba(0,0,0,0.6);
-}
-.fixed-spinner-wrapper {
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.mini-spinner {
-  width: 16px;   /* ✅ smaller spinner to match button height */
-  height: 16px;
-  border: 2px solid #fff;
-  border-top: 2px solid rgba(255,255,255,0.2);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-    body {
-      margin: 0;
-      font-family: 'Roboto Slab', serif;
-      background: #ffffff;
-      color: #222;
-    }
-
-    .section-title {
-  font-size: 16px;         /* smaller font size */
-  font-weight: 400;        /* normal font weight */
-  text-align: center;
-  padding: 14px 12px 8px;  /* reduced padding */
-  background: #fff;
-}
-
-    
-.product-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  padding: 10px;
-}
-
-
-    .product {
-      position: relative;
-    }
-
-    
-  .product img {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 20px;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-    
-    .badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: #fbb6ce; /* light pink */
-  color: #87003b;       /* dark pink for text */
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  font-family: 'Roboto Slab', serif;
-}
-
-    .product-info {
-  margin-top: 4px;
-  font-size: 14px;
-  text-align: center;
-  font-family: 'Roboto Slab', serif;
-  line-height: 1.4;
-}
-
-    .product-info s {
-      color: #999;
-      margin-right: 6px;
-    }
-
-    .product-info b {
-      color: #222;
-      font-size: 15px;
-    }
-
-    .add-btn {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  background: #2563eb;
-  color: white;
-  border: 1px solid #2563eb;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-  font-family: 'Roboto Slab', serif;
-
-  width: 100px;          /* ✅ FIXED WIDTH */
-  height: 36px;          /* ✅ FIXED HEIGHT */
-  box-sizing: border-box;
-}
-
-    .add-btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-
-.add-btn:hover {
-  background: #2563eb;
-  transform: none;
-}
-  
-/* === HEADER + ANNOUNCEMENT BAR === */
-.site-header {
-  background-color: #ffffff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px; /* Reduced padding */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  min-height: 56px;   /* Same as index.html height */
-}
-
-.left-section {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.hamburger-wrapper {
-  width: 24px;
-  height: 20px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-.hamburger-wrapper div {
-  width: 100%;
-  height: 3px;
-  background-color: #000;
-  border-radius: 2px;
-}
-
-.logo-img {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.right-icon {
-  width: 32px;
-  height: 32px;
-  object-fit: cover;
-  cursor: pointer;
-  border-radius: 50%;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-#announcementBar {
-  margin: 0;
-  padding: 6px 10px;
-  font-size: 13px;
-  color: #ffffff;
-  background: #000000;
-  border-top: none;
-  border-bottom: none;
-  font-weight: 500;
-  text-align: center;
-  font-family: 'Roboto Slab', serif;
-  min-height: 24px;
-  line-height: 22px;
-  user-select: none;
-}
-/* === Popup Animation & Layout (ULTRA SMOOTH) === */
-#productPopup {
-  /* overlay */
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.18);
-
-  z-index: 9999;
-  justify-content: center;
-  align-items: center;
-
-  opacity: 0;
-  transition: opacity 320ms ease;
-  will-change: opacity;
-}
-#productPopup.is-open { opacity: 1; }
-
-.popup-card {
-  background: #f7f7f7;
-  border-radius: 20px;
-  width: 90%;
-  max-width: 320px;
-  margin: 20px;
-  padding: 16px;
-  position: relative;
-  border: 1px solid rgba(0,0,0,0.08);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-
-  /* smoother start */
-  transform: translateY(18px) scale(.975);
-  opacity: 0;
-  transform-origin: center;
-  will-change: transform, opacity;
-  transition:
-    transform 520ms cubic-bezier(.22,1,.36,1),
-    opacity 360ms ease;
-  contain: layout paint style;
-}
-
-.popup-card.enter {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-}
-
-.popup-card.leave {
-  transform: translateY(12px) scale(.97);
-  opacity: 0;
-}
-.popup-card.enter {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-}
-.popup-card.leave {
-  transform: translateY(8px) scale(.985);
-  opacity: 0;
-}
-
-/* Dots subtle */
-.popup-dot { transition: background 200ms ease, width 240ms ease; }
-.popup-dot.active { background: rgba(0,0,0,0.7); width: 22px; }
-
-/* Micro-interactions */
-.add-btn { transition: transform 120ms ease, box-shadow 120ms ease; }
-.add-btn:active { transform: scale(.98); }
-.quantity-bar button:active { transform: scale(.95); }
-
-/* Respect reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  #productPopup, .popup-card, .popup-slide, .add-btn { transition: none !important; }
-}
-
-/* === WhatsApp share button on popup === */
-
-
-
-
-/* WhatsApp share button new position (right-bottom of photo) */
-.popup-media{ position: relative; }
-
-.wh-share {
-  position: absolute;
-  bottom: -35px; /* photo ke neeche le jane ke liye */
-  right: 0;
-  width: auto;
-  height: auto;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-
-.wh-share img {
-  width: 50px;  /* 🔹 Bada size */
-  height: 50px;
-  display: block;
-  object-fit: contain;
-}
-/* === Cart badge ultra-smooth pop === */
-#cartCountBadge{
-  transform-origin: center;
-  will-change: transform;
-  backface-visibility: hidden;
-}
-.bounce-badge{
-  animation: badge-pop 420ms cubic-bezier(.22,1,.36,1);
-}
-@keyframes badge-pop{
-  0%   { transform: scale(0.92); }
-  40%  { transform: scale(1.08); }
-  70%  { transform: scale(0.98); }
-  100% { transform: scale(1); }
-}
 </style>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
-<header class="site-header">
+  <header class="site-header">
   <div class="hamburger-wrapper" onclick="toggleMenu()">
     <div></div>
     <div></div>
@@ -423,389 +586,354 @@ body.noscroll {
   </div>
 
   <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-  <img
-    src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
-    alt="Precioussly Logo"
-    onclick="location.href = 'https://precioussly.com';"
-    style="
-      width: 110px;
-      height: auto;
-      object-fit: contain;
-      cursor: pointer;
-      transition: opacity 0.3s ease;
-      -webkit-tap-highlight-color: transparent;
-    "
-  />
-</div>
+    <img
+      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+      alt="Precioussly Logo"
+      onclick="location.href = 'https://precioussly.com';"
+      style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease;"
+    />
+  </div>
 
   <div style="display: flex; align-items: center; gap: 12px;">
-    <!-- Search icon -->
     <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
 
-    <!-- Profile icon -->
-    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
+    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon" onclick="handleProfileClick()" style="width: 28px; height: 28px;" />
 
-    <!-- Cart icon with badge -->
-    <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-      <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-      <span id="cartCountBadge"
-      style="position:absolute; top:-6px; right:-6px; background:white; color:black;
-             font-size:12px; border:1px solid grey; border-radius:50%; width:18px; height:18px;
-             display:none; align-items:center; justify-content:center;"></span>
+<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon" style="width: 28px; height: 28px;" />
+      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center;">0</span>
     </a>
   </div>
 </header>
+
 <!-- Announcement Bar -->
 <div id="announcementBar">🧿</div>
-<div id="content"></div>
+  <div class="container">
+    <div class="section-title">Confirm Order</div>
+
+<div class="address">
+  <strong>Shipping Address</strong><br>
+  <div id="displayAddress" style="margin-top: 6px;"></div>
+<button onclick="openAddressPopup()" style="margin-top: 10px; padding: 8px 12px; background: #2874f0; color: #fff; border: none; border-radius: 6px; font-family: 'Roboto Slab', serif;">Add / Edit Address</button>
+</div>
+
+    <div class="items" id="cartItems"></div>
+
+
+<!-- ULTRA PREMIUM PAYMENT OPTIONS -->
+
+<!-- ===== Coupons (fetched from same Google Sheet as index) ===== -->
+<div id="couponSection" style="margin-top:10px;">
+  <div id="couponContainerCart" class="coupon-strip" style="display:none;"></div>
+
+  <div class="coupon-apply-row">
+    <input id="couponInput" class="apply-input" placeholder="Enter coupon code">
+    <button class="apply-btn" onclick="applyCouponManually()">Apply</button>
+  </div>
+
+  <div id="appliedCouponTag" class="applied-tag"></div>
+
+  <div id="couponProgressWrap" class="coupon-progress" style="display:none;">
+    <div id="couponProgressText" class="progress-text"></div>
+    <div class="progress-bar"><div id="couponProgressBar" class="bar"></div></div>
+  </div>
+</div>
+    <!-- START: Summary and Pay Section -->
+<div id="bottomBox">
+  <div class="summary" id="summaryBox">
+  <div class="summary-row"><span>Item Total</span><span><span class="spinner"></span></span></div>
+  <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
+  <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
+</div>
+<div class="payment-method-box" id="paymentMethodBox">
+  <label class="payment-option">
+    <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
+    <span class="custom-radio"></span>
+    Pay via Razorpay (Free Delivery)
+  </label>
+
+  <label class="payment-option">
+    <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
+    <span class="custom-radio"></span> <span id="codLabelText">Cash on Delivery</span></label>
+</div>
+<div id="minimumNotice" style="display: none; text-align: center; color: #d9534f; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
+</div><!-- Fast Delivery Notice (left-aligned, above pay button) -->
+<div id="fastDeliveryRow" style="display:flex;align-items:center;gap:0px;margin-top:0px;margin-bottom:0px;line-height:1;">
+  <img src="https://i.postimg.cc/TPcvSnLK/1000053157-removebg-preview.png"
+       alt="Fast Delivery"
+       style="width:80px;height:80px;object-fit:contain;display:block;" />
+  <span style="font-family: 'Roboto Slab', serif; font-size:14px; color:#333; line-height:1;">
+    <strong>Fast Delivery:</strong> Arrives in 5-7 days
+  </span>
+</div>
+
+<button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display:none; margin-top:0px;">
+  <span class="btn-label">Proceed to Pay</span>
+  <span class="btn-spinner" aria-hidden="true"></span>
+</button>
+</div>
+<!-- END: Summary and Pay Section -->
+  </div>
+
 <script>
-const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
+  const shippingAddress = localStorage.getItem("shippingAddress") || "";
 
-fetch(SHEET_URL)
-  .then(res => res.json())
-  .then(data => {
-    window.catalogData = data;
-    const content = document.getElementById('content');
-    let currentSection = '';
-    let sectionWrapper;
+  document.addEventListener("DOMContentLoaded", () => {
+    // Show saved address if exists
+    if (shippingAddress) {
+      document.getElementById("displayAddress").innerHTML = shippingAddress;
+    }
 
-    data.forEach(item => {
-      if (item["Section"]) {
-        currentSection = item["Section"];
-        const sectionTitle = document.createElement('div');
-        sectionTitle.className = 'section-title';
-        sectionTitle.innerText = currentSection;
-        content.appendChild(sectionTitle);
+    const container = document.getElementById("cartItems");
+    let total = 0;
 
-        sectionWrapper = document.createElement('div');
-        sectionWrapper.className = 'product-grid';
-        content.appendChild(sectionWrapper);
-      }
+    cartData.forEach((item, index) => {
+      total += item.price * item.qty;
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <img src="${item.photo}" />
+        <div class="item-info">
+  <div class="item-name">${item.name}</div>
+  <div class="item-price">₹${item.price}</div>
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+    <div class="quantity-bar" style="margin:0;">
+      <button onclick="decrease(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+      <button onclick="increase(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+  </div>
+</div>
+      `;
+      container.appendChild(div);
+    });
 
-      if (!item["Product Name"]) return;
+    
 
-      const product = document.createElement('div');
-      product.className = 'product';
+    if (cartData.length === 0) {
+  container.innerHTML = `
+    <div style="text-align:center; margin-top: 30px;">
+      <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
+      <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+      <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+    </div>
+  `;
+  document.getElementById("summaryBox").innerHTML = "";
+  document.getElementById("bottomBox").style.display = "none";
+  document.getElementById("paymentMethodBox").style.display = "none";
+}
+  });
 
-      const img = document.createElement('img');
-      img.src = item["photo 1"];
-      img.alt = item["Product Name"];
-      img.onclick = () => {
-  const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-  openPopup(allPhotos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"]);
-};
-      product.appendChild(img);
+function updateSummary() {
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
 
-      const infoWrapper = document.createElement('div');
-infoWrapper.style.padding = "0 6px"; // This adds left-right padding
+  const fee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
 
-const title = document.createElement('div');
-title.style.fontSize = "14px";
-title.style.textAlign = "left";
-title.style.marginTop = "8px";
-title.innerText = item["Product Name"];
-infoWrapper.appendChild(title);
+  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee}</span>`;
 
-      if (item["Badge"]) {
-        const badge = document.createElement('div');
-        badge.className = 'badge';
-        badge.innerText = item["Badge"];
-        product.appendChild(badge);
-      }
-
-      const info = document.createElement('div');
-      info.className = 'product-info';
-
-      let priceHTML = "";
-if (item["MRP"] && item["Selling Price"]) {
-  const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
-  priceHTML = `
-    <div style="text-align:left; font-size:14px; font-weight:bold; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-      <span>₹${item["Selling Price"]}</span>
-      <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-      <span style="color:green; font-size:13px;">${discount}% off</span>
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+      <span>Order Total</span><span>₹${total + fee}</span>
     </div>
   `;
 }
-      if (+item["in stock"] === 0) {
-  info.innerHTML = `
-    ${priceHTML}
-    <button class="add-btn" disabled style="
-      background: #f1f1f1;
-      color: #888;
-      border: 1px solid #ccc;
-    ">Out of Stock</button>
+
+  const fee = window.deliveryFee;
+  const feeText = fee === 0
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${fee}`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+      <span>Order Total</span><span>₹${total + fee}</span>
+    </div>
   `;
-      } else {
-        const productData = {
-          photo: item["photo 1"],
-          name: item["Product Name"],
-          mrp: item["MRP"],
-          price: item["Selling Price"]
-        };
+}
 
-        info.innerHTML = `
-          ${priceHTML}
-          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>
-        `;
-      }
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) badge.innerText = count;
+  }
 
-      infoWrapper.appendChild(info);
-product.appendChild(infoWrapper);
-      sectionWrapper.appendChild(product);
-    });
-    maybeOpenFromURL();
-  });
+  updateCartBadge();
 </script>
 
 
+<!-- MODERN ADDRESS POPUP START -->
+<div class="address-popup-overlay" id="addressPopup">
+  <div class="address-popup-box">
+
+    <div class="floating-input">
+      <input id="fullname" type="text" placeholder=" " required />
+      <label for="fullname">Full Name</label>
+    </div>
+  <div class="floating-input">
+  <input
+    id="email"
+    type="email"
+    placeholder=" "
+    inputmode="email"
+    autocomplete="email"
+    autocapitalize="off"
+    spellcheck="false"
+  />
+  <label for="email">Email Address</label>
+</div>
+      <div class="floating-input">
+  <select id="state" required>
+    <option disabled hidden selected value=""></option>
+        <option>Andhra Pradesh</option>
+        <option>Arunachal Pradesh</option>
+        <option>Assam</option>
+        <option>Bihar</option>
+        <option>Chandigarh</option>
+        <option>Chhattisgarh</option>
+        <option>Delhi</option>
+        <option>Goa</option>
+        <option>Gujarat</option>
+        <option>Haryana</option>
+        <option>Himachal Pradesh</option>
+        <option>Jammu and Kashmir</option>
+        <option>Jharkhand</option>
+        <option>Karnataka</option>
+        <option>Kerala</option>
+        <option>Ladakh</option>
+        <option>Madhya Pradesh</option>
+        <option>Maharashtra</option>
+        <option>Manipur</option>
+        <option>Meghalaya</option>
+        <option>Mizoram</option>
+        <option>Nagaland</option>
+        <option>Odisha</option>
+        <option>Puducherry</option>
+        <option>Punjab</option>
+        <option>Rajasthan</option>
+        <option>Sikkim</option>
+        <option>Tamil Nadu</option>
+        <option>Telangana</option>
+        <option>Tripura</option>
+        <option>Uttar Pradesh</option>
+        <option>Uttarakhand</option>
+        <option>West Bengal</option>
+      </select>
+      <label for="state">Select your state</label>
+    </div>
+
+    <div class="floating-input">
+      <input id="city" type="text" placeholder=" " required />
+      <label for="city">City</label>
+    </div>
+
+    <div class="floating-input">
+      <input id="pincode" type="text" placeholder=" " required />
+      <label for="pincode">Pincode</label>
+    </div>
+
+    <div class="floating-input">
+      <input id="address" type="text" placeholder=" " required />
+      <label for="address">Your Full Address</label>
+    </div>
+
+    <div class="floating-input">
+      <input id="phone" type="text" placeholder=" " required />
+      <label for="phone">Phone Number</label>
+    </div>
+
+    <div class="floating-input">
+      <input id="altphone" type="text" placeholder=" " />
+      <label for="altphone">Alternate Phone (Optional)</label>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+      <button id="confirmAddressBtn" onclick="confirmAddress()" disabled style="background: #2874f0; color: white; border: none; border-radius: 12px; padding: 12px; font-size: 16px; font-family: 'Roboto Slab', serif; opacity: 0.5; cursor: not-allowed;">Confirm Address</button>
+      <button onclick="closeAddressPopup()" style="background: white; color: black; border: 1px solid #ccc; border-radius: 12px; padding: 12px; font-size: 16px; font-family: 'Roboto Slab', serif;">Back</button>
+    </div>
+
+  </div>
+</div>
+<!-- MODERN ADDRESS POPUP END -->
 <script>
-  function getParam(name) {
-    const u = new URLSearchParams(location.search);
-    return u.get(name);
-  }
-  function maybeOpenFromURL() {
-    const wanted = getParam('p');
-    if (!wanted || !window.catalogData) return;
-    const wantedLower = decodeURIComponent(wanted).toLowerCase();
-    const item = window.catalogData.find(row =>
-      (row["Product Name"] || "").toLowerCase() === wantedLower
-    );
-    if (!item) return;
-    const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-    openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]));
-  }
-</script>
+function openAddressPopup() {
+  document.getElementById("addressPopup").style.display = "flex";
+  document.body.style.overflow = "hidden";
 
-<div id="productPopup">
-  <div class="popup-card" onclick="event.stopPropagation()">
+  // Autofill Full Name & Email if available
+  const name = localStorage.getItem("user_name");
+  const email = localStorage.getItem("user_email");
 
+  if (name) document.getElementById("fullname").value = name;
+  if (email) document.getElementById("email").value = email;
+  // ✅ Autofill rest of the saved address if available
+  const savedAddressObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
 
-
-<!-- Close button -->
-
-<!-- Square image 1:1 -->
-<!-- Sliding photos here -->
-<div class="popup-media">
-  <div id="popupSlider"></div>
-  <a id="whShare" class="wh-share" href="#" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
-    <img src="https://i.postimg.cc/fLMF5X4j/file-00000000fcd061f8a087874368df7c79.png" alt="Share on WhatsApp">
-  </a>
-</div>
-<div id="popupDots" class="popup-dots"></div>
-<!-- Product name on left -->
-<div id="popupName" style="font-size:16px; font-weight:600; text-align:left; margin: 10px 6px 4px;"></div>
-<!-- Price -->
-<div id="popupPrice" style="margin:8px 6px 16px; font-size:14px; text-align:left;"></div>
-<!-- Quantity Bar -->
-<div class="quantity-bar premium-bar">
-  <button onclick="changePopupQty(-1)">
-    <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-      <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-  </button>
-  <div id="popupQty" class="quantity-display">1</div>
-  <button onclick="changePopupQty(1)">
-    <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-      <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-  </button>
-</div>
-<!-- Add to Cart full-width button -->
-<button id="popupAddBtn" style="width:100%; background:#2563eb; color:#fff; border:1px solid #2563eb; border-radius:8px; padding:12px 16px; font-size:15px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
-  Add to Cart
-</button>
-<!-- Back button with Roboto Slab and border -->
-<button onclick="closePopup()" style="width:100%; margin-top:10px; background:#f0f0f0; color:#333; border:1px solid #bbb; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
-  Back
-</button>
-</div>
-</div>
-<div id="addedToast" style="
-  display: none;
-  align-items: center;
-  position: fixed;
-  top: 25px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #222;
-  color: #fff;
-  font-size: 14px;
-  padding: 6px 12px;
-  border-radius: 30px;
-  z-index: 10000;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  font-weight: 500;
-  gap: 10px;
-  white-space: nowrap;
-  height: 38px;
-">
-  <img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" />
-  <span style="line-height: 1;">Item added to cart</span>
-</div>
-<script>
-let selectedProduct = null;
-
-// Open popup with product details
-function openPopup(images, name, mrp, price, stock) {
-  selectedProduct = { image: images[0], name, mrp, price };
-  // Build a shareable link that re-opens this popup
-  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
-  const shareMsg = `Check this on Precioussly: ${name} — ₹${price}\n${shareUrl}`;
-
-  const whEl = document.getElementById('whShare');
-  if (whEl) {
-    whEl.href = `https://wa.me/?text=${encodeURIComponent(shareMsg)}`;
-  }
-
-  try { history.replaceState(null, "", shareUrl); } catch (e) {}
-
-  document.getElementById("popupQty").innerText = "1";
-
-  // Inject product name and price
-  document.getElementById("popupName").innerText = name;
-
-  let priceHTML = "";
-  if (mrp && price) {
-  const discount = Math.round(((mrp - price) / mrp) * 100);
-  priceHTML = `
-    <div style="font-size:14px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-      <b>₹${price}</b>
-      <s style="color:#999;">₹${mrp}</s>
-      <span style="color:green; font-size:13px;">${discount}% off</span>
-    </div>`;
-  } else if (price) {
-    priceHTML = `<b>₹${price}</b>`;
-  } else {
-    priceHTML = `<span style="color:#999;">Price not available</span>`;
-  }
-
-  document.getElementById("popupPrice").innerHTML = priceHTML;
-
-  // Add to cart button
-  const popupBtn = document.getElementById("popupAddBtn");
-  if (+stock === 0) {
-    popupBtn.disabled = true;
-    popupBtn.innerHTML = "Out of Stock";
-  } else {
-    popupBtn.disabled = false;
-    popupBtn.innerHTML = "Add to Cart";
-    popupBtn.onclick = function () {
-  addToCartFromGrid(popupBtn, {
-    photo: images[0],
-    name,
-    mrp,
-    price,
-    qty: parseInt(document.getElementById("popupQty").innerText) || 1
-  });
-};
-  }
-
-  // Inject slider images
-  const slider = document.getElementById("popupSlider");
-  const dotsContainer = document.getElementById("popupDots");
-  slider.innerHTML = "";
-  dotsContainer.innerHTML = "";
-  let currentPopupIndex = 0;
-  let popupSlides = [];
-  let popupDots = [];
-
-  images.forEach((url, i) => {
-    const img = document.createElement("img");
-    img.src = url.trim();
-    img.className = "popup-slide";
-    if (i === 0) img.classList.add("active");
-    slider.appendChild(img);
-    popupSlides.push(img);
-
-    const dot = document.createElement("div");
-    dot.className = "popup-dot";
-    if (i === 0) dot.classList.add("active");
-    dot.addEventListener("click", () => showPopupSlide(i));
-    dotsContainer.appendChild(dot);
-    popupDots.push(dot);
-  });
-
-  function showPopupSlide(index) {
-    popupSlides[currentPopupIndex]?.classList.remove("active");
-    popupDots[currentPopupIndex]?.classList.remove("active");
-    currentPopupIndex = index;
-    popupSlides[currentPopupIndex]?.classList.add("active");
-    popupDots[currentPopupIndex]?.classList.add("active");
-  }
-
-  // swipe gesture
-  let startX = 0;
-  slider.addEventListener("touchstart", e => {
-    startX = e.touches[0].clientX;
-  });
-  slider.addEventListener("touchend", e => {
-    const deltaX = e.changedTouches[0].clientX - startX;
-    if (Math.abs(deltaX) > 50) {
-      if (deltaX < 0) showPopupSlide((currentPopupIndex + 1) % popupSlides.length);
-      else showPopupSlide((currentPopupIndex - 1 + popupSlides.length) % popupSlides.length);
-    }
-  });
-// Show popup (ultra smooth)
-const popup = document.getElementById("productPopup");
-const card  = popup.querySelector(".popup-card");
-
-popup.style.display = "flex";      // mount
-// next frame -> add classes so transition runs
-requestAnimationFrame(() => {
-  popup.classList.add("is-open");
-  card.classList.remove("leave");
-  card.classList.add("enter");
+  if (savedAddressObj.fullname) document.getElementById("fullname").value = savedAddressObj.fullname;
+  if (savedAddressObj.state) document.getElementById("state").value = savedAddressObj.state;
+  if (savedAddressObj.city) document.getElementById("city").value = savedAddressObj.city;
+  if (savedAddressObj.pincode) document.getElementById("pincode").value = savedAddressObj.pincode;
+  if (savedAddressObj.address) document.getElementById("address").value = savedAddressObj.address;
+  if (savedAddressObj.phone) document.getElementById("phone").value = savedAddressObj.phone;
+  if (savedAddressObj.altphone) document.getElementById("altphone").value = savedAddressObj.altphone;
+// ✅ Attach input listeners to validate in real-time
+["fullname", "state", "city", "pincode", "address", "phone", "altphone"].forEach(id => {
+  document.getElementById(id).addEventListener("input", validateAddressFields);
 });
-document.body.classList.add("noscroll");
 
-// Close popup
-;
-  card.addEventListener("transitionend", onDone);
-}
-// ✅ Quantity bar increase/decrease logic
-function changePopupQty(change) {
-  const qtyElement = document.getElementById("popupQty");
-  let current = parseInt(qtyElement.innerText);
-  current += change;
-  if (current < 1) current = 1;
-  if (current > 99) current = 99;
-  qtyElement.innerText = current;
-}
-// Add to cart logic
-function addToCartFromGrid(button, product) {
-  const originalHTML = button.innerHTML;
-  button.disabled = true;
-  button.innerHTML = '<div class="fixed-spinner-wrapper"><span class="mini-spinner"></span></div>';
-
-  setTimeout(() => {
-    button.disabled = false;
-    button.innerHTML = originalHTML;
-
-    // Add item to cart
-    let cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
-    const existing = cartItems.find(i => i.name === product.name);
-if (existing) {
-  existing.qty += product.qty || 1;  // ✅ Add correct qty if already exists
-} else {
-  cartItems.push({ ...product, qty: product.qty || 1 }); // ✅ Store correct qty
 }
 
-    localStorage.setItem("cartItems", JSON.stringify(cartItems));
-    updateCartBadge();
+function closeAddressPopup() {
+  document.getElementById("addressPopup").style.display = "none";
+  document.body.style.overflow = "";
+}
 
-    // Show toast
-    const toast = document.getElementById("addedToast");
-    toast.innerHTML = `
-  <img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
-  <span style="line-height:1;">Item added to cart</span>
+function confirmAddress() {
+  const fullName = document.getElementById("fullname").value;
+  const state = document.getElementById("state").value;
+  const city = document.getElementById("city").value;
+  const pincode = document.getElementById("pincode").value;
+  const address = document.getElementById("address").value;
+  const phone = document.getElementById("phone").value;
+  const altphone = document.getElementById("altphone").value;
+
+  const finalAddress = `
+  <strong>${fullName}</strong><br>
+  ${address},<br>${city}, ${state} - ${pincode}<br>
+   <strong>${phone}</strong>${altphone ? '<br> Alt: <strong>' + altphone + '</strong>' : ''}
 `;
-    toast.style.display = "flex";
-    setTimeout(() => {
-      toast.style.display = "none";
-    }, 2000);
-  }, 1000);
+// ✅ Save as object for refilling popup next time
+  const addressObj = {
+    fullname: fullName,
+    state: state,
+    city: city,
+    pincode: pincode,
+    address: address,
+    phone: phone,
+    altphone: altphone
+  };
+  localStorage.setItem("shippingAddressObj", JSON.stringify(addressObj));
+
+
+  localStorage.setItem("shippingAddress", finalAddress);
+  document.getElementById("displayAddress").innerHTML = finalAddress;
+  closeAddressPopup();
 }
+
 </script>
 <script>
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
@@ -832,69 +960,900 @@ if (existing) {
       window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
     }
   }
-  
-  function updateCartBadge(animate = true) {
-  const items = JSON.parse(localStorage.getItem("cartItems")) || [];
-  let count = 0;
-  items.forEach(item => count += item.qty);
 
-  const badge = document.getElementById("cartCountBadge");
-  if (!badge) return;
-
-  const prev = Number(badge.dataset.count || 0);
-
-  if (count > 0) {
-    badge.innerText = count;
-    badge.style.display = "flex";
-
-    if (animate && count !== prev) {
-      badge.classList.remove("bounce-badge");
-      void badge.offsetWidth;             // reflow
-      badge.classList.add("bounce-badge");
-      badge.addEventListener("animationend", () => {
-        badge.classList.remove("bounce-badge");
-      }, { once: true });
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) {
+      if (count > 0) {
+        badge.innerText = count;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+      }
     }
-  } else {
-    badge.innerText = "";                  // ✅ no “0”
-    badge.style.display = "none";          // ✅ hide when empty
   }
 
-  badge.dataset.count = count;
+  updateCartBadge();
+</script>
+<script>
+  const feeSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const feeURL = `https://opensheet.elk.sh/${feeSheetID}/Sheet1`;
+
+  fetch(feeURL)
+    .then(res => res.json())
+    .then(data => {
+      const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+      let total = 0;
+      cartData.forEach(item => total += item.price * item.qty);
+
+      let fee = 0;
+      let feeText = "";
+
+      if (data[0] && data[0]["Delivery Fee"]) {
+        const value = data[0]["Delivery Fee"].trim();
+        if (value === "0") {
+          // If column is exactly 0 → Free Delivery
+          fee = 0;
+          feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
+        } else {
+          // Else use actual fee
+          fee = parseFloat(value);
+          feeText = `₹${fee}`;
+        }
+      } else {
+        // No fee column? fallback
+        fee = 0;
+        feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
+      }
+
+      // Set for other function use
+      window.deliveryFee = fee;
+
+      // COD charges from sheet (column: COD charges)
+      try {
+        if (data[0] && data[0]["COD charges"]) {
+          var codVal = String(data[0]["COD charges"]).trim();
+          window.codCharge = Number(codVal.replace(/[^\d.]/g, "")) || 0;
+        }
+      } catch(e) { window.codCharge = window.codCharge || 0; }
+
+      // Update COD label text dynamically
+      try {
+        var codInput = document.querySelector('input[name="paymentMethod"][value="cod"]');
+        if (codInput) {
+          var codLabel = codInput.parentElement;
+          // ensure a span exists for text
+          if (!codLabel.querySelector('#codLabelText')) {
+            var radioSpan = codLabel.querySelector('.custom-radio');
+            if (radioSpan) {
+              radioSpan.insertAdjacentHTML('afterend', ' <span id="codLabelText"></span>');
+              // remove trailing text nodes if any
+            }
+          }
+          var lbl = codLabel.querySelector('#codLabelText');
+          if (lbl) lbl.textContent = 'Cash on Delivery (+₹' + window.codCharge + ')';
+        }
+      } catch(e) {}
+
+      // Show on screen
+      document.getElementById("summaryBox").innerHTML = `
+        <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+        <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+        <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + fee}</span></div>
+      `;
+      try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
+    });
+</script>
+<script>
+window.codCharge = 89; // default until sheet loads
+window.cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+document.addEventListener("DOMContentLoaded", () => {
+  const shippingAddress = localStorage.getItem("shippingAddress") || "";
+
+  if (shippingAddress) {
+    document.getElementById("displayAddress").innerHTML = shippingAddress;
+  }
+
+  const container = document.getElementById("cartItems");
+  let total = 0;
+
+  window.cartData.forEach((item, index) => {
+    total += item.price * item.qty;
+    const div = document.createElement("div");
+    div.className = "item cart-item-animate";
+    div.innerHTML = `
+      <img src="${item.photo}" />
+      <div class="item-info">
+  <div class="item-name">${item.name}</div>
+  <div class="item-price">₹${item.price}</div>
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+    <div class="quantity-bar" style="margin:0;">
+      <button onclick="decrease(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+      <button onclick="increase(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+  </div>
+</div>
+    `;
+    container.appendChild(div);
+  });
+
+  // If cart is empty
+  if (window.cartData.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; margin-top: 30px;">
+        <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" />
+        <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+        <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+      </div>
+    `;
+    document.getElementById("summaryBox").innerHTML = "";
+    document.getElementById("bottomBox").style.display = "none";
+  document.getElementById("paymentMethodBox").style.display = "none";
+    return;
+  }
+
+  document.getElementById("paymentMethodBox").style.display = "block";
+
+  // Summary section
+  let deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const feeText = deliveryFee === 0
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
+  `;
+});
+</script>
+<script>
+function increase(index) {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  cartData[index].qty++;
+  localStorage.setItem("cartItems", JSON.stringify(cartData));
+
+  document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
+
+  if (typeof updateCartBadge === "function") updateCartBadge();
+  if (typeof updateSummary === "function") updateSummary();
 }
 
-updateCartBadge(false); // ✅ no bounce on refresh
+function decrease(index) {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  if (cartData[index].qty > 1) {
+    cartData[index].qty--;
+    localStorage.setItem("cartItems", JSON.stringify(cartData));
+
+    document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
+
+    if (typeof updateCartBadge === "function") updateCartBadge();
+    if (typeof updateSummary === "function") updateSummary();
+  }
+}
+
+function removeItem(index) {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  cartData.splice(index, 1); // Remove the item from array
+  localStorage.setItem("cartItems", JSON.stringify(cartData));
+  location.reload(); // Page reload to re-render all cart items
+}
+</script>
+<script>
+function updateSummary() {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cartData.forEach(item => {
+    total += item.price * item.qty;
+  });
+
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 100;
+
+  const feeText = deliveryFee === 0
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
+  `;
+}
+</script>
+<script>
+let selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || "razorpay"; // default from current radio
+window.selectedPayment = selectedPayment;
+function updatePaymentMethod() {
+  const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+  selectedPayment = method;
+  window.selectedPayment = method;
+
+  const labelEl = document.querySelector('#proceedBtn .btn-label');
+  if (labelEl) {
+    labelEl.textContent = (method === "cod") ? "Continue with COD" : "Proceed to Pay";
+  }
+
+  updateSummary(); // keeps COD charges logic
+}
+
+
+// Override updateSummary to include COD charge
+function updateSummary() {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
+
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+
+  const feeText = deliveryFee === 0
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  const grandTotal = total + deliveryFee + codFee;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    ${selectedPayment === "cod" ? `<div class="summary-row"><span>COD Charges</span><span>₹${Number(window.codCharge)||0}</span></div>` : ""}
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${grandTotal}</span></div>
+  `;
+}
+</script>
+<!-- ✅ COD Razorpay Suggestion Popup -->
+<div class="address-popup-overlay" id="codPopup">
+  <div class="address-popup-box" style="text-align: center; max-width: 320px;">
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">Free Delivery with Razorpay</div>
+    <div style="font-size: 15px; color: #444; margin-bottom: 16px;">
+      Orders paid online are processed and shipped faster.<br>Want to switch?
+    </div>
+
+    <div class="button-row" style="flex-direction: column; gap: 10px; margin-top: 16px;">
+      <button class="popup-razorpay-btn" onclick="startRazorpayWithSpinner(this)" style="
+  background: #2874f0;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;
+">
+  <span class="btn-label">Pay via Razorpay</span>
+  <span class="btn-spinner" aria-hidden="true"></span>
+</button>
+
+      <button class="popup-razorpay-btn btn--outline" onclick="continueWithCOD(this)" style="
+  background: white;
+  color: black;
+  border: 1.4px solid #000;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;
+">
+  <span class="btn-label">Place Order (COD)</span>
+  <span class="btn-spinner" aria-hidden="true"></span>
+</button>
+<!-- Back Button in Same Theme -->
+<button class="popup-razorpay-btn btn--outline" onclick="closeCODPopup()" style="
+  background: white;
+  color: black;
+  border: 1.4px solid #000;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;
+">
+  Back
+</button>
+    </div>
+  </div>
+</div>
+<!-- 🔊 COD confirmation sound (preloaded) -->
+<script>
+  // MP3 ko pehle se load kar lo taa ki play instant ho
+  window.codConfirmAudio = new Audio("https://files.catbox.moe/qkc0il.mp3");
+  window.codConfirmAudio.preload = "auto";
+
+  function playCODConfirm() {
+    try {
+      const a = window.codConfirmAudio;
+      a.currentTime = 0;
+      a.play().catch(()=>{});
+    } catch(e) {}
+  }
+</script>
+<script>
+  // show the 1s spinner then trigger Razorpay
+  function setLoading(btn, on) {
+    if (!btn) return;
+    if (on) {
+      btn.classList.add('is-loading');
+      btn.setAttribute('aria-busy','true');
+    } else {
+      btn.classList.remove('is-loading');
+      btn.removeAttribute('aria-busy');
+    }
+  }
+
+  function startRazorpayWithSpinner(btnEl) {
+    setLoading(btnEl, true);
+    setTimeout(() => {
+      setLoading(btnEl, false);
+      payViaRazorpay();  // opens Razorpay
+    }, 1000);
+  }
+</script>
+<script>
+function handleProceed() {
+  const shippingAddress = localStorage.getItem("shippingAddress");
+
+  // If address missing → show required popup
+  if (!shippingAddress || shippingAddress.trim() === "") {
+    document.getElementById("addressRequiredPopup").style.display = "flex";
+    document.body.style.overflow = "hidden";
+    return;
+  }
+
+  const selected = document.querySelector('input[name="paymentMethod"]:checked');
+  const method = selected ? selected.value : "razorpay";
+
+  if (method === "cod") {
+    // COD → show suggestion popup (no spinner here)
+    document.getElementById("codPopup").style.display = "flex";
+    document.body.style.overflow = "hidden";
+  } else {
+    // Razorpay → show 1s spinner on Proceed button, then open Razorpay
+    const btn = document.getElementById("proceedBtn");
+    startRazorpayWithSpinner(btn);
+  }
+}
+
+function continueWithCOD(btnEl) {
+  // Button par spinner dikhao
+  if (btnEl) {
+    btnEl.classList.add('is-loading');
+    btnEl.setAttribute('aria-busy','true');
+  }
+
+  // 1 second baad sound play
+  setTimeout(() => {
+    playCODConfirm();
+  }, 1000); // 1000 ms = 1 second
+
+  // Bilkul 2 second wait ke baad spinner stop + redirect
+  setTimeout(() => {
+    if (btnEl) {
+      btnEl.classList.remove('is-loading');
+      btnEl.removeAttribute('aria-busy');
+    }
+
+    // Audio start ho chuka hoga, ab redirect
+    setTimeout(() => {
+      placeCODOrderAndRedirect();
+    }, 150);
+
+  }, 2000); // 2000 ms = 2 seconds
+}
+</script>
+<script>
+  function placeCODOrderAndRedirect() {
+    // --- amounts ---
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+    const grandTotal = itemsTotal + deliveryFee + codFee;
+
+    // --- order object (dashboard ke liye useful) ---
+    const order = {
+      id: "COD-" + Date.now(),
+      method: "COD",
+      items,
+      amounts: { itemsTotal, deliveryFee, codFee, grandTotal },
+      address: localStorage.getItem("shippingAddress") || "",
+      createdAt: new Date().toISOString()
+    };
+    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    orders.unshift(order);
+    localStorage.setItem("orders", JSON.stringify(orders));
+
+    // --- clear cart before redirect ---
+    localStorage.setItem("cartItems", "[]");
+    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+
+    // BFCache se wapas aane par hard refresh karane ke liye flag
+    localStorage.setItem("lastOrderClearedCart", "1");
+
+    // thank you page
+    window.location.href = "https://precioussly.com/thankyou-cod";
+  }
+</script>
+<script>
+function closeCODPopup() {
+  document.getElementById("codPopup").style.display = "none";
+  document.body.style.overflow = "";
+}
+function closeAddressRequiredPopup() {
+  document.getElementById("addressRequiredPopup").style.display = "none";
+  document.body.style.overflow = "";
+}
+function openAddressAndClosePopup() {
+  document.getElementById("addressRequiredPopup").style.display = "none";
+  document.body.style.overflow = "";
+  openAddressPopup(); // Already defined elsewhere
+}
 </script>
 
 <script>
-function closePopup() {
-  const popup = document.getElementById("productPopup");
-  if (!popup) return;
-  const card = popup.querySelector(".popup-card");
-  if (!card) return;
+  // Razorpay ko 1s spinner ke baad open karne ke liye final function
+  function payViaRazorpay() {
+    // Koi popup khula ho to band
+    try {
+      document.getElementById("codPopup").style.display = "none";
+      document.body.style.overflow = "";
+    } catch (e) {}
 
-  card.classList.remove("enter");
-  card.classList.add("leave");
-  popup.classList.remove("is-open");
-  document.body.classList.remove("noscroll");
+    // --- Amounts (coupon ko minus karke) ---
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
 
-  const onDone = (e) => {
-    if (e.target !== card) return;
-    popup.style.display = "none";
-  try { history.replaceState(null, "", location.pathname); } catch (e) {}
-    card.removeEventListener("transitionend", onDone);
-  };
-  card.addEventListener("transitionend", onDone);
+    // Applied coupon ka discount (agar min meet ho raha hai)
+    let discount = 0;
+    try {
+      if (window.appliedCoupon && subtotal >= window.appliedCoupon.min) {
+        // discountOnSubtotal helper aapke file me upar defined hai
+        discount = discountOnSubtotal(subtotal, window.appliedCoupon);
+      }
+    } catch (e) {}
+
+    const finalAmount = Math.max(1, subtotal + deliveryFee - discount); // safeguard
+
+    // Prefill details (address/localStorage se)
+    const name  = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").fullname) || (localStorage.getItem("user_name") || "");
+    const email = localStorage.getItem("user_email") || "";
+    const phone = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone) || "";
+
+    const options = {
+      key: "rzp_live_S4Dmi0UXQYNAyV",               // ✅ aapka live Key ID
+      amount: Math.round(finalAmount * 100),        // paise
+      currency: "INR",
+      name: "Precioussly",
+      description: "Secure Payment",
+      image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+      prefill: { name: name, email: email, contact: phone },
+      notes: { address: localStorage.getItem("shippingAddress") || "" },
+      theme: { color: "#2874f0" },
+
+      handler: function (response) {
+        // --- Success ke baad order ko localStorage me save + cart clear ---
+        const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+        const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+        const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+        const applied = window.appliedCoupon ? window.appliedCoupon.code : null;
+        const discountAmt = discount; // upar calculate
+
+        const grandTotal = Math.max(0, itemsTotal + deliveryFee - discountAmt);
+
+        const order = {
+          id: "RZP-" + (response.razorpay_payment_id || Date.now()),
+          method: "Razorpay",
+          items,
+          coupon: applied,
+          amounts: { itemsTotal, deliveryFee, codFee: 0, discount: discountAmt, grandTotal },
+          address: localStorage.getItem("shippingAddress") || "",
+          createdAt: new Date().toISOString()
+        };
+
+        const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+        orders.unshift(order);
+        localStorage.setItem("orders", JSON.stringify(orders));
+
+        localStorage.setItem("cartItems", "[]");
+        try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+        localStorage.setItem("lastOrderClearedCart", "1");
+
+        window.location.href = "https://precioussly.com/thankyou-razorpay";
+      },
+
+      modal: {
+        // User ne Razorpay close kar diya → spinner/reset states
+        ondismiss: function () {
+          const proceedBtn = document.getElementById("proceedBtn");
+          if (proceedBtn) {
+            proceedBtn.classList.remove("is-loading");
+            proceedBtn.removeAttribute("aria-busy");
+          }
+          document.querySelectorAll(".popup-razorpay-btn.is-loading").forEach(b=>{
+            b.classList.remove("is-loading");
+            b.removeAttribute("aria-busy");
+          });
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  }
+</script>
+<!-- ✅ FINAL ADDRESS REQUIRED POPUP -->
+<div class="address-popup-overlay" id="addressRequiredPopup">
+  <div class="address-popup-box" style="text-align: center; max-width: 320px; border: none; box-shadow: 0 6px 20px rgba(0,0,0,0.2); border-radius: 16px;">
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">
+      Address Required
+    </div>
+    <div style="font-size: 15px; color: #444; margin-bottom: 16px; font-family: 'Roboto Slab', serif;">
+      Please add your shipping address before<br>proceeding.
+    </div>
+
+    <div class="button-row" style="flex-direction: column; gap: 10px; margin-top: 12px;">
+      <!-- ✅ BLUE BUTTON -->
+      <button onclick="openAddressAndClosePopup()" style="
+        background: #2874f0;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 15px;
+        font-family: 'Roboto Slab', serif;
+      ">Add Address</button>
+
+      <!-- ✅ OUTLINED BLACK BUTTON -->
+      <button onclick="closeAddressRequiredPopup()" style="
+        background: white;
+        color: black;
+        border: 1.4px solid #000;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 15px;
+        font-family: 'Roboto Slab', serif;
+      ">Back</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function validateAddressFields() {
+  const fullName = document.getElementById("fullname").value.trim();
+  const state = document.getElementById("state").value;
+  const city = document.getElementById("city").value.trim();
+  const pincode = document.getElementById("pincode").value.trim();
+  const address = document.getElementById("address").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+
+  const isValid = fullName && state && city && pincode && address && phone;
+
+  const btn = document.getElementById("confirmAddressBtn");
+  if (isValid) {
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+    btn.style.cursor = "not-allowed";
+  }
+}
+</script>
+<script>
+let minimumOrderValue = null; // nothing shown until fetched
+
+// ✅ Fetch minimum order value from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    if (data[0] && data[0]["minimum order"]) {
+      minimumOrderValue = parseInt(data[0]["minimum order"]);
+      document.getElementById("proceedBtn").style.display = "block"; // show button
+      document.getElementById("minimumNotice").style.display = "block"; // show message area
+      checkMinOrderCondition(); // run logic after fetch
+    }
+  });
+
+function checkMinOrderCondition() {
+  if (minimumOrderValue === null) return; // stop if not fetched yet
+
+  const proceedBtn = document.getElementById("proceedBtn");
+  const notice = document.getElementById("minimumNotice");
+
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
+
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+  const grandTotal = total + deliveryFee + codFee;
+
+  notice.innerText = `Minimum order amount is ₹${minimumOrderValue} to proceed`;
+
+  if (grandTotal < minimumOrderValue) {
+    proceedBtn.style.opacity = "0.4";
+    proceedBtn.disabled = true;
+    proceedBtn.style.cursor = "not-allowed";
+    notice.style.display = "block";
+  } else {
+    proceedBtn.style.opacity = "1";
+    proceedBtn.disabled = false;
+    proceedBtn.style.cursor = "pointer";
+    notice.style.display = "none";
+  }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const overlay = document.getElementById("productPopup");
-  if (!overlay) return;
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) closePopup();
+
+// ====== 1) CONFIG: use the SAME sheet as index.html coupons  ======
+const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
+// Index renders coupons by reading Title / MinAmount / Code / Discount columns
+
+// ====== 2) State ======
+window.allCoupons = [];            // raw coupons from sheet
+window.appliedCoupon = null;       // {code,title,min,amount,isPercent,raw}
+window.manualLock = false;         // if user applied manually, don't auto-switch
+
+// ====== 3) Helpers ======
+function parseCouponRow(r){
+  const title = (r.Title||"").trim();
+  const code  = (r.Code||"").trim();
+  const min   = Number(String(r.MinAmount||"0").replace(/[^\d.]/g,"")) || 0;
+  const raw   = (r.Discount||"").trim(); // supports "50" or "10%"
+  const isPercent = /%$/.test(raw);
+  const value = Number(raw.replace(/[^\d.]/g,"")) || 0;
+  return { title, code, min, raw, isPercent, value };
+}
+
+function discountOnSubtotal(subtotal, c){
+  if (!c) return 0;
+  let d = c.isPercent ? Math.floor(subtotal * c.value/100) : c.value;
+  d = Math.max(0, Math.min(d, subtotal)); // never exceed items total
+  return d;
+}
+
+function bestCouponFor(subtotal){
+  let best = null, bestAmt = 0;
+  allCoupons.forEach(c=>{
+    if (subtotal >= c.min){
+      const amt = discountOnSubtotal(subtotal, c);
+      if (amt > bestAmt){ best = c; bestAmt = amt; }
+    }
   });
-});
+  return {coupon: best, amount: bestAmt};
+}
+
+function renderCouponCards(){
+  const holder = document.getElementById("couponContainerCart");
+  if (!holder) return;
+  holder.innerHTML = allCoupons.map(c=>`
+    <div class="coupon-card" onclick="document.getElementById('couponInput').value='${c.code}'">
+      <h3>${c.title}</h3>
+      <p>Min. Order ₹${c.min.toLocaleString()}</p>
+      <div class="code-row">
+        <span class="code-box">${c.code}</span>
+        <span style="font-size:12px;color:#064c2c;">Save ${c.raw}</span>
+      </div>
+    </div>
+  `).join("");
+  holder.style.display = allCoupons.length ? "flex" : "none";
+}
+
+function showAppliedTag(subtotal){
+  const tag = document.getElementById("appliedCouponTag");
+  if (!tag) return;
+
+  if (!appliedCoupon){
+    tag.style.display = "none";
+    return;
+  }
+  const amount = discountOnSubtotal(subtotal, appliedCoupon);
+  tag.innerHTML = `Applied: <strong>${appliedCoupon.code}</strong> — You saved ₹${amount}`;
+  tag.style.display = "inline-block";
+}
+
+function showProgress(subtotal){
+  const wrap = document.getElementById("couponProgressWrap");
+  if (!wrap) return;
+  // find next coupon threshold > subtotal
+  const next = [...allCoupons].sort((a,b)=>a.min-b.min).find(c => c.min > subtotal);
+  if (!next){
+    wrap.style.display = "none";
+    return;
+  }
+  const need = next.min - subtotal;
+  const text = document.getElementById("couponProgressText");
+  const bar  = document.getElementById("couponProgressBar");
+  text.textContent = `Add ₹${need} more to unlock ${next.raw} (code ${next.code})`;
+  const pct = Math.max(0, Math.min(100, Math.round((subtotal/next.min)*100)));
+  bar.style.width = pct + "%";
+  wrap.style.display = "block";
+}
+
+// ====== 4) Manual apply / clear ======
+function applyCouponManually(){
+  const input = document.getElementById("couponInput");
+  const code = (input.value||"").trim().toUpperCase();
+  if (!code) return;
+
+  const found = allCoupons.find(c=>c.code.toUpperCase()===code);
+  window.manualLock = true;
+
+  const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
+  const subtotal = cart.reduce((s,it)=>s + (Number(it.price)*Number(it.qty)), 0);
+
+  if (found){
+    if (subtotal >= found.min) {
+      window.appliedCoupon = found;
+    } else {
+      alert(`Minimum order ₹${found.min} required for this coupon.`);
+      window.appliedCoupon = null;
+      input.value = "";
+    }
+  } else {
+    alert("Invalid coupon");
+    window.appliedCoupon = null;
+  }
+  
+  updateSummary();
+}
+
+function clearManualCoupon(){
+  window.manualLock = false;
+  window.appliedCoupon = null;
+  document.getElementById("couponInput").value = "";
+  updateSummary();
+}
+
+// ====== 5) Load coupons once ======
+function loadCoupons(){
+  fetch(couponSheetURL)
+    .then(r=>r.json())
+    .then(rows=>{
+      window.allCoupons = rows
+        .filter(r => r.Title && r.MinAmount && r.Code && r.Discount) // same columns as index
+        .map(parseCouponRow)
+        .sort((a,b)=>a.min-b.min);
+      renderCouponCards();
+      updateSummary(); // first render with coupons available
+    })
+    .catch(()=>{ /* fail silently */ });
+}
+document.addEventListener("DOMContentLoaded", loadCoupons);
+
+// ====== 6) ONE clean updateSummary (items + delivery + COD + coupon) ======
+function updateSummary(){
+  const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
+  const subtotal = cart.reduce((s,it)=>s + (Number(it.price)*Number(it.qty)), 0);
+  // ---- show/hide coupons when cart empty ----
+const coupWrap = document.getElementById("couponSection");
+if (coupWrap){
+  const hasItems = subtotal > 0 && cart.length > 0;
+  coupWrap.style.display = hasItems ? "block" : "none";
+}
+
+  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+
+  // auto-pick the best coupon unless user manually locked one
+  let couponToUse = null, discount = 0;
+  if (allCoupons.length){
+    if (window.manualLock && window.appliedCoupon){
+      couponToUse = window.appliedCoupon;
+      // respect min amount even for manual apply
+      discount = (subtotal >= couponToUse.min) ? discountOnSubtotal(subtotal, couponToUse) : 0;
+    } else {
+      const {coupon, amount} = bestCouponFor(subtotal);
+      couponToUse = coupon;
+      discount = amount;
+      window.appliedCoupon = coupon || null;
+    }
+  }
+  // ✅ Auto-fill the input box with applied coupon code
+if (couponToUse && document.getElementById("couponInput")) {
+  document.getElementById("couponInput").value = couponToUse.code;
+} else if (!couponToUse && !window.manualLock) {
+  document.getElementById("couponInput").value = "";
+}
+  const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
+
+  const feeText = (deliveryFee === 0)
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    ${codFee ? `<div class="summary-row"><span>COD Charges</span><span>₹${codFee}</span></div>` : ""}
+    ${discount ? `<div class="summary-row"><span>Coupon (${couponToUse.code})</span><span>-₹${discount}</span></div>` : ""}
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${grand}</span></div>
+  `;
+
+  // UI helpers
+  showAppliedTag(subtotal);
+  showProgress(subtotal);
+
+  // keep your “Minimum Order” logic alive if present
+  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
+}
+
+// Ensure other places call our summary (qty +/- already call updateSummary in your file)
 </script>
 
+  <script src="coupon-persist.js"></script>
+  <script>
+/* --- Always force-close the Razorpay suggestion popup on load/back --- */
+(function () {
+  function forceCloseRazorpayPopup() {
+    var el = document.getElementById('codPopup');
+    if (el) el.style.display = 'none';
+    // restore scroll in case body was locked by the popup
+    document.body.style.overflow = '';
+  }
+
+  // Close once DOM is ready (fresh load)
+  document.addEventListener('DOMContentLoaded', forceCloseRazorpayPopup);
+
+  // Close whenever page is shown again (includes back/forward via BFCache)
+  window.addEventListener('pageshow', function (e) {
+    forceCloseRazorpayPopup();
+
+    // If user came back from a Thank You page after placing order,
+    // we may want a clean UI. We used this flag while redirecting.
+    var cameFromOrder = localStorage.getItem('lastOrderClearedCart') === '1';
+    var nav = performance.getEntriesByType('navigation')[0];
+    var fromBFCache = e.persisted || (nav && nav.type === 'back_forward');
+
+    if (cameFromOrder && fromBFCache) {
+      // Optional: hard refresh for a fresh state (prevents any stale overlay)
+      localStorage.removeItem('lastOrderClearedCart');
+      setTimeout(function(){ location.reload(); }, 0);
+    }
+  });
+
+  // Also close when tab returns to foreground (edge cases)
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) forceCloseRazorpayPopup();
+  });
+})();
+</script>
+<script>
+(function () {
+  function forceCloseRazorpayPopup() {
+    var el = document.getElementById('codPopup');
+    if (el) el.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  // Always close popup on page load
+  document.addEventListener('DOMContentLoaded', forceCloseRazorpayPopup);
+
+  // Detect back from Thank-You page & reload cart
+  window.addEventListener('pageshow', function (e) {
+    var cameFromOrder = localStorage.getItem('lastOrderClearedCart') === '1';
+    var nav = performance.getEntriesByType('navigation')[0];
+    var fromBFCache = e.persisted || (nav && nav.type === 'back_forward');
+
+    if (cameFromOrder && fromBFCache) {
+      localStorage.removeItem('lastOrderClearedCart');
+      location.reload(); // ✅ Back karte hi cart reload hoga
+    } else {
+      forceCloseRazorpayPopup(); // normal case me sirf popup close
+    }
+  });
+})();
+</script>
+
+<script>document.addEventListener("DOMContentLoaded", function(){ try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {} });</script>
 </body>
 </html>
