@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 
 <html lang="en">
 <head><meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/><script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
@@ -1007,51 +1007,72 @@ function toggleMenu() {
       }
     });
 
-  // 🔽 MENU DATA FROM SHEET
+// 🔽 MENU DATA FROM SHEET (complete block)
+(function(){
   const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
   const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+  const desiredOrder = ["Resin","Fashion Jewellery","Crochet","Gift Hampers"];
+  const skipSet = new Set(["home","track order"]);
+  const menuContent = document.getElementById("menuContent");
+  if (!menuContent) return;
+
+  function toggleSubmenu(id){
+    const el = document.getElementById(id);
+    if (!el) return;
+    const open = el.style.display === "block" || el.classList.contains("open");
+    el.style.display = open ? "none" : "block";
+    el.classList.toggle("open", !open);
+  }
+  window.toggleSubmenu = toggleSubmenu;
+
+  function renderItem(title, info){
+    if ((info.subs && info.subs.length)) {
+      const menuId = title.replace(/\s+/g, '-') + '-submenu';
+      menuContent.insertAdjacentHTML('beforeend', `
+        <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+          <span>${title}</span>
+          <span class="dropdown-icon">›</span>
+        </div>
+        <div class="submenu-container" id="${menuId}" style="display:none;">
+          ${info.subs.map(s => `<a href="${s.link||'#'}" class="submenu-link">› ${s.name}</a>`).join("")}
+        </div>
+      `);
+    } else {
+      menuContent.insertAdjacentHTML('beforeend',
+        `<a href="${info.link||'#'}" class="menu-link">${title}</a>`
+      );
+    }
+  }
 
   fetch(menuURL)
     .then(res => res.json())
     .then(data => {
-      const menuContent = document.getElementById("menuContent");
       const grouped = {};
-
-      data.forEach(item => {
-        const menu = item.Menu?.trim();
-        const sub = item.Submenu?.trim();
-        const link = item.Link?.trim();
+      data.forEach(row => {
+        const menu = (row.Menu||'').trim();
+        const sub  = (row.Submenu||'').trim();
+        const link = (row.Link||'').trim();
         if (!menu) return;
-
+        if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
         if (sub) {
-          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
-          grouped[menu].subs.push({ name: sub, link });
+          grouped[menu].subs.push({ name: sub, link: link || '#' });
         } else {
-          grouped[menu] = { link, subs: [] };
+          grouped[menu].link = link || '#';
         }
       });
 
+      const used = new Set(["home","track order"]);
+      desiredOrder.forEach(want => {
+        const key = Object.keys(grouped).find(k => k.toLowerCase() === want.toLowerCase());
+        if (key) { renderItem(key, grouped[key]); used.add(key.toLowerCase()); delete grouped[key]; }
+      });
       Object.entries(grouped).forEach(([menu, info]) => {
-  if (info.subs.length === 0) {
-    menuContent.innerHTML += `<a href="${info.link}" class="menu-link">${menu}</a>`;
-  } else {
-    const menuId = menu.replace(/\s+/g, '-') + '-submenu';
-    menuContent.innerHTML += `
-      <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
-        <span>${menu}</span>
-        <span class="dropdown-icon">›</span>
-      </div>
-      <div class="submenu-container" id="${menuId}" style="display: none;">
-        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link">› ${s.name}</a>`).join("")}
-      </div>
-    `;
-  }
-});
+        if (skipSet.has(menu.toLowerCase())) return;
+        renderItem(menu, info);
+      });
     });
-    function toggleSubmenu(id) {
-  const submenu = document.getElementById(id);
-  submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
-}
+})();
+
 // 🟢 Wide Media (Image/Video) Strip from Google Sheet
 fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
   .then(res => res.json())
