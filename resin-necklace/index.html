@@ -65,53 +65,50 @@ body.noscroll {
   overflow: hidden;
   height: 100vh;
 }
-/* 👇 Slider inside popup */
-.popup-slide {
+/* 👇 SIMPLE popup slider (fade only) */
+#popupSlider{
+  position: relative;
+  min-height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;             /* no overflow peeking */
+}
+
+.popup-slide{
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   max-width: 300px;
   aspect-ratio: 1/1;
   object-fit: cover;
   border-radius: 14px;
   opacity: 0;
-  transition:
-    opacity 300ms ease,
-    transform 460ms cubic-bezier(.22,1,.36,1);
+  transition: opacity 180ms ease-in-out;  /* ✅ only fade */
   pointer-events: none;
   z-index: 0;
 }
-.popup-slide.active {
+.popup-slide.active{
   opacity: 1;
   pointer-events: auto;
   z-index: 1;
 }
-#popupSlider {
-  position: relative;
-  height: auto;
-  min-height: 300px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.popup-dots {
+
+/* Dots – no width animation */
+.popup-dots{
   display: flex;
   justify-content: center;
   gap: 8px;
   margin-top: 10px;
 }
-.popup-dot {
-  width: 16px;
+.popup-dot{
+  width: 12px;
   height: 6px;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  transition: background 0.3s ease;
+  background: rgba(0,0,0,0.18);
 }
-
-.popup-dot.active {
-  background: rgba(0, 0, 0, 0.6);
+.popup-dot.active{
+  background: rgba(0,0,0,0.6);
 }
 .fixed-spinner-wrapper {
   height: 20px;
@@ -359,31 +356,6 @@ body.noscroll {
 .popup-card.leave {
   transform: translateY(8px) scale(.985);
   opacity: 0;
-}
-
-/* Popup slider images smoother */
-.popup-slide {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  max-width: 300px;
-  aspect-ratio: 1/1;
-  object-fit: cover;
-  border-radius: 14px;
-
-  opacity: 0;
-  transform: translateY(6px) scale(.985);
-  transition:
-    opacity 300ms ease,
-    transform 460ms cubic-bezier(.22,1,.36,1);
-  pointer-events: none;
-  z-index: 0;
-}
-.popup-slide.active {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-  z-index: 1;
 }
 
 /* Dots subtle */
