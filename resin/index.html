@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 
 <html lang="en">
 <head><meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/><script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
@@ -677,7 +677,145 @@ down-toggle {
   text-decoration: none;
   color: inherit;
 }
-    </style>
+    
+/* ==== Smart header ==== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 3500;
+  transition: transform .35s ease;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.site-header.header-hidden { transform: translateY(-100%); }
+
+/* === MENU – ULTRA SMOOTH OPEN/CLOSE === */
+.menu-overlay{
+  opacity:0;
+  transition: opacity .35s cubic-bezier(.22,1,.36,1) !important;
+}
+.menu-overlay.active{opacity:1; display:block;}
+
+.side-menu {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.8s cubic-bezier(.25, 1, .3, 1) !important;
+}
+.side-menu.active{ transform: translateX(0); }
+
+/* Keep items still (no hover color), crisp separators */
+.menu-link, .submenu-link, .dropdown-toggle{ transition: none !important; }
+
+/* ===== Unified button list (same size, nice borders) ===== */
+#sideMenu #menuContent{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding: 6px 8px 14px;
+}
+#sideMenu .menu-link{
+  display:block;
+  text-align:center;
+  padding:10px 14px;
+  border:1px solid #e9e9e9;
+  border-radius:12px;
+  background:#ffffff;
+  color:#111 !important;
+  font-family:'Roboto Slab', serif;
+  font-size:17px;
+  font-weight:500;
+  text-decoration:none;
+  min-height:auto;
+  box-shadow:0 1px 0 rgba(0,0,0,.02);
+}
+#sideMenu .menu-link--primary{
+  background:#e9fef1;
+  border:1.5px solid #c5ecd6;
+  color:#064c2c !important;
+  font-weight:600;
+}
+/* Remove old bottom borders in menu list */
+#sideMenu .menu-link,
+#sideMenu .submenu-link{ border-bottom:none !important; }
+
+/* No color/size change on tap */
+#sideMenu .menu-link:active,
+#sideMenu .menu-link--primary:active{
+  background: inherit !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+/* Submenu base (if you use dropdowns) */
+.menu-link,
+.dropdown-toggle {
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:14px 16px; min-height:48px; font-size:17px; color:#000;
+  text-decoration:none; font-family:'Roboto Slab', serif;
+  border-bottom:1px solid #f1f1f1; background:transparent;
+}
+.submenu-container, .submenu { display:none; background:#fafafa; padding-left:8px; }
+.submenu-container.open, .submenu.open { display:block; }
+.submenu-link {
+  display:block; padding:12px 16px 12px 24px; font-size:15px; color:#333;
+  text-decoration:none; font-family:'Roboto Slab', serif;
+  border-bottom:1px solid #f1f1f1;
+}
+
+
+
+/* === Make try.html menu exactly like index.html === */
+
+/* Square close button with border (like index.html) */
+.menu-close{
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid #000;
+  border-radius: 10px;
+  font-size: 18px; font-weight: 700; color: #000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: none !important;
+}
+.menu-close:hover{ transform: none !important; }
+
+/* Same inside padding for the list */
+#sideMenu #menuContent{ padding: 8px 16px 18px !important; }
+
+/* Stronger border + soft shadow */
+#sideMenu .menu-link{
+  border: 1px solid #dcdcdc !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03) !important;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+/* Track Order style */
+#sideMenu .menu-link--primary{
+  background:#e9fef1 !important;
+  border:1.5px solid #c5ecd6 !important;
+  color:#064c2c !important;
+}
+
+/* Disable hover/tap changes */
+#sideMenu .menu-link:hover,
+#sideMenu .menu-link--primary:hover{
+  background: inherit !important;
+  color: inherit !important;
+}
+#sideMenu .menu-link:active,
+#sideMenu .menu-link--primary:active{
+  background: inherit !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+/* Font weight match */
+.menu-link,
+.menu-link--primary{ font-weight: 500 !important; }
+
+</style>
 </head>
 <body>
 <!-- 👇 SIDE MENU STRUCTURE NEEDED FOR OVERLAY -->
@@ -685,10 +823,40 @@ down-toggle {
 <nav class="side-menu" id="sideMenu">
 <div class="menu-header">
 <span class="menu-title">Menu</span>
-<span class="menu-close" onclick="toggleMenu()">×</span>
+<span class="menu-close" onclick="toggleMenu()">✕</span>
 </div>
-<div id="menuContent"></div>
+<div id="menuContent">
+  <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+  <a href="https://precioussly.com/" class="menu-link">Home</a>
+</div>
 </nav>
+<script>
+  document.addEventListener('click', function (e) {
+    const menu = document.getElementById('sideMenu');
+    if (!menu || !menu.contains(e.target)) return;
+    const toggle = e.target.closest('.dropdown-toggle');
+    if (toggle) {
+      const next = toggle.nextElementSibling;
+      if (next && (next.classList.contains('submenu-container') || next.classList.contains('submenu'))) {
+        const isOpen = next.classList.contains('open') || next.style.display === 'block';
+        next.classList.toggle('open', !isOpen);
+        next.style.display = isOpen ? 'none' : 'block';
+      }
+      e.preventDefault();
+      return;
+    }
+    const a = e.target.closest('a');
+    if (a && a.href) { if (typeof toggleMenu === 'function') toggleMenu(); }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      const menu = document.getElementById('sideMenu');
+      if (menu && menu.classList.contains('active') && typeof toggleMenu === 'function') toggleMenu();
+    }
+  });
+</script>
+
 <header class="site-header">
 <div class="hamburger-wrapper" onclick="toggleMenu()">
 <div></div>
@@ -1043,5 +1211,28 @@ slider.addEventListener("touchend", e => {
 
   updateCartBadge(); // run on load
 </script>
+
+<script>
+  (function(){
+    const header = document.querySelector('.site-header');
+    if (!header) return;
+    let lastY = window.scrollY;
+    let ticking = false;
+    function onScroll() {
+      const y = window.scrollY;
+      const goingDown = y > lastY && y > 40;
+      header.classList.toggle('header-hidden', goingDown);
+      lastY = y;
+      ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(onScroll);
+        ticking = true;
+      }
+    }, { passive: true });
+  })();
+</script>
+
 </body>
 </html>
