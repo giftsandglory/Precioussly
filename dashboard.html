@@ -178,8 +178,12 @@
 /* Make header icons same as Resin (32x32), ignore inline sizes */
 .site-header .right-icon { width: 32px !important; height: 32px !important; }
 
-/* Search wali image ko square hi rakho (no round) */
-.site-header img[alt="Search"] { border-radius: 0 !important; }
+/* Search wali image ko square aur chhota rakho */
+.site-header img[alt="Search"] { 
+  border-radius: 0 !important;
+  width: 26px !important;
+  height: 26px !important;
+}
   </style>
 <style>
 /* ==== Floating action buttons (WhatsApp + Back to Top) ==== */
@@ -450,7 +454,9 @@
     <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent;" />
   </div>
   <div style="display: flex; align-items: center; gap: 12px;">
-    <img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
+    <img alt="Search" class="right-icon" 
+     src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" 
+     style="border-radius: 0; width: 20px; height: 20px; margin-top: 2px;"/>
     <img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"/>
     <a href="/cart" style="position: relative; display: inline-block; margin-top: 5px;">
       <img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
