@@ -373,12 +373,12 @@
 /* Menu content area */
 #menuContent {
   padding: 6px 8px 14px !important;
-  gap: 8px !important;
+  gap: 10px !important;
 }
 
 /* Menu links */
 #sideMenu .menu-link {
-  padding: 6px 14px !important;
+  padding: 7px 14px !important;
   font-size: 17px !important;
   border-radius: 12px !important;
   border: 1px solid #dcdcdc !important;
@@ -400,6 +400,19 @@
 }
 </style>
 
+
+
+<style id="compact-menu-override">
+/* === Compact Side Menu Buttons (match index) === */
+#sideMenu .menu-link,
+#sideMenu .dropdown-toggle{
+  min-height: auto !important;
+  line-height: 1.15 !important;
+  padding: 6px 14px !important;
+  font-size: 16.5px !important;
+}
+#menuContent{ gap: 8px !important; }
+</style>
 
 </head>
 <body>
