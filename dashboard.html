@@ -412,20 +412,6 @@
 </style>
 
 
-
-<!-- === HEADER OVERRIDES to match index.html === -->
-<style>
-/* Ensure same spacing & height as index */
-.site-header { padding: 20px 16px !important; min-height: 72px !important; }
-/* Use the same hamburger structure (3 div bars) */
-.hamburger-wrapper { width: 24px; height: 20px; cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; background:transparent; border:0; padding:0; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
-.hamburger-wrapper div { width:100%; height:3px; background:#000; border-radius:2px; }
-@media (max-width:480px){ .hamburger-wrapper{ width:22px; height:18px; } .hamburger-wrapper div{ height:2.5px; } }
-/* Icon sizes consistent */
-.right-icon { width:32px; height:32px; object-fit:cover; border-radius:50%; }
-.icon-size { width:28px; height:28px; }
-</style>
-
 </head>
 <body>
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
@@ -437,45 +423,23 @@
   <div id="menuContent"></div>
 </nav>
 <header class="site-header">
-  <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div>
-    <div></div>
-    <div></div>
+  <!-- Hamburger button (left of logo) -->
+  <button class="hamburger-wrapper" aria-label="Open menu" type="button" onclick="toggleMenu()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+    <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent;" />
   </div>
-
- <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-  <img
-    src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
-    alt="Precioussly Logo"
-    onclick="location.href = 'https://precioussly.com';"
-    style="
-      width: 110px;
-      height: auto;
-      object-fit: contain;
-      cursor: pointer;
-      transition: opacity 0.3s ease;
-      -webkit-tap-highlight-color: transparent;
-    "
-  />
-</div>
-</div>
-
- <div style="display: flex; align-items: center; gap: 12px;">
-<!-- Search icon -->
-<img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
-
-<!-- Profile icon -->
-<img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
-
-<!-- Cart icon with badge -->
-<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
-</a>
-</div>
-</div>
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
+    <img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"/>
+    <a href="/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+      <img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
+      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+    </a>
   </div>
-</div>
 </header>
 <div id="announcementBar">🧿</div>
 <main>
