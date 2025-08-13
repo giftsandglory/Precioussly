@@ -95,14 +95,12 @@
 }
 
 .hamburger-wrapper {
-  width: 24px;
-  height: 20px;
+  width: 22px;
+  height: 18px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background-color: transparent;
-  border: none;
 }
 
 .hamburger-wrapper div {
@@ -587,12 +585,13 @@ button.remove-btn:hover {
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
-  <header class="site-header">
-  <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div>
-    <div></div>
-    <div></div>
-  </div>
+ <header class="site-header">
+<!-- Hamburger menu -->
+<div class="hamburger-wrapper" onclick="toggleMenu()">
+  <div></div>
+  <div></div>
+  <div></div>
+</div>
 
   <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
     <img
