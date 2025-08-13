@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+  <script>
+    // TODO: Replace with your deployed Apps Script Web App URL
+    // Example: https://script.google.com/macros/s/AKfycbx.../exec
+    const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwL_5G9gF0aK2QJhwcD6wR_BHf4k1E_tcesQ_XJV-jj_1zfNoGW9IpOCF3FUD3x2jzoQg/exec";
+  </script>
+
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <meta name="google-signin-client_id" content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com">
   <meta charset="UTF-8" />
@@ -1553,7 +1560,22 @@ card.style.userSelect = "none";
       localStorage.setItem("user_name", data.name);
       localStorage.setItem("user_email", data.email);
       localStorage.setItem("user_photo", data.picture);
-      location.href = "https://precioussly.com"; // redirect clean
+
+      // 🔄 Send login details to Google Sheet (JSON). 
+      // If your GAS expects form-encoded (e.parameter), change headers/body accordingly.
+      try {
+        fetch(SHEET_WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name:  data.name,
+            email: data.email,
+            photo: data.picture
+          })
+        }).catch(() => {});
+      } catch (_) {}
+
+location.href = "https://precioussly.com"; // redirect clean
     });
   }
 
