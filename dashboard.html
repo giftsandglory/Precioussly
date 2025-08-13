@@ -237,6 +237,45 @@
 /* Tap feedback disable */
 #sideMenu .menu-link:active{background:inherit!important;color:inherit!important;transform:none!important}
 </style>
+
+
+<!-- === MENU SIZE TUNING (dash only) === -->
+<style>
+/* Force same compact look as index (final overrides) */
+#menuOverlay { opacity: 1 !important; transition: opacity .35s cubic-bezier(.22,1,.36,1) !important; }
+#menuOverlay.active { display:block !important; }
+
+#sideMenu.side-menu{
+  width: 78vw !important;
+  max-width: 340px !important;
+  padding: 14px 12px !important;
+  transition: transform .75s cubic-bezier(.25,1,.3,1) !important;
+}
+
+#sideMenu .menu-header{ padding: 4px 4px 10px !important; margin-bottom: 10px !important; }
+#sideMenu .menu-title{ font-size: 17px !important; }
+#sideMenu .menu-close{ width: 34px !important; height: 34px !important; font-size: 17px !important; }
+
+#menuContent{ padding: 6px 10px 14px !important; gap: 8px !important; }
+
+#sideMenu .menu-link{
+  padding: 10px 12px !important;
+  font-size: 16px !important;
+  border-radius: 12px !important;
+  border: 1px solid #dcdcdc !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03) !important;
+}
+
+#menuContent .menu-link:first-child{
+  background:#e9fef1 !important;
+  border:1.5px solid #c5ecd6 !important;
+  color:#064c2c !important;
+  font-weight:600 !important;
+}
+/* Submenu sizing */
+#sideMenu .submenu-link{ font-size:14.5px !important; padding:10px 14px 10px 22px !important; }
+</style>
+
 </head>
 <body>
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
