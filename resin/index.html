@@ -7,6 +7,68 @@
 <title>Precioussly</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
+#toTopBtn {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+#toTopBtn svg {
+  width: 26px;
+  height: 26px;
+}
+
+.fab-stack {
+  position: fixed;
+  right: 10px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 6000;
+  pointer-events: none;
+}
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+/* ✅ WhatsApp button ka icon perfect center me, without misalignment */
+#waBtn {
+  width: 55px; /* icon ka size */
+  height: 55px;
+  border: none; /* circle ka border hata diya */
+  border-radius: 0; /* circle shape off */
+  background: none; /* background color hataya */
+  box-shadow: none; /* shadow bhi hataya */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Image ko full size pe dikhao */
+#waBtn img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
   .header-logo-container {
   position: absolute;
   left: 50%;
@@ -1254,6 +1316,68 @@ slider.addEventListener("touchend", e => {
     }, { passive: true });
   })();
 </script>
+<!-- Floating Buttons: Back to Top + WhatsApp -->
+<div class="fab-stack">
+  <!-- Back to Top button -->
+  <button id="toTopBtn" class="fab-btn" aria-label="Back to top" title="Back to top" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"></path>
+    </svg>
+  </button>
 
+  <!-- WhatsApp button -->
+  <a id="waBtn" class="fab-btn" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" rel="noopener" target="_blank">
+    <img src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png" alt="WhatsApp">
+  </a>
+</div>
+<script>
+  const WA_NUMBER = "918586057887"; // 91 + 8586057887
+  const DEFAULT_MSG = "Hi Precioussly! I need help with my order.";
+
+  (function () {
+    const wa = document.getElementById("waBtn");
+    if (wa) {
+      const msg = encodeURIComponent(DEFAULT_MSG);
+      wa.href = `https://wa.me/${WA_NUMBER}?text=${msg}`;
+    }
+  })();
+
+  (function () {
+  const header = document.querySelector(".site-header");
+  if (!header) return;
+
+  let lastY = window.scrollY;
+  const TOL = 4; // px tolerance to avoid jitter
+
+  window.addEventListener("scroll", () => {
+    const y = window.scrollY;
+    const delta = y - lastY;
+    const movingDown = delta > TOL;
+    const movingUp   = delta < -TOL;
+
+    // ✅ Required behavior: UP => show, DOWN => hide
+    if (movingDown) {
+      header.classList.add("header-hidden");   // hide
+    } else if (movingUp) {
+      header.classList.remove("header-hidden"); // show
+    }
+    lastY = y;
+  }, { passive: true });
+})();
+</script>
+
+<script>
+  const toTopBtn = document.getElementById("toTopBtn");
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 200) {
+      toTopBtn.style.display = "flex";
+    } else {
+      toTopBtn.style.display = "none";
+    }
+  });
+  toTopBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+</script>
 </body>
 </html>
