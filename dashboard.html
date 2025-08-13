@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -15,18 +15,16 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   min-height: 60px;
 }
-    .right-icon {
-      width: 32px;
-      height: 32px;
-      object-fit: cover;
-      cursor: pointer;
-      border-radius: 50%;
-    }
-    .icon-size {
-      width: 28px;
-      height: 28px;
-    }
-    /* Wrapper: small clickable area with vertical spacing */
+.right-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.icon-size { width: 28px; height: 28px; }
+
+/* Hamburger */
 .hamburger-wrapper {
   width: 24px;
   height: 20px;
@@ -37,275 +35,192 @@
   background: transparent;
   border: 0;
   padding: 0;
-  -webkit-tap-highlight-color: transparent; /* remove blue tap glow */
+  -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  margin-left: 3.4px;
 }
-
-/* Three rounded lines */
 .hamburger-wrapper span {
   width: 100%;
   height: 3px;
-  background: #000;  /* black lines */
+  background: #000;
   border-radius: 2px;
 }
-
-/* Optional: slightly smaller on tiny screens */
 @media (max-width: 480px) {
   .hamburger-wrapper { width: 22px; height: 18px; }
   .hamburger-wrapper span { height: 2.5px; }
 }
-    .menu-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.4);
-      display: none;
-      z-index: 4000;
-      transition: opacity 0.3s ease;
-      opacity: 0;
-    }
-    .menu-overlay.active {
-      display: block;
-      opacity: 1;
-    }
-    .side-menu {
-      position: fixed;
-      top: 0;
-      left: 0;
-      transform: translateX(-100%);
-      width: 80%;
-      height: 100%;
-      background-color: #ffffff;
-      box-shadow: 4px 0 16px rgba(0,0,0,0.1);
-      padding: 20px 16px;
-      overflow-y: auto;
-      z-index: 5000;
-      font-family: 'Roboto Slab', serif;
-      transition: transform 0.4s ease;
-    }
-    .side-menu.active {
-      transform: translateX(0%);
-    }
-    #announcementBar {
-      margin: 0;
-      padding: 6px 10px;
-      font-size: 13px;
-      color: #ffffff;
-      background: #000000;
-      font-weight: 500;
-      text-align: center;
-      font-family: 'Roboto Slab', serif;
-      min-height: 22px;
-      line-height: 22px;
-      user-select: none;
-    }
-    body {
-  font-family: 'Roboto Slab', serif;
-  margin: 0;
-  padding: 0;
+
+/* Overlay + Drawer */
+.menu-overlay {
+  position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: none; z-index: 4000;
+  transition: opacity 0.3s ease; opacity: 0;
+}
+.menu-overlay.active { display: block; opacity: 1; }
+
+.side-menu {
+  position: fixed; top: 0; left: 0;
+  transform: translateX(-100%);
+  width: 80%; height: 100%;
   background-color: #ffffff;
-  color: #333;
-}
-
-    .profile {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .profile img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-    .profile h2 {
-      margin: 10px 0 5px;
-    }
-    .orders {
-      margin-top: 20px;
-    }
-    .order {
-      border-bottom: 1px solid #ccc;
-      padding: 12px 0;
-    }
-    .order:last-child {
-      border-bottom: none;
-    }
-    .order p {
-      margin: 4px 0;
-      font-size: 14px;
-    }
-    .order {
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 14px;
-  margin-bottom: 14px;
-}
-.logout-btn {
-  display: inline-block;
-  padding: 8px 20px;
-  font-size: 14px;
-  border: 1.5px solid #000;
-  color: #000;
-  background: transparent;
-  border-radius: 24px;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+  padding: 20px 16px; overflow-y: auto;
+  z-index: 5000;
   font-family: 'Roboto Slab', serif;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  text-decoration: none;
+  transition: transform 0.4s ease;
 }
-.logout-btn:hover {
-  background: #f5f5f5;
+.side-menu.active { transform: translateX(0%); }
+
+/* Announcement */
+#announcementBar {
+  margin: 0; padding: 6px 10px;
+  font-size: 13px; color: #ffffff;
+  background: #000000; font-weight: 500;
+  text-align: center; font-family: 'Roboto Slab', serif;
+  min-height: 22px; line-height: 22px; user-select: none;
 }
 
-.logout-btn:hover {
-  background: #f5f5f5;
+/* Base */
+body {
+  font-family: 'Roboto Slab', serif;
+  margin: 0; padding: 0;
+  background-color: #ffffff; color: #333;
 }
-    .container {
-  max-width: 460px;
-  margin: 0 auto;
-  padding: 20px 16px;
+
+/* Profile + Orders */
+.profile { text-align: center; margin-bottom: 20px; }
+.profile img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+.profile h2 { margin: 10px 0 5px; }
+.orders { margin-top: 20px; }
+.order { border-bottom: 1px solid #ccc; padding: 12px 0; }
+.order:last-child { border-bottom: none; }
+.order p { margin: 4px 0; font-size: 14px; }
+
+.order {
+  background: #fff; border: 1px solid #eee;
+  border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 14px; margin-bottom: 14px;
+}
+
+/* Buttons */
+.logout-btn {
+  display: inline-block; padding: 8px 20px; font-size: 14px;
+  border: 1.5px solid #000; color: #000; background: transparent;
+  border-radius: 24px; font-family: 'Roboto Slab', serif; font-weight: 500;
+  transition: all 0.3s ease; text-decoration: none;
+}
+.logout-btn:hover { background: #f5f5f5; }
+
+.container {
+  max-width: 460px; margin: 0 auto; padding: 20px 16px;
 }
 .section-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 6px;
+  font-size: 18px; font-weight: 600; margin-bottom: 12px;
+  border-bottom: 1px solid #ddd; padding-bottom: 6px;
 }
-/* Make header icons same as Resin (32x32), ignore inline sizes */
+
+/* Header icons sizing */
 .site-header .right-icon { width: 32px !important; height: 32px !important; }
+.site-header img[alt="Search"] { border-radius: 0 !important; width: 26px !important; height: 26px !important; }
 
-/* Search wali image ko square aur chhota rakho */
-.site-header img[alt="Search"] { 
-  border-radius: 0 !important;
-  width: 26px !important;
-  height: 26px !important;
-}
-.hamburger-wrapper {
-  margin-left: 3.4px; /* yahan px value badha/ghata ke adjust karo */
-}
-  </style>
-<style>
-/* ==== Floating action buttons (WhatsApp + Back to Top) ==== */
-.fab-stack{position:fixed;right:10px;bottom:14px;display:flex;flex-direction:column;gap:12px;z-index:6000;pointer-events:none}
-.fab-btn{width:56px;height:56px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;pointer-events:auto;-webkit-tap-highlight-color:transparent}
-#toTopBtn{width:55px;height:55px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;display:none}
-#toTopBtn svg{width:26px;height:26px}
-
-/* WhatsApp image-as-button (keeps icon perfectly centered) */
-#waBtn{width:55px;height:55px;border:none;border-radius:0;background:none;box-shadow:none;display:flex;align-items:center;justify-content:center;padding:0}
-#waBtn img{display:block;width:100%;height:100%;object-fit:contain}
-
-/* ==== Smart header (hide on scroll down, show on scroll up) ==== */
-.site-header{position:sticky;top:0;z-index:3500;transition:transform .35s ease;will-change:transform;backface-visibility:hidden}
-.site-header.header-hidden{transform:translateY(-100%)}
-</style>
-<style>
-/* === FINAL: Side Menu exactly like screenshot (keep this at the very end) === */
-
-/* Overlay (dim only) */
+/* === FINAL: Side Menu exactly like screenshot === */
 #menuOverlay{
   background: rgba(0,0,0,.35);
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0; pointer-events: none;
   transition: opacity .35s cubic-bezier(.22,1,.36,1) !important;
 }
 #menuOverlay.active{ opacity:1; pointer-events:auto; }
 
-/* Drawer */
 #sideMenu.side-menu{
-  will-change: transform;
-  backface-visibility: hidden;
+  will-change: transform; backface-visibility: hidden;
   transform: translateX(-100%);
   transition: transform .75s cubic-bezier(.25,1,.30,1) !important;
-
-  width: 78vw !important;
-  max-width: 340px !important;
-  height: 100vh;
-  padding: 14px 12px !important;
-  background:#fff;
+  width: 78vw !important; max-width: 340px !important;
+  height: 100vh; padding: 14px 12px !important; background:#fff;
   box-shadow: -20px 0 40px rgba(0,0,0,.15);
 }
 #sideMenu.side-menu.active{ transform: translateX(0); }
 
-/* Header (Menu + X) */
 #sideMenu .menu-header{
   display:flex; align-items:center; justify-content:space-between;
   padding: 6px 4px 10px !important;
-  border-bottom: 1px solid #eaeaea;
-  margin-bottom: 10px !important;
+  border-bottom: 1px solid #eaeaea; margin-bottom: 10px !important;
 }
-#sideMenu .menu-title{
-  font-family:'Roboto Slab', serif;
-  font-size: 18px !important;
-  font-weight: 600 !important;
-}
+#sideMenu .menu-title{ font-family:'Roboto Slab', serif; font-size: 18px !important; font-weight: 600 !important; }
 #sideMenu .menu-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px !important;
-  height: 32px !important;
-  border: 1px solid #111;
-  border-radius: 10px;
-  font-size: 14px !important;
-  font-weight: 600; /* ✕ ko thoda bold karega */
-  line-height: 1;   /* symbol perfect center rahe */
-  cursor: pointer;
-  background: #fff; /* background white */
-  -webkit-tap-highlight-color: transparent; /* mobile highlight remove */
-}
-
-#sideMenu .menu-close:hover {
-  transform: none !important;
-}
-
-/* Button list */
-#menuContent{
-  display:flex; flex-direction:column;
-  gap: 10px !important;
-  padding: 6px 8px 14px !important;
-}
-
-/* Main links – rounded cards */
-#sideMenu .menu-link,
-#sideMenu .dropdown-toggle{
-  display:block; text-align:center;
-  padding: 10px 14px !important;
-  line-height: 1.15 !important;
-  font-size: 17px !important;
-  font-weight: 500;
-  font-family:'Roboto Slab', serif;
-  color:#111 !important; text-decoration:none;
-
-  background:#fff;
-  border: 1px solid #dcdcdc !important;
-  border-radius: 12px !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,.03) !important;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px !important; height: 32px !important;
+  border: 1px solid #111; border-radius: 10px; font-size: 14px !important;
+  font-weight: 600; line-height: 1; cursor: pointer; background: #fff;
   -webkit-tap-highlight-color: transparent;
 }
+#sideMenu .menu-close:hover { transform: none !important; }
 
-/* First button (Track Order) — light green highlight */
-#menuContent .menu-link:first-child{
-  background:#e9fef1 !important;
-  border:1.5px solid #c5ecd6 !important;
-  color:#064c2c !important;
-  font-weight: 600 !important;
+#menuContent{
+  display:flex; flex-direction:column; gap: 10px !important;
+  padding: 6px 8px 14px !important;
 }
-
-/* Submenus (if used) */
+#sideMenu .menu-link, #sideMenu .dropdown-toggle{
+  display:block; text-align:center; padding: 10px 14px !important; line-height: 1.15 !important;
+  font-size: 17px !important; font-weight: 500; font-family:'Roboto Slab', serif;
+  color:#111 !important; text-decoration:none; background:#fff;
+  border: 1px solid #dcdcdc !important; border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03) !important; -webkit-tap-highlight-color: transparent;
+}
+#menuContent .menu-link:first-child{
+  background:#e9fef1 !important; border:1.5px solid #c5ecd6 !important;
+  color:#064c2c !important; font-weight: 600 !important;
+}
 #sideMenu .submenu-container{ display:none; background:#fafafa; padding-left:8px; }
 #sideMenu .submenu-container.open{ display:block; }
 #sideMenu .submenu-link{
   display:block; padding:10px 14px 10px 22px !important;
-  font-size:14.5px !important; color:#333;
-  font-family:'Roboto Slab', serif;
+  font-size:14.5px !important; color:#333; font-family:'Roboto Slab', serif;
   border-bottom:1px solid #f1f1f1;
 }
-</style>
+
+/* ======== PREMIUM CENTER-ALIGNED DASHBOARD UPGRADES ======== */
+body { background: #f8f9fb; }
+.container {
+  max-width: 520px; margin: 0 auto; padding: 22px 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
+@keyframes fadeIn { to { opacity: 1; } }
+
+.profile {
+  text-align: center; margin-bottom: 28px; background: #fff; padding: 24px 16px;
+  border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); transition: transform 0.3s ease;
+}
+.profile:hover { transform: translateY(-3px); }
+.profile img {
+  width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 4px solid transparent;
+  background: linear-gradient(135deg, #82f0c8, #c0f3e6) border-box; padding: 3px;
+}
+.profile h2 { margin: 12px 0 4px; font-size: 20px; font-weight: 700; }
+.profile p { color: #555; font-size: 14px; }
+
+.track-btn {
+  display: inline-block; margin-top: 16px; padding: 12px 22px; border-radius: 12px;
+  background: linear-gradient(135deg, #a6f0c3, #71d6b4); border: none;
+  font-family: 'Roboto Slab', serif; font-size: 16px; font-weight: 600; color: #064c2c;
+  text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: all 0.3s ease;
+}
+.track-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+
+.logout-btn {
+  display: inline-block; margin-top: 18px; padding: 10px 22px; font-size: 15px;
+  border: 1.5px solid #000; color: #000; background: #fff; border-radius: 24px;
+  font-family: 'Roboto Slab', serif; font-weight: 500; transition: all 0.3s ease; text-decoration: none;
+}
+.logout-btn:hover { background: #f9f9f9; transform: translateY(-2px); }
+
+/* ==== Smart header (hide on scroll down, show on scroll up) ==== */
+.site-header{position:sticky;top:0;z-index:3500;transition:transform .35s ease;will-change:transform;backface-visibility:hidden}
+.site-header.header-hidden{transform:translateY(-100%)}
+  </style>
 </head>
 <body>
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
@@ -316,6 +231,7 @@
   </div>
   <div id="menuContent"></div>
 </nav>
+
 <header class="site-header">
   <!-- Hamburger button (left of logo) -->
   <button class="hamburger-wrapper" aria-label="Open menu" type="button" onclick="toggleMenu()">
@@ -323,9 +239,11 @@
     <span></span>
     <span></span>
   </button>
+
   <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
     <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent;" />
   </div>
+
   <div style="display: flex; align-items: center; gap: 12px; position: relative; right: 3px;">
     <img alt="Search" class="right-icon" 
      src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" 
@@ -337,24 +255,24 @@
     </a>
   </div>
 </header>
+
 <div id="announcementBar">🧿</div>
+
 <main>
   <div class="container">
-  <div class="profile">
-    <img id="userImage" src="" alt="Profile Photo">
-    <h2 id="userName">Hello</h2>
-    <p id="userEmail"></p>
-<a href="https://precioussly.com/track-order"
-   style="display:inline-block;margin-top:12px;padding:10px 16px;border-radius:12px;background:#e9fef1;border:1.5px solid #c5ecd6;font-family:'Roboto Slab',serif;font-size:16px;font-weight:600;color:#064c2c;text-decoration:none;">
-  Track Order
-</a>
+    <div class="profile">
+      <img id="userImage" src="" alt="Profile Photo">
+      <h2 id="userName">Hello</h2>
+      <p id="userEmail"></p>
+      <a href="https://precioussly.com/track-order" class="track-btn">Track Order</a>
+    </div>
   </div>
-  
-  </div>
+
   <div style="text-align: center;">
-  <a class="logout-btn" href="#" onclick="logout()">Logout</a>
-</div>
-</div>
+    <a class="logout-btn" href="#" onclick="logout()">Logout</a>
+  </div>
+</main>
+
 <script>
   function toggleMenu() {
     const menu = document.getElementById("sideMenu");
@@ -393,8 +311,6 @@
   document.getElementById("userEmail").innerText = email;
   document.getElementById("userImage").src = photo;
 
-  
-
   function logout() {
     localStorage.clear();
     window.location.href = "/";
@@ -422,21 +338,13 @@
       if (data.length > 0 && data[0]["(announcement_text)"]) {
         document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
       }
-    });
+    })
+    .catch(() => {});
 
   const photoSaved = localStorage.getItem("user_photo");
   if (photoSaved) {
     document.getElementById("profileIcon").src = photoSaved;
   }
-</script>
-<script>
-  // WhatsApp deep link
-  const WA_NUMBER = "918586057887";
-  const DEFAULT_MSG = "Hi Precioussly! I need help with my order.";
-  (function () {
-    const wa = document.getElementById("waBtn");
-    if (wa) wa.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(DEFAULT_MSG)}`;
-  })();
 
   // Smart header show/hide on scroll
   (function () {
@@ -453,17 +361,7 @@
     }, { passive: true });
   })();
 
-  // Back-to-top visibility + smooth scroll
-  (function(){
-    const toTopBtn = document.getElementById("toTopBtn");
-    if (!toTopBtn) return;
-    window.addEventListener("scroll", () => {
-      toTopBtn.style.display = (window.scrollY > 200) ? "flex" : "none";
-    }, { passive:true });
-    toTopBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-  })();
-
-  // Populate side menu from Google Sheet (same as index)
+  // Populate side menu from Google Sheet
   const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
   const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
 
@@ -511,34 +409,32 @@
         menuContent.dataset.populated = "1";
       }).catch(()=>{});
   })();
-</script>
 
-<script>
-/* Menu ke andar link click par close + dropdown toggle, Esc to close – same as index */
-document.addEventListener('click', function (e) {
-  const menu = document.getElementById('sideMenu');
-  if (!menu || !menu.contains(e.target)) return;
-  const toggle = e.target.closest('.dropdown-toggle');
-  if (toggle) {
-    const next = toggle.nextElementSibling;
-    if (next && (next.classList.contains('submenu-container') || next.classList.contains('submenu'))) {
-      const isOpen = next.classList.contains('open') || next.style.display === 'block';
-      next.classList.toggle('open', !isOpen);
-      next.style.display = isOpen ? 'none' : 'block';
-    }
-    e.preventDefault();
-    return;
-  }
-  const a = e.target.closest('a');
-  if (a && a.href) { if (typeof toggleMenu === 'function') toggleMenu(); }
-});
-
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') {
+  /* Menu interactions + Esc to close */
+  document.addEventListener('click', function (e) {
     const menu = document.getElementById('sideMenu');
-    if (menu && menu.classList.contains('active') && typeof toggleMenu === 'function') toggleMenu();
-  }
-});
+    if (!menu || !menu.contains(e.target)) return;
+    const toggle = e.target.closest('.dropdown-toggle');
+    if (toggle) {
+      const next = toggle.nextElementSibling;
+      if (next && (next.classList.contains('submenu-container') || next.classList.contains('submenu'))) {
+        const isOpen = next.classList.contains('open') || next.style.display === 'block';
+        next.classList.toggle('open', !isOpen);
+        next.style.display = isOpen ? 'none' : 'block';
+      }
+      e.preventDefault();
+      return;
+    }
+    const a = e.target.closest('a');
+    if (a && a.href) { if (typeof toggleMenu === 'function') toggleMenu(); }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      const menu = document.getElementById('sideMenu');
+      if (menu && menu.classList.contains('active') && typeof toggleMenu === 'function') toggleMenu();
+    }
+  });
 </script>
 </body>
 </html>
