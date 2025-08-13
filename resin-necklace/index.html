@@ -484,6 +484,11 @@ body.noscroll {
   display: none;                  /* Chrome/Safari */
   background: transparent;
 }
+#cartCountBadge {
+  font-family: 'Roboto Slab', serif !important;
+  font-weight: 200; /* bold look */
+  font-size: 14px;  /* adjust number size */
+}
 </style>
 <style>
 
@@ -611,15 +616,15 @@ body.noscroll {
     <!-- Profile icon -->
     <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
 
-    <!-- Cart icon with badge -->
-    <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-      <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-      <span id="cartCountBadge"
-      style="position:absolute; top:-6px; right:-6px; background:white; color:black;
-             font-size:12px; border:1px solid grey; border-radius:50%; width:18px; height:18px;
-             display:none; align-items:center; justify-content:center;"></span>
-    </a>
+<!-- Cart icon with badge -->
+<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
+  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 21px; height: 21px; display: flex; align-items: center; justify-content: center;">0</span>
+</a>
+</div>
+</div>
   </div>
+</div>
 </header>
 <!-- Announcement Bar -->
 <div id="announcementBar">🧿</div>
