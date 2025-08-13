@@ -876,7 +876,11 @@ down-toggle {
 /* Font weight match */
 .menu-link,
 .menu-link--primary{ font-weight: 500 !important; }
-
+#cartCountBadge {
+  font-family: 'Roboto Slab', serif !important;
+  font-weight: 200; /* bold look */
+  font-size: 14px;  /* adjust number size */
+}
 </style>
 </head>
 <body>
@@ -942,11 +946,15 @@ down-toggle {
 <img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" style="cursor: pointer;"/>
 <!-- Cart icon with badge -->
 <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-<img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
-<span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">0</span>
+  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
+  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 21px; height: 21px; display: flex; align-items: center; justify-content: center;">0</span>
 </a>
 </div>
-</header><div id="announcementBar">🧿</div>
+</div>
+  </div>
+</div>
+</header>
+<div id="announcementBar">🧿</div>
 <!-- Category Section (still working) -->
 <div id="categorySection"></div>
 <!-- 🔽 CATEGORY SCRIPT FROM SHEET -->
