@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -383,7 +383,7 @@
 
 /* Menu content area */
 #menuContent {
-  padding: 4px 4px 4px !important;
+  padding: 6px 8px 14px !important;
   gap: 10px !important;
 }
 
@@ -412,6 +412,18 @@
 </style>
 
 
+
+<!-- FINAL: Compact menu buttons exactly like index (wins last) -->
+<style>
+  #sideMenu .menu-link,
+  #sideMenu .dropdown-toggle{
+    min-height: auto !important;
+    line-height: 1.15 !important;
+    padding: 6px 14px !important;
+    font-size: 16.5px !important;
+  }
+  #menuContent{ gap: 8px !important; }
+</style>
 </head>
 <body>
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
