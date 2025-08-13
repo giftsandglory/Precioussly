@@ -199,7 +199,9 @@
 /* ==== Smart header (hide on scroll down, show on scroll up) ==== */
 .site-header{position:sticky;top:0;z-index:3500;transition:transform .35s ease;will-change:transform;backface-visibility:hidden}
 .site-header.header-hidden{transform:translateY(-100%)}
-/* ===== Menu Header (Title + Close Button) ===== */
+</style>
+<style>
+/* ===== Menu header (X button), links, submenus – same as index ===== */
 .menu-header {
   display: flex;
   align-items: center;
@@ -229,154 +231,207 @@
   color: #000;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: none !important;
 }
 
-/* ===== Overlay Behind Menu ===== */
+.menu-close:hover {
+  transform: none !important;
+}
+
+/* Overlay + drawer animation = same as index */
 .menu-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, .45);
-  display: none;
   opacity: 0;
-  z-index: 4000;
-  transition: opacity .35s cubic-bezier(.22, 1, .36, 1);
-}
-.menu-overlay.active {
-  display: block;
-  opacity: 1;
+  transition: opacity 0.35s cubic-bezier(.22, 1, .36, 1) !important;
 }
 
-/* ===== Side Menu Container ===== */
-nav.side-menu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: min(74vw, 270px);
-  max-width: 270px;
-  height: 100vh;
-  background: #fff;
-  box-shadow: -20px 0 40px rgba(0, 0, 0, .2);
-  padding: 16px 12px;
-  overflow-y: auto;
-  transform: translateX(-100%);
-  transition: transform 0.8s cubic-bezier(.25, 1, .3, 1);
-  z-index: 5000;
-  font-family: 'Roboto Slab', serif;
+.menu-overlay.active {
+  opacity: 1;
+  display: block;
 }
+
+.side-menu {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.8s cubic-bezier(.25, 1, .3, 1) !important;
+  width: 84vw;
+  max-width: 380px;
+  padding: 16px 12px;
+  height: 100vh;
+}
+
 .side-menu.active {
   transform: translateX(0);
 }
 
-/* ===== Menu Links ===== */
+/* Main list items */
+.menu-link,
+.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px;
+  min-height: 48px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  text-decoration: none;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #f1f1f1;
+  background: transparent;
+}
+
+.dropdown-icon,
+.caret {
+  font-size: 18px;
+  line-height: 1;
+  color: #000;
+}
+
+/* Submenus */
+.submenu-container,
+.submenu {
+  display: none;
+  background: #fafafa;
+  padding-left: 8px;
+}
+
+.submenu-container.open,
+.submenu.open {
+  display: block;
+}
+
+.submenu-link {
+  display: block;
+  padding: 12px 16px 12px 24px;
+  font-size: 15px;
+  color: #333;
+  text-decoration: none;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+/* ===== Unified button list (rounded cards) – exactly like index ===== */
 #sideMenu #menuContent {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 8px 16px 18px;
+  padding: 6px 8px 14px;
 }
 
 #sideMenu .menu-link {
   display: block;
   text-align: center;
   padding: 10px 14px;
-  border: 1px solid #dcdcdc;
+  border: 1px solid #dcdcdc !important;
   border-radius: 12px;
   background: #fff;
-  color: #111;
+  color: #111 !important;
   font-family: 'Roboto Slab', serif;
   font-size: 17px;
   font-weight: 500;
   text-decoration: none;
-  box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .03) !important;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 
+/* First button always green highlight (Track Order) */
 #menuContent .menu-link:first-child {
-  background: #e9fef1;
-  border: 1.5px solid #c5ecd6;
-  color: #064c2c;
-  font-weight: 600;
+  background: #e9fef1 !important;
+  border: 1.5px solid #c5ecd6 !important;
+  color: #064c2c !important;
+  font-weight: 600 !important;
 }
 
-/* Remove tap flash + pressed effect */
+/* Tap feedback disable */
 #sideMenu .menu-link:active {
   background: inherit !important;
   color: inherit !important;
   transform: none !important;
 }
 </style>
-<!-- FINAL / WINS-LAST: Side menu exact look -->
+<!-- === MENU SIZE TUNING (dash only) === -->
 <style>
-  /* Container width + padding (exact like screenshot) */
-  nav.side-menu,
-  #sideMenu.side-menu {
-    width: min(74vw, 270px) !important;
-    max-width: 270px !important;
-    padding: 12px 10px !important;
-    background: #fff !important;
-    box-shadow: -20px 0 40px rgba(0,0,0,.20) !important;
-  }
+/* Force same compact look as index (final overrides) */
 
-  /* Header spacing + title + close button */
-  #sideMenu .menu-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 6px 4px 12px !important;
-    margin-bottom: 12px !important;
-    border-bottom: 1px solid #eaeaea !important;
-  }
-  #sideMenu .menu-title {
-    font-family: 'Roboto Slab', serif !important;
-    font-size: 20px !important;
-    font-weight: 700 !important;
-    color: #000 !important;
-  }
-  #sideMenu .menu-close {
-    width: 36px !important; height: 36px !important;
-    display: flex !important; align-items: center !important; justify-content: center !important;
-    border: 1px solid #000 !important; border-radius: 12px !important;
-    font-size: 18px !important; font-weight: 700 !important; color: #000 !important;
-    background: #fff !important; cursor: pointer !important;
-    -webkit-tap-highlight-color: transparent !important;
-  }
+/* Menu overlay */
+#menuOverlay {
+  opacity: 1 !important;
+  transition: opacity 0.35s cubic-bezier(.22, 1, .36, 1) !important;
+}
 
-  /* List spacing */
-  #menuContent {
-    padding: 10px 16px 18px !important;
-    gap: 12px !important;
-    display: flex !important; flex-direction: column !important;
-  }
+#menuOverlay.active {
+  display: block !important;
+}
 
-  /* Buttons look (rounded, soft shadow, crisp borders) */
+/* Side menu container */
+#sideMenu.side-menu {
+  width: 78vw !important;
+  max-width: 340px !important;
+  padding: 14px 12px !important;
+  transition: transform 0.75s cubic-bezier(.25, 1, .3, 1) !important;
+}
+
+/* Header inside side menu */
+#sideMenu .menu-header {
+  padding: 4px 4px 10px !important;
+  margin-bottom: 10px !important;
+}
+
+#sideMenu .menu-title {
+  font-size: 17px !important;
+}
+
+#sideMenu .menu-close {
+  width: 34px !important;
+  height: 34px !important;
+  font-size: 17px !important;
+}
+
+/* Menu content area */
+#menuContent {
+  padding: 6px 8px 14px !important;
+  gap: 10px !important;
+}
+
+/* Menu links */
+#sideMenu .menu-link {
+  padding: 7px 14px !important;
+  font-size: 17px !important;
+  border-radius: 12px !important;
+  border: 1px solid #dcdcdc !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .03) !important;
+}
+
+/* First menu link (Track Order) */
+#menuContent .menu-link:first-child {
+  background: #e9fef1 !important;
+  border: 1.5px solid #c5ecd6 !important;
+  color: #064c2c !important;
+  font-weight: 600 !important;
+}
+
+/* Submenu links */
+#sideMenu .submenu-link {
+  font-size: 14.5px !important;
+  padding: 10px 14px 10px 22px !important;
+}
+</style>
+
+
+
+<!-- FINAL: Compact menu buttons exactly like index (wins last) -->
+<style>
   #sideMenu .menu-link,
-  #sideMenu .dropdown-toggle {
-    display: block !important; text-align: center !important;
-    padding: 12px 16px !important;
-    border: 1px solid #dcdcdc !important;
-    border-radius: 16px !important;
-    background: #fff !important;
-    color: #111 !important;
-    font-family: 'Roboto Slab', serif !important;
-    font-size: 17px !important; font-weight: 600 !important;
-    text-decoration: none !important;
-    line-height: 1.2 !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06) !important;
+  #sideMenu .dropdown-toggle{
+    min-height: auto !important;
+    line-height: 1.15 !important;
+    padding: 6px 14px !important;
+    font-size: 16.5px !important;
   }
-
-  /* First button (Track Order) — green pill */
-  #menuContent .menu-link:first-child {
-    background: #e9fef1 !important;
-    border: 1.5px solid #c5ecd6 !important;
-    color: #064c2c !important;
-    font-weight: 700 !important;
-  }
-
-  /* Submenu items (if any) */
-  #sideMenu .submenu-link {
-    font-size: 15px !important;
-    padding: 10px 16px 10px 24px !important;
-  }
-
-  /* Disable tap “pressed” effect */
-  #sideMenu .menu-link:active { background: inherit !important; color: inherit !important; transform: none !important; }
+  #menuContent{ gap: 8px !important; }
 </style>
 </head>
 <body>
@@ -398,7 +453,7 @@ nav.side-menu {
   <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
     <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent;" />
   </div>
-  <div style="display: flex; align-items: center; gap: 12px;">
+  <div style="display: flex; align-items: center; gap: 12px; position: relative; right: 3px;">
     <img alt="Search" class="right-icon" 
      src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" 
      style="border-radius: 0; width: 20px; height: 20px; margin-top: 2px;"/>
