@@ -576,9 +576,13 @@ button.remove-btn:hover {
 }
 /* Make header icons same as Resin (32x32), ignore inline sizes */
 .site-header .right-icon { width: 32px !important; height: 32px !important; }
-
-/* Search wali image ko square hi rakho (no round) */
-.site-header img[alt="Search"] { border-radius: 0 !important; }
+/* Make Search icon match desired size */
+.site-header img[alt="Search"] {
+  border-radius: 0 !important;
+  width: 25px !important;
+  height: 26px !important;
+  margin-top: 2px !important;
+}
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -1862,3 +1866,4 @@ if (couponToUse && document.getElementById("couponInput")) {
 <script>document.addEventListener("DOMContentLoaded", function(){ try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {} });</script>
 </body>
 </html>
+
