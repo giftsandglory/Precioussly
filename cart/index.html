@@ -605,7 +605,7 @@ button.remove-btn:hover {
 
 .side-menu{
   position: fixed; top:0; left:0;
-  width:80%; height:100%;
+  width:74%; height:100%;
   background:#fff; padding:20px 16px;
   overflow-y:auto; z-index:5000;
   box-shadow: 4px 0 16px rgba(0,0,0,.1);
@@ -652,7 +652,20 @@ button.remove-btn:hover {
 .menu-link, .submenu-link, .dropdown-toggle{ transition:none !important; }
 
 .menu-text, .header-title{ user-select:none !important; -webkit-user-select:none !important; -ms-user-select:none !important; }
+/* First menu button special styling */
+#menuContent .menu-link:first-child {
+  background-color: #e6f7ec !important;      /* halka green bg */
+  border: 1px solid #b7e2c1 !important;       /* soft green border */
+  color: #0a7c5b !important;                  /* dark green text */
+  font-weight: 700 !important;                /* bold */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);      /* halka shadow */
+  transition: background 0.3s ease;
+}
 
+/* Hover/active effect for better UX */
+#menuContent .menu-link:first-child:hover {
+  background-color: #d4f3df !important;       /* thoda dark hover green */
+}
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
