@@ -1011,6 +1011,54 @@ down-toggle {
 .menu-link--primary {
   font-weight: 500 !important; /* normal weight */
 }
+/* ============ Search bar with Back pill ============ */
+#searchOverlay .search-box{
+  position: relative;
+  display: block;
+}
+
+#searchOverlay .search-box input{
+  width: 100%;
+  padding: 12px 86px 12px 14px;        /* right padding for Back button */
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;    /* consistent font */
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+#searchOverlay .search-box input:focus{
+  border-color: #bfbfbf;
+}
+
+/* Back button inside the input (pill) */
+#searchOverlay .back-btn{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 32px;
+  padding: 0 12px;
+  font: 500 14px 'Roboto Slab', serif;  /* normal, bold nahi */
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);    /* halka border */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+#searchOverlay .back-btn{ z-index:2; }
+#searchOverlay .search-box input{ position:relative; z-index:1; }
+
+#searchOverlay .back-btn:active{
+  transform: translateY(-50%) scale(0.98);
+}
+
+/* Safety: purani close-btn style ko neutralize */
+#searchOverlay .close-btn { display: none !important; }
 </style>
 
 <style>
@@ -1113,13 +1161,7 @@ down-toggle {
 .search-hit{background:linear-gradient(transparent 70%, #ffec99 0)}
 </style>
 <style>
-/* Remove right side vertical line when scrolling in search overlay */
-#searchOverlay .search-box, 
-#searchOverlay .search-box input, 
-#searchOverlay .search-box button {
-    border-right: none !important;
-    box-shadow: none !important;
-}
+
 </style>
 <style>
 #searchResults{
@@ -1130,35 +1172,10 @@ down-toggle {
 }
 #searchResults::-webkit-scrollbar{ display:none; }
 
-#searchOverlay .close-btn {
-  position: sticky;
-  top: 10px;
-  margin-left: auto;
-  width: 32px;                 /* thoda chhota */
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(0,0,0,0.4); /* halka black border */
-  background: #fff;
-  border-radius: 8px;          /* thoda soft corners */
-  font-size: 18px;             /* halka chhota "X" */
-  font-weight: 400;            /* normal weight, bold nahi */
-  color: #333;                 /* soft dark grey */
-  cursor: pointer;
-  z-index: 3;
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
+#searchOverlay .close-btn { display: none !important; }
 
-#searchOverlay .close-btn:hover {
-  background: #f3f3f3;
-  border-color: rgba(0,0,0,0.5);
-}
-#searchOverlay .close-btn:hover {
-  background: #f9f9f9;
-}
+
+
 #searchOverlay .search-header{
   position: sticky;
   top: 0;
@@ -1215,13 +1232,10 @@ down-toggle {
 <!-- 🔎 Search Overlay -->
 <div id="searchOverlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 9999; justify-content: center; align-items: flex-start; padding-top: 80px;">
   <div style="background: white; padding: 12px; border-radius: 8px; width: 90%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.25)">
-    <div style="display:flex; gap:8px; align-items:center;">
-      <input type="text" id="searchInput" placeholder="Search products..." 
-        style="flex:1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; outline:none;" 
-        oninput="filterSearchResults()" />
-      <button onclick="closeSearch()" aria-label="Close search" class="close-btn">
-  ×
-</button>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search products..."
+             oninput="filterSearchResults()" />
+      <button type="button" class="back-btn" aria-label="Back" onclick="closeSearch()">Back</button>
     </div>
     <div id="searchResults" style="margin-top: 10px; max-height: 320px; overflow-y: auto;"></div>
   </div>
@@ -1941,15 +1955,6 @@ document.addEventListener('keydown', (e)=>{
 });
 </script>
 <script>
-(function ensureCloseButtonStyles(){
-  const box = document.getElementById('searchOverlay');
-  if(!box) return;
-  const input = document.getElementById('searchInput');
-  let header = input ? input.closest('div') : box.firstElementChild;
-  if(header){ header.classList.add('search-header'); }
-  const closeBtn = box.querySelector('button, .close, .closeBtn, [data-close]');
-  if(closeBtn){ closeBtn.classList.add('close-btn'); }
-})();
 </script>
 </body>
 </html>
