@@ -1122,7 +1122,7 @@ down-toggle {
 
  <div style="display: flex; align-items: center; gap: 12px;">
 <!-- Search icon -->
-<img id="searchIcon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
+<img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="cursor: pointer; border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" / onclick="openSearch()">
 
 <!-- Profile icon -->
 <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
@@ -1137,6 +1137,21 @@ down-toggle {
   </div>
 </div>
 </header>
+
+<!-- 🔎 Search Overlay -->
+<div id="searchOverlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 9999; justify-content: center; align-items: flex-start; padding-top: 80px;">
+  <div style="background: white; padding: 12px; border-radius: 8px; width: 90%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.25)">
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input type="text" id="searchInput" placeholder="Search products..." 
+        style="flex:1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; outline:none;" 
+        oninput="filterSearchResults()" />
+      <button onclick="closeSearch()" aria-label="Close search"
+        style="padding: 10px 12px; border:1px solid #ddd; background:#f7f7f7; border-radius:8px; font-size:14px; cursor:pointer;">Close</button>
+    </div>
+    <div id="searchResults" style="margin-top: 10px; max-height: 320px; overflow-y: auto;"></div>
+  </div>
+</div>
+
 
   <!-- Announcement Bar -->
   <div id="announcementBar">🧿</div>
@@ -1666,98 +1681,54 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 
-<!-- Search Modal -->
-<div id="searchModal" style="display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.45);">
-  <div style="max-width:520px;margin:60px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #eee;">
-    <div style="display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #eee;">
-      <input id="searchInput" type="text" placeholder="Search products…"
-             style="flex:1;border:1px solid #ddd;border-radius:10px;padding:10px 12px;font-size:16px;outline:none;" />
-      <button id="searchClose" style="border:1px solid #111;background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer;">✕</button>
-    </div>
-    <div id="searchResults" style="max-height:60vh;overflow:auto;padding:6px;"></div>
-  </div>
-</div>
-
 <script>
-  const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
-  const PRODUCT_PAGE = (location.pathname.toLowerCase().includes("resin%20necklace.html") || location.pathname.toLowerCase().includes("resin necklace.html")) ? location.pathname : "/Resin%20Necklace.html";
+// === Simple Product Search that jumps to Resin page with ?p=Product Name ===
+let allProducts = [];
 
-  let SEARCH_DATA = null;
-  const $modal   = document.getElementById("searchModal");
-  const $input   = document.getElementById("searchInput");
-  const $results = document.getElementById("searchResults");
-  const $close   = document.getElementById("searchClose");
-  let   $icon    = document.getElementById("searchIcon");
-
-  function ensureIconFallback(){
-    if (!$icon) {
-      $icon = document.querySelector('img[alt*="Search" i], img.right-icon[src*="search" i]') || null;
-    }
+function openSearch() {
+  const ov = document.getElementById('searchOverlay');
+  if (ov) {
+    ov.style.display = 'flex';
+    setTimeout(() => { const i = document.getElementById('searchInput'); if (i) i.focus(); }, 0);
   }
+}
+function closeSearch() {
+  const ov = document.getElementById('searchOverlay');
+  if (ov) ov.style.display = 'none';
+}
 
-  function openSearch() {
-    $modal.style.display = "block";
-    document.body.style.overflow = "hidden";
-    if (!$input.value) $input.focus();
-    if (!SEARCH_DATA) {
-      fetch(SHEET_URL).then(r => r.json()).then(rows => { SEARCH_DATA = rows; renderResults(""); }).catch(()=>{ $results.innerHTML='<div style="padding:14px;">Could not load catalog.</div>';});
-    } else {
-      renderResults($input.value.trim());
-    }
-  }
-  function closeSearch() {
-    $modal.style.display = "none";
-    document.body.style.overflow = "";
-    $input.value = "";
-    $results.innerHTML = "";
-  }
+function filterSearchResults() {
+  const qEl = document.getElementById('searchInput');
+  const resultsDiv = document.getElementById('searchResults');
+  if (!qEl || !resultsDiv) return;
+  const query = qEl.value.trim().toLowerCase();
+  resultsDiv.innerHTML = '';
+  if (!query) return;
 
-  function renderResults(q) {
-    const query = (q||"").toLowerCase();
-    const items = (SEARCH_DATA||[]).filter(row => {
-      const name = String(row["Product Name"]||"").toLowerCase();
-      const section = String(row["Section"]||"").toLowerCase();
-      return !query ? false : (name.includes(query) || section.includes(query));
-    }).slice(0, 50);
+  const matches = allProducts.filter(p => p.name.toLowerCase().includes(query)).slice(0, 30);
 
-    if (!query) { $results.innerHTML = `<div style="padding:14px;color:#666;">Type to search your products…</div>`; return; }
-    if (items.length === 0) { $results.innerHTML = `<div style="padding:14px;">No results for “${escapeHtml(q)}”.</div>`; return; }
-
-    $results.innerHTML = items.map(row => {
-      const img = row["photo 1"] || "";
-      const name = row["Product Name"] || "Product";
-      const sp = row["Selling Price"]; const mrp = row["MRP"]; const price = sp ? `₹${sp}` : (mrp ? `₹${mrp}` : "");
-      return `
-        <div class="search-item" data-name="${encodeURIComponent(name)}"
-             style="display:flex;gap:10px;align-items:center;padding:10px;border-bottom:1px solid #f1f1f1;cursor:pointer;">
-          <img src="${img}" alt="${escapeHtml(name)}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;">
-          <div style="display:flex;flex-direction:column;gap:4px;">
-            <div style="font-weight:600;">${escapeHtml(name)}</div>
-            <div style="font-size:13px;color:#333;">${price}</div>
-          </div>
-        </div>`;
-    }).join("");
-
-    Array.from($results.querySelectorAll(".search-item")).forEach(el => {
-      el.addEventListener("click", () => {
-        const encName = el.getAttribute("data-name");
-        location.href = `${PRODUCT_PAGE}?p=${encName}`;
-      }, {passive:true});
-    });
-  }
-
-  function escapeHtml(s){return String(s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;" }[m]));}
-
-  // wire events
-  ensureIconFallback();
-  if ($icon)  $icon.addEventListener("click", openSearch);
-  if ($close) $close.addEventListener("click", closeSearch);
-  $modal.addEventListener("click", (e) => { if (e.target === $modal) closeSearch(); });
-  $input.addEventListener("input", (e) => renderResults(e.target.value));
-  document.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openSearch(); }
-    if (e.key === "Escape" && $modal.style.display === "block") closeSearch();
+  matches.forEach(p => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid #eee; cursor:pointer;';
+    row.innerHTML = '<img src="' + (p.photo || '') + '" style="width:44px;height:44px;object-fit:cover;border-radius:8px;">' +
+                    '<div style="font-size:15px;">' + p.name + '</div>';
+    row.onclick = () => {
+      window.location.href = 'https://precioussly.com/resin-necklace/?p=' + encodeURIComponent(p.name);
+    };
+    resultsDiv.appendChild(row);
   });
+}
+
+// Load products from the same Google Sheet
+(function(){
+  const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
+  fetch(SHEET_URL).then(r=>r.json()).then(data=>{
+    allProducts = (data || []).filter(x => x["Product Name"]).map(x => ({
+      name: x["Product Name"],
+      photo: x["photo 1"] || ''
+    }));
+  }).catch(()=>{});
+})();
 </script>
 
 </body>
