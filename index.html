@@ -1134,21 +1134,27 @@ down-toggle {
   position: sticky;
   top: 10px;
   margin-left: auto;
-  width: 36px;                /* square shape */
-  height: 36px;
+  width: 32px;                 /* thoda chhota */
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #000;     /* black outline */
+  border: 1px solid rgba(0,0,0,0.4); /* halka black border */
   background: #fff;
-  border-radius: 10px;        /* rectangle with rounded corners */
-  font-size: 20px;            /* bigger X */
-  font-weight: bold;
-  color: #000;
+  border-radius: 8px;          /* thoda soft corners */
+  font-size: 18px;             /* halka chhota "X" */
+  font-weight: 400;            /* normal weight, bold nahi */
+  color: #333;                 /* soft dark grey */
   cursor: pointer;
   z-index: 3;
   -webkit-tap-highlight-color: transparent;
   outline: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#searchOverlay .close-btn:hover {
+  background: #f3f3f3;
+  border-color: rgba(0,0,0,0.5);
 }
 #searchOverlay .close-btn:hover {
   background: #f9f9f9;
