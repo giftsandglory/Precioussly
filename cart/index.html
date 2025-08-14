@@ -668,262 +668,6 @@ button.remove-btn:hover {
 }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script>
-  /* ====== YOUR GOOGLE APPS SCRIPT DETAILS (CORRECT) ====== */
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzB-TV7JqNVCiy_qXzV477FSsl6MZiaM1xu0EBQss525XzXSMBMlRMuaqOl8NqBLsII/exec";
-  const SHEET_SECRET = "precioussly_2024";
-
-  // Turn the saved address into one clean line of text
-  function getPlainAddress() {
-    const obj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
-    if (obj && obj.fullname) {
-      const parts = [
-        obj.fullname,
-        obj.address,
-        obj.city,
-        (obj.state || "") + (obj.pincode ? " - " + obj.pincode : ""),
-        obj.phone ? "Phone: " + obj.phone : "",
-        obj.altphone ? "Alt: " + obj.altphone : ""
-      ].filter(Boolean);
-      return parts.join(", ");
-    }
-    const html = localStorage.getItem("shippingAddress") || "";
-    return html
-      .replace(/<br\s*\/?>/gi, ", ")
-      .replace(/<[^>]*>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  // Build the payload for the Sheet
-  function buildOrderPayload(order, methodLabel) {
-    const nameFromObj = (JSON.parse(localStorage.getItem("shippingAddressObj") || "{}").fullname) || "";
-    const nameFromLS  = localStorage.getItem("user_name") || "";
-    return {
-      key: SHEET_SECRET,                // <-- IMPORTANT: 'key' (not 'secret')
-      orderId: order.id,                // e.g., COD-..., RZP-...
-      method: methodLabel,              // "COD" or "Prepaid"
-      customerName: nameFromObj || nameFromLS,
-      address: getPlainAddress(),
-      items: order.items || [],         // [{name, qty, price, photo}]
-      total: (order.amounts && typeof order.amounts.grandTotal === "number") ? order.amounts.grandTotal : 0
-    };
-  }
-
-  // Minimal save (simple + reliable). If you want the retry+queue toasts we made earlier, tell me and I’ll drop that version here.
-  async function saveCODOrder(order) {
-    try {
-      await fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildOrderPayload(order, "COD"))
-      });
-    } catch (e) {
-      console.error("Failed to save COD order:", e);
-    }
-  }
-
-  async function savePaidOrder(response, order) {
-    try {
-      await fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildOrderPayload(order, "Prepaid"))
-      });
-    } catch (e) {
-      console.error("Failed to save prepaid order:", e);
-    }
-  }
-</script>
-
-<script>
-  // === GOOGLE APPS SCRIPT WEB APP URL (your live URL) ===
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzB-TV7JqNVCiy_qXzV477FSsl6MZiaM1xu0EBQss525XzXSMBMlRMuaqOl8NqBLsII/exec";
-  // Secret must match Apps Script SECRET_KEY
-  const SHEET_SECRET = "precioussly_2024";
-
-  // ======= Toast UI =======
-  (function ensureToastUI(){
-    if (document.getElementById("sheetToast")) return;
-    const style = document.createElement("style");
-    style.textContent = `
-      #sheetToast{
-        position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
-        background: rgba(0,0,0,.85); color: #fff; padding: 10px 14px;
-        border-radius: 10px; font-size: 14px; z-index: 999999; opacity: 0; pointer-events:none;
-        transition: opacity .25s ease;
-      }
-      #sheetToast.show{ opacity: 1; }
-    `;
-    document.head.appendChild(style);
-    const el = document.createElement("div");
-    el.id = "sheetToast";
-    el.textContent = "";
-    document.body.appendChild(el);
-  })();
-
-  function showToast(msg, dur=1200){
-    const el = document.getElementById("sheetToast");
-    if (!el) return;
-    el.textContent = msg;
-    el.classList.add("show");
-    setTimeout(()=> el.classList.remove("show"), dur);
-  }
-
-  // ======= Save helpers: retry + queue =======
-  function getQueue(){
-    try { return JSON.parse(localStorage.getItem("pendingSheetSaves") || "[]"); } catch { return []; }
-  }
-  function setQueue(q){
-    try { localStorage.setItem("pendingSheetSaves", JSON.stringify(q)); } catch{}
-  }
-
-  async function saveWithRetry(payload, tries=3){
-    let lastErr = null;
-    for (let i=0;i<tries;i++){
-      try{
-        const res = await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error("HTTP "+res.status);
-        const j = await res.json().catch(()=>({}));
-        if (String(j.status).toLowerCase() !== "success") throw new Error("Sheet error: " + (j.message||"unknown"));
-        return true;
-      }catch(e){
-        lastErr = e;
-        await new Promise(r=>setTimeout(r, 400 * (i+1))); // simple backoff
-      }
-    }
-    console.warn("Failed to save after retries:", lastErr);
-    return false;
-  }
-
-  function queuePayload(payload){
-    const q = getQueue();
-    q.push({ when: Date.now(), payload });
-    setQueue(q);
-  }
-
-  async function flushQueue(){
-    let q = getQueue();
-    if (!q.length) return;
-    const remain = [];
-    for (const item of q){
-      const ok = await saveWithRetry(item.payload, 2);
-      if (!ok) remain.push(item);
-    }
-    setQueue(remain);
-    if (remain.length===0) showToast("All pending orders synced ✅");
-  }
-
-  window.addEventListener("online", flushQueue);
-  window.addEventListener("pageshow", ()=>{ setTimeout(flushQueue, 300); });
-
-  // Optional: attempt sendBeacon on unload for pending queue
-  window.addEventListener("beforeunload", ()=>{
-    const q = getQueue();
-    if (!q.length) return;
-    try{
-      const item = q[0]; // send one to keep it quick
-      const blob = new Blob([JSON.stringify(item.payload)], {type:"application/json"});
-      navigator.sendBeacon && navigator.sendBeacon(WEB_APP_URL, blob);
-    }catch{}
-  });
-
-  // ======= Overwrite save functions to use retry & queue =======
-  async function saveCODOrder(order) {
-    try {
-      const ok = await saveWithRetry(buildOrderPayload(order, "COD"), 3);
-      if (ok){ showToast("Saved to Sheet ✅"); }
-      else{
-        queuePayload(buildOrderPayload(order, "COD"));
-        showToast("Offline? Will sync when online.");
-      }
-    } catch (e) {
-      queuePayload(buildOrderPayload(order, "COD"));
-      showToast("Offline? Will sync when online.");
-      console.error("Failed to save COD order:", e);
-    }
-  }
-
-  async function savePaidOrder(response, order) {
-    try {
-      const ok = await saveWithRetry(buildOrderPayload(order, "Prepaid"), 3);
-      if (ok){ showToast("Saved to Sheet ✅"); }
-      else{
-        queuePayload(buildOrderPayload(order, "Prepaid"));
-        showToast("Offline? Will sync when online.");
-      }
-    } catch (e) {
-      queuePayload(buildOrderPayload(order, "Prepaid"));
-      showToast("Offline? Will sync when online.");
-      console.error("Failed to save prepaid order:", e);
-    }
-  }
-
-
-  // Convert saved address (object or HTML) into one clean line
-  function getPlainAddress() {
-    const obj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
-    if (obj && obj.fullname) {
-      const parts = [
-        obj.fullname,
-        obj.address,
-        obj.city,
-        (obj.state || "") + (obj.pincode ? " - " + obj.pincode : ""),
-        obj.phone ? "Phone: " + obj.phone : "",
-        obj.altphone ? "Alt: " + obj.altphone : ""
-      ].filter(Boolean);
-      return parts.join(", ");
-    }
-    const html = localStorage.getItem("shippingAddress") || "";
-    return html.replace(/<br\s*\/?>/gi, ", ").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-  }
-
-  // Build payload sent to Google Apps Script
-  function buildOrderPayload(order, methodLabel) {
-    const nameFromObj = (JSON.parse(localStorage.getItem("shippingAddressObj") || "{}").fullname) || "";
-    const nameFromLS  = localStorage.getItem("user_name") || "";
-    return {
-      key: SHEET_SECRET,
-      orderId: order.id,
-      method: methodLabel, // "COD" or "Prepaid" (Apps Script may ignore if column not present)
-      customerName: nameFromObj || nameFromLS,
-      address: getPlainAddress(),
-      items: order.items || [],
-      total: (order.amounts && typeof order.amounts.grandTotal === "number") ? order.amounts.grandTotal : 0
-    };
-  }
-
-  // Save COD order to Sheet
-  async function saveCODOrder(order) {
-    try {
-      await fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildOrderPayload(order, "COD"))
-      });
-    } catch (e) {
-      console.error("Failed to save COD order:", e);
-    }
-  }
-
-  // Save prepaid (Razorpay) order to Sheet
-  async function savePaidOrder(response, order) {
-    try {
-      await fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildOrderPayload(order, "Prepaid"))
-      });
-    } catch (e) {
-      console.error("Failed to save prepaid order:", e);
-    }
-  }
-</script>
-
 
 <style id="menuFixCSS">
 /* ===== Menu fix overrides ===== */
@@ -1729,7 +1473,7 @@ function continueWithCOD(btnEl) {
 }
 </script>
 <script>
-  async function placeCODOrderAndRedirect() {
+  function placeCODOrderAndRedirect() {
     // --- amounts ---
     const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
@@ -1818,7 +1562,7 @@ function openAddressAndClosePopup() {
       notes: { address: localStorage.getItem("shippingAddress") || "" },
       theme: { color: "#2874f0" },
 
-      handler: async function (response) {
+      handler: function (response) {
         // --- Success ke baad order ko localStorage me save + cart clear ---
         const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
         const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
@@ -2433,7 +2177,7 @@ function payCODAdvance1(){
     prefill: { name: preName, email: preEmail, contact: prePhone },
     notes: { address: localStorage.getItem("shippingAddress") || "" },
     theme: { color: "#2874f0" },
-    handler: async function (response) {
+    handler: function (response) {
       var order = {
         id: "COD-" + Date.now(),
         method: "COD",
@@ -2469,5 +2213,63 @@ function payCODAdvance1(){
   rzp.open();
 }
 </script>
+<script>
+  // Web App endpoint for saving orders
+  const ORDERS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxy1MX0Je3l6Kjjr0SUYHRWWj2V1zGtUa94J6m5vPx_7oDGNKWaw6geWDp8Szjt7T4QWw/exec';
+  const ORDERS_SECRET = 'precioussly_2024'; // must match Apps Script SECRET_KEY
+
+  // Core poster
+  async function postOrderToSheet(order, extra={}) {
+    try {
+      const payload = {
+        secret: ORDERS_SECRET,
+        id: order?.id,
+        method: order?.method,
+        items: Array.isArray(order?.items) ? order.items : [],
+        coupon: order?.coupon || null,
+        amounts: order?.amounts || {}, // { itemsTotal, deliveryFee, codFee, discount, grandTotal }
+        address: order?.address || '',
+        razorpay_payment_id: extra.razorpay_payment_id || '',
+        status: extra.status || 'New',
+        customer: order?.customer || (function() {
+          // Fallbacks from localStorage if your page uses these keys
+          let addr={};
+          try { addr = JSON.parse(localStorage.getItem('shippingAddressObj')||'{}'); } catch(_){}
+          return {
+            name: addr.fullname || localStorage.getItem('user_name') || '',
+            email: localStorage.getItem('user_email') || '',
+            phone: addr.phone || '',
+            city: addr.city || '',
+            state: addr.state || '',
+            pincode: addr.pincode || ''
+          };
+        })()
+      };
+
+      await fetch(ORDERS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      console.log('[Orders] posted to sheet');
+    } catch (e) {
+      console.warn('[Orders] post failed', e);
+    }
+  }
+
+  // Convenience hooks you can call in your code:
+  // 1) Call this INSIDE Razorpay success callback (before redirect)
+  //    Example: on Razorpay success -> savePaidOrder(response, order)
+  async function savePaidOrder(response, order) {
+    await postOrderToSheet(order, { razorpay_payment_id: response?.razorpay_payment_id || '', status: 'Paid' });
+  }
+
+  // 2) Call this in COD flow just before redirect
+  function saveCODOrder(order) {
+    postOrderToSheet(order, { status: 'COD Pending' });
+  }
+</script>
 </body>
 </html>
+
+
