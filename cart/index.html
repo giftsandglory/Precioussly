@@ -671,9 +671,131 @@ button.remove-btn:hover {
 
 <script>
   // === GOOGLE APPS SCRIPT WEB APP URL (your live URL) ===
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbza8Eh_CXRFaPJNXfzTwfdFxBV7g48fzzsrAShEXfbtUkQIicMyNXzb2F3o7q_4Ulku/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzB-TV7JqNVCiy_qXzV477FSsl6MZiaM1xu0EBQss525XzXSMBMlRMuaqOl8NqBLsII/exec";
   // Secret must match Apps Script SECRET_KEY
   const SHEET_SECRET = "precioussly_2024";
+
+  // ======= Toast UI =======
+  (function ensureToastUI(){
+    if (document.getElementById("sheetToast")) return;
+    const style = document.createElement("style");
+    style.textContent = `
+      #sheetToast{
+        position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+        background: rgba(0,0,0,.85); color: #fff; padding: 10px 14px;
+        border-radius: 10px; font-size: 14px; z-index: 999999; opacity: 0; pointer-events:none;
+        transition: opacity .25s ease;
+      }
+      #sheetToast.show{ opacity: 1; }
+    `;
+    document.head.appendChild(style);
+    const el = document.createElement("div");
+    el.id = "sheetToast";
+    el.textContent = "";
+    document.body.appendChild(el);
+  })();
+
+  function showToast(msg, dur=1200){
+    const el = document.getElementById("sheetToast");
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(()=> el.classList.remove("show"), dur);
+  }
+
+  // ======= Save helpers: retry + queue =======
+  function getQueue(){
+    try { return JSON.parse(localStorage.getItem("pendingSheetSaves") || "[]"); } catch { return []; }
+  }
+  function setQueue(q){
+    try { localStorage.setItem("pendingSheetSaves", JSON.stringify(q)); } catch{}
+  }
+
+  async function saveWithRetry(payload, tries=3){
+    let lastErr = null;
+    for (let i=0;i<tries;i++){
+      try{
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error("HTTP "+res.status);
+        const j = await res.json().catch(()=>({}));
+        if (String(j.status).toLowerCase() !== "success") throw new Error("Sheet error: " + (j.message||"unknown"));
+        return true;
+      }catch(e){
+        lastErr = e;
+        await new Promise(r=>setTimeout(r, 400 * (i+1))); // simple backoff
+      }
+    }
+    console.warn("Failed to save after retries:", lastErr);
+    return false;
+  }
+
+  function queuePayload(payload){
+    const q = getQueue();
+    q.push({ when: Date.now(), payload });
+    setQueue(q);
+  }
+
+  async function flushQueue(){
+    let q = getQueue();
+    if (!q.length) return;
+    const remain = [];
+    for (const item of q){
+      const ok = await saveWithRetry(item.payload, 2);
+      if (!ok) remain.push(item);
+    }
+    setQueue(remain);
+    if (remain.length===0) showToast("All pending orders synced ✅");
+  }
+
+  window.addEventListener("online", flushQueue);
+  window.addEventListener("pageshow", ()=>{ setTimeout(flushQueue, 300); });
+
+  // Optional: attempt sendBeacon on unload for pending queue
+  window.addEventListener("beforeunload", ()=>{
+    const q = getQueue();
+    if (!q.length) return;
+    try{
+      const item = q[0]; // send one to keep it quick
+      const blob = new Blob([JSON.stringify(item.payload)], {type:"application/json"});
+      navigator.sendBeacon && navigator.sendBeacon(WEB_APP_URL, blob);
+    }catch{}
+  });
+
+  // ======= Overwrite save functions to use retry & queue =======
+  async function saveCODOrder(order) {
+    try {
+      const ok = await saveWithRetry(buildOrderPayload(order, "COD"), 3);
+      if (ok){ showToast("Saved to Sheet ✅"); }
+      else{
+        queuePayload(buildOrderPayload(order, "COD"));
+        showToast("Offline? Will sync when online.");
+      }
+    } catch (e) {
+      queuePayload(buildOrderPayload(order, "COD"));
+      showToast("Offline? Will sync when online.");
+      console.error("Failed to save COD order:", e);
+    }
+  }
+
+  async function savePaidOrder(response, order) {
+    try {
+      const ok = await saveWithRetry(buildOrderPayload(order, "Prepaid"), 3);
+      if (ok){ showToast("Saved to Sheet ✅"); }
+      else{
+        queuePayload(buildOrderPayload(order, "Prepaid"));
+        showToast("Offline? Will sync when online.");
+      }
+    } catch (e) {
+      queuePayload(buildOrderPayload(order, "Prepaid"));
+      showToast("Offline? Will sync when online.");
+      console.error("Failed to save prepaid order:", e);
+    }
+  }
+
 
   // Convert saved address (object or HTML) into one clean line
   function getPlainAddress() {
