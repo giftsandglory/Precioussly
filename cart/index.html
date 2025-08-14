@@ -581,10 +581,124 @@ button.remove-btn:hover {
   height: 26px !important;
   margin-top: 2px !important;
 }
+
+/* ==== Smart header (hide on scroll) ==== */
+.site-header{
+  position: sticky;
+  top: 0;
+  z-index: 3500;
+  transition: transform .35s ease;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.site-header.header-hidden{ transform: translateY(-100%); }
+
+/* ==== Overlay + Side Menu (Resin.html style) ==== */
+.menu-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.4);
+  display: none; opacity: 0;
+  z-index: 4000;
+  transition: opacity .35s cubic-bezier(.22,1,.36,1) !important;
+}
+.menu-overlay.active{ display:block; opacity:1; }
+
+.side-menu{
+  position: fixed; top:0; left:0;
+  width:74%; height:100%;
+  background:#fff; padding:20px 16px;
+  overflow-y:auto; z-index:5000;
+  box-shadow: 4px 0 16px rgba(0,0,0,.1);
+  transform: translateX(-100%);
+  will-change: transform; backface-visibility: hidden;
+  transition: transform .8s cubic-bezier(.25,1,.3,1) !important;
+  font-family:'Roboto Slab',serif;
+}
+.side-menu.active{ transform: translateX(0); }
+
+.menu-header{
+  display:flex; justify-content:space-between; align-items:center;
+  padding-bottom:12px; border-bottom:1px solid #ddd; margin-bottom:16px;
+}
+.menu-title{ font-size:18px; font-weight:600; color:#000; font-family:'Roboto Slab',serif; }
+
+.menu-close{
+  width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+  border:1px solid #000; border-radius:10px; font-size:18px; font-weight:700; color:#000;
+  cursor:pointer; -webkit-tap-highlight-color:transparent; transition:none !important;
+}
+
+#menuContent{ display:flex; flex-direction:column; gap:10px; padding:8px 16px 18px !important; }
+
+.menu-link{
+  display:block; text-align:center; padding:10px 14px; min-height:auto;
+  border:1px solid #dcdcdc !important; border-radius:12px;
+  background:#fff; color:#111 !important; text-decoration:none;
+  font-family:'Roboto Slab',serif; font-size:17px; font-weight:500 !important;
+  box-shadow:0 1px 2px rgba(0,0,0,.03) !important; -webkit-tap-highlight-color:transparent;
+}
+.menu-link--primary{
+  background:#e9fef1 !important; border:1.5px solid #c5ecd6 !important; color:#064c2c !important;
+}
+
+.menu-link:hover, .menu-link--primary:hover,
+.menu-link:active, .menu-link--primary:active{
+  background:inherit !important; color:inherit !important; transform:none !important;
+}
+
+.submenu-container, .submenu{ display:none; background:#fafafa; padding-left:8px; }
+.submenu-container.open, .submenu.open{ display:block; }
+
+.menu-link, .submenu-link, .dropdown-toggle{ transition:none !important; }
+
+.menu-text, .header-title{ user-select:none !important; -webkit-user-select:none !important; -ms-user-select:none !important; }
+/* First menu button special styling */
+#menuContent .menu-link:first-child {
+  background-color: #e6f7ec !important;      /* halka green bg */
+  border: 1px solid #b7e2c1 !important;       /* soft green border */
+  color: #0a7c5b !important;                  /* dark green text */
+  font-weight: 700 !important;                /* bold */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);      /* halka shadow */
+  transition: background 0.3s ease;
+}
+
+/* Hover/active effect for better UX */
+#menuContent .menu-link:first-child:hover {
+  background-color: #d4f3df !important;       /* thoda dark hover green */
+}
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style id="menuFixCSS">
+/* ===== Menu fix overrides ===== */
+#menuContent{ display:flex; flex-direction:column; gap:10px; padding:8px 16px 18px !important; }
+.menu-link{
+  display:block; text-align:center; padding:10px 14px;
+  border:1px solid #dcdcdc !important; border-radius:12px;
+  background:#fff; color:#111 !important; text-decoration:none;
+  font-size:17px; font-weight:500 !important;
+}
+.menu-link--primary{ border-color:#111 !important; font-weight:700 !important; }
+.menu-group{ margin-bottom:8px; }
+.dropdown-toggle{ position:relative; }
+.dropdown-toggle::after{ content:"▾"; position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:14px; }
+.submenu{ display:none; padding:8px 0 0; }
+.submenu.open{ display:block !important; }
+</style>
+
 </head>
 <body>
+<!-- 👇 Resin-style MENU -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu(false)"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu(false)">✕</span>
+  </div>
+  <!-- content will be injected by JS -->
+  <div id="menuContent"></div>
+</nav>
+
  <header class="site-header">
 <!-- Hamburger menu -->
 <div class="hamburger-wrapper" onclick="toggleMenu()">
@@ -607,7 +721,7 @@ button.remove-btn:hover {
 
     <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon" onclick="handleProfileClick()" style="width: 28px; height: 28px;" />
 
-<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5x;">
+<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
   <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon" style="width: 28px; height: 28px;" />
       <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center;">0</span>
     </a>
@@ -1322,7 +1436,7 @@ function handleProceed() {
 
   if (method === "cod") {
     // COD → show suggestion popup (no spinner here)
-    document.getElementById("codPopup").style.display = "flex";
+    openCOD95Popup();
     document.body.style.overflow = "hidden";
   } else {
     // Razorpay → show 1s spinner on Proceed button, then open Razorpay
@@ -1800,69 +1914,305 @@ if (couponToUse && document.getElementById("couponInput")) {
 
   <script src="coupon-persist.js"></script>
   <script>
-/* --- Always force-close the Razorpay suggestion popup on load/back --- */
-(function () {
-  function forceCloseRazorpayPopup() {
-    var el = document.getElementById('codPopup');
-    if (el) el.style.display = 'none';
-    // restore scroll in case body was locked by the popup
-    document.body.style.overflow = '';
-  }
+/* ====== MENU: fetch from Google Sheet + re-render on open + auto-heal ====== */
+(() => {
+  const SHEET_ID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
 
-  // Close once DOM is ready (fresh load)
-  document.addEventListener('DOMContentLoaded', forceCloseRazorpayPopup);
+  const menuEl   = document.getElementById("menuContent");
+  const sideMenu = document.getElementById("sideMenu");
+  const overlay  = document.getElementById("menuOverlay");
 
-  // Close whenever page is shown again (includes back/forward via BFCache)
-  window.addEventListener('pageshow', function (e) {
-    forceCloseRazorpayPopup();
+  let MENU_CACHE = null;
 
-    // If user came back from a Thank You page after placing order,
-    // we may want a clean UI. We used this flag while redirecting.
-    var cameFromOrder = localStorage.getItem('lastOrderClearedCart') === '1';
-    var nav = performance.getEntriesByType('navigation')[0];
-    var fromBFCache = e.persisted || (nav && nav.type === 'back_forward');
+  function buildMenu(rows){
+    const map = {};
+    rows.forEach(r=>{
+      const parent = (r["Menu"]||"").trim();
+      const child  = (r["Submenu"]||"").trim();
+      const link   = (r["Link"]||"").trim();
+      if(!parent) return;
+      map[parent] ||= { link:"", subs:[] };
+      if (child) map[parent].subs.push({title:child, link:link||"#"});
+      else if (link) map[parent].link = link;
+    });
 
-    if (cameFromOrder && fromBFCache) {
-      // Optional: hard refresh for a fresh state (prevents any stale overlay)
-      localStorage.removeItem('lastOrderClearedCart');
-      setTimeout(function(){ location.reload(); }, 0);
+    menuEl.innerHTML = "";
+    const parents = Object.keys(map);
+    parents.forEach(p=>{
+      if (map[p].subs.length){
+        const wrap = document.createElement("div");
+        wrap.className = "menu-group";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "menu-link dropdown-toggle";
+        btn.textContent = p;
+        const sub = document.createElement("div");
+        sub.className = "submenu";
+        map[p].subs.forEach(s=>{
+          const a = document.createElement("a");
+          a.className = "menu-link";
+          a.href = s.link || "#";
+          a.textContent = s.title;
+          sub.appendChild(a);
+        });
+        btn.addEventListener("click", ()=> sub.classList.toggle("open"));
+        wrap.append(btn, sub);
+        menuEl.appendChild(wrap);
+      } else {
+        const a = document.createElement("a");
+        a.className = "menu-link";
+        a.href = map[p].link || "#";
+        a.textContent = p;
+        menuEl.appendChild(a);
+      }
+    });
+
+    if (!parents.length){
+      menuEl.innerHTML = `
+        <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+        <a href="https://precioussly.com/" class="menu-link">Home</a>
+      `;
     }
-  });
-
-  // Also close when tab returns to foreground (edge cases)
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) forceCloseRazorpayPopup();
-  });
-})();
-</script>
-<script>
-(function () {
-  function forceCloseRazorpayPopup() {
-    var el = document.getElementById('codPopup');
-    if (el) el.style.display = 'none';
-    document.body.style.overflow = '';
   }
 
-  // Always close popup on page load
-  document.addEventListener('DOMContentLoaded', forceCloseRazorpayPopup);
+  async function ensureMenuLoaded(){
+    if (MENU_CACHE){ buildMenu(MENU_CACHE); return; }
+    try{
+      const r = await fetch(SHEET_URL, {cache:"no-store"});
+      const data = await r.json();
+      MENU_CACHE = Array.isArray(data) ? data : [];
+      buildMenu(MENU_CACHE);
+    }catch(_){
+      MENU_CACHE = [];
+      buildMenu(MENU_CACHE);
+    }
+  }
 
-  // Detect back from Thank-You page & reload cart
-  window.addEventListener('pageshow', function (e) {
-    var cameFromOrder = localStorage.getItem('lastOrderClearedCart') === '1';
-    var nav = performance.getEntriesByType('navigation')[0];
-    var fromBFCache = e.persisted || (nav && nav.type === 'back_forward');
-
-    if (cameFromOrder && fromBFCache) {
-      localStorage.removeItem('lastOrderClearedCart');
-      location.reload(); // ✅ Back karte hi cart reload hoga
+  // Override and harden toggleMenu
+  window.toggleMenu = function(open){
+    const shouldOpen = (typeof open === "boolean")
+      ? open : !sideMenu.classList.contains("active");
+    if (shouldOpen){
+      overlay.classList.add("active");
+      sideMenu.classList.add("active");
+      document.body.style.overflow = "hidden";
+      ensureMenuLoaded();
     } else {
-      forceCloseRazorpayPopup(); // normal case me sirf popup close
+      overlay.classList.remove("active");
+      sideMenu.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+  };
+
+  // Stop propagation so overlay click-only closes it
+  sideMenu.addEventListener("click", e => e.stopPropagation());
+
+  // Auto-heal: if something wipes #menuContent while open, rebuild
+  const mo = new MutationObserver(() => {
+    if (sideMenu.classList.contains("active") && !menuEl.firstElementChild){
+      ensureMenuLoaded();
     }
   });
+  mo.observe(menuEl, {childList: true});
+
+  // Preload once in idle time
+  if ("requestIdleCallback" in window){
+    requestIdleCallback(()=> ensureMenuLoaded());
+  } else {
+    setTimeout(()=> ensureMenuLoaded(), 500);
+  }
 })();
 </script>
 
-<script>document.addEventListener("DOMContentLoaded", function(){ try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {} });</script>
+
+<script>
+(() => {
+  const SHEET_ID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
+
+  const menuEl   = document.getElementById("menuContent");
+  const sideMenu = document.getElementById("sideMenu");
+  const overlay  = document.getElementById("menuOverlay");
+
+  let MENU_CACHE = null;
+
+  function buildMenu(rows){
+    const map = {};
+    rows.forEach(r=>{
+      const parent = (r["Menu"]||"").trim();
+      const child  = (r["Submenu"]||"").trim();
+      const link   = (r["Link"]||"").trim();
+      if (!parent) return;
+      map[parent] ||= { link:"", subs:[] };
+      if (child) map[parent].subs.push({title:child, link:link||"#"});
+      else if (link) map[parent].link = link;
+    });
+    menuEl.innerHTML = "";
+    const parents = Object.keys(map);
+    parents.forEach(p=>{
+      if (map[p].subs.length){
+        const wrap = document.createElement("div");
+        wrap.className = "menu-group";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "menu-link dropdown-toggle";
+        btn.textContent = p;
+        const sub = document.createElement("div");
+        sub.className = "submenu";
+        map[p].subs.forEach(s=>{
+          const a = document.createElement("a");
+          a.className = "menu-link";
+          a.href = s.link || "#";
+          a.textContent = s.title;
+          sub.appendChild(a);
+        });
+        btn.addEventListener("click", ()=> sub.classList.toggle("open"));
+        wrap.append(btn, sub);
+        menuEl.appendChild(wrap);
+      } else {
+        const a = document.createElement("a");
+        a.className = "menu-link";
+        a.href = map[p].link || "#";
+        a.textContent = p;
+        menuEl.appendChild(a);
+      }
+    });
+    if (!parents.length){
+      menuEl.innerHTML = `
+        <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+        <a href="https://precioussly.com/" class="menu-link">Home</a>
+      `;
+    }
+  }
+
+  async function ensureMenuLoaded(){
+    if (MENU_CACHE) { buildMenu(MENU_CACHE); return; }
+    try{
+      const r = await fetch(SHEET_URL, {cache:"no-store"});
+      const data = await r.json();
+      MENU_CACHE = Array.isArray(data) ? data : [];
+      buildMenu(MENU_CACHE);
+    }catch(e){
+      MENU_CACHE = [];
+      buildMenu(MENU_CACHE);
+    }
+  }
+
+  window.toggleMenu = function(open){
+    const shouldOpen = (typeof open === "boolean")
+      ? open : !sideMenu.classList.contains("active");
+    if (shouldOpen){
+      overlay.classList.add("active");
+      sideMenu.classList.add("active");
+      document.body.style.overflow = "hidden";
+      ensureMenuLoaded();
+    }else{
+      overlay.classList.remove("active");
+      sideMenu.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+  };
+
+  const mo = new MutationObserver(() => {
+    if (sideMenu.classList.contains("active") && !menuEl.firstElementChild) {
+      ensureMenuLoaded();
+    }
+  });
+  mo.observe(menuEl, {childList:true});
+  sideMenu.addEventListener("click", e => e.stopPropagation());
+})();
+</script>
+
+<!-- ✅ COD ₹95 ADVANCE POPUP (auto-inserted) -->
+<div class="address-popup-overlay" id="cod95Popup" style="display:none;">
+  <div class="address-popup-box" style="text-align:center;max-width:320px;">
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px;">
+      Pay ₹95 now, rest to Delivery Partner
+    </div>
+    <div style="font-size:15px;color:#444;margin-bottom:14px;">
+      This confirms your COD order. Remaining amount will be collected by the delivery partner at doorstep.
+    </div>
+    <div class="button-row" style="flex-direction:column;gap:10px;margin-top:12px;">
+      <button class="popup-razorpay-btn" onclick="startCOD95WithSpinner(this)" style="background:#2874f0;color:#fff;border:none;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
+        <span class="btn-label">Pay ₹95 now</span>
+        <span class="btn-spinner" aria-hidden="true"></span>
+      </button>
+      <button class="popup-razorpay-btn btn--outline" onclick="closeCOD95Popup()" style="background:#fff;color:#000;border:1.4px solid #000;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
+        Back
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+  function openCOD95Popup(){ var el=document.getElementById('cod95Popup'); if(el){ el.style.display='flex'; document.body.style.overflow='hidden'; }}
+  function closeCOD95Popup(){ var el=document.getElementById('cod95Popup'); if(el){ el.style.display='none'; document.body.style.overflow=''; }}
+  function startCOD95WithSpinner(btnEl){ if(typeof setLoading==='function'){ setLoading(btnEl,true); setTimeout(function(){ setLoading(btnEl,false); payCODAdvance95(); },1000);} else { payCODAdvance95(); } }
+</script>
+
+<script>
+function payCODAdvance95(){
+  try{
+    var addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
+  }catch(e){ var addrObj = {}; }
+  var preName  = addrObj.fullname || (localStorage.getItem("user_name") || "");
+  var preEmail = localStorage.getItem("user_email") || "";
+  var prePhone = addrObj.phone || "";
+
+  var items = [];
+  try{ items = JSON.parse(localStorage.getItem("cartItems") || "[]"); }catch(e){ items = []; }
+  var itemsTotal = items.reduce(function(s,it){ var p=Number(it.price)||0; var q=Number(it.qty)||0; return s + p*q; }, 0);
+  var deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  var codFee = Number(window.codCharge) || 0;
+  var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - 95);
+
+  var options = {
+    key: "rzp_live_S4Dmi0UXQYNAyV",
+    amount: 95 * 100,
+    currency: "INR",
+    name: "Precioussly",
+    description: "COD advance ₹95",
+    image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+    prefill: { name: preName, email: preEmail, contact: prePhone },
+    notes: { address: localStorage.getItem("shippingAddress") || "" },
+    theme: { color: "#2874f0" },
+    handler: function (response) {
+      var order = {
+        id: "COD-" + Date.now(),
+        method: "COD",
+        prepaidAmount: 95,
+        remainingAmount: remaining,
+        razorpay_payment_id: response.razorpay_payment_id || "",
+        items: items,
+        amounts: {
+          itemsTotal: itemsTotal, deliveryFee: deliveryFee, codFee: codFee,
+          prepaid: 95, remaining: remaining, grandTotal: itemsTotal + deliveryFee + codFee
+        },
+        address: localStorage.getItem("shippingAddress") || "",
+        createdAt: new Date().toISOString()
+      };
+      try{
+        var orders = JSON.parse(localStorage.getItem("orders") || "[]");
+        orders.unshift(order);
+        localStorage.setItem("orders", JSON.stringify(orders));
+      }catch(e){}
+      localStorage.setItem("cartItems", "[]");
+      try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+      localStorage.setItem("lastOrderClearedCart", "1");
+      window.location.href = "https://precioussly.com/thankyou-cod";
+    },
+    modal: {
+      ondismiss: function () {
+        var btns = document.querySelectorAll(".popup-razorpay-btn.is-loading");
+        btns.forEach(function(b){ b.classList.remove("is-loading"); b.removeAttribute("aria-busy"); });
+      }
+    }
+  };
+  var rzp = new Razorpay(options);
+  rzp.open();
+}
+</script>
+
 </body>
 </html>
 
