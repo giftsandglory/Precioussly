@@ -1539,7 +1539,7 @@ function handleProceed() {
 
   if (method === "cod") {
     // COD → show suggestion popup (no spinner here)
-    openCOD1Popup();
+    openCOD95Popup();
     document.body.style.overflow = "hidden";
   } else {
     // Razorpay → show 1s spinner on Proceed button, then open Razorpay
@@ -2229,34 +2229,34 @@ if (couponToUse && document.getElementById("couponInput")) {
 })();
 </script>
 
-<!-- ✅ COD ₹1 ADVANCE POPUP (auto-inserted) -->
-<div class="address-popup-overlay" id="cod1Popup" style="display:none;">
+<!-- ✅ COD ₹95 ADVANCE POPUP (auto-inserted) -->
+<div class="address-popup-overlay" id="cod95Popup" style="display:none;">
   <div class="address-popup-box" style="text-align:center;max-width:320px;">
     <div style="font-size:18px;font-weight:700;margin-bottom:6px;">
-      Pay ₹1 now, rest to Delivery Partner
+      Pay ₹95 now, rest to Delivery Partner
     </div>
     <div style="font-size:15px;color:#444;margin-bottom:14px;">
       This confirms your COD order. Remaining amount will be collected by the delivery partner at doorstep.
     </div>
     <div class="button-row" style="flex-direction:column;gap:10px;margin-top:12px;">
-      <button class="popup-razorpay-btn" onclick="startCOD1WithSpinner(this)" style="background:#2874f0;color:#fff;border:none;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
-        <span class="btn-label">Pay ₹1 now</span>
+      <button class="popup-razorpay-btn" onclick="startCOD95WithSpinner(this)" style="background:#2874f0;color:#fff;border:none;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
+        <span class="btn-label">Pay ₹95 now</span>
         <span class="btn-spinner" aria-hidden="true"></span>
       </button>
-      <button class="popup-razorpay-btn btn--outline" onclick="closeCOD1Popup()" style="background:#fff;color:#000;border:1.4px solid #000;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
+      <button class="popup-razorpay-btn btn--outline" onclick="closeCOD95Popup()" style="background:#fff;color:#000;border:1.4px solid #000;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
         Back
       </button>
     </div>
   </div>
 </div>
 <script>
-  function openCOD1Popup(){ var el=document.getElementById('cod1Popup'); if(el){ el.style.display='flex'; document.body.style.overflow='hidden'; }}
-  function closeCOD1Popup(){ var el=document.getElementById('cod1Popup'); if(el){ el.style.display='none'; document.body.style.overflow=''; }}
-  function startCOD1WithSpinner(btnEl){ if(typeof setLoading==='function'){ setLoading(btnEl,true); setTimeout(function(){ setLoading(btnEl,false); payCODAdvance1(); },1000);} else { payCODAdvance1(); } }
+  function openCOD95Popup(){ var el=document.getElementById('cod95Popup'); if(el){ el.style.display='flex'; document.body.style.overflow='hidden'; }}
+  function closeCOD95Popup(){ var el=document.getElementById('cod95Popup'); if(el){ el.style.display='none'; document.body.style.overflow=''; }}
+  function startCOD95WithSpinner(btnEl){ if(typeof setLoading==='function'){ setLoading(btnEl,true); setTimeout(function(){ setLoading(btnEl,false); payCODAdvance95(); },1000);} else { payCODAdvance95(); } }
 </script>
 
 <script>
-function payCODAdvance1(){
+function payCODAdvance95(){
   try{
     var addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
   }catch(e){ var addrObj = {}; }
@@ -2269,14 +2269,14 @@ function payCODAdvance1(){
   var itemsTotal = items.reduce(function(s,it){ var p=Number(it.price)||0; var q=Number(it.qty)||0; return s + p*q; }, 0);
   var deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
   var codFee = Number(window.codCharge) || 0;
-  var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - 1);
+  var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - 95);
 
   var options = {
     key: "rzp_live_S4Dmi0UXQYNAyV",
-    amount: 1 * 100,
+    amount: 95 * 100,
     currency: "INR",
     name: "Precioussly",
-    description: "COD advance ₹1",
+    description: "COD advance ₹95",
     image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
     prefill: { name: preName, email: preEmail, contact: prePhone },
     notes: { address: localStorage.getItem("shippingAddress") || "" },
@@ -2285,13 +2285,13 @@ function payCODAdvance1(){
       var order = {
         id: "COD-" + Date.now(),
         method: "COD",
-        prepaidAmount: 1,
+        prepaidAmount: 95,
         remainingAmount: remaining,
         razorpay_payment_id: response.razorpay_payment_id || "",
         items: items,
         amounts: {
           itemsTotal: itemsTotal, deliveryFee: deliveryFee, codFee: codFee,
-          prepaid: 1, remaining: remaining, grandTotal: itemsTotal + deliveryFee + codFee
+          prepaid: 95, remaining: remaining, grandTotal: itemsTotal + deliveryFee + codFee
         },
         address: localStorage.getItem("shippingAddress") || "",
         createdAt: new Date().toISOString()
