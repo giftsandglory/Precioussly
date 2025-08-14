@@ -280,7 +280,26 @@ main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
   width: 26px;
   height: 26px;
 }
-
+/* ===== Orders Popup (dashboard) ===== */
+.orders-overlay{
+  position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.4); z-index:9999; padding:16px;
+}
+.orders-box{
+  width:100%; max-width:360px; background:#fff; border:2px solid #bbb; border-radius:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,.15); padding:14px; max-height:92vh; overflow:auto;
+  font-family:'Roboto Slab', serif;
+}
+.order-card{
+  border:1px solid #eee; border-radius:10px; padding:10px; margin-top:10px; background:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+.order-card h4{ margin:0 0 6px; font-size:15px; }
+.order-card p{ margin:4px 0; font-size:13px; color:#444; }
+.orders-back-btn{
+  width:100%; border:1.4px solid #000; background:#fff; color:#000; border-radius:12px;
+  padding:12px; font-size:16px; font-weight:600; font-family:'Roboto Slab',serif;
+}
 </style>
 </head>
 <body>
@@ -328,11 +347,30 @@ main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
       <a href="https://precioussly.com/track-order" class="track-btn">Track Order</a>
     </div>
   </div>
+  <!-- NEW: View Orders button -->
+<button class="track-btn" id="viewOrdersBtn" onclick="openOrdersPopup()" style="margin-top:10px;">
+  View Orders
+</button>
 
   <div style="text-align: center;">
     <a class="logout-btn" href="#" onclick="logout()">Logout</a>
   </div>
 </main>
+<!-- NEW: Orders Popup -->
+<div id="ordersOverlay" class="orders-overlay" style="display:none;">
+  <div class="orders-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <h3 style="margin:0;font-size:18px;">Your Orders</h3>
+      <button onclick="closeOrdersPopup()" aria-label="Close" style="border:1px solid #000;border-radius:10px;background:#fff;padding:6px 10px;font-family:'Roboto Slab',serif;">✕</button>
+    </div>
+
+    <div id="ordersList" style="margin-top:12px;"></div>
+
+    <button onclick="closeOrdersPopup()" class="orders-back-btn" style="margin-top:14px;">
+      Back
+    </button>
+  </div>
+</div>
 
 <script>
   function toggleMenu() {
@@ -538,6 +576,68 @@ main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 </script>
+<script>
+  // --- Helper: read orders from localStorage (multiple keys fallback) ---
+  function getStoredOrders(){
+    // try common keys you’ve been using
+    const keys = ["orders", "placedOrders", "recentOrders", "user_orders"];
+    for (const k of keys){
+      try{
+        const v = JSON.parse(localStorage.getItem(k) || "[]");
+        if (Array.isArray(v) && v.length) return v;
+      }catch(e){}
+    }
+    return []; // none found
+  }
 
+  // --- Render the orders into the popup ---
+  function renderOrders(){
+    const wrap = document.getElementById("ordersList");
+    const orders = getStoredOrders();
+
+    if (!wrap) return;
+    if (!orders.length){
+      wrap.innerHTML = `<div style="text-align:center; padding:16px;">
+        <img src="https://cdn-icons-png.flaticon.com/512/2331/2331970.png" style="width:70px;opacity:.6;"/><br>
+        <div style="margin-top:8px;color:#555;">No orders yet.</div>
+      </div>`;
+      return;
+    }
+
+    // Each order: expect {id, date, items[], total, method, status, photos[]}
+    wrap.innerHTML = orders.map((o, i)=>{
+      const itemLine = (o.items || []).map(it => `${it.name} × ${it.qty} (₹${it.price})`).join(", ");
+      const photoRow = (o.photos || o.itemPhotos || [])
+        .slice(0, 4)
+        .map(url => `<img src="${url}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;border:1px solid #eee;margin-right:6px;" loading="lazy">`)
+        .join("");
+
+      return `
+        <div class="order-card">
+          <h4>Order #${o.id || (i+1)}</h4>
+          <p><strong>Date:</strong> ${o.date || new Date().toLocaleString()}</p>
+          <p><strong>Payment:</strong> ${o.method || o.paymentMethod || "—"} &nbsp; • &nbsp; <strong>Status:</strong> ${o.status || o.paymentStatus || "—"}</p>
+          <p><strong>Items:</strong> ${itemLine || "—"}</p>
+          ${photoRow ? `<div style="margin-top:6px;display:flex;align-items:center;">${photoRow}</div>` : ""}
+          <p style="margin-top:6px;"><strong>Total:</strong> ₹${o.total || o.grandTotal || "—"}</p>
+        </div>`;
+    }).join("");
+  }
+
+  // --- Popup open/close ---
+  function openOrdersPopup(){
+    const ov = document.getElementById("ordersOverlay");
+    if (!ov) return;
+    renderOrders();
+    ov.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  }
+  function closeOrdersPopup(){
+    const ov = document.getElementById("ordersOverlay");
+    if (!ov) return;
+    ov.style.display = "none";
+    document.body.style.overflow = "";
+  }
+</script>
 </body>
 </html>
