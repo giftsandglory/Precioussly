@@ -1173,6 +1173,9 @@ function confirmAddress() {
 window.codCharge = 89; // default until sheet loads
 window.cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
 
+// ✅ Token amount required upfront for COD confirmation
+const COD_TOKEN_AMOUNT = 95;
+
 document.addEventListener("DOMContentLoaded", () => {
   const shippingAddress = localStorage.getItem("shippingAddress") || "";
 
@@ -1306,7 +1309,7 @@ function updatePaymentMethod() {
 
   const labelEl = document.querySelector('#proceedBtn .btn-label');
   if (labelEl) {
-    labelEl.textContent = (method === "cod") ? "Continue with COD" : "Proceed to Pay";
+    labelEl.textContent = (method === "cod") ? \"Pay ₹95 now & Confirm COD\" : "Proceed to Pay";
   }
 
   updateSummary(); // keeps COD charges logic
@@ -1339,49 +1342,24 @@ function updateSummary() {
 <!-- ✅ COD Razorpay Suggestion Popup -->
 <div class="address-popup-overlay" id="codPopup">
   <div class="address-popup-box" style="text-align: center; max-width: 320px;">
-    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">Free Delivery with Razorpay</div>
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">Confirm COD with ₹95</div>
     <div style="font-size: 15px; color: #444; margin-bottom: 16px;">
-      Orders paid online are processed and shipped faster.<br>Want to switch?
+      Pay ₹95 now to confirm your Cash on Delivery order.<br>
+      Remaining amount will be collected on delivery.
     </div>
 
     <div class="button-row" style="flex-direction: column; gap: 10px; margin-top: 16px;">
-      <button class="popup-razorpay-btn" onclick="startRazorpayWithSpinner(this)" style="
-  background: #2874f0;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 16px;
-  font-family: 'Roboto Slab', serif;
-">
-  <span class="btn-label">Pay via Razorpay</span>
-  <span class="btn-spinner" aria-hidden="true"></span>
-</button>
+      <button class="popup-razorpay-btn" onclick="payTokenThenPlaceCOD(this)" style="
+        background: #2874f0; color: white; border: none; border-radius: 12px; padding: 12px; font-size: 16px; font-family: 'Roboto Slab', serif;">
+        <span class="btn-label">Pay ₹95 &amp; Confirm COD</span>
+        <span class="btn-spinner" aria-hidden="true"></span>
+      </button>
 
-      <button class="popup-razorpay-btn btn--outline" onclick="continueWithCOD(this)" style="
-  background: white;
-  color: black;
-  border: 1.4px solid #000;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 16px;
-  font-family: 'Roboto Slab', serif;
-">
-  <span class="btn-label">Place Order (COD)</span>
-  <span class="btn-spinner" aria-hidden="true"></span>
-</button>
-<!-- Back Button in Same Theme -->
-<button class="popup-razorpay-btn btn--outline" onclick="closeCODPopup()" style="
-  background: white;
-  color: black;
-  border: 1.4px solid #000;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 16px;
-  font-family: 'Roboto Slab', serif;
-">
-  Back
-</button>
+      <button class="popup-razorpay-btn btn--outline" onclick="closeCODPopup()" style="
+        background: white; color: black; border: 1.4px solid #000; border-radius: 12px; padding: 12px; font-size: 16px; font-family: 'Roboto Slab', serif;">
+        Back
+      </button>
+    </div>
     </div>
   </div>
 </div>
@@ -1445,12 +1423,18 @@ function handleProceed() {
   }
 }
 
-function continueWithCOD(btnEl) {
-  // Button par spinner dikhao
-  if (btnEl) {
-    btnEl.classList.add('is-loading');
-    btnEl.setAttribute('aria-busy','true');
-  }
+
+function continueWithCOD(btnEl){
+  // Spinner on the button
+  if (btnEl) { btnEl.classList.add('is-loading'); btnEl.setAttribute('aria-busy','true'); }
+
+  setTimeout(() => {
+    // open token payment via Razorpay, then place COD on success
+    if (btnEl) { btnEl.classList.remove('is-loading'); btnEl.removeAttribute('aria-busy'); }
+    payTokenThenPlaceCOD(document.querySelector('#codPopup .popup-razorpay-btn'));
+  }, 800);
+}
+
 
   // 1 second baad sound play
   setTimeout(() => {
@@ -1473,7 +1457,7 @@ function continueWithCOD(btnEl) {
 }
 </script>
 <script>
-  function placeCODOrderAndRedirect() {
+  function placeCODOrderAndRedirect(token){
     // --- amounts ---
     const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
@@ -1481,12 +1465,36 @@ function continueWithCOD(btnEl) {
     const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
     const grandTotal = itemsTotal + deliveryFee + codFee;
 
+    // token handling
+    const tokenPaid = token && Number(token.amount) ? Number(token.amount) : 0;
+    const remainingDue = Math.max(0, grandTotal - tokenPaid);
+
     // --- order object (dashboard ke liye useful) ---
     const order = {
       id: "COD-" + Date.now(),
-      method: "COD",
+      method: tokenPaid ? "COD (₹" + tokenPaid + " paid online)" : "COD",
       items,
-      amounts: { itemsTotal, deliveryFee, codFee, grandTotal },
+      amounts: { itemsTotal, deliveryFee, codFee, grandTotal, tokenPaid, remainingDue },
+      address: localStorage.getItem("shippingAddress") || "",
+      tokenPayment: token || null,
+      createdAt: new Date().toISOString()
+    };
+    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    orders.unshift(order);
+    localStorage.setItem("orders", JSON.stringify(orders));
+
+    // Save for thank-you page display
+    localStorage.setItem("lastOrderTokenPaid", String(tokenPaid));
+    localStorage.setItem("lastOrderRemainingDue", String(remainingDue));
+
+    // --- clear cart before redirect ---
+    localStorage.setItem("cartItems", "[]");
+    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+    localStorage.setItem("lastOrderClearedCart", "1");
+
+    // thank you page
+    window.location.href = "https://precioussly.com/thankyou-cod";
+  },
       address: localStorage.getItem("shippingAddress") || "",
       createdAt: new Date().toISOString()
     };
@@ -2122,6 +2130,58 @@ if (couponToUse && document.getElementById("couponInput")) {
   mo.observe(menuEl, {childList:true});
   sideMenu.addEventListener("click", e => e.stopPropagation());
 })();
+
+<script>
+// ✅ Pay ₹95 token through Razorpay, then place COD order
+function payTokenThenPlaceCOD(btnEl){
+  try { setLoading(btnEl, true); } catch(e) {}
+
+  setTimeout(() => {
+    openRazorpayForToken(function(success, response){
+      try { setLoading(btnEl, false); } catch(e) {}
+      if (!success) return;
+
+      // After token success, place COD order with token info
+      const tokenInfo = {
+        amount: COD_TOKEN_AMOUNT,
+        payment_id: response && response.razorpay_payment_id ? response.razorpay_payment_id : ""
+      };
+      placeCODOrderAndRedirect(tokenInfo);
+    });
+  }, 600);
+}
+
+// Open Razorpay checkout for only ₹95
+function openRazorpayForToken(cb){
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const name  = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").fullname) || (localStorage.getItem("user_name") || "");
+  const email = localStorage.getItem("user_email") || "";
+  const phone = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone) || "";
+
+  const options = {
+    key: "rzp_live_S4Dmi0UXQYNAyV",
+    amount: Math.round(COD_TOKEN_AMOUNT * 100),
+    currency: "INR",
+    name: "Precioussly",
+    description: "COD Confirmation Token",
+    image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+    prefill: { name: name, email: email, contact: phone },
+    notes: { type: "COD_TOKEN" },
+    theme: { color: "#2874f0" },
+    handler: function (response) {
+      try { if (typeof playCODConfirm === "function") playCODConfirm(); } catch(e){}
+      if (cb) cb(true, response);
+    },
+    modal: {
+      ondismiss: function(){
+        if (cb) cb(false);
+      }
+    }
+  };
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+</script>
 </script>
 
 </body>
