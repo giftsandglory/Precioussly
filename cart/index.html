@@ -2216,3 +2216,62 @@ function payCODAdvance95(){
 </body>
 </html>
 
+
+<!-- === Orders → Google Sheet integration (auto-generated) START === -->
+<script>
+  // Web App endpoint for saving orders
+  const ORDERS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxy1MX0Je3l6Kjjr0SUYHRWWj2V1zGtUa94J6m5vPx_7oDGNKWaw6geWDp8Szjt7T4QWw/exec';
+  const ORDERS_SECRET = 'precioussly_2024'; // must match Apps Script SECRET_KEY
+
+  // Core poster
+  async function postOrderToSheet(order, extra={}) {
+    try {
+      const payload = {
+        secret: ORDERS_SECRET,
+        id: order?.id,
+        method: order?.method,
+        items: Array.isArray(order?.items) ? order.items : [],
+        coupon: order?.coupon || null,
+        amounts: order?.amounts || {}, // { itemsTotal, deliveryFee, codFee, discount, grandTotal }
+        address: order?.address || '',
+        razorpay_payment_id: extra.razorpay_payment_id || '',
+        status: extra.status || 'New',
+        customer: order?.customer || (function() {
+          // Fallbacks from localStorage if your page uses these keys
+          let addr={};
+          try { addr = JSON.parse(localStorage.getItem('shippingAddressObj')||'{}'); } catch(_){}
+          return {
+            name: addr.fullname || localStorage.getItem('user_name') || '',
+            email: localStorage.getItem('user_email') || '',
+            phone: addr.phone || '',
+            city: addr.city || '',
+            state: addr.state || '',
+            pincode: addr.pincode || ''
+          };
+        })()
+      };
+
+      await fetch(ORDERS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      console.log('[Orders] posted to sheet');
+    } catch (e) {
+      console.warn('[Orders] post failed', e);
+    }
+  }
+
+  // Convenience hooks you can call in your code:
+  // 1) Call this INSIDE Razorpay success callback (before redirect)
+  //    Example: on Razorpay success -> savePaidOrder(response, order)
+  async function savePaidOrder(response, order) {
+    await postOrderToSheet(order, { razorpay_payment_id: response?.razorpay_payment_id || '', status: 'Paid' });
+  }
+
+  // 2) Call this in COD flow just before redirect
+  function saveCODOrder(order) {
+    postOrderToSheet(order, { status: 'COD Pending' });
+  }
+</script>
+<!-- === Orders → Google Sheet integration (auto-generated) END === -->
