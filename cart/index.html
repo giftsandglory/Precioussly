@@ -655,20 +655,35 @@ button.remove-btn:hover {
 
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style id="menuFixCSS">
+/* ===== Menu fix overrides ===== */
+#menuContent{ display:flex; flex-direction:column; gap:10px; padding:8px 16px 18px !important; }
+.menu-link{
+  display:block; text-align:center; padding:10px 14px;
+  border:1px solid #dcdcdc !important; border-radius:12px;
+  background:#fff; color:#111 !important; text-decoration:none;
+  font-size:17px; font-weight:500 !important;
+}
+.menu-link--primary{ border-color:#111 !important; font-weight:700 !important; }
+.menu-group{ margin-bottom:8px; }
+.dropdown-toggle{ position:relative; }
+.dropdown-toggle::after{ content:"▾"; position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:14px; }
+.submenu{ display:none; padding:8px 0 0; }
+.submenu.open{ display:block !important; }
+</style>
+
 </head>
 <body>
 <!-- 👇 Resin-style MENU -->
-<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu(false)"></div>
 <nav class="side-menu" id="sideMenu">
   <div class="menu-header">
     <span class="menu-title">Menu</span>
-    <span class="menu-close" onclick="toggleMenu()">✕</span>
+    <span class="menu-close" onclick="toggleMenu(false)">✕</span>
   </div>
-
-  <div id="menuContent">
-    <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
-    <a href="https://precioussly.com/" class="menu-link">Home</a>
-  </div>
+  <!-- content will be injected by JS -->
+  <div id="menuContent"></div>
 </nav>
 
  <header class="site-header">
@@ -1988,6 +2003,208 @@ if (couponToUse && document.getElementById("couponInput")) {
       }
     }, {passive:true});
   })();
+</script>
+
+
+<script>
+/* ====== MENU: fetch categories from Google Sheet and render in cart.html ====== */
+const SHEET_ID = '1FifdpG2lScdPADlbd5UAy-AD_0UD3cdUVdAxZG1vqlU';
+const TAB_NAME = 'Menu'; // change if your tab name differs
+const MENU_API = `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(TAB_NAME)}`;
+
+function createMenuLink(name, href) {
+  const a = document.createElement('a');
+  a.className = 'menu-link';
+  a.textContent = name;
+  a.href = href;
+  return a;
+}
+function slugify(txt){
+  return String(txt).toLowerCase().trim()
+    .replace(/&/g,'and')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'');
+}
+async function loadCartMenuFromSheet(){
+  try{
+    const res = await fetch(MENU_API, {cache:'no-store'});
+    const rows = await res.json();
+    const menuContent = document.getElementById('menuContent');
+    if(!menuContent) return;
+    menuContent.innerHTML = '';
+    rows
+      .filter(r => (r.Show ?? 'TRUE').toString().toLowerCase() !== 'false')
+      .forEach(r => {
+        const name = (r.Name || '').trim();
+        if(!name) return;
+        let href = (r.Link || '').trim();
+        if(!href) href = '/' + slugify(name);
+        menuContent.appendChild(createMenuLink(name, href));
+      });
+    const firstBtn = menuContent.querySelector('.menu-link');
+    if(firstBtn) firstBtn.classList.add('menu-link--primary');
+  }catch(e){
+    console.error('Menu fetch failed:', e);
+  }
+}
+document.addEventListener('DOMContentLoaded', loadCartMenuFromSheet);
+</script>
+<!-- ====== MENU: fetch categories from Google Sheet and render in cart.html ====== -->
+<script>
+(function(){
+  // Resin.html jaisa hi menu sheet use karo:
+  // (Agar aapne apna sheet banaya hai to yahan ID/TAB change kar sakte ho.)
+  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag"; // Resin.html wali ID
+  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+
+  // Jo order aap chahte ho (extra items aaye to end me chale jayenge)
+  const desiredOrder = ["Resin","Fashion Jewellery","Crochet","Gift Hampers"];
+  // Ye entries skip karni hain (agar sheet me aye)
+  const skipSet = new Set(["home","track order"]);
+
+  const menuContent = document.getElementById("menuContent");
+  if (!menuContent) return;
+
+  // Helper: ek clean anchor banao
+  function makeLink(href, text, extraClass=""){
+    const a = document.createElement("a");
+    a.href = href || "#";
+    a.className = `menu-link ${extraClass}`.trim();
+    a.textContent = text || "";
+    return a;
+  }
+
+  // Start: Track Order + Home (Resin jaisa)
+  menuContent.innerHTML = "";
+  menuContent.appendChild(makeLink("https://precioussly.com/track-order","Track Order","menu-link--primary"));
+  menuContent.appendChild(makeLink("https://precioussly.com/","Home"));
+
+  // Sheet se categories lao
+  fetch(menuURL)
+    .then(r => r.json())
+    .then(rows => {
+      const items = [];
+      rows.forEach(row => {
+        const name = String(row.name || row.category || row["Category"] || "").trim();
+        const link = String(row.link || row.url || row["Link"] || "#").trim();
+        if (!name || !link) return;
+        if (skipSet.has(name.toLowerCase())) return;
+        items.push({ name, link });
+      });
+
+      // Preferred order
+      items.sort((a, b) => {
+        const ia = desiredOrder.indexOf(a.name);
+        const ib = desiredOrder.indexOf(b.name);
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      });
+
+      // Render links
+      items.forEach(it => menuContent.appendChild(makeLink(it.link, it.name)));
+    })
+    .catch(() => { /* Fail pe default Track/Home hi rahe */ });
+
+  // Link click par menu close (aapke page me helper bhi hai)
+  document.getElementById('sideMenu')?.addEventListener('click', function(e){
+    const a = e.target.closest('a');
+    if (a && a.href && typeof toggleMenu === 'function') toggleMenu(false);
+  });
+})();
+</script>
+
+<script>
+/* ====== FORCE-OVERRIDE: Menu from Google Sheet with rock-solid fallback ====== */
+(() => {
+  const SHEET_ID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag"; // provided by you
+  const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
+
+  const menuEl = document.getElementById("menuContent");
+  const overlay = document.getElementById("menuOverlay");
+  const sideMenu = document.getElementById("sideMenu");
+
+  // Hardened toggle
+  window.toggleMenu = function(open){
+    const shouldOpen = (typeof open === "boolean") ? open : !sideMenu.classList.contains("active");
+    if (shouldOpen){
+      overlay.classList.add("active");
+      sideMenu.classList.add("active");
+      document.body.style.overflow = "hidden";
+    } else {
+      overlay.classList.remove("active");
+      sideMenu.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+  };
+  sideMenu.addEventListener("click", e => e.stopPropagation());
+
+  const renderFallback = () => {
+    menuEl.innerHTML = `
+      <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+      <a href="https://precioussly.com/" class="menu-link">Home</a>
+    `;
+  };
+
+  const makeGroup = (title, subs) => {
+    const wrap = document.createElement("div");
+    wrap.className = "menu-group";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "menu-link dropdown-toggle";
+    btn.textContent = title;
+    const sub = document.createElement("div");
+    sub.className = "submenu";
+    subs.forEach(s => {
+      const a = document.createElement("a");
+      a.className = "menu-link";
+      a.href = s.link || "#";
+      a.textContent = s.title;
+      sub.appendChild(a);
+    });
+    btn.addEventListener("click", () => sub.classList.toggle("open"));
+    wrap.append(btn, sub);
+    return wrap;
+  };
+
+  const renderMenu = (rows) => {
+    const map = {};
+    rows.forEach(r => {
+      const parent = (r["Menu"]||"").trim();
+      const child  = (r["Submenu"]||"").trim();
+      const link   = (r["Link"]||"").trim();
+      if (!parent) return;
+      if (!map[parent]) map[parent] = { link: "", subs: [] };
+      if (child){
+        map[parent].subs.push({ title: child, link: link || "#" });
+      } else if (link){
+        map[parent].link = link;
+      }
+    });
+
+    menuEl.innerHTML = "";
+    const parents = Object.keys(map);
+    parents.forEach(p => {
+      if (map[p].subs.length){
+        menuEl.appendChild(makeGroup(p, map[p].subs));
+      } else {
+        const a = document.createElement("a");
+        a.className = "menu-link";
+        a.href = map[p].link || "#";
+        a.textContent = p;
+        menuEl.appendChild(a);
+      }
+    });
+
+    if (!parents.length) renderFallback();
+  };
+
+  fetch(SHEET_URL, { cache: "no-store" })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error("sheet error")))
+    .then(data => {
+      try { renderMenu(Array.isArray(data) ? data : []); }
+      catch (e){ console.error(e); renderFallback(); }
+    })
+    .catch(err => { console.warn("Menu sheet load failed", err); renderFallback(); });
+})();
 </script>
 
 </body>
