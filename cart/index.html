@@ -1502,6 +1502,7 @@ function continueWithCOD(btnEl) {
     localStorage.setItem("lastOrderClearedCart", "1");
 
     // thank you page
+    try{ sendOrderToTelegram(order); }catch(e){}
     window.location.href = "https://precioussly.com/thankyou-cod";
   }
 </script>
@@ -1590,6 +1591,7 @@ function openAddressAndClosePopup() {
         try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
         localStorage.setItem("lastOrderClearedCart", "1");
 
+        try{ sendOrderToTelegram(order); }catch(e){}
         window.location.href = "https://precioussly.com/thankyou-razorpay";
       },
 
@@ -2199,6 +2201,7 @@ function payCODAdvance95(){
       localStorage.setItem("cartItems", "[]");
       try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
       localStorage.setItem("lastOrderClearedCart", "1");
+      try{ sendOrderToTelegram(order); }catch(e){}
       window.location.href = "https://precioussly.com/thankyou-cod";
     },
     modal: {
@@ -2213,6 +2216,64 @@ function payCODAdvance95(){
 }
 </script>
 
+<!-- ======= Telegram Order Notifier (auto-inserted) ======= -->
+<script>
+const TG_BOT_TOKEN = "8338453495:AAGlEj98SoocsWjT2qa6FRo6qjHInDafqfA";
+const TG_CHAT_ID   = "792731562";
+function formatOrderForTelegram(order){
+  try{
+    const when = new Date(order.createdAt || Date.now()).toLocaleString("en-IN", { hour12:false });
+    const lines = [];
+    lines.push(`🧾 <b>New Order</b>  <code>${order.id||""}</code>`);
+    lines.push(`💳 Method: <b>${order.method||""}</b>`);
+    lines.push(`⏱️ Time: ${when}`);
+    lines.push(``);
+    lines.push(`<b>Items:</b>`);
+    (order.items || []).forEach((it, idx) => {
+      const qty = Number(it.qty)||1;
+      const price = Number(it.price)||0;
+      const line = `${idx+1}) ${it.name||"Item"} × ${qty} — ₹${price*qty}`;
+      lines.push(line);
+    });
+    const a = order.amounts || {};
+    if ('itemsTotal' in a)   lines.push(`\nSubtotal: ₹${a.itemsTotal}`);
+    if ('deliveryFee' in a)  lines.push(`Delivery: ₹${a.deliveryFee || 0}`);
+    if ('codFee' in a && a.codFee>0) lines.push(`COD Fee: ₹${a.codFee}`);
+    if ('discount' in a && a.discount>0) lines.push(`Discount: -₹${a.discount}`);
+    if ('grandTotal' in a)   lines.push(`<b>Total: ₹${a.grandTotal}</b>`);
+    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
+    lines.push(`\n<b>Shipping Address</b>`);
+    lines.push(order.address ? String(order.address).replace(/<br\s*\/?>(\n)?/gi, "\n") : "(not provided)");
+    const photos = (order.items||[]).map(i => i.photo).filter(u => typeof u === "string" && u.startsWith("http"));
+    if (photos.length){ lines.push(`\nPhotos:\n` + photos.join("\n")); }
+    return lines.join("\n");
+  }catch(e){
+    try{ return JSON.stringify(order,null,2); }catch(_){ return "New order"; }
+  }
+}
+async function sendOrderToTelegram(order){
+  try{
+    const url  = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`;
+    const text = formatOrderForTelegram(order);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        chat_id: TG_CHAT_ID,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true
+      })
+    });
+    if (!res.ok){
+      const t = await res.text().catch(()=> "");
+      console.warn("Telegram send failed", res.status, t);
+    }
+  } catch(err){
+    console.warn("Telegram send error", err);
+  }
+}
+</script>
+<!-- ======= /Telegram Order Notifier ======= -->
 </body>
 </html>
-
