@@ -686,6 +686,23 @@ button.remove-btn:hover {
 .submenu.open{ display:block !important; }
 </style>
 
+
+<!-- Anti-flicker guard for empty carts -->
+<script>
+(function () {
+  var items = [];
+  try { items = JSON.parse(localStorage.getItem('cartItems') || '[]'); } catch(e){}
+  if (!items || !items.length) {
+    document.documentElement.classList.add('no-cart');
+  }
+})();
+</script>
+<style>
+  .no-cart #bottomBox,
+  .no-cart #paymentMethodBox,
+  .no-cart #couponSection { display:none !important; }
+</style>
+
 </head>
 <body>
 <!-- 👇 Resin-style MENU -->
@@ -745,7 +762,7 @@ button.remove-btn:hover {
 <!-- ULTRA PREMIUM PAYMENT OPTIONS -->
 
 <!-- ===== Coupons (fetched from same Google Sheet as index) ===== -->
-<div id="couponSection" style="margin-top:10px;">
+<div id="couponSection" style="display:none; margin-top:10px;">
   <div id="couponContainerCart" class="coupon-strip" style="display:none;"></div>
 
   <div class="coupon-apply-row">
@@ -761,13 +778,13 @@ button.remove-btn:hover {
   </div>
 </div>
     <!-- START: Summary and Pay Section -->
-<div id="bottomBox">
+<div id="bottomBox" style="display:none">
   <div class="summary" id="summaryBox">
   <div class="summary-row"><span>Item Total</span><span><span class="spinner"></span></span></div>
   <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
 </div>
-<div class="payment-method-box" id="paymentMethodBox">
+<div class="payment-method-box" id="paymentMethodBox" style="display:none">
   <label class="payment-option">
     <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
     <span class="custom-radio"></span>
@@ -789,7 +806,7 @@ button.remove-btn:hover {
   </span>
 </div>
 
-<button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display:none; margin-top:0px;">
+<button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style=" margin-top:0px;">
   <span class="btn-label">Proceed to Pay</span>
   <span class="btn-spinner" aria-hidden="true"></span>
 </button>
@@ -1673,35 +1690,10 @@ function validateAddressFields() {
 }
 </script>
 <script>
-let minimumOrderValue = null; // nothing shown until fetched
+// nothing shown until fetched
 
 // ✅ Fetch minimum order value from Google Sheet
-fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
-  .then(res => res.json())
-  .then(data => {
-    if (data[0] && data[0]["minimum order"]) {
-      minimumOrderValue = parseInt(data[0]["minimum order"]);
-      document.getElementById("proceedBtn").style.display = "block"; // show button
-      document.getElementById("minimumNotice").style.display = "block"; // show message area
-      checkMinOrderCondition(); // run logic after fetch
-    }
-  });
-
-function checkMinOrderCondition() {
-  if (minimumOrderValue === null) return; // stop if not fetched yet
-
-  const proceedBtn = document.getElementById("proceedBtn");
-  const notice = document.getElementById("minimumNotice");
-
-  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-  let total = 0;
-  cartData.forEach(item => total += item.price * item.qty);
-
-  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
-  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
-  const grandTotal = total + deliveryFee + codFee;
-
-  notice.innerText = `Minimum order amount is ₹${minimumOrderValue} to proceed`;
+to proceed`;
 
   if (grandTotal < minimumOrderValue) {
     proceedBtn.style.opacity = "0.4";
@@ -2124,6 +2116,21 @@ if (couponToUse && document.getElementById("couponInput")) {
 })();
 </script>
 
+
+<script>
+  // Force show & enable Proceed button always
+  (function(){
+    var btn = document.getElementById("proceedBtn");
+    if (btn) {
+      btn.style.display = "block";
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.style.cursor = "pointer";
+    }
+    var notice = document.getElementById("minimumNotice");
+    if (notice) notice.style.display = "none";
+  })();
+</script>
+
 </body>
 </html>
-
