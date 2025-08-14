@@ -1501,8 +1501,8 @@ function continueWithCOD(btnEl) {
     // BFCache se wapas aane par hard refresh karane ke liye flag
     localStorage.setItem("lastOrderClearedCart", "1");
 
-    // thank you page
-    window.location.href = "https://precioussly.com/thankyou-cod";
+await saveCODOrder(order);  // <-- add this line
+window.location.href = "https://precioussly.com/thankyou-cod";
   }
 </script>
 <script>
@@ -1590,7 +1590,8 @@ function openAddressAndClosePopup() {
         try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
         localStorage.setItem("lastOrderClearedCart", "1");
 
-        window.location.href = "https://precioussly.com/thankyou-razorpay";
+        await savePaidOrder(response, order);   // <-- add this line
+window.location.href = "https://precioussly.com/thankyou-razorpay";
       },
 
       modal: {
@@ -2128,7 +2129,7 @@ if (couponToUse && document.getElementById("couponInput")) {
 <div class="address-popup-overlay" id="cod95Popup" style="display:none;">
   <div class="address-popup-box" style="text-align:center;max-width:320px;">
     <div style="font-size:18px;font-weight:700;margin-bottom:6px;">
-      Pay ₹95 now, rest to Delivery Partner
+      Pay ₹1 now, rest to Delivery Partner
     </div>
     <div style="font-size:15px;color:#444;margin-bottom:14px;">
       This confirms your COD order. Remaining amount will be collected by the delivery partner at doorstep.
