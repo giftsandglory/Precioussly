@@ -1094,6 +1094,74 @@ down-toggle {
   font-size: 14px;  /* adjust number size */
 }
 </style>
+<style>
+/* ===== Search overlay cards (index.html) ===== */
+#searchOverlay{backdrop-filter:blur(2px)}
+.search-card{
+  display:flex; gap:10px; padding:10px; border:1px solid #eee; border-radius:12px;
+  margin:6px 0; background:#fff; align-items:center;
+}
+.search-thumb{
+  width:56px; height:56px; border-radius:10px; object-fit:cover; flex:0 0 56px; background:#f3f3f3;
+}
+.search-meta{flex:1; min-width:0}
+.search-name{font:600 14px 'Roboto Slab',serif; color:#111; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.search-price{font:500 13px 'Roboto Slab',serif; color:#111; margin-top:2px}
+.search-price s{color:#999; margin-left:6px; font-weight:400}
+.search-badge{font:700 10px 'Roboto Slab',serif; background:#fbb6ce; color:#87003b; padding:3px 6px; border-radius:6px; margin-left:8px}
+.search-empty{padding:14px; text-align:center; color:#666; font:400 14px 'Roboto Slab',serif}
+.search-hit{background:linear-gradient(transparent 70%, #ffec99 0)}
+</style>
+<style>
+/* Remove right side vertical line when scrolling in search overlay */
+#searchOverlay .search-box, 
+#searchOverlay .search-box input, 
+#searchOverlay .search-box button {
+    border-right: none !important;
+    box-shadow: none !important;
+}
+</style>
+<style>
+#searchResults{
+  max-height: 62vh;
+  overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+#searchResults::-webkit-scrollbar{ display:none; }
+
+#searchOverlay .close-btn {
+  position: sticky;
+  top: 10px;
+  margin-left: auto;
+  width: 36px;                /* square shape */
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #000;     /* black outline */
+  background: #fff;
+  border-radius: 10px;        /* rectangle with rounded corners */
+  font-size: 20px;            /* bigger X */
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+  z-index: 3;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+#searchOverlay .close-btn:hover {
+  background: #f9f9f9;
+}
+#searchOverlay .search-header{
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+</style>
 </head>
 <body>
   <header class="site-header">
@@ -1122,7 +1190,7 @@ down-toggle {
 
  <div style="display: flex; align-items: center; gap: 12px;">
 <!-- Search icon -->
-<img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="cursor: pointer; border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" / onclick="openSearch()">
+<img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="cursor: pointer; border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" onclick="openSearch()">
 
 <!-- Profile icon -->
 <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
@@ -1145,8 +1213,9 @@ down-toggle {
       <input type="text" id="searchInput" placeholder="Search products..." 
         style="flex:1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; outline:none;" 
         oninput="filterSearchResults()" />
-      <button onclick="closeSearch()" aria-label="Close search"
-        style="padding: 10px 12px; border:1px solid #ddd; background:#f7f7f7; border-radius:8px; font-size:14px; cursor:pointer;">Close</button>
+      <button onclick="closeSearch()" aria-label="Close search" class="close-btn">
+  ×
+</button>
     </div>
     <div id="searchResults" style="margin-top: 10px; max-height: 320px; overflow-y: auto;"></div>
   </div>
@@ -1731,5 +1800,150 @@ function filterSearchResults() {
 })();
 </script>
 
+<script>
+/** ==== SETTINGS (same sheet as Resin page) ==== */
+const RESIN_SHEET_URL =
+  "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1"; // Resin products
+
+/** ==== DOM refs (already in your HTML) ==== */
+const overlay      = document.getElementById('searchOverlay');
+const inputEl      = document.getElementById('searchInput');
+const resultsBox   = document.getElementById('searchResults');
+
+/** ==== Local cache ==== */
+let searchData = null;     // [{name, mrp, price, img, badge}]
+let loadedOnce = false;
+let lastQuery  = "";
+
+/** ==== Helpers ==== */
+const enc = (s)=> encodeURIComponent(String(s || "").trim());
+const priceHTML = (p, mrp) => {
+  if (!p) return "";
+  const sale = Number(p), mrpN = Number(mrp);
+  const discount = (sale && mrpN && mrpN>sale) ? ` <s>₹${mrpN}</s>` : "";
+  return `<span>₹${sale}</span>${discount}`;
+};
+function hi(text, q){
+  if(!q) return text;
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0) return text;
+  return text.slice(0,i) + '<span class="search-hit">' +
+         text.slice(i,i+q.length) + '</span>' + text.slice(i+q.length);
+}
+
+/** ==== Load sheet (once) ==== */
+async function ensureData(){
+  if (loadedOnce && Array.isArray(searchData)) return;
+  const res = await fetch(RESIN_SHEET_URL);
+  const rows = await res.json();
+  searchData = rows
+    .filter(r => (r["Product Name"] || "").trim())
+    .map(r => ({
+      name:  r["Product Name"].trim(),
+      mrp:   r["MRP"],
+      price: r["Selling Price"],
+      img:   r["photo 1"] || r["photo 2"] || "",
+      badge: r["Badge"] || ""
+    }));
+  loadedOnce = true;
+}
+
+/** ==== Open / close ==== */
+async function openSearch(){
+  await ensureData();
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  setTimeout(()=> inputEl?.focus(), 30);
+  renderResults("");
+}
+function closeSearch(){
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+  inputEl.value = "";
+  resultsBox.innerHTML = "";
+}
+
+/** ==== Render ==== */
+function renderResults(q){
+  const qTrim = (q||"").trim();
+  lastQuery = qTrim;
+  if(!searchData || !searchData.length){
+    resultsBox.innerHTML = '<div class="search-empty">No products found.</div>';
+    return;
+  }
+
+  // lightweight fuzzy: startsWith gets priority, then includes
+  const starts = [];
+  const includes = [];
+  for (const it of searchData){
+    const nm = it.name.toLowerCase();
+    if(!qTrim) { starts.push(it); continue; }
+    if(nm.startsWith(qTrim.toLowerCase())) starts.push(it);
+    else if(nm.includes(qTrim.toLowerCase())) includes.push(it);
+  }
+  const list = (qTrim ? starts.concat(includes) : searchData).slice(0, 50);
+
+  if(!list.length){
+    resultsBox.innerHTML = '<div class="search-empty">No results. Try another keyword.</div>';
+    return;
+  }
+
+  resultsBox.innerHTML = list.map(it => `
+    <div class="search-card" data-name="${it.name}">
+      <img class="search-thumb" src="${it.img}" alt="${it.name}">
+      <div class="search-meta">
+        <div class="search-name">${hi(it.name, qTrim)}${
+          it.badge ? `<span class="search-badge">${it.badge}</span>` : ""
+        }</div>
+        <div class="search-price">${priceHTML(it.price, it.mrp)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // click → go to resin-necklace with ?p=... (popup opens there)
+  [...resultsBox.querySelectorAll('.search-card')].forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const name = card.getAttribute('data-name');
+      const url = `https://precioussly.com/resin-necklace/?p=${enc(name)}`;
+      location.href = url;
+    }, {passive:true});
+  });
+}
+
+/** ==== Input handling (debounced) ==== */
+let tId=null;
+window.filterSearchResults = function(){
+  if(tId) cancelAnimationFrame(tId);
+  tId = requestAnimationFrame(()=> renderResults(inputEl.value));
+};
+
+/** ==== UX niceties ==== */
+overlay?.addEventListener('click', (e)=>{
+  if(e.target === overlay) closeSearch();
+});
+document.addEventListener('keydown', (e)=>{
+  if(overlay && overlay.style.display === 'flex'){
+    if(e.key === 'Escape') closeSearch();
+    if(e.key === 'Enter'){
+      const first = resultsBox.querySelector('.search-card');
+      if(first){
+        first.click();
+        e.preventDefault();
+      }
+    }
+  }
+});
+</script>
+<script>
+(function ensureCloseButtonStyles(){
+  const box = document.getElementById('searchOverlay');
+  if(!box) return;
+  const input = document.getElementById('searchInput');
+  let header = input ? input.closest('div') : box.firstElementChild;
+  if(header){ header.classList.add('search-header'); }
+  const closeBtn = box.querySelector('button, .close, .closeBtn, [data-close]');
+  if(closeBtn){ closeBtn.classList.add('close-btn'); }
+})();
+</script>
 </body>
 </html>
