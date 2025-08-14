@@ -1901,290 +1901,51 @@ if (couponToUse && document.getElementById("couponInput")) {
 
   <script src="coupon-persist.js"></script>
   <script>
-/* --- Always force-close the Razorpay suggestion popup on load/back --- */
-(function () {
-  function forceCloseRazorpayPopup() {
-    var el = document.getElementById('codPopup');
-    if (el) el.style.display = 'none';
-    // restore scroll in case body was locked by the popup
-    document.body.style.overflow = '';
-  }
-
-  // Close once DOM is ready (fresh load)
-  document.addEventListener('DOMContentLoaded', forceCloseRazorpayPopup);
-
-  // Close whenever page is shown again (includes back/forward via BFCache)
-  window.addEventListener('pageshow', function (e) {
-    forceCloseRazorpayPopup();
-
-    // If user came back from a Thank You page after placing order,
-    // we may want a clean UI. We used this flag while redirecting.
-    var cameFromOrder = localStorage.getItem('lastOrderClearedCart') === '1';
-    var nav = performance.getEntriesByType('navigation')[0];
-    var fromBFCache = e.persisted || (nav && nav.type === 'back_forward');
-
-    if (cameFromOrder && fromBFCache) {
-      // Optional: hard refresh for a fresh state (prevents any stale overlay)
-      localStorage.removeItem('lastOrderClearedCart');
-      setTimeout(function(){ location.reload(); }, 0);
-    }
-  });
-
-  // Also close when tab returns to foreground (edge cases)
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) forceCloseRazorpayPopup();
-  });
-})();
-</script>
-<script>
-(function () {
-  function forceCloseRazorpayPopup() {
-    var el = document.getElementById('codPopup');
-    if (el) el.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  // Always close popup on page load
-  document.addEventListener('DOMContentLoaded', forceCloseRazorpayPopup);
-
-  // Detect back from Thank-You page & reload cart
-  window.addEventListener('pageshow', function (e) {
-    var cameFromOrder = localStorage.getItem('lastOrderClearedCart') === '1';
-    var nav = performance.getEntriesByType('navigation')[0];
-    var fromBFCache = e.persisted || (nav && nav.type === 'back_forward');
-
-    if (cameFromOrder && fromBFCache) {
-      localStorage.removeItem('lastOrderClearedCart');
-      location.reload(); // ✅ Back karte hi cart reload hoga
-    } else {
-      forceCloseRazorpayPopup(); // normal case me sirf popup close
-    }
-  });
-})();
-</script>
-
-<script>document.addEventListener("DOMContentLoaded", function(){ try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {} });</script>
-
-<script>
-  function toggleMenu(force){
-    const menu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('menuOverlay');
-    const willOpen = (typeof force === 'boolean') ? force : !menu.classList.contains('active');
-    menu.classList.toggle('active', willOpen);
-    overlay.classList.toggle('active', willOpen);
-    document.body.classList.toggle('no-scroll', willOpen);
-  }
-  document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape'){
-      const menu = document.getElementById('sideMenu');
-      if (menu && menu.classList.contains('active')) toggleMenu(false);
-    }
-  });
-  document.getElementById('sideMenu').addEventListener('click', function(e){
-    const a = e.target.closest('a');
-    if (a && a.href){ toggleMenu(false); }
-  });
-  (function(){
-    const header = document.querySelector('.site-header');
-    if (!header) return;
-    let lastY = window.scrollY || 0;
-    let ticking = false;
-    function onScroll(){
-      const y = window.scrollY || 0;
-      const goingDown = y > lastY && y > 20;
-      header.classList.toggle('header-hidden', goingDown);
-      lastY = y;
-      ticking = false;
-    }
-    window.addEventListener('scroll', function(){
-      if (!ticking){
-        window.requestAnimationFrame(onScroll);
-        ticking = true;
-      }
-    }, {passive:true});
-  })();
-</script>
-
-
-<script>
-/* ====== MENU: fetch categories from Google Sheet and render in cart.html ====== */
-const SHEET_ID = '1FifdpG2lScdPADlbd5UAy-AD_0UD3cdUVdAxZG1vqlU';
-const TAB_NAME = 'Menu'; // change if your tab name differs
-const MENU_API = `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(TAB_NAME)}`;
-
-function createMenuLink(name, href) {
-  const a = document.createElement('a');
-  a.className = 'menu-link';
-  a.textContent = name;
-  a.href = href;
-  return a;
-}
-function slugify(txt){
-  return String(txt).toLowerCase().trim()
-    .replace(/&/g,'and')
-    .replace(/[^a-z0-9]+/g,'-')
-    .replace(/^-+|-+$/g,'');
-}
-async function loadCartMenuFromSheet(){
-  try{
-    const res = await fetch(MENU_API, {cache:'no-store'});
-    const rows = await res.json();
-    const menuContent = document.getElementById('menuContent');
-    if(!menuContent) return;
-    menuContent.innerHTML = '';
-    rows
-      .filter(r => (r.Show ?? 'TRUE').toString().toLowerCase() !== 'false')
-      .forEach(r => {
-        const name = (r.Name || '').trim();
-        if(!name) return;
-        let href = (r.Link || '').trim();
-        if(!href) href = '/' + slugify(name);
-        menuContent.appendChild(createMenuLink(name, href));
-      });
-    const firstBtn = menuContent.querySelector('.menu-link');
-    if(firstBtn) firstBtn.classList.add('menu-link--primary');
-  }catch(e){
-    console.error('Menu fetch failed:', e);
-  }
-}
-document.addEventListener('DOMContentLoaded', loadCartMenuFromSheet);
-</script>
-<!-- ====== MENU: fetch categories from Google Sheet and render in cart.html ====== -->
-<script>
-(function(){
-  // Resin.html jaisa hi menu sheet use karo:
-  // (Agar aapne apna sheet banaya hai to yahan ID/TAB change kar sakte ho.)
-  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag"; // Resin.html wali ID
-  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
-
-  // Jo order aap chahte ho (extra items aaye to end me chale jayenge)
-  const desiredOrder = ["Resin","Fashion Jewellery","Crochet","Gift Hampers"];
-  // Ye entries skip karni hain (agar sheet me aye)
-  const skipSet = new Set(["home","track order"]);
-
-  const menuContent = document.getElementById("menuContent");
-  if (!menuContent) return;
-
-  // Helper: ek clean anchor banao
-  function makeLink(href, text, extraClass=""){
-    const a = document.createElement("a");
-    a.href = href || "#";
-    a.className = `menu-link ${extraClass}`.trim();
-    a.textContent = text || "";
-    return a;
-  }
-
-  // Start: Track Order + Home (Resin jaisa)
-  menuContent.innerHTML = "";
-  menuContent.appendChild(makeLink("https://precioussly.com/track-order","Track Order","menu-link--primary"));
-  menuContent.appendChild(makeLink("https://precioussly.com/","Home"));
-
-  // Sheet se categories lao
-  fetch(menuURL)
-    .then(r => r.json())
-    .then(rows => {
-      const items = [];
-      rows.forEach(row => {
-        const name = String(row.name || row.category || row["Category"] || "").trim();
-        const link = String(row.link || row.url || row["Link"] || "#").trim();
-        if (!name || !link) return;
-        if (skipSet.has(name.toLowerCase())) return;
-        items.push({ name, link });
-      });
-
-      // Preferred order
-      items.sort((a, b) => {
-        const ia = desiredOrder.indexOf(a.name);
-        const ib = desiredOrder.indexOf(b.name);
-        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-      });
-
-      // Render links
-      items.forEach(it => menuContent.appendChild(makeLink(it.link, it.name)));
-    })
-    .catch(() => { /* Fail pe default Track/Home hi rahe */ });
-
-  // Link click par menu close (aapke page me helper bhi hai)
-  document.getElementById('sideMenu')?.addEventListener('click', function(e){
-    const a = e.target.closest('a');
-    if (a && a.href && typeof toggleMenu === 'function') toggleMenu(false);
-  });
-})();
-</script>
-
-<script>
-/* ====== FORCE-OVERRIDE: Menu from Google Sheet with rock-solid fallback ====== */
+/* ====== MENU: fetch from Google Sheet + re-render on open + auto-heal ====== */
 (() => {
-  const SHEET_ID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag"; // provided by you
+  const SHEET_ID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
   const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
 
-  const menuEl = document.getElementById("menuContent");
-  const overlay = document.getElementById("menuOverlay");
+  const menuEl   = document.getElementById("menuContent");
   const sideMenu = document.getElementById("sideMenu");
+  const overlay  = document.getElementById("menuOverlay");
 
-  // Hardened toggle
-  window.toggleMenu = function(open){
-    const shouldOpen = (typeof open === "boolean") ? open : !sideMenu.classList.contains("active");
-    if (shouldOpen){
-      overlay.classList.add("active");
-      sideMenu.classList.add("active");
-      document.body.style.overflow = "hidden";
-    } else {
-      overlay.classList.remove("active");
-      sideMenu.classList.remove("active");
-      document.body.style.overflow = "";
-    }
-  };
-  sideMenu.addEventListener("click", e => e.stopPropagation());
+  let MENU_CACHE = null;
 
-  const renderFallback = () => {
-    menuEl.innerHTML = `
-      <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
-      <a href="https://precioussly.com/" class="menu-link">Home</a>
-    `;
-  };
-
-  const makeGroup = (title, subs) => {
-    const wrap = document.createElement("div");
-    wrap.className = "menu-group";
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "menu-link dropdown-toggle";
-    btn.textContent = title;
-    const sub = document.createElement("div");
-    sub.className = "submenu";
-    subs.forEach(s => {
-      const a = document.createElement("a");
-      a.className = "menu-link";
-      a.href = s.link || "#";
-      a.textContent = s.title;
-      sub.appendChild(a);
-    });
-    btn.addEventListener("click", () => sub.classList.toggle("open"));
-    wrap.append(btn, sub);
-    return wrap;
-  };
-
-  const renderMenu = (rows) => {
+  function buildMenu(rows){
     const map = {};
-    rows.forEach(r => {
+    rows.forEach(r=>{
       const parent = (r["Menu"]||"").trim();
       const child  = (r["Submenu"]||"").trim();
       const link   = (r["Link"]||"").trim();
-      if (!parent) return;
-      if (!map[parent]) map[parent] = { link: "", subs: [] };
-      if (child){
-        map[parent].subs.push({ title: child, link: link || "#" });
-      } else if (link){
-        map[parent].link = link;
-      }
+      if(!parent) return;
+      map[parent] ||= { link:"", subs:[] };
+      if (child) map[parent].subs.push({title:child, link:link||"#"});
+      else if (link) map[parent].link = link;
     });
 
     menuEl.innerHTML = "";
     const parents = Object.keys(map);
-    parents.forEach(p => {
+    parents.forEach(p=>{
       if (map[p].subs.length){
-        menuEl.appendChild(makeGroup(p, map[p].subs));
+        const wrap = document.createElement("div");
+        wrap.className = "menu-group";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "menu-link dropdown-toggle";
+        btn.textContent = p;
+        const sub = document.createElement("div");
+        sub.className = "submenu";
+        map[p].subs.forEach(s=>{
+          const a = document.createElement("a");
+          a.className = "menu-link";
+          a.href = s.link || "#";
+          a.textContent = s.title;
+          sub.appendChild(a);
+        });
+        btn.addEventListener("click", ()=> sub.classList.toggle("open"));
+        wrap.append(btn, sub);
+        menuEl.appendChild(wrap);
       } else {
         const a = document.createElement("a");
         a.className = "menu-link";
@@ -2194,16 +1955,159 @@ document.addEventListener('DOMContentLoaded', loadCartMenuFromSheet);
       }
     });
 
-    if (!parents.length) renderFallback();
+    if (!parents.length){
+      menuEl.innerHTML = `
+        <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+        <a href="https://precioussly.com/" class="menu-link">Home</a>
+      `;
+    }
+  }
+
+  async function ensureMenuLoaded(){
+    if (MENU_CACHE){ buildMenu(MENU_CACHE); return; }
+    try{
+      const r = await fetch(SHEET_URL, {cache:"no-store"});
+      const data = await r.json();
+      MENU_CACHE = Array.isArray(data) ? data : [];
+      buildMenu(MENU_CACHE);
+    }catch(_){
+      MENU_CACHE = [];
+      buildMenu(MENU_CACHE);
+    }
+  }
+
+  // Override and harden toggleMenu
+  window.toggleMenu = function(open){
+    const shouldOpen = (typeof open === "boolean")
+      ? open : !sideMenu.classList.contains("active");
+    if (shouldOpen){
+      overlay.classList.add("active");
+      sideMenu.classList.add("active");
+      document.body.style.overflow = "hidden";
+      ensureMenuLoaded();
+    } else {
+      overlay.classList.remove("active");
+      sideMenu.classList.remove("active");
+      document.body.style.overflow = "";
+    }
   };
 
-  fetch(SHEET_URL, { cache: "no-store" })
-    .then(r => r.ok ? r.json() : Promise.reject(new Error("sheet error")))
-    .then(data => {
-      try { renderMenu(Array.isArray(data) ? data : []); }
-      catch (e){ console.error(e); renderFallback(); }
-    })
-    .catch(err => { console.warn("Menu sheet load failed", err); renderFallback(); });
+  // Stop propagation so overlay click-only closes it
+  sideMenu.addEventListener("click", e => e.stopPropagation());
+
+  // Auto-heal: if something wipes #menuContent while open, rebuild
+  const mo = new MutationObserver(() => {
+    if (sideMenu.classList.contains("active") && !menuEl.firstElementChild){
+      ensureMenuLoaded();
+    }
+  });
+  mo.observe(menuEl, {childList: true});
+
+  // Preload once in idle time
+  if ("requestIdleCallback" in window){
+    requestIdleCallback(()=> ensureMenuLoaded());
+  } else {
+    setTimeout(()=> ensureMenuLoaded(), 500);
+  }
+})();
+</script>
+
+
+<script>
+(() => {
+  const SHEET_ID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
+
+  const menuEl   = document.getElementById("menuContent");
+  const sideMenu = document.getElementById("sideMenu");
+  const overlay  = document.getElementById("menuOverlay");
+
+  let MENU_CACHE = null;
+
+  function buildMenu(rows){
+    const map = {};
+    rows.forEach(r=>{
+      const parent = (r["Menu"]||"").trim();
+      const child  = (r["Submenu"]||"").trim();
+      const link   = (r["Link"]||"").trim();
+      if (!parent) return;
+      map[parent] ||= { link:"", subs:[] };
+      if (child) map[parent].subs.push({title:child, link:link||"#"});
+      else if (link) map[parent].link = link;
+    });
+    menuEl.innerHTML = "";
+    const parents = Object.keys(map);
+    parents.forEach(p=>{
+      if (map[p].subs.length){
+        const wrap = document.createElement("div");
+        wrap.className = "menu-group";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "menu-link dropdown-toggle";
+        btn.textContent = p;
+        const sub = document.createElement("div");
+        sub.className = "submenu";
+        map[p].subs.forEach(s=>{
+          const a = document.createElement("a");
+          a.className = "menu-link";
+          a.href = s.link || "#";
+          a.textContent = s.title;
+          sub.appendChild(a);
+        });
+        btn.addEventListener("click", ()=> sub.classList.toggle("open"));
+        wrap.append(btn, sub);
+        menuEl.appendChild(wrap);
+      } else {
+        const a = document.createElement("a");
+        a.className = "menu-link";
+        a.href = map[p].link || "#";
+        a.textContent = p;
+        menuEl.appendChild(a);
+      }
+    });
+    if (!parents.length){
+      menuEl.innerHTML = `
+        <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+        <a href="https://precioussly.com/" class="menu-link">Home</a>
+      `;
+    }
+  }
+
+  async function ensureMenuLoaded(){
+    if (MENU_CACHE) { buildMenu(MENU_CACHE); return; }
+    try{
+      const r = await fetch(SHEET_URL, {cache:"no-store"});
+      const data = await r.json();
+      MENU_CACHE = Array.isArray(data) ? data : [];
+      buildMenu(MENU_CACHE);
+    }catch(e){
+      MENU_CACHE = [];
+      buildMenu(MENU_CACHE);
+    }
+  }
+
+  window.toggleMenu = function(open){
+    const shouldOpen = (typeof open === "boolean")
+      ? open : !sideMenu.classList.contains("active");
+    if (shouldOpen){
+      overlay.classList.add("active");
+      sideMenu.classList.add("active");
+      document.body.style.overflow = "hidden";
+      ensureMenuLoaded();
+    }else{
+      overlay.classList.remove("active");
+      sideMenu.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+  };
+
+  const mo = new MutationObserver(() => {
+    if (sideMenu.classList.contains("active") && !menuEl.firstElementChild) {
+      ensureMenuLoaded();
+    }
+  });
+  mo.observe(menuEl, {childList:true});
+  sideMenu.addEventListener("click", e => e.stopPropagation());
 })();
 </script>
 
