@@ -668,6 +668,73 @@ button.remove-btn:hover {
 }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  /* ====== YOUR GOOGLE APPS SCRIPT DETAILS (CORRECT) ====== */
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzB-TV7JqNVCiy_qXzV477FSsl6MZiaM1xu0EBQss525XzXSMBMlRMuaqOl8NqBLsII/exec";
+  const SHEET_SECRET = "precioussly_2024";
+
+  // Turn the saved address into one clean line of text
+  function getPlainAddress() {
+    const obj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
+    if (obj && obj.fullname) {
+      const parts = [
+        obj.fullname,
+        obj.address,
+        obj.city,
+        (obj.state || "") + (obj.pincode ? " - " + obj.pincode : ""),
+        obj.phone ? "Phone: " + obj.phone : "",
+        obj.altphone ? "Alt: " + obj.altphone : ""
+      ].filter(Boolean);
+      return parts.join(", ");
+    }
+    const html = localStorage.getItem("shippingAddress") || "";
+    return html
+      .replace(/<br\s*\/?>/gi, ", ")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  // Build the payload for the Sheet
+  function buildOrderPayload(order, methodLabel) {
+    const nameFromObj = (JSON.parse(localStorage.getItem("shippingAddressObj") || "{}").fullname) || "";
+    const nameFromLS  = localStorage.getItem("user_name") || "";
+    return {
+      key: SHEET_SECRET,                // <-- IMPORTANT: 'key' (not 'secret')
+      orderId: order.id,                // e.g., COD-..., RZP-...
+      method: methodLabel,              // "COD" or "Prepaid"
+      customerName: nameFromObj || nameFromLS,
+      address: getPlainAddress(),
+      items: order.items || [],         // [{name, qty, price, photo}]
+      total: (order.amounts && typeof order.amounts.grandTotal === "number") ? order.amounts.grandTotal : 0
+    };
+  }
+
+  // Minimal save (simple + reliable). If you want the retry+queue toasts we made earlier, tell me and I’ll drop that version here.
+  async function saveCODOrder(order) {
+    try {
+      await fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildOrderPayload(order, "COD"))
+      });
+    } catch (e) {
+      console.error("Failed to save COD order:", e);
+    }
+  }
+
+  async function savePaidOrder(response, order) {
+    try {
+      await fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildOrderPayload(order, "Prepaid"))
+      });
+    } catch (e) {
+      console.error("Failed to save prepaid order:", e);
+    }
+  }
+</script>
 
 <script>
   // === GOOGLE APPS SCRIPT WEB APP URL (your live URL) ===
@@ -2402,66 +2469,5 @@ function payCODAdvance1(){
   rzp.open();
 }
 </script>
-
 </body>
 </html>
-
-
-<!-- === Orders → Google Sheet integration (auto-generated) START === -->
-<script>
-  // Web App endpoint for saving orders
-  const ORDERS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxy1MX0Je3l6Kjjr0SUYHRWWj2V1zGtUa94J6m5vPx_7oDGNKWaw6geWDp8Szjt7T4QWw/exec';
-  const ORDERS_SECRET = 'precioussly_2024'; // must match Apps Script SECRET_KEY
-
-  // Core poster
-  async function postOrderToSheet(order, extra={}) {
-    try {
-      const payload = {
-        secret: ORDERS_SECRET,
-        id: order?.id,
-        method: order?.method,
-        items: Array.isArray(order?.items) ? order.items : [],
-        coupon: order?.coupon || null,
-        amounts: order?.amounts || {}, // { itemsTotal, deliveryFee, codFee, discount, grandTotal }
-        address: order?.address || '',
-        razorpay_payment_id: extra.razorpay_payment_id || '',
-        status: extra.status || 'New',
-        customer: order?.customer || (function() {
-          // Fallbacks from localStorage if your page uses these keys
-          let addr={};
-          try { addr = JSON.parse(localStorage.getItem('shippingAddressObj')||'{}'); } catch(_){}
-          return {
-            name: addr.fullname || localStorage.getItem('user_name') || '',
-            email: localStorage.getItem('user_email') || '',
-            phone: addr.phone || '',
-            city: addr.city || '',
-            state: addr.state || '',
-            pincode: addr.pincode || ''
-          };
-        })()
-      };
-
-      await fetch(ORDERS_WEB_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify(payload)
-      });
-      console.log('[Orders] posted to sheet');
-    } catch (e) {
-      console.warn('[Orders] post failed', e);
-    }
-  }
-
-  // Convenience hooks you can call in your code:
-  // 1) Call this INSIDE Razorpay success callback (before redirect)
-  //    Example: on Razorpay success -> savePaidOrder(response, order)
-  async function savePaidOrder(response, order) {
-    await postOrderToSheet(order, { razorpay_payment_id: response?.razorpay_payment_id || '', status: 'Paid' });
-  }
-
-  // 2) Call this in COD flow just before redirect
-  function saveCODOrder(order) {
-    postOrderToSheet(order, { status: 'COD Pending' });
-  }
-</script>
-<!-- === Orders → Google Sheet integration (auto-generated) END === -->
