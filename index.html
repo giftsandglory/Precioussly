@@ -1059,6 +1059,51 @@ down-toggle {
 
 /* Safety: purani close-btn style ko neutralize */
 #searchOverlay .close-btn { display: none !important; }
+
+/* === Header search mode (inline) === */
+.header-search {
+  display: none;               /* default hidden */
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.header-search input {
+  flex: 1;
+  padding: 12px 14px;
+  font: 400 16px 'Roboto Slab', serif;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+.header-search input:focus { border-color: #bfbfbf; }
+
+#headerSearchBack {
+  height: 36px;
+  padding: 0 14px;
+  font: 500 14px 'Roboto Slab', serif;
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* When searching: hide logo/menu/icons, show input+back pill */
+.site-header.searching .hamburger-wrapper,
+.site-header.searching #logoWrap,
+.site-header.searching #rightIcons { display: none !important; }
+
+.site-header.searching #headerSearchBar {
+  display: flex !important;
+}
+
+/* Keep header from jumping */
+.site-header { position: sticky; top: 0; z-index: 3500; }
 </style>
 
 <style>
@@ -1191,46 +1236,46 @@ down-toggle {
 </style>
 </head>
 <body>
-  <header class="site-header">
-  <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div>
-    <div></div>
-    <div></div>
+<header class="site-header" id="mainHeader">
+  <!-- Left: Menu (unchanged) -->
+  <button class="hamburger-wrapper" onclick="toggleMenu()" aria-label="Menu">
+    <div></div><div></div><div></div>
+  </button>
+
+  <!-- Center: Logo (same image, just wrapped for easy hide/show) -->
+  <div id="logoWrap" style="display:flex; align-items:center; position:absolute; left:70px; top:6px;">
+    <img
+      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+      alt="Precioussly Logo"
+      onclick="location.href = 'https://precioussly.com';"
+      style="width:110px; height:auto; object-fit:contain; cursor:pointer; transition:opacity .3s ease; -webkit-tap-highlight-color:transparent;"
+    />
   </div>
 
- <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-  <img
-    src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
-    alt="Precioussly Logo"
-    onclick="location.href = 'https://precioussly.com';"
-    style="
-      width: 110px;
-      height: auto;
-      object-fit: contain;
-      cursor: pointer;
-      transition: opacity 0.3s ease;
-      -webkit-tap-highlight-color: transparent;
-    "
-  />
-</div>
-</div>
+  <!-- Right: Icons (search, profile, cart) -->
+  <div id="rightIcons" style="display:flex; align-items:center; gap:12px;">
+    <!-- Search icon → NEW handler -->
+    <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
+         alt="Search" class="right-icon"
+         style="cursor:pointer; border-radius:0; width:25px; height:26px; margin-top:2px;"
+         onclick="openHeaderSearch()">
 
- <div style="display: flex; align-items: center; gap: 12px;">
-<!-- Search icon -->
-<img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="cursor: pointer; border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" onclick="openSearch()">
+    <!-- Profile icon (unchanged) -->
+    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
+         alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor:pointer;" />
 
-<!-- Profile icon -->
-<img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
-
-<!-- Cart icon with badge -->
-<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 21px; height: 21px; display: flex; align-items: center; justify-content: center;">0</span>
-</a>
-</div>
-</div>
+    <!-- Cart icon with badge (unchanged) -->
+    <a href="https://www.precioussly.com/cart" style="position:relative; display:inline-block; margin-top:5px;">
+      <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
+      <span id="cartCountBadge" style="position:absolute; top:-6px; right:-6px; background:white; color:black; font-size:12px; border:1px solid grey; border-radius:50%; width:21px; height:21px; display:flex; align-items:center; justify-content:center;">0</span>
+    </a>
   </div>
-</div>
+
+  <!-- Inline search bar (hidden until search mode) -->
+  <div id="headerSearchBar" class="header-search" hidden>
+    <input type="search" id="headerSearchInput" placeholder="Search products..." autocomplete="off" />
+    <button type="button" id="headerSearchBack" aria-label="Back" onclick="closeHeaderSearch()">Back</button>
+  </div>
 </header>
 
 <!-- 🔎 Search Overlay -->
@@ -1964,6 +2009,50 @@ document.addEventListener('keydown', (e)=>{
 });
 </script>
 <script>
+/* === Inline header search (no suggestions) ===
+   Uses your existing allProducts[] loaded from Google Sheet.
+   Enter → opens resin page with ?p=<best match or typed text>
+*/
+
+function openHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.add('searching');
+  const input = document.getElementById('headerSearchInput');
+  if (input){ input.value = ''; setTimeout(()=>input.focus(), 30); }
+}
+
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.remove('searching');
+}
+
+function goToBestMatch(q){
+  // Use your existing global list loaded earlier:
+  const list = (window.allProducts || []);
+  const ql = q.toLowerCase();
+
+  let chosen = null;
+  if (list.length){
+    chosen = list.find(p => (p.name||'').toLowerCase() === ql)
+          || list.find(p => (p.name||'').toLowerCase().startsWith(ql))
+          || list.find(p => (p.name||'').toLowerCase().includes(ql));
+  }
+  const finalName = chosen ? chosen.name : q;
+  location.href = 'https://precioussly.com/resin-necklace/?p=' + encodeURIComponent(finalName);
+}
+
+// Enter = search
+(function(){
+  const input = document.getElementById('headerSearchInput');
+  if (!input) return;
+  input.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){
+      const q = (input.value || '').trim();
+      if (!q){ closeHeaderSearch(); return; }
+      goToBestMatch(q);
+    }
+  });
+})();
 </script>
 </body>
 </html>
