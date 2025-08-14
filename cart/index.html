@@ -666,28 +666,6 @@ button.remove-btn:hover {
 #menuContent .menu-link:first-child:hover {
   background-color: #d4f3df !important;       /* thoda dark hover green */
 }
-
-
-/* 🔥 Ultra Premium Remove Animation */
-@keyframes cartItemRemove {
-  0% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  50% {
-    opacity: 0.4;
-    transform: translateX(20px);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(100%);
-    height: 0;
-    margin: 0;
-    padding: 0;
-  }
-}
-.item.removing { animation: cartItemRemove 0.5s ease forwards; }
-
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
@@ -1290,42 +1268,12 @@ function decrease(index) {
   }
 }
 
-
 function removeItem(index) {
-  const container = document.getElementById("cartItems");
-  const itemEl = container && container.children[index];
-  if (!itemEl) {
-    // Fallback (if structure changed)
-    const cartDataF = JSON.parse(localStorage.getItem("cartItems")) || [];
-    cartDataF.splice(index, 1);
-    localStorage.setItem("cartItems", JSON.stringify(cartDataF));
-    if (typeof updateCartBadge === "function") updateCartBadge();
-    if (typeof updateSummary === "function") updateSummary();
-    if (cartDataF.length === 0) location.reload();
-    return;
-  }
-
-  // Add animation class
-  itemEl.classList.add("removing");
-
-  // After animation ends → update storage + remove from DOM
-  itemEl.addEventListener("animationend", () => {
-    const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-    cartData.splice(index, 1);
-    localStorage.setItem("cartItems", JSON.stringify(cartData));
-
-    itemEl.remove(); // DOM remove (no full reload)
-
-    if (typeof updateCartBadge === "function") updateCartBadge();
-    if (typeof updateSummary === "function") updateSummary();
-
-    // If empty, refresh to show empty-state UI
-    if ((cartData || []).length === 0) {
-      location.reload();
-    }
-  }, { once: true });
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  cartData.splice(index, 1); // Remove the item from array
+  localStorage.setItem("cartItems", JSON.stringify(cartData));
+  location.reload(); // Page reload to re-render all cart items
 }
-
 </script>
 <script>
 function updateSummary() {
