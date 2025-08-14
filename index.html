@@ -1153,7 +1153,11 @@ down-toggle {
   width:56px; height:56px; border-radius:10px; object-fit:cover; flex:0 0 56px; background:#f3f3f3;
 }
 .search-meta{flex:1; min-width:0}
-.search-name{font:600 14px 'Roboto Slab',serif; color:#111; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.search-name-row{display:flex; align-items:center; gap:8px; min-width:0}
+.search-name{font:600 14px 'Roboto Slab',serif; color:#111; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1}
+.search-price{font:500 13px 'Roboto Slab',serif; color:#111; margin-top:2px}
+.search-price s{color:#999; margin-left:6px; font-weight:400}
+.search-badge{font:700 10px 'Roboto Slab',serif; background:#fbb6ce; color:#87003b; padding:3px 6px; border-radius:6px; flex:0 0 auto}
 .search-price{font:500 13px 'Roboto Slab',serif; color:#111; margin-top:2px}
 .search-price s{color:#999; margin-left:6px; font-weight:400}
 .search-badge{font:700 10px 'Roboto Slab',serif; background:#fbb6ce; color:#87003b; padding:3px 6px; border-radius:6px; margin-left:8px}
@@ -1840,8 +1844,12 @@ const enc = (s)=> encodeURIComponent(String(s || "").trim());
 const priceHTML = (p, mrp) => {
   if (!p) return "";
   const sale = Number(p), mrpN = Number(mrp);
-  const discount = (sale && mrpN && mrpN>sale) ? ` <s>₹${mrpN}</s>` : "";
-  return `<span>₹${sale}</span>${discount}`;
+  let html = `<span>₹${sale}</span>`;
+  if (sale && mrpN && mrpN > sale) {
+    const pct = Math.round(((mrpN - sale) / mrpN) * 100);
+    html += ` <s>₹${mrpN}</s> <span style="color:green;font-size:13px;">${pct}% off</span>`;
+  }
+  return html;
 };
 function hi(text, q){
   if(!q) return text;
@@ -1912,9 +1920,10 @@ function renderResults(q){
     <div class="search-card" data-name="${it.name}">
       <img class="search-thumb" src="${it.img}" alt="${it.name}">
       <div class="search-meta">
-        <div class="search-name">${hi(it.name, qTrim)}${
-          it.badge ? `<span class="search-badge">${it.badge}</span>` : ""
-        }</div>
+        <div class="search-name-row">
+          <div class="search-name">${hi(it.name, qTrim)}</div>
+          ${it.badge ? `<span class="search-badge">${it.badge}</span>` : ""}
+        </div>
         <div class="search-price">${priceHTML(it.price, it.mrp)}</div>
       </div>
     </div>
