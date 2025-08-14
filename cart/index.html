@@ -686,6 +686,23 @@ button.remove-btn:hover {
 .submenu.open{ display:block !important; }
 </style>
 
+
+<!-- Anti-flicker guard for empty carts -->
+<script>
+(function () {
+  var items = [];
+  try { items = JSON.parse(localStorage.getItem('cartItems') || '[]'); } catch(e){}
+  if (!items || !items.length) {
+    document.documentElement.classList.add('no-cart');
+  }
+})();
+</script>
+<style>
+  .no-cart #bottomBox,
+  .no-cart #paymentMethodBox,
+  .no-cart #couponSection { display:none !important; }
+</style>
+
 </head>
 <body>
 <!-- 👇 Resin-style MENU -->
@@ -745,7 +762,7 @@ button.remove-btn:hover {
 <!-- ULTRA PREMIUM PAYMENT OPTIONS -->
 
 <!-- ===== Coupons (fetched from same Google Sheet as index) ===== -->
-<div id="couponSection" style="margin-top:10px;">
+<div id="couponSection" style="display:none; margin-top:10px;">
   <div id="couponContainerCart" class="coupon-strip" style="display:none;"></div>
 
   <div class="coupon-apply-row">
@@ -761,13 +778,13 @@ button.remove-btn:hover {
   </div>
 </div>
     <!-- START: Summary and Pay Section -->
-<div id="bottomBox">
+<div id="bottomBox" style="display:none">
   <div class="summary" id="summaryBox">
   <div class="summary-row"><span>Item Total</span><span><span class="spinner"></span></span></div>
   <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
 </div>
-<div class="payment-method-box" id="paymentMethodBox">
+<div class="payment-method-box" id="paymentMethodBox" style="display:none">
   <label class="payment-option">
     <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
     <span class="custom-radio"></span>
