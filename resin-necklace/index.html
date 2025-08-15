@@ -490,27 +490,35 @@ body.noscroll {
   font-size: 14px;  /* adjust number size */
 }
 </style>
-<!-- A2_DIRECTION_TOGGLE :: CSS (square + side padding) -->
 <style>
+/* Horizontal container: ultra-smooth, no jerks, iOS-like momentum */
 body.horizontal-mode .product-grid{
   display: flex !important;
   flex-wrap: nowrap !important;
   gap: 12px !important;
+
   overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  padding: 10px 40px 14px 24px !important; /* right=40px, left=24px */
-  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch !important; /* iOS momentum */
+  scroll-behavior: smooth !important;
+  touch-action: pan-x pan-y !important; /* ✅ Allow vertical + horizontal scroll */
+  overscroll-behavior-x: contain !important;
+
+  scroll-snap-type: none !important;
+
+  /* Reduced side space: was 24px left / 40px right */
+  padding: 10px 12px 14px 12px !important; /* left/right both 12px */
 }
-body.horizontal-mode .product-grid::-webkit-scrollbar{ height:0; }
-body.horizontal-mode .product-grid{ scrollbar-width:none; }
+body.horizontal-mode .product-grid::-webkit-scrollbar{ height: 0; }
+body.horizontal-mode .product-grid{ scrollbar-width: none; }
 
 body.horizontal-mode .product{
-  min-width: 58vw;          
+  min-width: 58vw;
   max-width: 320px;
-  scroll-snap-align: start;
+  scroll-snap-align: none !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-/* Square image */
 body.horizontal-mode .product img{
   width: 100% !important;
   aspect-ratio: 1 / 1 !important;
@@ -520,7 +528,23 @@ body.horizontal-mode .product img{
   display: block !important;
 }
 
-/* Title compact */
+body.horizontal-mode .product .content,
+body.horizontal-mode .product .details,
+body.horizontal-mode .product .info{
+  flex: 1 1 auto !important;
+}
+
+body.horizontal-mode .product .btn,
+body.horizontal-mode .product button,
+body.horizontal-mode .product .add-to-cart{
+  margin-top: auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 10px 12px !important;
+  font-size: 14px !important;
+  border-radius: 12px !important;
+}
+
 body.horizontal-mode .product h3,
 body.horizontal-mode .product .title{
   font-size: 16px !important;
@@ -529,46 +553,8 @@ body.horizontal-mode .product .title{
   display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
 }
 
-/* Price smaller */
 body.horizontal-mode .product .price,
-body.horizontal-mode .product .price-row{
-  font-size: 14px !important;
-}
-
-/* Button full width + neat */
-body.horizontal-mode .product .btn,
-body.horizontal-mode .product button{
-  width: 100% !important;
-  box-sizing: border-box !important;
-  padding: 10px 12px !important;
-  font-size: 14px !important;
-  border-radius: 12px !important;
-  margin-top: 8px !important;
-}
-/* A2_DIRECTION_TOGGLE :: CTA_BOTTOM */
-body.horizontal-mode .product{
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-/* Content area ko expand hone do (title/price etc.) */
-body.horizontal-mode .product .content,
-body.horizontal-mode .product .details,
-body.horizontal-mode .product .info{
-  flex: 1 1 auto !important;
-}
-
-/* Button hamesha bottom par align ho */
-body.horizontal-mode .product .btn,
-body.horizontal-mode .product button,
-body.horizontal-mode .product .add-to-cart{
-  margin-top: auto !important;   /* pushes to bottom */
-  width: 100% !important;
-  box-sizing: border-box !important;
-  padding: 10px 12px !important;
-  font-size: 14px !important;
-  border-radius: 12px !important;
-}
+body.horizontal-mode .product .price-row{ font-size: 14px !important; }
 </style>
 <style>
 
