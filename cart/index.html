@@ -1412,12 +1412,19 @@ function updateSummary() {
     }
   }
 
+  
+  // REPLACE the whole function with this version
   function startRazorpayWithSpinner(btnEl) {
     setLoading(btnEl, true);
+
+    // 1) Send pre-payment Telegram now
+    preNotifyTelegram("Razorpay (Payment Pending)");
+
+    // 2) Wait ~2 seconds BEFORE opening Razorpay
     setTimeout(() => {
       setLoading(btnEl, false);
-      payViaRazorpay();  // opens Razorpay
-    }, 1000);
+      payViaRazorpay(); // opens Razorpay after the ~2s gap
+    }, 2000);
   }
 </script>
 <script>
@@ -1445,64 +1452,71 @@ function handleProceed() {
   }
 }
 
-function continueWithCOD(btnEl) {
-  // Button par spinner dikhao
-  if (btnEl) {
-    btnEl.classList.add('is-loading');
-    btnEl.setAttribute('aria-busy','true');
-  }
 
-  // 1 second baad sound play
-  setTimeout(() => {
-    playCODConfirm();
-  }, 1000); // 1000 ms = 1 second
-
-  // Bilkul 2 second wait ke baad spinner stop + redirect
-  setTimeout(() => {
+  // REPLACE the whole continueWithCOD with this version
+  function continueWithCOD(btnEl) {
     if (btnEl) {
-      btnEl.classList.remove('is-loading');
-      btnEl.removeAttribute('aria-busy');
+      btnEl.classList.add('is-loading');
+      btnEl.setAttribute('aria-busy', 'true');
     }
 
-    // Audio start ho chuka hoga, ab redirect
-    setTimeout(() => {
-      placeCODOrderAndRedirect();
-    }, 150);
+    // 1) Pre-notify now and freeze an ID to reuse on Thank-You
+    const pre = preNotifyTelegram("COD (Pay on Delivery)");
+    const fixedId = pre.id; // reuse this so TG and Saved Order match
 
-  }, 2000); // 2000 ms = 2 seconds
-}
+    // Keep your sound timing
+    setTimeout(() => { try { playCODConfirm(); } catch(e){} }, 1000);
+
+    // 2) After ~2s, stop spinner and place order + redirect
+    setTimeout(() => {
+      if (btnEl) {
+        btnEl.classList.remove('is-loading');
+        btnEl.removeAttribute('aria-busy');
+      }
+      setTimeout(() => {
+        placeCODOrderAndRedirect(fixedId, /*alreadyNotified=*/true);
+      }, 150);
+    }, 2000);
+  }
 </script>
 <script>
-  function placeCODOrderAndRedirect() {
+  
+  // REPLACE the whole function with this version
+  function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
     // --- amounts ---
     const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
     const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-    const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+    const codFee = (window.selectedPayment === "cod" ? (Number(window.codCharge) || 0) : 0);
     const grandTotal = itemsTotal + deliveryFee + codFee;
 
-    // --- order object (dashboard ke liye useful) ---
+    // --- build order using the SAME ID we pre-notified ---
     const order = {
-      id: "COD-" + Date.now(),
+      id: orderIdOverride || ("COD-" + Date.now()),
       method: "COD",
       items,
       amounts: { itemsTotal, deliveryFee, codFee, grandTotal },
       address: localStorage.getItem("shippingAddress") || "",
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      preNotified: !!alreadyNotified
     };
+
+    // Save to dashboard list
     const orders = JSON.parse(localStorage.getItem("orders") || "[]");
     orders.unshift(order);
     localStorage.setItem("orders", JSON.stringify(orders));
 
-    // --- clear cart before redirect ---
+    // Clear cart + badge + BFCache flag
     localStorage.setItem("cartItems", "[]");
-    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
-
-    // BFCache se wapas aane par hard refresh karane ke liye flag
+    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
     localStorage.setItem("lastOrderClearedCart", "1");
 
-    // thank you page
-    try{ sendOrderToTelegram(order); }catch(e){}
+    // Only send to Telegram if we DIDN'T pre-notify (safety)
+    if (!order.preNotified) {
+      try { sendOrderToTelegram(order); } catch(e) {}
+    }
+
+    // Redirect
     window.location.href = "https://precioussly.com/thankyou-cod";
   }
 </script>
@@ -2274,6 +2288,51 @@ async function sendOrderToTelegram(order){
   }
 }
 </script>
-<!-- ======= /Telegram Order Notifier ======= -->
+<!-- PRE-PAY Telegram helpers: paste AFTER formatOrderForTelegram, BEFORE sendOrderToTelegram -->
+<script>
+  // Build a consistent order snapshot (used for the pre-payment ping)
+  function buildOrderSnapshot(methodLabel, forcedId) {
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+
+    const isCOD = /COD/i.test(methodLabel);
+    const codFee = isCOD ? (Number(window.codCharge) || 0) : 0;
+
+    // Optional coupon logic (safe if coupons aren’t used)
+    let discount = 0, applied = null;
+    try {
+      if (window.appliedCoupon && itemsTotal >= window.appliedCoupon.min) {
+        discount = discountOnSubtotal(itemsTotal, window.appliedCoupon);
+        applied  = window.appliedCoupon.code;
+      }
+    } catch (e) {}
+
+    const grandTotal = Math.max(0, itemsTotal + deliveryFee + codFee - discount);
+    const address = localStorage.getItem("shippingAddress") || "";
+
+    // We freeze an ID for COD so Thank-You uses the SAME ID we notified
+    const orderId = forcedId || ((isCOD ? "COD" : "RZP") + "-PRE-" + Date.now());
+
+    return {
+      id: orderId,
+      method: methodLabel,              // e.g., "Razorpay (Payment Pending)"
+      items,
+      coupon: applied,
+      amounts: { itemsTotal, deliveryFee, codFee, discount, grandTotal },
+      address,
+      createdAt: new Date().toISOString(),
+      preNotified: true                 // lets us avoid double Telegram pings
+    };
+  }
+
+  // Fire-and-forget pre-notification; does not block UI
+  function preNotifyTelegram(methodLabel, forcedId) {
+    const snapshot = buildOrderSnapshot(methodLabel, forcedId);
+    try { sendOrderToTelegram(snapshot); } catch (e) {}
+    window._lastPreNotify = snapshot;   // remember for COD handoff
+    return snapshot;
+  }
+</script>
 </body>
 </html>
