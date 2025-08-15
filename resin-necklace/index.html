@@ -498,63 +498,72 @@ body.horizontal-mode .product-grid{
   gap: 12px !important;
 
   overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch !important; /* iOS momentum */
+  -webkit-overflow-scrolling: touch !important; /* iOS smooth scrolling */
   scroll-behavior: smooth !important;
-  touch-action: pan-x pan-y !important; /* ✅ Allow vertical + horizontal scroll */
+  touch-action: pan-x pan-y !important; /* allow both horizontal + vertical scroll */
   overscroll-behavior-x: contain !important;
 
   scroll-snap-type: none !important;
-
-  /* Reduced side space: was 24px left / 40px right */
-  padding: 10px 12px 14px 12px !important; /* left/right both 12px */
+  padding: 10px 12px 14px 12px !important; /* side padding */
 }
 body.horizontal-mode .product-grid::-webkit-scrollbar{ height: 0; }
 body.horizontal-mode .product-grid{ scrollbar-width: none; }
 
+/* ✅ Smaller card size for premium look */
 body.horizontal-mode .product{
-  min-width: 58vw;
-  max-width: 320px;
+  min-width: 42vw;  /* was 47vw */
+  max-width: 230px; /* was 260px */
   scroll-snap-align: none !important;
   display: flex !important;
   flex-direction: column !important;
 }
 
+/* Product image */
 body.horizontal-mode .product img{
   width: 100% !important;
   aspect-ratio: 1 / 1 !important;
   height: auto !important;
   object-fit: cover !important;
-  border-radius: 14px !important;
+  border-radius: 10px !important; /* sleeker corners */
   display: block !important;
 }
 
+/* Flexible content */
 body.horizontal-mode .product .content,
 body.horizontal-mode .product .details,
 body.horizontal-mode .product .info{
   flex: 1 1 auto !important;
 }
 
+/* Buttons */
 body.horizontal-mode .product .btn,
 body.horizontal-mode .product button,
 body.horizontal-mode .product .add-to-cart{
   margin-top: auto !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 10px 12px !important;
-  font-size: 14px !important;
-  border-radius: 12px !important;
+  padding: 9px 10px !important; /* slightly smaller padding */
+  font-size: 13px !important;
+  border-radius: 10px !important;
 }
 
+/* Title */
 body.horizontal-mode .product h3,
 body.horizontal-mode .product .title{
-  font-size: 16px !important;
+  font-size: 14px !important;
   line-height: 1.25 !important;
-  margin: 8px 2px 4px !important;
-  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+  margin: 7px 2px 3px !important;
+  display: -webkit-box; 
+  -webkit-line-clamp: 1; 
+  -webkit-box-orient: vertical; 
+  overflow: hidden;
 }
 
+/* Price */
 body.horizontal-mode .product .price,
-body.horizontal-mode .product .price-row{ font-size: 14px !important; }
+body.horizontal-mode .product .price-row{
+  font-size: 12px !important;
+}
 </style>
 <style>
 
