@@ -264,17 +264,7 @@ body {
   justify-content: space-between;
   margin-bottom: 8px;
 }
-/* ✅ COD amount chip (green rounded box) */
-.cod-chip{
-  display:inline-block;
-  background:#e9fef1;
-  border:1px solid #c5ecd6;
-  color:#064c2c;
-  padding:4px 10px;
-  border-radius:10px;
-  font-weight:700;
-  line-height:1;
-}
+
 
 .proceed-btn {
   background: #2874f0;               /* Flipkart blue */
@@ -1416,7 +1406,10 @@ function updateSummary() {
 
   // ✅ COD amount ko green rounded chip me dikhayein
   if (codFee) {
-    rows += `<div class="summary-row"><span>COD Charges</span><span><span class="cod-chip">₹${codFee}</span></span></div>`;
+    rows += `<div class="summary-row" style="justify-content: flex-start; gap: 20px;">
+            <span>COD Charges</span>
+            <span style="font-weight: bold;">₹${codFee}</span>
+          </div>`;
   }
 
   if (discount) {
