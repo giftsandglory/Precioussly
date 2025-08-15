@@ -881,6 +881,214 @@ down-toggle {
   font-weight: 200; /* bold look */
   font-size: 14px;  /* adjust number size */
 }
+/* ============ Search bar with Back pill ============ */
+#searchOverlay .search-box{
+  position: relative;
+  display: block;
+}
+
+#searchOverlay .search-box input{
+  width: 100%;
+  padding: 12px 86px 12px 14px;        /* right padding for Back button */
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;    /* consistent font */
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+#searchOverlay .search-box input:focus{
+  border-color: #bfbfbf;
+}
+
+/* Back button inside the input (pill) */
+#searchOverlay .back-btn{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 32px;
+  padding: 0 12px;
+  font: 500 14px 'Roboto Slab', serif;  /* normal, bold nahi */
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);    /* halka border */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+#searchOverlay .back-btn{ z-index:2; }
+#searchOverlay .search-box input{ position:relative; z-index:1; }
+
+#searchOverlay .back-btn:active{
+  transform: translateY(-50%) scale(0.98);
+}
+
+/* Safety: purani close-btn style ko neutralize */
+#searchOverlay .close-btn { display: none !important; }
+/* ============ Search bar with Back pill ============ */
+#searchOverlay .search-box{
+  position: relative;
+  display: block;
+}
+
+#searchOverlay .search-box input{
+  width: 100%;
+  padding: 12px 86px 12px 14px;        /* right padding for Back button */
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;    /* consistent font */
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+#searchOverlay .search-box input:focus{
+  border-color: #bfbfbf;
+}
+
+/* Back button inside the input (pill) */
+#searchOverlay .back-btn{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 32px;
+  padding: 0 12px;
+  font: 500 14px 'Roboto Slab', serif;  /* normal, bold nahi */
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);    /* halka border */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+#searchOverlay .back-btn{ z-index:2; }
+#searchOverlay .search-box input{ position:relative; z-index:1; }
+
+#searchOverlay .back-btn:active{
+  transform: translateY(-50%) scale(0.98);
+}
+
+/* Safety: purani close-btn style ko neutralize */
+#searchOverlay .close-btn { display: none !important; }
+
+/* === Header search mode (inline) === */
+.header-search {
+  display: none;               /* default hidden */
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.header-search input {
+  flex: 1;
+  padding: 12px 14px;
+  font: 400 16px 'Roboto Slab', serif;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+.header-search input:focus { border-color: #bfbfbf; }
+
+#headerSearchBack {
+  height: 36px;
+  padding: 0 14px;
+  font: 500 14px 'Roboto Slab', serif;
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* When searching: hide logo/menu/icons, show input+back pill */
+.site-header.searching .hamburger-wrapper,
+.site-header.searching #logoWrap,
+.site-header.searching #rightIcons { display: none !important; }
+
+.site-header.searching #headerSearchBar {
+  display: flex !important;
+}
+
+/* Keep header from jumping */
+.site-header { position: sticky; top: 0; z-index: 3500; }
+</style>
+<style>
+#searchResults{
+  max-height: 62vh;
+  overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+#searchResults::-webkit-scrollbar{ display:none; }
+
+#searchOverlay .close-btn { display: none !important; }
+
+
+
+#searchOverlay .search-header{
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+/* Header search suggestions */
+#headerSearchResults{
+  position: absolute;
+  left: 0; right: 0;
+  margin-top: 8px;
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  max-height: 62vh;
+  overflow: auto;
+  padding: 6px;
+  z-index: 4000;
+}
+.header-suggest{
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 10px;
+}
+.header-suggest:hover{ background:#f9f9f9; }
+.header-suggest img{
+  width:56px; height:56px; border-radius:10px; object-fit:cover;
+}
+.header-suggest .name{ font-size:14px; font-weight:600; }
+.header-suggest .price{ font-size:13px; color:#111; }
+.header-suggest .tag{
+  font-size:11px; padding:3px 6px; border:1px solid #ddd; border-radius:8px; color:#333;
+}
+/* Make the search bar a positioning anchor */
+#headerSearchBar { position: relative; }
+
+/* Show suggestions BELOW the search bar */
+#headerSearchResults{
+  position: absolute;
+  top: calc(100% + 10px);   /* exactly below the bar with 10px gap */
+  left: 0;
+  right: 0;
+  max-height: 62vh;         /* already there is fine */
+  overflow: auto;           /* already there is fine */
+  z-index: 4000;            /* keep it above page content */
+}
+
 </style>
 </head>
 <body>
@@ -924,36 +1132,62 @@ down-toggle {
 </script>
 
 <header class="site-header">
-<div class="hamburger-wrapper" onclick="toggleMenu()">
-<div></div>
-<div></div>
-<div></div>
-</div>
-<div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-<img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="
-      width: 110px;
-      height: auto;
-      object-fit: contain;
-      cursor: pointer;
-      transition: opacity 0.3s ease;
-      -webkit-tap-highlight-color: transparent;
-    "/>
-</div>
-<div style="display: flex; align-items: center; gap: 12px;">
-<!-- Search icon -->
-<img alt="Search" class="right-icon" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"/>
-<!-- Profile icon -->
-<img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" style="cursor: pointer;"/>
-<!-- Cart icon with badge -->
-<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 21px; height: 21px; display: flex; align-items: center; justify-content: center;">0</span>
-</a>
-</div>
-</div>
+  <!-- Hamburger -->
+  <div class="hamburger-wrapper" onclick="toggleMenu()">
+    <div></div><div></div><div></div>
   </div>
-</div>
+
+  <!-- Logo -->
+  <div id="logoWrap" style="display:flex; align-items:center; position:absolute; left:70px; top:6px;">
+    <img
+      alt="Precioussly Logo"
+      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+      onclick="location.href='https://precioussly.com';"
+      style="width:110px; height:auto; object-fit:contain; cursor:pointer; transition:opacity .3s ease; -webkit-tap-highlight-color:transparent;"
+    />
+  </div>
+
+  <!-- Right icons -->
+  <div id="rightIcons" style="display:flex; align-items:center; gap:12px;">
+    <!-- Search icon -->
+    <img
+      src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
+      alt="Search"
+      class="right-icon"
+      style="cursor:pointer; border-radius:0; width:25px; height:26px; margin-top:2px;"
+      onclick="openHeaderSearch()"
+    />
+    <!-- Profile icon -->
+    <img
+      src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
+      alt="Profile"
+      id="profileIcon"
+      class="right-icon icon-size"
+      style="cursor:pointer;"
+      onclick="handleProfileClick()"
+    />
+    <!-- Cart with badge -->
+    <a href="https://www.precioussly.com/cart" style="position:relative; display:inline-block; margin-top:5px;">
+      <img
+        src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
+        alt="Cart"
+        class="right-icon icon-size"
+      />
+      <span id="cartCountBadge"
+            style="position:absolute; top:-6px; right:-6px; background:#fff; color:#000; font-size:12px; border:1px solid #888; border-radius:50%; width:21px; height:21px; display:flex; align-items:center; justify-content:center;">
+        0
+      </span>
+    </a>
+  </div>
+
+  <!-- Inline header search (same as index.html) -->
+  <div id="headerSearchBar" class="header-search">
+    <input id="headerSearchInput" type="text" placeholder="Search products..." autocomplete="off" />
+    <button id="headerSearchBack" class="back-btn" type="button" onclick="closeHeaderSearch()">Back</button>
+    <div id="headerSearchResults" style="display:none;"></div>
+  </div>
 </header>
+
 <div id="announcementBar">🧿</div>
 <!-- Category Section (still working) -->
 <div id="categorySection"></div>
@@ -1386,6 +1620,128 @@ slider.addEventListener("touchend", e => {
   toTopBtn.addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
+</script>
+<script>
+/* ===== Multi-page Search Setup (index.html) =====
+   - Do NOT change the two SHEET URLs below; ye wahi hain jo aap pages me use karte ho.
+   - Resin Necklace sheet (target page: /resin-necklace/)
+   - Hello sheet (target page: /hello/)  ← agar aapka actual path /hello.html hai to isey '/hello.html' kar dein.
+*/
+const CATALOGS = [
+  {
+    name: "Resin Necklace",
+    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
+    page : "/resin-necklace/"
+  },
+  {
+    name: "Hello",
+    sheet: "https://opensheet.elk.sh/1Y5ZgzCKg9DTAQbPBLwQ3F-BSp06QfIRJCizMQFO6dPg/Sheet1",
+    page : "/hello/"
+  }
+];
+
+// Global merged list
+window.allProducts = [];
+
+// Load all catalogs
+Promise.all(
+  CATALOGS.map(cat =>
+    fetch(cat.sheet).then(r => r.json()).then(rows => {
+      const items = rows
+        .filter(row => (row["Product Name"] || "").trim())
+        .map(row => ({
+          name: String(row["Product Name"]).trim(),
+          price: Number(row["Selling Price"] || 0),
+          mrp: Number(row["MRP"] || 0),
+          image: row["photo 1"] || row["Photo 1"] || "",
+          page: cat.page,
+          from: cat.name
+        }));
+      return items;
+    })
+  )
+).then(listOfLists => {
+  window.allProducts = listOfLists.flat();
+}).catch(()=>{});
+
+/* ========== UI wiring ========== */
+const inputEl   = document.getElementById('headerSearchInput');
+const boxEl     = document.getElementById('headerSearchResults');
+
+function openHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.add('searching');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.remove('searching');
+  hideSuggest();
+}
+function hideSuggest(){ if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; } }
+
+/* Filter + render */
+function renderSuggestions(q){
+  const ql = (q||"").toLowerCase().trim();
+  if(!ql){ hideSuggest(); return; }
+
+  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
+  const top = list.slice(0, 12); // max 12 items
+
+  if(!top.length){ hideSuggest(); return; }
+
+  // Build rows
+  boxEl.innerHTML = top.map(p => `
+    <div class="header-suggest" onclick="goToProduct('${p.page}', '${p.name.replace(/'/g,"\\'")}')">
+      <img src="${p.image || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
+      <div>
+        <div class="name">${p.name}</div>
+        <div class="price">₹${p.price || '-'}</div>
+      </div>
+      <div class="tag">${p.from}</div>
+    </div>
+  `).join('');
+
+
+  boxEl.style.display = 'block';
+}
+
+/* Navigate to correct page and auto-open popup there via ?p=
+   (Your product pages already re-open popup from ?p=... on load) */
+function goToProduct(pagePath, productName){
+  const base = location.origin;
+  location.href = `${base}${pagePath}?p=${encodeURIComponent(productName)}`;
+}
+
+/* On typing → live suggestions */
+if (inputEl){
+  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
+  inputEl.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      const typed = (inputEl.value||'').trim();
+      if(!typed){ closeHeaderSearch(); return; }
+      // If suggestions are visible, pick the first result; otherwise fall back to best match
+      const list = (window.allProducts || [])
+        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      const chosen = list[0] ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase()) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase())) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      if (chosen){
+        goToProduct(chosen.page, chosen.name);
+      } else {
+        // default: Resin Necklace page search
+        goToProduct('/resin-necklace/', typed);
+      }
+    }
+  });
+}
+
+// Expose for inline onclick in HTML we rendered
+window.goToProduct = goToProduct;
+window.openHeaderSearch = openHeaderSearch;
+window.closeHeaderSearch = closeHeaderSearch;
 </script>
 </body>
 </html>
