@@ -2160,23 +2160,122 @@ if (couponToUse && document.getElementById("couponInput")) {
     </div>
   </div>
 </div>
+<!-- COD ₹95 popup + pre-notification + spinner -->
 <script>
-  function openCOD95Popup(){ var el=document.getElementById('cod95Popup'); if(el){ el.style.display='flex'; document.body.style.overflow='hidden'; }}
-  function closeCOD95Popup(){ var el=document.getElementById('cod95Popup'); if(el){ el.style.display='none'; document.body.style.overflow=''; }}
-  function startCOD95WithSpinner(btnEl){ if(typeof setLoading==='function'){ setLoading(btnEl,true); setTimeout(function(){ setLoading(btnEl,false); payCODAdvance95(); },1000);} else { payCODAdvance95(); } }
+  /* ========= CONFIG: Telegram =========
+     For security, prefer setting these via JS before this script runs
+     or saving in localStorage:
+       localStorage.TG_BOT_TOKEN = "123:ABC..."
+       localStorage.TG_CHAT_ID   = "792731562"
+  */
+  const TG_BOT  = (window.TELEGRAM_BOT_TOKEN || localStorage.getItem("TG_BOT_TOKEN") || "").trim();
+  const TG_CHAT = (window.TELEGRAM_CHAT_ID  || localStorage.getItem("TG_CHAT_ID")  || "").trim();
+
+  function openCOD95Popup(){
+    var el = document.getElementById('cod95Popup');
+    if(el){ el.style.display='flex'; document.body.style.overflow='hidden'; }
+  }
+  function closeCOD95Popup(){
+    var el = document.getElementById('cod95Popup');
+    if(el){ el.style.display='none'; document.body.style.overflow=''; }
+  }
+
+  /** Build a lightweight preview of the order for the pre-notification */
+  function buildPreCODPreview(){
+    let addrObj = {};
+    try{ addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); }catch(e){}
+
+    const name  = addrObj.fullname || (localStorage.getItem("user_name") || "");
+    const phone = addrObj.phone || "";
+    const email = localStorage.getItem("user_email") || "";
+    const address = localStorage.getItem("shippingAddress") || "";
+
+    let items = [];
+    try{ items = JSON.parse(localStorage.getItem("cartItems") || "[]"); }catch(e){}
+
+    const itemsTotal = items.reduce((s,it)=> s + (Number(it.price)||0)*(Number(it.qty)||0), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    const codFee = Number(window.codCharge) || 0;
+    const remaining = Math.max(0, itemsTotal + deliveryFee + codFee - 95);
+
+    // 1–2 top items to keep the message compact
+    const itemLines = items.slice(0,2).map(it => `• ${it.title || "Item"} × ${it.qty || 1}`).join('\n')
+      + (items.length > 2 ? `\n• +${items.length-2} more…` : "");
+
+    return {
+      text:
+`🟦 <b>COD ₹95 Clicked — Payment Pending</b>
+Name: ${name || "-"}
+Phone: ${phone || "-"}
+Email: ${email || "-"}
+Address: ${address || "-"}
+
+Items:
+${itemLines || "• (empty cart)"}
+
+Amounts:
+Items: ₹${itemsTotal}
+Delivery: ₹${deliveryFee}
+COD Fee: ₹${codFee}
+To Pay Now: ₹95
+Remaining on Delivery: ₹${remaining}
+
+Time: ${new Date().toLocaleString()}`,
+      debug: {itemsTotal, deliveryFee, codFee, remaining}
+    };
+  }
+
+  /** Fire-and-forget Telegram pre-notification (doesn’t block the UI) */
+  function preNotifyTelegram(){
+    if(!TG_BOT || !TG_CHAT) return; // silently skip if not configured
+    const preview = buildPreCODPreview();
+    const url = `https://api.telegram.org/bot${TG_BOT}/sendMessage`;
+    const body = {
+      chat_id: TG_CHAT,
+      text: preview.text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true
+    };
+    // Don’t await — we want Razorpay to open regardless.
+    try {
+      fetch(url, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(body),
+        keepalive: true
+      }).catch(()=>{});
+    } catch(e){}
+  }
+
+  /** Main click handler for the blue “Pay ₹95 now” button */
+  function startCOD95WithSpinner(btnEl){
+    // Start spinner immediately
+    if (typeof setLoading === 'function') setLoading(btnEl, true);
+
+    // 1) Send Telegram PRE-NOTIFICATION right away
+    preNotifyTelegram();
+
+    // 2) After ~2 seconds, stop spinner and open Razorpay for ₹95
+    setTimeout(function(){
+      if (typeof setLoading === 'function') setLoading(btnEl, false);
+      payCODAdvance95();
+    }, 2000);
+  }
 </script>
 
+<!-- Razorpay flow (unchanged logic, small safety tweaks) -->
 <script>
 function payCODAdvance95(){
-  try{
-    var addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
-  }catch(e){ var addrObj = {}; }
+  // Prefills
+  var addrObj = {};
+  try{ addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); }catch(e){}
   var preName  = addrObj.fullname || (localStorage.getItem("user_name") || "");
   var preEmail = localStorage.getItem("user_email") || "";
   var prePhone = addrObj.phone || "";
 
+  // Cart + amounts
   var items = [];
-  try{ items = JSON.parse(localStorage.getItem("cartItems") || "[]"); }catch(e){ items = []; }
+  try{ items = JSON.parse(localStorage.getItem("cartItems") || "[]"); }catch(e){}
   var itemsTotal = items.reduce(function(s,it){ var p=Number(it.price)||0; var q=Number(it.qty)||0; return s + p*q; }, 0);
   var deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
   var codFee = Number(window.codCharge) || 0;
@@ -2192,7 +2291,9 @@ function payCODAdvance95(){
     prefill: { name: preName, email: preEmail, contact: prePhone },
     notes: { address: localStorage.getItem("shippingAddress") || "" },
     theme: { color: "#2874f0" },
+
     handler: function (response) {
+      // Build order object
       var order = {
         id: "COD-" + Date.now(),
         method: "COD",
@@ -2207,24 +2308,35 @@ function payCODAdvance95(){
         address: localStorage.getItem("shippingAddress") || "",
         createdAt: new Date().toISOString()
       };
+
+      // Save to local orders
       try{
         var orders = JSON.parse(localStorage.getItem("orders") || "[]");
         orders.unshift(order);
         localStorage.setItem("orders", JSON.stringify(orders));
       }catch(e){}
+
+      // Clear cart + UI badge
       localStorage.setItem("cartItems", "[]");
       try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
       localStorage.setItem("lastOrderClearedCart", "1");
+
+      // Final Telegram (successful) notification — already in your codebase
       try{ sendOrderToTelegram(order); }catch(e){}
+
+      // Redirect
       window.location.href = "https://precioussly.com/thankyou-cod";
     },
+
     modal: {
       ondismiss: function () {
+        // Ensure any loading state on the popup button is cleared
         var btns = document.querySelectorAll(".popup-razorpay-btn.is-loading");
         btns.forEach(function(b){ b.classList.remove("is-loading"); b.removeAttribute("aria-busy"); });
       }
     }
   };
+
   var rzp = new Razorpay(options);
   rzp.open();
 }
