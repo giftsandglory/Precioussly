@@ -1168,7 +1168,7 @@ function confirmAddress() {
     });
 </script>
 <script>
-window.codCharge = 89; // default until sheet loads
+window.codCharge = 95; // default until sheet loads
 window.cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1441,7 +1441,7 @@ function updateSummary() {
     setLoading(btnEl, true);
 
     // 1) Send pre-payment Telegram now
-    preNotifyTelegram("Razorpay (Payment Pending)");
+    preNotifyTelegram("Razorpay 😎");
 
     // 2) Wait ~2 seconds BEFORE opening Razorpay
     setTimeout(() => {
@@ -1484,7 +1484,7 @@ function handleProceed() {
     }
 
     // 1) Pre-notify now and freeze an ID to reuse on Thank-You
-    const pre = preNotifyTelegram("COD (Pay on Delivery)");
+    const pre = preNotifyTelegram("Cash on Delivery", buildCODPreview());
     const fixedId = pre.id; // reuse this so TG and Saved Order match
 
     // Keep your sound timing
@@ -1503,45 +1503,61 @@ function handleProceed() {
   }
 </script>
 <script>
-  
-  // REPLACE the whole function with this version
-  function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
-    // --- amounts ---
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
-    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-    const codFee = (window.selectedPayment === "cod" ? (Number(window.codCharge) || 0) : 0);
-    const grandTotal = itemsTotal + deliveryFee + codFee;
+function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
+  // --- items subtotal ---
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
 
-    // --- build order using the SAME ID we pre-notified ---
-    const order = {
-      id: orderIdOverride || ("COD-" + Date.now()),
-      method: "COD",
-      items,
-      amounts: { itemsTotal, deliveryFee, codFee, grandTotal },
-      address: localStorage.getItem("shippingAddress") || "",
-      createdAt: new Date().toISOString(),
-      preNotified: !!alreadyNotified
-    };
+  // ✅ COD flow me delivery fee NA dikhana/NA add karna
+  const deliveryFee = 0;
 
-    // Save to dashboard list
-    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-    orders.unshift(order);
-    localStorage.setItem("orders", JSON.stringify(orders));
+  // ✅ Sheet/variable se COD fee
+  const codFee = Number(window.codCharge || 0);
 
-    // Clear cart + badge + BFCache flag
-    localStorage.setItem("cartItems", "[]");
-    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
-    localStorage.setItem("lastOrderClearedCart", "1");
-
-    // Only send to Telegram if we DIDN'T pre-notify (safety)
-    if (!order.preNotified) {
-      try { sendOrderToTelegram(order); } catch(e) {}
+  // ✅ Coupon/discount (agar appliedCoupon mila ho)
+  let discount = 0, couponCode = null;
+  try {
+    if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0)) {
+      couponCode = window.appliedCoupon.code || null;
+      if (typeof discountOnSubtotal === "function") {
+        discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
+      }
     }
+  } catch(e){}
 
-    // Redirect
-    window.location.href = "https://precioussly.com/thankyou-cod";
-  }
+  // ✅ Grand total = items + COD − discount
+  const grandTotal = Math.max(0, itemsTotal + codFee - discount);
+
+  const order = {
+    id: orderIdOverride || ("COD-" + Date.now()),
+    method: "Cash on Delivery",
+    items,
+    coupon: couponCode || null,
+    amounts: {
+      itemsTotal,
+      deliveryFee,     // 0 for COD
+      codFee,          // ✅ important
+      discount,        // ✅ important
+      grandTotal
+    },
+    address: localStorage.getItem("shippingAddress") || "",
+    createdAt: new Date().toISOString(),
+    preNotified: !!alreadyNotified
+  };
+
+  // Save & clear
+  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  orders.unshift(order);
+  localStorage.setItem("orders", JSON.stringify(orders));
+  localStorage.setItem("cartItems", "[]");
+  try{ if(typeof updateCartBadge==='function') updateCartBadge(); }catch(e){}
+  localStorage.setItem("lastOrderClearedCart","1");
+
+  // Pre-notify bheja tha to dubara TG mat bhejo
+  if (!order.preNotified) { try{ sendOrderToTelegram(order); }catch(e){} }
+
+  window.location.href = "https://precioussly.com/thankyou-cod";
+}
 </script>
 <script>
 function closeCODPopup() {
@@ -2276,7 +2292,7 @@ Time: ${new Date().toLocaleString()}`,
     if (typeof setLoading === 'function') setLoading(btnEl, true);
 
     // 1) Send Telegram PRE-NOTIFICATION right away
-    preNotifyTelegram();
+    preNotifyTelegram("Cash on Delivery 😅");
 
     // 2) After ~2 seconds, stop spinner and open Razorpay for ₹95
     setTimeout(function(){
@@ -2369,37 +2385,70 @@ function payCODAdvance95(){
 <script>
 const TG_BOT_TOKEN = "8338453495:AAGlEj98SoocsWjT2qa6FRo6qjHInDafqfA";
 const TG_CHAT_ID   = "792731562";
+
+/* Build the exact text we send to Telegram */
 function formatOrderForTelegram(order){
   try{
-    const when = new Date(order.createdAt || Date.now()).toLocaleString("en-IN", { hour12:false });
+    const when = new Date(order.createdAt || Date.now())
+      .toLocaleString("en-IN", { day: "2-digit", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
+
+    const a = order.amounts || {};
+    const isCOD = /cod/i.test(String(order.displayMethod || order.method || ""));
+
     const lines = [];
-    lines.push(`🧾 <b>New Order</b>  <code>${order.id||""}</code>`);
-    lines.push(`💳 Method: <b>${order.method||""}</b>`);
+    lines.push(`🧾 <b>New Order</b>  <code>${order.id || ""}</code>`);
+    lines.push(`💳 Method: <b>${order.displayMethod || order.method || "-"}</b>`);
     lines.push(`⏱️ Time: ${when}`);
     lines.push(``);
     lines.push(`<b>Items:</b>`);
+
     (order.items || []).forEach((it, idx) => {
-      const qty = Number(it.qty)||1;
-      const price = Number(it.price)||0;
-      const line = `${idx+1}) ${it.name||"Item"} × ${qty} — ₹${price*qty}`;
-      lines.push(line);
+      const qty   = Number(it.qty)   || 1;
+      const price = Number(it.price) || 0;
+      lines.push(`${idx+1}) ${it.name || "Item"} × ${qty} — ₹${price * qty}`);
     });
-    const a = order.amounts || {};
-    if ('itemsTotal' in a)   lines.push(`\nSubtotal: ₹${a.itemsTotal}`);
-    if ('deliveryFee' in a)  lines.push(`Delivery: ₹${a.deliveryFee || 0}`);
-    if ('codFee' in a && a.codFee>0) lines.push(`COD Fee: ₹${a.codFee}`);
-    if ('discount' in a && a.discount>0) lines.push(`Discount: -₹${a.discount}`);
-    if ('grandTotal' in a)   lines.push(`<b>Total: ₹${a.grandTotal}</b>`);
+
+    lines.push(``);
+    // Totals section
+    if (a.itemsTotal != null) lines.push(`Item Total: ₹${a.itemsTotal}`);
+
+    // Delivery: hide on COD, otherwise show "Free Delivery" when 0
+    if (!isCOD && a.deliveryFee != null) {
+      lines.push(`Delivery: ${Number(a.deliveryFee) === 0 ? "Free Delivery" : `₹${a.deliveryFee}`}`);
+    }
+
+    // COD charges: show only when present (>0)
+    const codFeeNum = Number(a.codFee || 0);
+    if (codFeeNum > 0) {
+      lines.push(`COD Charges: ₹${codFeeNum}`);
+    }
+
+    if (Number(a.discount || 0) > 0) {
+      const couponTag = order.coupon ? ` (${order.coupon})` : "";
+      lines.push(`Coupon${couponTag}: -₹${a.discount}`);
+    }
+
+    if (a.grandTotal != null) lines.push(`<b>Order Total: ₹${a.grandTotal}</b>`);
+
     if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
-    lines.push(`\n<b>Shipping Address</b>`);
+
+    lines.push(``);
+    lines.push(`<b>Shipping Address</b>`);
     lines.push(order.address ? String(order.address).replace(/<br\s*\/?>(\n)?/gi, "\n") : "(not provided)");
-    const photos = (order.items||[]).map(i => i.photo).filter(u => typeof u === "string" && u.startsWith("http"));
+
+    // Optional product photos
+    const photos = (order.items || [])
+      .map(i => i.photo)
+      .filter(u => typeof u === "string" && /^https?:\/\//i.test(u));
     if (photos.length){ lines.push(`\nPhotos:\n` + photos.join("\n")); }
+
     return lines.join("\n");
   }catch(e){
     try{ return JSON.stringify(order,null,2); }catch(_){ return "New order"; }
   }
 }
+
+/* Send the message */
 async function sendOrderToTelegram(order){
   try{
     const url  = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`;
@@ -2429,42 +2478,54 @@ async function sendOrderToTelegram(order){
   function buildOrderSnapshot(methodLabel, forcedId) {
     const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
-    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
 
-    const isCOD = /COD/i.test(methodLabel);
+    // Detect COD from label like "Cash on Delivery" or "COD"
+    const isCOD = /(cash\s*on\s*delivery|cod)/i.test(String(methodLabel));
+
+    // Delivery is NOT charged for COD pre-notify snapshot (to match your UI)
+    const deliveryFee = isCOD ? 0 : (typeof window.deliveryFee === "number" ? window.deliveryFee : 0);
+
+    // COD fee only when COD
     const codFee = isCOD ? (Number(window.codCharge) || 0) : 0;
 
-    // Optional coupon logic (safe if coupons aren’t used)
+    // Optional coupon logic
     let discount = 0, applied = null;
     try {
-      if (window.appliedCoupon && itemsTotal >= window.appliedCoupon.min) {
-        discount = discountOnSubtotal(itemsTotal, window.appliedCoupon);
-        applied  = window.appliedCoupon.code;
+      if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0)) {
+        discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
+        applied  = window.appliedCoupon.code || null;
       }
-    } catch (e) {}
+    } catch (_) {}
 
     const grandTotal = Math.max(0, itemsTotal + deliveryFee + codFee - discount);
     const address = localStorage.getItem("shippingAddress") || "";
 
-    // We freeze an ID for COD so Thank-You uses the SAME ID we notified
+    // Freeze an ID so Thank-You can reuse the same one
     const orderId = forcedId || ((isCOD ? "COD" : "RZP") + "-PRE-" + Date.now());
 
     return {
       id: orderId,
-      method: methodLabel,              // e.g., "Razorpay (Payment Pending)"
+      method: String(methodLabel || ""),
       items,
       coupon: applied,
       amounts: { itemsTotal, deliveryFee, codFee, discount, grandTotal },
       address,
       createdAt: new Date().toISOString(),
-      preNotified: true                 // lets us avoid double Telegram pings
+      preNotified: true
     };
   }
 
-  // Fire-and-forget pre-notification; does not block UI
-  function preNotifyTelegram(methodLabel, forcedId) {
-    const snapshot = buildOrderSnapshot(methodLabel, forcedId);
-    try { sendOrderToTelegram(snapshot); } catch (e) {}
+  /**
+   * Fire-and-forget pre-notification.
+   *  - If 2nd arg is an OBJECT, it will be used as the snapshot directly.
+   *  - If 2nd arg is a STRING (forcedId) or empty, we build a snapshot now.
+   */
+  function preNotifyTelegram(methodLabel, snapshotOrForcedId) {
+    const snapshot = (snapshotOrForcedId && typeof snapshotOrForcedId === "object")
+      ? snapshotOrForcedId
+      : buildOrderSnapshot(methodLabel, typeof snapshotOrForcedId === "string" ? snapshotOrForcedId : undefined);
+
+    try { sendOrderToTelegram(snapshot); } catch (_) {}
     window._lastPreNotify = snapshot;   // remember for COD handoff
     return snapshot;
   }
@@ -2635,6 +2696,32 @@ document.addEventListener('DOMContentLoaded', function(){ try{ syncCouponInput()
     }, 0);
   };
 })();
+</script>
+<script>
+function buildCODPreview() {
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+  const codFee = Number(window.codCharge || 0);
+  let discount = 0, couponCode = null;
+  try {
+    if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0)) {
+      couponCode = window.appliedCoupon.code || null;
+      if (typeof discountOnSubtotal === "function") {
+        discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
+      }
+    }
+  } catch(e){}
+  const grandTotal = Math.max(0, itemsTotal + codFee - discount);
+
+  return {
+    method: "Cash on Delivery",
+    items,
+    coupon: couponCode,
+    amounts: { itemsTotal, deliveryFee: 0, codFee, discount, grandTotal },
+    address: localStorage.getItem("shippingAddress") || "",
+    createdAt: new Date().toISOString()
+  };
+}
 </script>
 </body>
 </html>
