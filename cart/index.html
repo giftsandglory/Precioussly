@@ -1477,57 +1477,71 @@ function handleProceed() {
 
 
   // REPLACE the whole continueWithCOD with this version
-  
+  function continueWithCOD(btnEl) {
+    if (btnEl) {
+      btnEl.classList.add('is-loading');
+      btnEl.setAttribute('aria-busy', 'true');
+    }
+
+    // 1) Pre-notify now and freeze an ID to reuse on Thank-You
+    const pre = preNotifyTelegram("COD (Pay on Delivery)");
+    const fixedId = pre.id; // reuse this so TG and Saved Order match
+
+    // Keep your sound timing
+    setTimeout(() => { try { playCODConfirm(); } catch(e){} }, 1000);
+
+    // 2) After ~2s, stop spinner and place order + redirect
+    setTimeout(() => {
+      if (btnEl) {
+        btnEl.classList.remove('is-loading');
+        btnEl.removeAttribute('aria-busy');
+      }
+      setTimeout(() => {
+        placeCODOrderAndRedirect(fixedId, /*alreadyNotified=*/true);
+      }, 150);
+    }, 2000);
+  }
 </script>
 <script>
-function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
-  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  const itemsTotal = items.reduce((s,it)=> s + (Number(it.price) * Number(it.qty||1)), 0);
+  
+  // REPLACE the whole function with this version
+  function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
+    // --- amounts ---
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    const codFee = (window.selectedPayment === "cod" ? (Number(window.codCharge) || 0) : 0);
+    const grandTotal = itemsTotal + deliveryFee + codFee;
 
-  // match UI: no delivery for COD, but include COD fee and coupon discount
-  const codFee = Number(window.codCharge)||0;
+    // --- build order using the SAME ID we pre-notified ---
+    const order = {
+      id: orderIdOverride || ("COD-" + Date.now()),
+      method: "COD",
+      items,
+      amounts: { itemsTotal, deliveryFee, codFee, grandTotal },
+      address: localStorage.getItem("shippingAddress") || "",
+      createdAt: new Date().toISOString(),
+      preNotified: !!alreadyNotified
+    };
 
-  let discount = 0, couponCode = null;
-  try{
-    if (window.appliedCoupon && itemsTotal >= window.appliedCoupon.min){
-      discount = discountOnSubtotal(itemsTotal, window.appliedCoupon);
-      couponCode = window.appliedCoupon.code;
+    // Save to dashboard list
+    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    orders.unshift(order);
+    localStorage.setItem("orders", JSON.stringify(orders));
+
+    // Clear cart + badge + BFCache flag
+    localStorage.setItem("cartItems", "[]");
+    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
+    localStorage.setItem("lastOrderClearedCart", "1");
+
+    // Only send to Telegram if we DIDN'T pre-notify (safety)
+    if (!order.preNotified) {
+      try { sendOrderToTelegram(order); } catch(e) {}
     }
-  }catch(e){}
 
-  const grandTotal = Math.max(0, itemsTotal + codFee - discount);
-
-  // if you take an advance for COD (e.g., ₹95), set it here:
-  const prepaidNow = Number(window.codAdvanceAmount || 0); // set elsewhere to 95 when you collect advance
-
-  const order = {
-    id: orderIdOverride || ("COD-" + Date.now()),
-    method: "COD",
-    coupon: couponCode,
-    items,
-    amounts: { itemsTotal, codFee, discount, grandTotal },
-    prepaidNow: prepaidNow,                          // <<< used in Telegram "Prepaid Now"
-    address: localStorage.getItem("shippingAddress") || "",
-    createdAt: new Date().toISOString(),
-    preNotified: !!alreadyNotified
-  };
-
-  // Save to dashboard
-  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-  orders.unshift(order);
-  localStorage.setItem("orders", JSON.stringify(orders));
-
-  // Clear cart & badge
-  localStorage.setItem("cartItems", "[]");
-  try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
-  localStorage.setItem("lastOrderClearedCart","1");
-
-  // Send to Telegram again only if we didn't pre-notify
-  if (!order.preNotified) { try{ sendOrderToTelegram(order); }catch(e){} }
-
-  // Redirect
-  window.location.href = "https://precioussly.com/thankyou-cod";
-}
+    // Redirect
+    window.location.href = "https://precioussly.com/thankyou-cod";
+  }
 </script>
 <script>
 function closeCODPopup() {
@@ -1768,8 +1782,6 @@ function discountOnSubtotal(subtotal, c){
   d = Math.max(0, Math.min(d, subtotal)); // never exceed items total
   return d;
 }
-
-
 
 function bestCouponFor(subtotal){
   let best = null, bestAmt = 0;
@@ -2237,37 +2249,26 @@ Time: ${new Date().toLocaleString()}`,
   }
 
   /** Fire-and-forget Telegram pre-notification (doesn’t block the UI) */
-  function preNotifyTelegram(methodLabel){
-  try{
-    var m = methodLabel || (window.selectedPayment==="cod" ? "COD (Pay on Delivery)" : "Razorpay (Payment Pending)");
-
-    var nums = computeOrderNumbers((m.toLowerCase().includes("cod")) ? "cod" : "razorpay");
-
-    var order = {
-      id: (m.toLowerCase().includes("cod") ? ("COD-PRE-"+Date.now()) : ("RZP-PRE-"+Date.now())),
-      method: m,
-      items: nums.items,
-      coupon: nums.coupon,
-      amounts: {
-        itemsTotal: nums.subtotal,
-        deliveryFee: nums.deliveryFee,
-        codFee: nums.codFee,
-        discount: nums.discount,
-        grandTotal: nums.grandTotal
-      },
-      prepaidAmount: nums.prepaidAmount,
-      remainingAmount: nums.remainingAmount,
-      address: localStorage.getItem("shippingAddress") || "",
-      createdAt: new Date().toISOString()
+  function preNotifyTelegram(){
+    if(!TG_BOT || !TG_CHAT) return; // silently skip if not configured
+    const preview = buildPreCODPreview();
+    const url = `https://api.telegram.org/bot${TG_BOT}/sendMessage`;
+    const body = {
+      chat_id: TG_CHAT,
+      text: preview.text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true
     };
-
-    sendOrderToTelegram(order); // send full order
-    return order;
-  }catch(e){
-    console.warn("preNotifyTelegram error", e);
-    return { id: "PRE-"+Date.now() };
+    // Don’t await — we want Razorpay to open regardless.
+    try {
+      fetch(url, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(body),
+        keepalive: true
+      }).catch(()=>{});
+    } catch(e){}
   }
-}
 
   /** Main click handler for the blue “Pay ₹95 now” button */
   function startCOD95WithSpinner(btnEl){
@@ -2365,7 +2366,63 @@ function payCODAdvance95(){
 </script>
 
 <!-- ======= Telegram Order Notifier (auto-inserted) ======= -->
-
+<script>
+const TG_BOT_TOKEN = "8338453495:AAGlEj98SoocsWjT2qa6FRo6qjHInDafqfA";
+const TG_CHAT_ID   = "792731562";
+function formatOrderForTelegram(order){
+  try{
+    const when = new Date(order.createdAt || Date.now()).toLocaleString("en-IN", { hour12:false });
+    const lines = [];
+    lines.push(`🧾 <b>New Order</b>  <code>${order.id||""}</code>`);
+    lines.push(`💳 Method: <b>${order.method||""}</b>`);
+    lines.push(`⏱️ Time: ${when}`);
+    lines.push(``);
+    lines.push(`<b>Items:</b>`);
+    (order.items || []).forEach((it, idx) => {
+      const qty = Number(it.qty)||1;
+      const price = Number(it.price)||0;
+      const line = `${idx+1}) ${it.name||"Item"} × ${qty} — ₹${price*qty}`;
+      lines.push(line);
+    });
+    const a = order.amounts || {};
+    if ('itemsTotal' in a)   lines.push(`\nSubtotal: ₹${a.itemsTotal}`);
+    if ('deliveryFee' in a)  lines.push(`Delivery: ₹${a.deliveryFee || 0}`);
+    if ('codFee' in a && a.codFee>0) lines.push(`COD Fee: ₹${a.codFee}`);
+    if ('discount' in a && a.discount>0) lines.push(`Discount: -₹${a.discount}`);
+    if ('grandTotal' in a)   lines.push(`<b>Total: ₹${a.grandTotal}</b>`);
+    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
+    lines.push(`\n<b>Shipping Address</b>`);
+    lines.push(order.address ? String(order.address).replace(/<br\s*\/?>(\n)?/gi, "\n") : "(not provided)");
+    const photos = (order.items||[]).map(i => i.photo).filter(u => typeof u === "string" && u.startsWith("http"));
+    if (photos.length){ lines.push(`\nPhotos:\n` + photos.join("\n")); }
+    return lines.join("\n");
+  }catch(e){
+    try{ return JSON.stringify(order,null,2); }catch(_){ return "New order"; }
+  }
+}
+async function sendOrderToTelegram(order){
+  try{
+    const url  = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`;
+    const text = formatOrderForTelegram(order);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        chat_id: TG_CHAT_ID,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true
+      })
+    });
+    if (!res.ok){
+      const t = await res.text().catch(()=> "");
+      console.warn("Telegram send failed", res.status, t);
+    }
+  } catch(err){
+    console.warn("Telegram send error", err);
+  }
+}
+</script>
 <!-- PRE-PAY Telegram helpers: paste AFTER formatOrderForTelegram, BEFORE sendOrderToTelegram -->
 <script>
   // Build a consistent order snapshot (used for the pre-payment ping)
@@ -2578,197 +2635,6 @@ document.addEventListener('DOMContentLoaded', function(){ try{ syncCouponInput()
     }, 0);
   };
 })();
-</script>
-
-<script>
-function formatOrderForTelegram(order){
-  try{
-    const when = new Date(order.createdAt || Date.now()).toLocaleString("en-IN",{hour12:false});
-    const lines = [];
-    lines.push(`🧾 <b>New Order</b>  <code>${order.id||""}</code>`);
-    lines.push(`🪪 Method: <b>${order.method||"-"}</b>`);
-    lines.push(`🕒 Time: ${when}`);
-    lines.push(``);
-    lines.push(`<b>Items:</b>`);
-    (order.items||[]).forEach((it, i)=>{
-      const qty = Number(it.qty)||1, price = Number(it.price)||0;
-      lines.push(`${i+1}) ${it.name||"Item"} × ${qty} — ₹${price*qty}`);
-    });
-
-    const a = order.amounts || {};
-    const prepaid = Number(order.prepaidAmount||0);
-    const remaining = Number(order.remainingAmount||0);
-
-    lines.push(``);
-    lines.push(`Subtotal: ₹${a.itemsTotal||0}`);
-    if (typeof a.deliveryFee!=="undefined") lines.push(`Delivery: ₹${a.deliveryFee||0}`);
-    if (a.codFee) lines.push(`COD Charges: ₹${a.codFee}`);
-    if (a.discount) lines.push(`Discount: -₹${a.discount}`);
-    lines.push(`<b>Total: ₹${a.grandTotal||0}</b>`);
-    if (!isNaN(prepaid))   lines.push(`Prepaid: ₹${prepaid}`);
-    if (!isNaN(remaining)) lines.push(`<b>To Collect: ₹${remaining}</b>`);
-    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
-
-    lines.push(``);
-    lines.push(`<b>Shipping Address</b>\n${order.address||""}`);
-    return lines.join("\n");
-  }catch(e){
-    return "New Order";
-  }
-}
-</script>
-<script>
-/* ===== Telegram Config (keep your values) ===== */
-const TG_BOT_TOKEN = "8338453495:AAGlEj98SoocsWjT2qa6FRo6qjHInDafqfA";
-const TG_CHAT_ID   = "792731562";
-
-/* INR formatter */
-function inr(n){ n = Number(n||0); return n.toLocaleString("en-IN"); }
-
-/* Build the message for Telegram exactly the way you described */
-
-/* Pre-notify BEFORE payment (shows "Payment Pending") */
-function preNotifyTelegram(label){
-  try{
-    const items = JSON.parse(localStorage.getItem("cartItems")||"[]");
-    const itemsTotal = items.reduce((s,it)=> s + (Number(it.price)*Number(it.qty||1)), 0);
-
-    // For pre-notify, use the same math as UI:
-    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-
-    // If COD pending pre-notify is used, caller should set method="COD"
-    const order = {
-      id: (label && label.startsWith("Razorpay")) ? ("RZP-PRE-"+Date.now())
-          : ("COD-PRE-"+Date.now()),
-      method: (label && label.includes("Razorpay")) ? "Razorpay" : "COD",
-      coupon: (window.appliedCoupon && window.appliedCoupon.code) ? window.appliedCoupon.code : null,
-      items,
-      // for Razorpay we include delivery; for COD we won't count delivery
-      amounts: {
-        itemsTotal,
-        deliveryFee: deliveryFee,
-        discount: (window.appliedCoupon && itemsTotal >= window.appliedCoupon.min)
-                  ? discountOnSubtotal(itemsTotal, window.appliedCoupon) : 0,
-        codFee: (window.selectedPayment==="cod") ? (Number(window.codCharge)||0) : 0,
-        grandTotal: 0 // filled below
-      },
-      address: localStorage.getItem("shippingAddress")||"",
-      createdAt: new Date().toISOString()
-    };
-
-    // Grand total rules must match the on-screen rules
-    if (order.method==="COD"){
-      order.amounts.grandTotal = Math.max(0,
-        order.amounts.itemsTotal
-        + (order.amounts.codFee||0)
-        - (order.amounts.discount||0)
-      );
-      order.prepaidNow = Number(window.codAdvanceAmount||0); // if you take ₹95 now
-    } else {
-      order.amounts.grandTotal = Math.max(0,
-        order.amounts.itemsTotal
-        + (order.amounts.deliveryFee||0)
-        - (order.amounts.discount||0)
-      );
-    }
-
-    sendOrderToTelegram(order);
-    return order.id; // so you can reuse the same id after success
-  }catch(e){}
-  return null;
-}
-</script>
-<script>
-function continueWithCOD(btnEl){
-  if (btnEl){ btnEl.classList.add('is-loading'); btnEl.setAttribute('aria-busy','true'); }
-
-  const pre = preNotifyTelegram("COD (Pay on Delivery)");
-  const fixedId = pre.id;
-
-  setTimeout(()=>{ try{ playCODConfirm(); }catch(e){} },1000);
-
-  setTimeout(()=>{
-    if (btnEl){ btnEl.classList.remove('is-loading'); btnEl.removeAttribute('aria-busy'); }
-    placeCODOrderAndRedirect(fixedId, /*alreadyNotified=*/true);
-  },2000);
-}
-</script>
-<script>
-// Human-friendly date for Telegram: "15 August 2025, 12:31 Pm"
-function formatDateForTelegram(ts){
-  const d = new Date(ts || Date.now());
-  const months = [
-    "January","February","March","April","May","June",
-    "July","August","September","October","November","December"
-  ];
-  const day = d.getDate();
-  const monthName = months[d.getMonth()];
-  const year = d.getFullYear();
-
-  let hrs = d.getHours();
-  const mins = String(d.getMinutes()).padStart(2, "0");
-  const suffix = (hrs >= 12) ? "Pm" : "Am";   // exact casing you asked for
-  hrs = hrs % 12; if (hrs === 0) hrs = 12;    // 12-hour clock
-
-  return `${day} ${monthName} ${year}, ${hrs}:${mins} ${suffix}`;
-}
-</script>
-<script>
-function formatOrderForTelegram(order){
-  const dt = formatDateForTelegram(order.createdAt);
-  const A = order.amounts || {};
-  const method = order.method || "-";
-
-  // Common header
-  const lines = [];
-  lines.push(`🧾 <b>New Order</b>  <code>${order.id || ""}</code>`);
-  lines.push(`💳 Method: <b>${method}</b>`);
-  lines.push(`🕒 Time: ${dt}`);
-  lines.push(``);
-  lines.push(`<b>Items:</b>`);
-
-  (order.items || []).forEach((it, idx) => {
-    const qty = Number(it.qty)||1;
-    const price = Number(it.price)||0;
-    lines.push(`${idx+1}) ${it.name||"Item"} × ${qty} — ₹${inr(price*qty)}`);
-  });
-
-  // ----- Amounts section (two different layouts) -----
-  lines.push(``);
-  if (method.toUpperCase()==="COD"){
-    // COD layout
-    lines.push(`Subtotal: ₹${inr(A.itemsTotal||0)}`);
-    if (A.codFee) lines.push(`COD Charges: ₹${inr(A.codFee)}`);
-    if (A.discount) lines.push(`Discount: -₹${inr(A.discount)}${order.coupon?"" : ""}`);
-    lines.push(`<b>Total: ₹${inr(A.grandTotal||0)}</b>`);
-
-    // Prepaid now (if any) + To Collect
-    const prepaid = Number(order.prepaidNow||0);
-    if (prepaid>0){
-      lines.push(`Prepaid Now: ₹${inr(prepaid)}`);
-      lines.push(`<b>To Collect: ₹${inr(Math.max(0,(A.grandTotal||0)-prepaid))}</b>`);
-    } else {
-      lines.push(`<b>To Collect: ₹${inr(A.grandTotal||0)}</b>`);
-    }
-    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
-  } else {
-    // Razorpay layout
-    lines.push(`Subtotal: ₹${inr(A.itemsTotal||0)}`);
-    lines.push(`Delivery: ${A.deliveryFee ? ("₹"+inr(A.deliveryFee)) : "₹0 (Free Delivery)"}`);
-    if (A.discount) lines.push(`Discount: -₹${inr(A.discount)}`);
-    lines.push(`<b>Total: ₹${inr(A.grandTotal||0)}</b>`);
-    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
-  }
-
-  // Address
-  if (order.address){
-    lines.push(``);
-    lines.push(`<b>Shipping Address</b>`);
-    lines.push(order.address.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g,'').trim());
-  }
-
-  return lines.join("\n");
-}
 </script>
 </body>
 </html>
