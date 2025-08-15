@@ -1254,6 +1254,41 @@ down-toggle {
 }
 
 </style>
+<style>
+#siteFooter{
+  display:none;            /* hidden at start */
+  opacity:0;               /* fade from 0 -> 1 */
+  transition:opacity .35s ease;
+  background:#fff;
+  border-top:1px solid #eaeaea;
+  text-align:center;
+  padding:6px 8px;         /* was 16px 12px 28px – reduced height */
+  font-family:'Roboto Slab', serif;
+  color:#000;
+  font-size:13px;          /* smaller text */
+  line-height:1.4;         /* tighter spacing */
+}
+#siteFooter.show{ display:block; opacity:1; }
+
+#siteFooter .brand{
+  margin-bottom:4px;       /* minimal space */
+}
+
+#siteFooter .links{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:4px 8px;              /* small gap */
+}
+#siteFooter .links a{
+  color:#000;
+  text-decoration:none;
+}
+#siteFooter .links a:hover{
+  text-decoration:underline;
+}
+#siteFooter .dot{ opacity:.6; }
+</style>
 </head>
 <body>
 <header class="site-header" id="mainHeader">
@@ -1952,6 +1987,34 @@ window.goToProduct = goToProduct;
 window.openHeaderSearch = openHeaderSearch;
 window.closeHeaderSearch = closeHeaderSearch;
 </script>
+<footer id="siteFooter" aria-label="Site footer">
+  <div class="brand">© <span id="footerYear"></span> Precioussly. All rights reserved.</div>
 
+  <nav class="links" aria-label="Policies">
+    <a href="https://precioussly.com/privacy-policy">Privacy Policy</a>
+    <span class="dot">•</span>
+    <!-- Note: & in URLs must be written as &amp; in HTML -->
+    <a href="https://precioussly.com/terms&amp;conditions">Terms &amp; Conditions</a>
+    <span class="dot">•</span>
+    <a href="https://precioussly.com/return-policy">Refund Policy</a>
+    <span class="dot">•</span>
+    <a href="https://precioussly.com/shipping-policy">Shipping Policy</a>
+    <span class="dot">•</span>
+    <a href="https://precioussly.com/about-us">About Us</a>
+  </nav>
+</footer>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Set the live year
+    var y = document.getElementById('footerYear');
+    if (y) y.textContent = new Date().getFullYear();
+
+    // Show footer after 3 seconds
+    var f = document.getElementById('siteFooter');
+    setTimeout(function () {
+      if (f) f.classList.add('show');
+    }, 3000);
+  });
+</script>
 </body>
 </html>
