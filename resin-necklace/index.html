@@ -666,7 +666,48 @@ nav.side-menu {
   padding: 14px 14px !important;
 }
 </style>
+<style>
+/* ===== Header Search (inline) ===== */
+.header-search{ display:none; align-items:center; gap:8px; width:100%; }
+.header-search input{
+  flex:1; padding:12px 14px; font:400 16px 'Roboto Slab', serif;
+  border:1px solid #d9d9d9; border-radius:12px; outline:none; background:#fff;
+}
+.header-search input:focus{ border-color:#bfbfbf; }
 
+/* Back pill button */
+#headerSearchBack{
+  height:36px; padding:0 14px; font:500 14px 'Roboto Slab', serif; color:#222;
+  background:#fff; border:1px solid rgba(0,0,0,.18); border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06); cursor:pointer; -webkit-tap-highlight-color:transparent;
+}
+
+/* Searching mode: logo/menu/icons hide, input row show */
+.site-header.searching .hamburger-wrapper,
+.site-header.searching #logoWrap,
+.site-header.searching #rightIcons{ display:none !important; }
+.site-header.searching #headerSearchBar{ display:flex !important; }
+
+/* Suggestions box: search bar ke BILKUL niche */
+#headerSearchBar{ position:relative; }
+#headerSearchResults{
+  position:absolute; top:calc(100% + 10px); left:0; right:0;
+  display:none; background:#fff; border:1px solid #eaeaea; border-radius:12px;
+  box-shadow:0 8px 22px rgba(0,0,0,0.08); max-height:62vh; overflow:auto; padding:6px; z-index:4000;
+}
+.header-suggest{
+  display:grid; grid-template-columns:56px 1fr auto; gap:10px; align-items:center;
+  padding:8px; border-radius:10px;
+}
+.header-suggest:hover{ background:#f9f9f9; }
+.header-suggest img{ width:56px; height:56px; border-radius:10px; object-fit:cover; }
+.header-suggest .name{ font-size:14px; font-weight:600; }
+.header-suggest .price{ font-size:13px; color:#111; }
+.header-suggest .tag{ font-size:11px; padding:3px 6px; border:1px solid #ddd; border-radius:8px; color:#333; }
+
+/* Header sticky (already present; ensure z-index high) */
+.site-header{ position:sticky; top:0; z-index:3500; }
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -677,37 +718,71 @@ nav.side-menu {
   </div>
 
   <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-  <img
-    src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
-    alt="Precioussly Logo"
-    onclick="location.href = 'https://precioussly.com';"
-    style="
-      width: 110px;
-      height: auto;
-      object-fit: contain;
-      cursor: pointer;
-      transition: opacity 0.3s ease;
-      -webkit-tap-highlight-color: transparent;
-    "
-  />
-</div>
+    <img
+      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+      alt="Precioussly Logo"
+      onclick="location.href = 'https://precioussly.com';"
+      style="
+        width: 110px;
+        height: auto;
+        object-fit: contain;
+        cursor: pointer;
+        transition: opacity 0.3s ease;
+        -webkit-tap-highlight-color: transparent;
+      "
+    />
+  </div>
 
-  <div style="display: flex; align-items: center; gap: 12px;">
+  <div id="rightIcons" style="display: flex; align-items: center; gap: 12px;">
     <!-- Search icon -->
-    <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
+    <img
+      src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
+      alt="Search"
+      class="right-icon"
+      style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;"
+      onclick="openHeaderSearch()"
+    />
 
     <!-- Profile icon -->
-    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
+    <img
+      id="profileIcon"
+      src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
+      alt="Profile"
+      class="right-icon icon-size"
+      onclick="handleProfileClick()"
+      style="cursor: pointer;"
+    />
 
-<!-- Cart icon with badge -->
-<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 19px; height: 19px; display: flex; align-items: center; justify-content: center;">0</span>
-</a>
-</div>
-</div>
+    <!-- Cart icon with badge -->
+    <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+      <img
+        src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
+        alt="Cart"
+        class="right-icon icon-size"
+      />
+      <span
+        id="cartCountBadge"
+        style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 19px; height: 19px; display: flex; align-items: center; justify-content: center;"
+      >0</span>
+    </a>
   </div>
-</div>
+
+  <!-- 🔎 Inline header search row -->
+  <div id="headerSearchBar" class="header-search">
+    <input
+      id="headerSearchInput"
+      type="text"
+      placeholder="Search products..."
+      autocomplete="off"
+    />
+    <button
+      id="headerSearchBack"
+      class="back-btn"
+      type="button"
+      onclick="closeHeaderSearch()"
+    >Back</button>
+    <div id="headerSearchResults"></div>
+  </div>
 </header>
 <!-- Announcement Bar -->
 <div id="announcementBar">🧿</div>
@@ -1452,6 +1527,131 @@ function updateCartBadge(){
 }
 if (document.readyState !== "loading") updateCartBadge();
 else document.addEventListener("DOMContentLoaded", updateCartBadge);
+</script>
+<script>
+/* ===== Multi-Page Search Setup =====
+   👉 "CATALOGS" me jitne pages/sheets chahen add kijiye.
+   ✅ page ko safest tarike se current page path par set kiya (location.pathname),
+      taaki yahin ka popup ?p= se open ho (aapka maybeOpenFromURL already handle karta hai).
+*/
+const CATALOGS = [
+  {
+    name: "Resin Necklace",
+    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
+    page : location.pathname            // e.g. "/resin-necklace/" or "/Resin Necklace.html"
+  },
+  // { name:"Hello", sheet:"https://opensheet.elk.sh/XXXX/Sheet1", page:"/hello.html" },
+  // { name:"Rings", sheet:"https://opensheet.elk.sh/YYYY/Sheet1", page:"/rings/" },
+];
+
+// Global merged list
+window.allProducts = [];
+
+// Load all catalogs from Google Sheets
+Promise.all(
+  CATALOGS.map(cat =>
+    fetch(cat.sheet).then(r => r.json()).then(rows => {
+      const items = rows
+        .filter(row => (row["Product Name"] || "").trim())
+        .map(row => ({
+          name: String(row["Product Name"]).trim(),
+          price: Number(row["Selling Price"] || 0),
+          mrp: Number(row["MRP"] || 0),
+          image: row["photo 1"] || row["Photo 1"] || "",
+          page: cat.page,
+          from: cat.name
+        }));
+      return items;
+    })
+  )
+).then(listOfLists => {
+  window.allProducts = listOfLists.flat();
+}).catch(()=>{ /* ignore */ });
+
+/* ========== UI wiring ========== */
+const inputEl = document.getElementById('headerSearchInput');
+const boxEl   = document.getElementById('headerSearchResults');
+
+function openHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  if(header) header.classList.add('searching');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  if(header) header.classList.remove('searching');
+  hideSuggest();
+}
+function hideSuggest(){
+  if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
+}
+
+/* Filter + render suggestions below the bar */
+function renderSuggestions(q){
+  const ql = (q||"").toLowerCase().trim();
+  if(!ql){ hideSuggest(); return; }
+
+  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
+  const top  = list.slice(0, 12); // max 12 items
+
+  if(!top.length){ hideSuggest(); return; }
+
+  boxEl.innerHTML = top.map(p => `
+    <div class="header-suggest" onclick="goToProduct('${p.page}', '${(p.name||"").replace(/'/g,"\\'")}')">
+      <img src="${p.image || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
+      <div>
+        <div class="name">${p.name}</div>
+        <div class="price">₹${p.price || '-'}</div>
+      </div>
+      <div class="tag">${p.from}</div>
+    </div>
+  `).join('');
+
+  boxEl.style.display = 'block';
+}
+
+/* Go to that page and auto-open the product popup via ?p= */
+function goToProduct(pagePath, productName){
+  // Agar pagePath current file hi hai to same-page URL banega
+  const base = location.origin;
+  location.href = `${base}${pagePath}?p=${encodeURIComponent(productName)}`;
+}
+
+/* Typing events */
+if (inputEl){
+  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
+
+  // Enter: first best match open, bina kisi unwanted redirect ke
+  inputEl.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      const typed = (inputEl.value||'').trim();
+      if(!typed){ closeHeaderSearch(); return; }
+
+      const list = (window.allProducts || [])
+        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+
+      const chosen =
+        list[0] ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase()) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase())) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+
+      if (chosen){
+        goToProduct(chosen.page, chosen.name);
+      } else {
+        // Fallback: isi page par typed name ke saath popup kholne ki koshish
+        goToProduct(location.pathname, typed);
+      }
+    }
+  });
+}
+
+// Expose for inline onclick
+window.goToProduct = goToProduct;
+window.openHeaderSearch = openHeaderSearch;
+window.closeHeaderSearch = closeHeaderSearch;
 </script>
 </body>
 </html>
