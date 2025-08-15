@@ -264,6 +264,17 @@ body {
   justify-content: space-between;
   margin-bottom: 8px;
 }
+/* ✅ COD amount chip (green rounded box) */
+.cod-chip{
+  display:inline-block;
+  background:#e9fef1;
+  border:1px solid #c5ecd6;
+  color:#064c2c;
+  padding:4px 10px;
+  border-radius:10px;
+  font-weight:700;
+  line-height:1;
+}
 
 .proceed-btn {
   background: #2874f0;               /* Flipkart blue */
@@ -861,7 +872,9 @@ function updateSummary() {
 
   const fee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
 
-  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee}</span>`;
+  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee
+  try { syncCouponInput(); } catch(e){}
+}</span>`;
 
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
@@ -871,21 +884,6 @@ function updateSummary() {
     </div>
   `;
 }
-
-  const fee = window.deliveryFee;
-  const feeText = fee === 0
-    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
-    : `₹${fee}`;
-
-  document.getElementById("summaryBox").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
-      <span>Order Total</span><span>₹${total + fee}</span>
-    </div>
-  `;
-}
-
   function updateCartBadge() {
     const items = JSON.parse(localStorage.getItem("cartItems")) || [];
     let count = 0;
@@ -1275,30 +1273,11 @@ function removeItem(index) {
   location.reload(); // Page reload to re-render all cart items
 }
 </script>
+
 <script>
-function updateSummary() {
-  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-  let total = 0;
-  cartData.forEach(item => {
-    total += item.price * item.qty;
-  });
-
-  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 100;
-
-  const feeText = deliveryFee === 0
-    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
-    : `₹${deliveryFee}`;
-
-  document.getElementById("summaryBox").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
-  `;
-}
-</script>
-<script>
-let selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || "razorpay"; // default from current radio
+let selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || "razorpay";
 window.selectedPayment = selectedPayment;
+
 function updatePaymentMethod() {
   const method = document.querySelector('input[name="paymentMethod"]:checked').value;
   selectedPayment = method;
@@ -1309,31 +1288,75 @@ function updatePaymentMethod() {
     labelEl.textContent = (method === "cod") ? "Continue with COD" : "Proceed to Pay";
   }
 
-  updateSummary(); // keeps COD charges logic
+  updateSummary();
+  // minimum order ka notice total ke hisaab se dubara check ho
+  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
 }
+
 
 
 // Override updateSummary to include COD charge
 function updateSummary() {
-  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-  let total = 0;
-  cartData.forEach(item => total += item.price * item.qty);
+  // ---- totals ----
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
 
-  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
-  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const codFee      = (selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
 
-  const feeText = deliveryFee === 0
+  // ---- coupon logic (same as before) ----
+  let couponToUse = null, discount = 0;
+  if (window.allCoupons && allCoupons.length){
+    if (window.manualLock && window.appliedCoupon){
+      couponToUse = window.appliedCoupon;
+      discount = (subtotal >= couponToUse.min) ? discountOnSubtotal(subtotal, couponToUse) : 0;
+    } else {
+      const {coupon, amount} = bestCouponFor(subtotal);
+      couponToUse = coupon;
+      discount = amount;
+      window.appliedCoupon = coupon || null; try{syncCouponInput();}catch(e){}
+    }
+  }
+
+  // “Free Delivery” ya amount ki text
+  const feeText = (deliveryFee === 0)
     ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
     : `₹${deliveryFee}`;
 
-  const grandTotal = total + deliveryFee + codFee;
+  // ✅ COD par Delivery Fee line HIDE — chahe free ho ya paid
+  const showDeliveryRow = !(selectedPayment === "cod");
 
-  document.getElementById("summaryBox").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-    ${selectedPayment === "cod" ? `<div class="summary-row"><span>COD Charges</span><span>₹${Number(window.codCharge)||0}</span></div>` : ""}
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${grandTotal}</span></div>
+  // grand total: agar Delivery row hide hai to usko add na karein
+  const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
+
+  // ---- build rows ----
+  let rows = `
+    <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
   `;
+
+  if (showDeliveryRow) {
+    rows += `<div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>`;
+  }
+
+  // ✅ COD amount ko green rounded chip me dikhayein
+  if (codFee) {
+    rows += `<div class="summary-row"><span>COD Charges</span><span><span class="cod-chip">₹${codFee}</span></span></div>`;
+  }
+
+  if (discount) {
+    rows += `<div class="summary-row"><span>Coupon (${couponToUse.code})</span><span>-₹${discount}</span></div>`;
+  }
+
+  rows += `<div class="summary-row" style="font-weight: bold; font-size: 18px;">
+            <span>Order Total</span><span>₹${grand}</span>
+          </div>`;
+
+  document.getElementById("summaryBox").innerHTML = rows;
+
+  // helpers jinhe aap pehle se use kar rahe the
+  try { showAppliedTag(subtotal); } catch(e){}
+  try { showProgress(subtotal); } catch(e){}
+  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
 }
 </script>
 <!-- ✅ COD Razorpay Suggestion Popup -->
@@ -1739,7 +1762,7 @@ const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2i
 
 // ====== 2) State ======
 window.allCoupons = [];            // raw coupons from sheet
-window.appliedCoupon = null;       // {code,title,min,amount,isPercent,raw}
+window.appliedCoupon = null; try{syncCouponInput();}catch(e){}       // {code,title,min,amount,isPercent,raw}
 window.manualLock = false;         // if user applied manually, don't auto-switch
 
 // ====== 3) Helpers ======
@@ -1832,15 +1855,15 @@ function applyCouponManually(){
 
   if (found){
     if (subtotal >= found.min) {
-      window.appliedCoupon = found;
+      window.appliedCoupon = found; try{syncCouponInput();}catch(e){}
     } else {
       alert(`Minimum order ₹${found.min} required for this coupon.`);
-      window.appliedCoupon = null;
+      window.appliedCoupon = null; try{syncCouponInput();}catch(e){}
       input.value = "";
     }
   } else {
     alert("Invalid coupon");
-    window.appliedCoupon = null;
+    window.appliedCoupon = null; try{syncCouponInput();}catch(e){}
   }
   
   updateSummary();
@@ -1848,7 +1871,7 @@ function applyCouponManually(){
 
 function clearManualCoupon(){
   window.manualLock = false;
-  window.appliedCoupon = null;
+  window.appliedCoupon = null; try{syncCouponInput();}catch(e){}
   document.getElementById("couponInput").value = "";
   updateSummary();
 }
@@ -1894,7 +1917,7 @@ if (coupWrap){
       const {coupon, amount} = bestCouponFor(subtotal);
       couponToUse = coupon;
       discount = amount;
-      window.appliedCoupon = coupon || null;
+      window.appliedCoupon = coupon || null; try{syncCouponInput();}catch(e){}
     }
   }
   // ✅ Auto-fill the input box with applied coupon code
@@ -2445,6 +2468,173 @@ async function sendOrderToTelegram(order){
     window._lastPreNotify = snapshot;   // remember for COD handoff
     return snapshot;
   }
+</script>
+<script>
+(function(){
+  try {
+    window.selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || window.selectedPayment || "razorpay";
+  } catch(e){ window.selectedPayment = "razorpay"; }
+
+  window.updateSummary = function(){
+    try{
+      const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+      const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+
+      const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+      const codFee = (window.selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
+
+      let discount = 0, couponCode = null;
+      try{
+        if (window.appliedCoupon && subtotal >= window.appliedCoupon.min) {
+          discount = discountOnSubtotal(subtotal, window.appliedCoupon);
+          couponCode = window.appliedCoupon.code;
+        }
+      }catch(e){}
+
+      const showDeliveryRow = !(window.selectedPayment === "cod");
+      const feeText = (deliveryFee === 0)
+        ? '<span style="color: green; font-family: \'Roboto Slab\', serif;">Free Delivery</span>'
+        : '₹' + deliveryFee;
+
+      const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
+
+      let rows = '';
+      rows += '<div class="summary-row"><span>Item Total</span><span>₹'+subtotal+'</span></div>';
+      if (showDeliveryRow) {
+        rows += '<div class="summary-row"><span>Delivery Fee</span><span>'+feeText+'</span></div>';
+      }
+      if (codFee) {
+        rows += '<div class="summary-row"><span>COD Charges</span><span><span class="cod-chip">₹'+codFee+'</span></span></div>';
+      }
+      if (discount) {
+        rows += '<div class="summary-row"><span>Coupon ('+(couponCode||'')+')</span><span>-₹'+discount+'</span></div>';
+      }
+      rows += '<div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹'+grand+'</span></div>';
+
+      var box = document.getElementById("summaryBox");
+      if (box) box.innerHTML = rows;
+    }catch(e){ console.error('updateSummary error', e); }
+  };
+
+  document.addEventListener('change', function(ev){
+    if (ev.target && ev.target.name === 'paymentMethod') {
+      window.selectedPayment = ev.target.value;
+      try{
+        const labelEl = document.querySelector('#proceedBtn .btn-label');
+        if (labelEl) labelEl.textContent = (window.selectedPayment === "cod") ? "Continue with COD" : "Proceed to Pay";
+      }catch(e){}
+      window.updateSummary();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){ try{ window.updateSummary(); }catch(e){} });
+})();
+</script>
+<script>
+// ===== Final Override: COD-aware updateSummary that PRESERVES coupons =====
+window.selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || window.selectedPayment || "razorpay";
+
+document.addEventListener('change', function(ev){
+  if (ev.target && ev.target.name === 'paymentMethod') {
+    window.selectedPayment = ev.target.value;
+    try{
+      const labelEl = document.querySelector('#proceedBtn .btn-label');
+      if (labelEl) labelEl.textContent = (window.selectedPayment === "cod") ? "Continue with COD" : "Proceed to Pay";
+    }catch(e){}
+    updateSummary();
+  }
+});
+
+window.updateSummary = function() {
+  try{
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    const codFee = (window.selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
+
+    // ---- coupons (respect manualLock/appliedCoupon; else bestCouponFor) ----
+    let couponToUse = null, discount = 0;
+    try {
+      if (window.allCoupons && allCoupons.length){
+        if (window.manualLock && window.appliedCoupon){
+          couponToUse = window.appliedCoupon;
+          discount = (subtotal >= couponToUse.min) ? discountOnSubtotal(subtotal, couponToUse) : 0;
+        } else {
+          const pick = bestCouponFor(subtotal);
+          couponToUse = pick.coupon;
+          discount = pick.amount;
+          window.appliedCoupon = couponToUse || null; try{syncCouponInput();}catch(e){}
+        }
+      }
+    } catch(e){}
+
+    const showDeliveryRow = !(window.selectedPayment === "cod");
+    const feeText = (deliveryFee === 0)
+      ? '<span style="color: green; font-family: \'Roboto Slab\', serif;">Free Delivery</span>'
+      : '₹' + deliveryFee;
+
+    const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
+
+    let rows = '';
+    rows += '<div class="summary-row"><span>Item Total</span><span>₹'+subtotal+'</span></div>';
+    if (showDeliveryRow) {
+      rows += '<div class="summary-row"><span>Delivery Fee</span><span>'+feeText+'</span></div>';
+    }
+    if (codFee) {
+      rows += '<div class="summary-row"><span>COD Charges</span><span><span class="cod-chip">₹'+codFee+'</span></span></div>';
+    }
+    if (discount) {
+      const code = (couponToUse && couponToUse.code) ? couponToUse.code : '';
+      rows += '<div class="summary-row"><span>Coupon ('+code+')</span><span>-₹'+discount+'</span></div>';
+    }
+    rows += '<div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹'+grand+'</span></div>';
+
+    var box = document.getElementById("summaryBox");
+    if (box) box.innerHTML = rows;
+
+    // Keep coupon UI in sync
+    try { showAppliedTag(subtotal); } catch(e){}
+    try { showProgress(subtotal); } catch(e){}
+    try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
+  }catch(e){ console.error('updateSummary error', e); }
+};
+
+document.addEventListener('DOMContentLoaded', function(){ try{ updateSummary(); }catch(e){} });
+</script>
+<script>
+function ensureCouponSectionVisibility() {
+  try {
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const hasItems = items.length > 0;
+    const sec = document.getElementById("couponSection");
+    if (sec) sec.style.display = hasItems ? "block" : "none";
+  } catch(e){}
+}
+document.addEventListener("DOMContentLoaded", ensureCouponSectionVisibility);
+</script>
+<script>
+/* === Keep the coupon input always in sync with the active coupon === */
+function syncCouponInput(){
+  var inp = document.getElementById('couponInput');
+  if(!inp) return;
+  var c = (window.appliedCoupon || null);
+  if(c && c.code){ inp.value = c.code; } else { inp.value = ''; }
+}
+document.addEventListener('DOMContentLoaded', function(){ try{ syncCouponInput(); }catch(e){} });
+
+/* Wrap manual apply to lock and resync */
+(function(){
+  var _orig = window.applyCouponManually;
+  window.applyCouponManually = function(){
+    if(typeof _orig === 'function'){ _orig.apply(this, arguments); }
+    window.manualLock = true;
+    setTimeout(function(){
+      try{ syncCouponInput(); }catch(e){}
+      try{ if(typeof updateSummary==='function') updateSummary(); }catch(e){}
+    }, 0);
+  };
+})();
 </script>
 </body>
 </html>
