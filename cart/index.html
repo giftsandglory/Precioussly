@@ -2626,88 +2626,6 @@ const TG_CHAT_ID   = "792731562";
 function inr(n){ n = Number(n||0); return n.toLocaleString("en-IN"); }
 
 /* Build the message for Telegram exactly the way you described */
-function formatOrderForTelegram(order){
-  const dt = new Date(order.createdAt || Date.now())
-               .toLocaleString("en-IN",{hour12:false});
-  const A = order.amounts || {};
-  const method = order.method || "-";
-
-  // Common header
-  const lines = [];
-  lines.push(`🧾 <b>New Order</b>  <code>${order.id || ""}</code>`);
-  lines.push(`💳 Method: <b>${method}</b>`);
-  lines.push(`🕒 Time: ${dt}`);
-  lines.push(``);
-  lines.push(`<b>Items:</b>`);
-
-  (order.items || []).forEach((it, idx) => {
-    const qty = Number(it.qty)||1;
-    const price = Number(it.price)||0;
-    lines.push(`${idx+1}) ${it.name||"Item"} × ${qty} — ₹${inr(price*qty)}`);
-  });
-
-  // ----- Amounts section (two different layouts) -----
-  lines.push(``);
-  if (method.toUpperCase()==="COD"){
-    // Your COD layout
-    lines.push(`Subtotal: ₹${inr(A.itemsTotal||0)}`);
-    if (A.codFee) lines.push(`COD Charges: ₹${inr(A.codFee)}`);
-    if (A.discount) lines.push(`Discount: -₹${inr(A.discount)}${order.coupon?"" : ""}`);
-    lines.push(`<b>Total: ₹${inr(A.grandTotal||0)}</b>`);
-
-    // Prepaid now (if any) + To Collect
-    const prepaid = Number(order.prepaidNow||0);
-    if (prepaid>0){
-      lines.push(`Prepaid Now: ₹${inr(prepaid)}`);
-      lines.push(`<b>To Collect: ₹${inr(Math.max(0,(A.grandTotal||0)-prepaid))}</b>`);
-    } else {
-      lines.push(`<b>To Collect: ₹${inr(A.grandTotal||0)}</b>`);
-    }
-    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
-  } else {
-    // Razorpay layout
-    lines.push(`Subtotal: ₹${inr(A.itemsTotal||0)}`);
-    lines.push(`Delivery: ${A.deliveryFee ? ("₹"+inr(A.deliveryFee)) : "₹0 (Free Delivery)"}`);
-    if (A.discount) lines.push(`Discount: -₹${inr(A.discount)}`);
-    lines.push(`<b>Total: ₹${inr(A.grandTotal||0)}</b>`);
-    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
-  }
-
-  // Address
-  if (order.address){
-    lines.push(``);
-    lines.push(`<b>Shipping Address</b>`);
-    lines.push(order.address.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g,'').trim());
-  }
-
-  // (optional) product photos if you store URLs: order.items[i].photo
-  const photos = (order.items||[])
-    .map(it => it.photo)
-    .filter(Boolean);
-  if (photos.length){
-    lines.push(``);
-    lines.push(`<b>Photos:</b>`);
-    photos.slice(0,3).forEach(u => lines.push(u));
-  }
-
-  return lines.join('\n');
-}
-
-/* Actually send to Telegram */
-async function sendOrderToTelegram(order){
-  const text = formatOrderForTelegram(order);
-  const url = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`;
-  await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type":"application/json" },
-    body: JSON.stringify({
-      chat_id: TG_CHAT_ID,
-      text,
-      parse_mode: "HTML",
-      disable_web_page_preview: true
-    })
-  }).catch(()=>{});
-}
 
 /* Pre-notify BEFORE payment (shows "Payment Pending") */
 function preNotifyTelegram(label){
@@ -2773,6 +2691,83 @@ function continueWithCOD(btnEl){
     if (btnEl){ btnEl.classList.remove('is-loading'); btnEl.removeAttribute('aria-busy'); }
     placeCODOrderAndRedirect(fixedId, /*alreadyNotified=*/true);
   },2000);
+}
+</script>
+<script>
+// Human-friendly date for Telegram: "15 August 2025, 12:31 Pm"
+function formatDateForTelegram(ts){
+  const d = new Date(ts || Date.now());
+  const months = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+  const day = d.getDate();
+  const monthName = months[d.getMonth()];
+  const year = d.getFullYear();
+
+  let hrs = d.getHours();
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  const suffix = (hrs >= 12) ? "Pm" : "Am";   // exact casing you asked for
+  hrs = hrs % 12; if (hrs === 0) hrs = 12;    // 12-hour clock
+
+  return `${day} ${monthName} ${year}, ${hrs}:${mins} ${suffix}`;
+}
+</script>
+<script>
+function formatOrderForTelegram(order){
+  const dt = formatDateForTelegram(order.createdAt);
+  const A = order.amounts || {};
+  const method = order.method || "-";
+
+  // Common header
+  const lines = [];
+  lines.push(`🧾 <b>New Order</b>  <code>${order.id || ""}</code>`);
+  lines.push(`💳 Method: <b>${method}</b>`);
+  lines.push(`🕒 Time: ${dt}`);
+  lines.push(``);
+  lines.push(`<b>Items:</b>`);
+
+  (order.items || []).forEach((it, idx) => {
+    const qty = Number(it.qty)||1;
+    const price = Number(it.price)||0;
+    lines.push(`${idx+1}) ${it.name||"Item"} × ${qty} — ₹${inr(price*qty)}`);
+  });
+
+  // ----- Amounts section (two different layouts) -----
+  lines.push(``);
+  if (method.toUpperCase()==="COD"){
+    // COD layout
+    lines.push(`Subtotal: ₹${inr(A.itemsTotal||0)}`);
+    if (A.codFee) lines.push(`COD Charges: ₹${inr(A.codFee)}`);
+    if (A.discount) lines.push(`Discount: -₹${inr(A.discount)}${order.coupon?"" : ""}`);
+    lines.push(`<b>Total: ₹${inr(A.grandTotal||0)}</b>`);
+
+    // Prepaid now (if any) + To Collect
+    const prepaid = Number(order.prepaidNow||0);
+    if (prepaid>0){
+      lines.push(`Prepaid Now: ₹${inr(prepaid)}`);
+      lines.push(`<b>To Collect: ₹${inr(Math.max(0,(A.grandTotal||0)-prepaid))}</b>`);
+    } else {
+      lines.push(`<b>To Collect: ₹${inr(A.grandTotal||0)}</b>`);
+    }
+    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
+  } else {
+    // Razorpay layout
+    lines.push(`Subtotal: ₹${inr(A.itemsTotal||0)}`);
+    lines.push(`Delivery: ${A.deliveryFee ? ("₹"+inr(A.deliveryFee)) : "₹0 (Free Delivery)"}`);
+    if (A.discount) lines.push(`Discount: -₹${inr(A.discount)}`);
+    lines.push(`<b>Total: ₹${inr(A.grandTotal||0)}</b>`);
+    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
+  }
+
+  // Address
+  if (order.address){
+    lines.push(``);
+    lines.push(`<b>Shipping Address</b>`);
+    lines.push(order.address.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g,'').trim());
+  }
+
+  return lines.join("\n");
 }
 </script>
 </body>
