@@ -1327,7 +1327,7 @@ down-toggle {
   </div>
 
   <!-- Inline search bar (hidden until search mode) -->
-  <div id="headerSearchBar" class="header-search" hidden>
+  <div id="headerSearchBar" class="header-search">
     <input type="search" id="headerSearchInput" placeholder="Search products..." autocomplete="off" />
     <button type="button" id="headerSearchBack" aria-label="Back" onclick="closeHeaderSearch()">Back</button>
     <!-- 🔎 Live suggestions (multi-page catalog) -->
@@ -1828,25 +1828,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   })();
 
-  (function () {
-  const header = document.querySelector(".site-header");
+  
+
+// ✅ Minimal & reliable hide-on-scroll logic
+(() => {
+  const header = document.querySelector('.site-header');
   if (!header) return;
 
-  let lastY = window.scrollY;
-  const TOL = 4; // px tolerance to avoid jitter
+  let lastY = window.pageYOffset;
 
-  window.addEventListener("scroll", () => {
-    const y = window.scrollY;
-    const delta = y - lastY;
-    const movingDown = delta > TOL;
-    const movingUp   = delta < -TOL;
+  const show = () => header.classList.remove('header-hidden');
+  const hide = () => header.classList.add('header-hidden');
 
-    // ✅ Required behavior: UP => show, DOWN => hide
-    if (movingDown) {
-      header.classList.add("header-hidden");   // hide
-    } else if (movingUp) {
-      header.classList.remove("header-hidden"); // show
-    }
+  const atTopOrSearching = () =>
+    window.pageYOffset < 10 || header.classList.contains('searching');
+
+  window.addEventListener('scroll', () => {
+    const y = window.pageYOffset;
+    const delta = y - lastY; // +ve = scrolling down, -ve = up
+
+    // Top par ya search khula ho to hamesha dikhana
+    if (atTopOrSearching()) { show(); lastY = y; return; }
+
+    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
+    else if (delta < -3) show(); // upar aate hi show
+
     lastY = y;
   }, { passive: true });
 })();
@@ -1915,12 +1921,15 @@ const boxEl     = document.getElementById('headerSearchResults');
 function openHeaderSearch(){
   const header = document.querySelector('.site-header');
   header.classList.add('searching');
+  header.classList.remove('header-hidden');
   if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
   hideSuggest();
 }
 function closeHeaderSearch(){
   const header = document.querySelector('.site-header');
   header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+if (bar) bar.setAttribute('hidden','');
   hideSuggest();
 }
 function hideSuggest(){ if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; } }
@@ -2016,5 +2025,6 @@ window.closeHeaderSearch = closeHeaderSearch;
     }, 3000);
   });
 </script>
+
 </body>
 </html>
