@@ -878,7 +878,15 @@ nav.side-menu {
 
 <div id="content"></div>
 <script>
-const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
+// ✅ Dynamic sheet loader (no future code edits needed)
+const DEFAULT_SHEET_ID = "1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA"; // your current sheet
+const DEFAULT_TAB_NAME = "Sheet1"; // your current tab
+
+const _u = new URL(location.href);
+const sheetId = (_u.searchParams.get("sheet") || DEFAULT_SHEET_ID).trim();
+const tabName = (_u.searchParams.get("tab") || DEFAULT_TAB_NAME).trim();
+
+const SHEET_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
 // Robust: read "Description" even if header has spaces/case variants
 function getSheetDescription(row){
   const keys = [
@@ -898,6 +906,19 @@ fetch(SHEET_URL)
     // A2_DIRECTION_TOGGLE :: call
 applyDirectionFromSheet(data);
     window.catalogData = data;
+    // ✅ Also add current page's products to the global search list
+window.allProducts = window.allProducts || [];
+const _currentItems = (data || [])
+  .filter(row => (row["Product Name"] || "").trim())
+  .map(row => ({
+    name: String(row["Product Name"]).trim(),
+    price: Number(row["Selling Price"] || 0),
+    mrp: Number(row["MRP"] || 0),
+    image: row["photo 1"] || row["Photo 1"] || "",
+    page: location.pathname,     // this same page
+    from: "This Page"
+  }));
+window.allProducts = _currentItems.concat(window.allProducts);
     const content = document.getElementById('content');
     let currentSection = '';
     let sectionWrapper;
