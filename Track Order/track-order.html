@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Track Your Order | Universal Courier Tracking</title>
+<style>
+  :root{
+    --bg:#f7f7f9;
+    --card:#ffffff;
+    --text:#111;
+    --muted:#555;
+    --brand:#0f62fe;
+    --brand-2:#111827;
+    --ok:#16a34a;
+    --warn:#b45309;
+    --err:#dc2626;
+    --ring:rgba(15,98,254,0.25);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:linear-gradient(180deg,#fafafa,#f1f5f9);
+    color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  .wrap{max-width:760px;margin:40px auto;padding:16px}
+  .card{
+    background:var(--card);border-radius:var(--radius);
+    box-shadow:0 8px 30px rgba(0,0,0,0.08);
+    padding:22px 18px;
+  }
+  h1{
+    font-size:26px;margin:0 0 6px;font-weight:800;letter-spacing:.2px;
+  }
+  .sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+  .row{display:grid;gap:12px;grid-template-columns:1fr}
+  @media(min-width:640px){
+    .row{grid-template-columns:1.2fr .8fr auto}
+  }
+  label{font-size:12px;color:#374151;margin-bottom:6px;display:block}
+  input,select,button{
+    width:100%;padding:12px 14px;border:1px solid #e5e7eb;border-radius:12px;
+    font-size:15px;outline:none;background:#fff;color:var(--text);
+  }
+  input:focus,select:focus{
+    border-color:var(--brand);box-shadow:0 0 0 6px var(--ring);
+  }
+  button{
+    background:var(--brand);color:#fff;border:none;font-weight:700;cursor:pointer;
+    transition:transform .08s ease, box-shadow .2s ease, opacity .2s ease;
+    border-radius:14px;padding:12px 18px;
+  }
+  button:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(15,98,254,.18)}
+  button:active{transform:translateY(0)}
+  button[disabled]{opacity:.6;cursor:not-allowed}
+  .btn-secondary{
+    background:#fff;color:#111;border:1.5px solid #111;
+  }
+  .help{font-size:12px;color:#6b7280;margin-top:6px}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .tag{
+    font-size:12px;border:1px dashed #d1d5db;padding:6px 10px;border-radius:999px;color:#374151;background:#fafafa;
+  }
+  .result, .error{
+    margin-top:16px;padding:14px;border-radius:12px;font-size:14px;line-height:1.5;
+  }
+  .result{background:#ecfdf5;color:#064e3b;border:1px solid #a7f3d0}
+  .error{background:#fef2f2;color:#7f1d1d;border:1px solid #fecaca}
+  .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .linkbtn{
+    display:inline-flex;align-items:center;gap:8px;font-size:14px;padding:10px 12px;border-radius:12px;
+    border:1px solid #e5e7eb;background:#fff;text-decoration:none;color:#111;
+  }
+  .linkbtn:hover{border-color:#cbd5e1}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .spinner{
+    width:16px;height:16px;border-radius:999px;border:3px solid transparent;border-top-color:#fff;
+    animation:spin .9s linear infinite;display:inline-block;vertical-align:-3px;margin-left:10px;
+  }
+  .spinner-dark{border-top-color:#111}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .footer{margin-top:18px;color:#6b7280;font-size:12px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Track Your Order</h1>
+      <div class="sub">Enter your tracking ID. We’ll send you to the official courier tracking page.</div>
+
+      <div class="row" id="formRow">
+        <div>
+          <label for="tid">Tracking ID</label>
+          <input id="tid" type="text" placeholder="e.g. 77123456789 or EE123456789IN" autocomplete="off">
+          <div class="help">Tip: Paste the ID you received via SMS/Email/WhatsApp.</div>
+          <div class="tags" id="hints"></div>
+        </div>
+
+        <div>
+          <label for="carrier">Courier</label>
+          <select id="carrier">
+            <option value="auto">Auto Detect (Recommended)</option>
+            <option value="bluedart">Blue Dart</option>
+            <option value="delhivery">Delhivery</option>
+            <option value="ekart">Ekart Logistics</option>
+            <option value="xpressbees">XpressBees</option>
+            <option value="dtdc">DTDC</option>
+            <option value="indiapost">India Post / Speed Post</option>
+            <option value="shadowfax">Shadowfax</option>
+            <option value="ecom">Ecom Express</option>
+            <option value="professional">The Professional Couriers</option>
+            <option value="shiprocket">Shiprocket (Aggregator)</option>
+          </select>
+          <div class="help">Choose manually if you already know the courier.</div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:end">
+          <button id="trackBtn" onclick="handleTrack()">Track Now</button>
+        </div>
+      </div>
+
+      <div id="status"></div>
+
+      <div class="footer">
+        Note: This page doesn’t store your data. It simply redirects you to the courier’s official tracking page for the entered ID.
+      </div>
+    </div>
+  </div>
+
+<script>
+/**
+ * Universal Tracking Redirector
+ * - Redirects to official courier trackers.
+ * - Auto-detects some common patterns to suggest a courier.
+ * - If unsure, shows quick links for popular couriers with the same ID.
+ */
+
+const input = document.getElementById('tid');
+const carrierSel = document.getElementById('carrier');
+const statusBox = document.getElementById('status');
+const trackBtn = document.getElementById('trackBtn');
+const hints = document.getElementById('hints');
+
+const COURIERS = {
+  bluedart: {
+    name: "Blue Dart",
+    // Works with comma separated too, but we pass one AWB
+    url: id => `https://www.bluedart.com/tracking?tracknumbers=${encodeURIComponent(id)}`
+  },
+  delhivery: {
+    name: "Delhivery",
+    url: id => `https://www.delhivery.com/track/package/${encodeURIComponent(id)}`
+  },
+  ekart: {
+    name: "Ekart Logistics",
+    url: id => `https://ekartlogistics.com/shipmenttrack/${encodeURIComponent(id)}`
+  },
+  xpressbees: {
+    name: "XpressBees",
+    url: id => `https://www.xpressbees.com/track?awb=${encodeURIComponent(id)}`
+  },
+  dtdc: {
+    name: "DTDC",
+    url: id => `https://www.dtdc.com/track-shipment?cnno=${encodeURIComponent(id)}`
+  },
+  indiapost: {
+    name: "India Post / Speed Post",
+    // India Post doesn’t always accept query params; open landing page and let user paste prefilled
+    url: id => `https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx`
+  },
+  shadowfax: {
+    name: "Shadowfax",
+    url: id => `https://track.shadowfax.in/?awb=${encodeURIComponent(id)}`
+  },
+  ecom: {
+    name: "Ecom Express",
+    url: id => `https://ecomexpress.in/tracking/?awb_field=${encodeURIComponent(id)}`
+  },
+  professional: {
+    name: "The Professional Couriers",
+    url: id => `https://www.tpcindia.com/Tracking2014/Tracking.aspx?trackingNo=${encodeURIComponent(id)}`
+  },
+  shiprocket: {
+    name: "Shiprocket",
+    url: id => `https://shipment.shiprocket.in/tracking/${encodeURIComponent(id)}`
+  }
+};
+
+// Simple pattern-based suggestions
+function suggestCouriers(idRaw){
+  const id = idRaw.trim().toUpperCase();
+  const suggestions = new Set();
+
+  // India Post: 2 letters + 9 digits + 2 letters (e.g., EE123456789IN)
+  if (/^[A-Z]{2}\d{9}[A-Z]{2}$/.test(id)) {
+    suggestions.add('indiapost');
+  }
+
+  // Blue Dart: many AWBs are 11–12 digits
+  if (/^\d{11,12}$/.test(id)) {
+    suggestions.add('bluedart');
+  }
+
+  // Delhivery: can be 12–15 chars, often alphanumeric; many start with "DL", "FMPC", "PPX", etc.
+  if (/^(DL|FMPC|PPX|EX|CL|SP|SF)/i.test(id) || /^[A-Z0-9]{10,15}$/.test(id)) {
+    suggestions.add('delhivery');
+  }
+
+  // XpressBees: usually 11–12 digits, sometimes 13; alphanumeric possible for some partners
+  if (/^[A-Z0-9]{11,13}$/.test(id)) {
+    suggestions.add('xpressbees');
+  }
+
+  // DTDC: can be 9–14 chars, many start alpha-numeric
+  if (/^[A-Z0-9]{9,14}$/.test(id)) {
+    suggestions.add('dtdc');
+  }
+
+  // Shadowfax: 12–14 chars often, alphanumeric
+  if (/^[A-Z0-9]{12,14}$/.test(id)) {
+    suggestions.add('shadowfax');
+  }
+
+  // Ecom Express: mostly 9–14 digits
+  if (/^\d{9,14}$/.test(id)) {
+    suggestions.add('ecom');
+  }
+
+  // Ekart: variable; show when 10–14 alphanumeric
+  if (/^[A-Z0-9]{10,14}$/.test(id)) {
+    suggestions.add('ekart');
+  }
+
+  // Fallback: aggregators are useful when not sure
+  if (suggestions.size === 0) {
+    suggestions.add('shiprocket');
+  }
+
+  return Array.from(suggestions);
+}
+
+// Render hint tags
+function renderHints(id){
+  hints.innerHTML = '';
+  if(!id || !id.trim()) return;
+  const sugg = suggestCouriers(id);
+  sugg.slice(0,4).forEach(key=>{
+    const span = document.createElement('span');
+    span.className = 'tag';
+    span.textContent = 'Maybe: ' + COURIERS[key].name;
+    hints.appendChild(span);
+  });
+}
+
+input.addEventListener('input', (e)=>renderHints(e.target.value));
+
+// Button state helper
+function setLoading(btn, loading){
+  if(loading){
+    btn.setAttribute('disabled','true');
+    btn.dataset.orig = btn.innerHTML;
+    btn.innerHTML = `Tracking <span class="spinner" aria-hidden="true"></span>`;
+  }else{
+    btn.removeAttribute('disabled');
+    if(btn.dataset.orig) btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+// Build a list of quick links when unsure
+function renderMultiLinks(id){
+  const popular = ['bluedart','delhivery','xpressbees','dtdc','ekart','ecom','shadowfax','indiapost','professional','shiprocket'];
+  const container = document.createElement('div');
+  container.className = 'result';
+  container.innerHTML = `<strong>Not sure?</strong> Try any of these official trackers with the same ID:`;
+  const links = document.createElement('div');
+  links.className = 'links';
+
+  popular.forEach(k=>{
+    const a = document.createElement('a');
+    a.className = 'linkbtn';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.href = COURIERS[k].url(id);
+    a.textContent = COURIERS[k].name;
+    links.appendChild(a);
+  });
+
+  container.appendChild(links);
+  return container;
+}
+
+function handleTrack(){
+  const idRaw = input.value || '';
+  const id = idRaw.trim();
+  statusBox.innerHTML = '';
+  if(!id){
+    statusBox.innerHTML = `<div class="error">Please enter a tracking ID.</div>`;
+    return;
+  }
+
+  const pick = carrierSel.value;
+  setLoading(trackBtn, true);
+
+  setTimeout(()=>{
+    try{
+      let targetKey = pick;
+
+      if(pick === 'auto'){
+        const guesses = suggestCouriers(id);
+        // Prefer a non-aggregator if we have one
+        const ranked = guesses.sort((a,b)=>{
+          const order = ['indiapost','bluedart','delhivery','xpressbees','dtdc','ekart','ecom','shadowfax','professional','shiprocket'];
+          return order.indexOf(a) - order.indexOf(b);
+        });
+        targetKey = ranked[0] || 'shiprocket';
+      }
+
+      const courier = COURIERS[targetKey];
+      const url = courier.url(id);
+
+      // For India Post (no direct param), show small note + open page.
+      if(targetKey === 'indiapost'){
+        const note = document.createElement('div');
+        note.className = 'result';
+        note.innerHTML = `
+          <strong>India Post:</strong> We opened the official page in a new tab. If the ID isn’t auto-filled there,
+          paste your ID <em>${escapeHtml(id)}</em> and tap “Search”.
+        `;
+        statusBox.appendChild(note);
+        window.open(url, '_blank', 'noopener');
+        // Also offer backup links
+        statusBox.appendChild(renderMultiLinks(id));
+      }else{
+        window.open(url, '_blank', 'noopener');
+        const ok = document.createElement('div');
+        ok.className = 'result';
+        ok.innerHTML = `Redirected to <strong>${courier.name}</strong> in a new tab. If it doesn’t open, <a href="${url}" target="_blank" rel="noopener">tap here</a>.`;
+        statusBox.appendChild(ok);
+      }
+
+      // When auto mode and we aren't fully sure, offer multi-links as well
+      if(pick === 'auto'){
+        statusBox.appendChild(renderMultiLinks(id));
+      }
+    }catch(err){
+      console.error(err);
+      statusBox.innerHTML = `<div class="error">Something went wrong. Please try again or choose the courier manually.</div>`;
+    }finally{
+      setLoading(trackBtn, false);
+    }
+  }, 350); // tiny UX delay
+}
+
+// Basic HTML escaper for messages
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;'}[m]));
+}
+
+// Press Enter to track
+input.addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){ handleTrack(); }
+});
+</script>
+</body>
+</html>
