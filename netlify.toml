@@ -1,8 +1,7 @@
 [build]
-  publish = "."
   functions = "netlify/functions"
 
-# Helpful: browser se functions ko clean path mil jaaye
+# Optional: pretty /api/* path
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
