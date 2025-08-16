@@ -1,1 +1,2275 @@
-hello
+<!DOCTYPE html>
+
+<html lang="en">
+<head><meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/><script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Precioussly</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
+<style>
+#toTopBtn {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+#toTopBtn svg {
+  width: 26px;
+  height: 26px;
+}
+
+.fab-stack {
+  position: fixed;
+  right: 10px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 6000;
+  pointer-events: none;
+}
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+/* ✅ WhatsApp button ka icon perfect center me, without misalignment */
+#waBtn {
+  width: 55px; /* icon ka size */
+  height: 55px;
+  border: none; /* circle ka border hata diya */
+  border-radius: 0; /* circle shape off */
+  background: none; /* background color hataya */
+  box-shadow: none; /* shadow bhi hataya */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Image ko full size pe dikhao */
+#waBtn img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+  .header-logo-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo-img {
+  width: 110px;
+  height: auto;
+  object-fit: contain;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+  .icon-size {
+  width: 10px;
+  height: 10px;
+}
+  .product-badge {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.coupon-strip {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  scroll-behavior: smooth;
+}
+.coupon-card {
+  background: #e9fef1;
+  border: 1px solid #c5ecd6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  width: 220px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.coupon-card h3 {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  color: #064c2c;
+}
+.coupon-card p {
+  font-size: 12px;
+  margin: 2px 0 6px;
+  color: #064c2c;
+}
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.code-box {
+  background: #d5f5e5;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #064c2c;
+  letter-spacing: 0.3px;
+}
+.copy-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.copy-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #064c2c;
+  stroke-width: 2;
+}
+.copy-btn:hover {
+  opacity: 0.6;
+}
+.strip-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 42px;
+  height: 42px;
+  background: rgba(0, 0, 0, 0.4); /* ✅ fixed background */
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 0;
+
+  /* ✅ Prevent tap glow & outlines */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-focus-ring-color: transparent;
+  outline: none;
+
+  /* ✅ Remove hover scale effect */
+  transition: none;
+}
+
+.strip-nav-btn:hover,
+.strip-nav-btn:active,
+.strip-nav-btn:focus {
+  background: rgba(0, 0, 0, 0.4); /* ❌ no change on hover/tap */
+  transform: translateY(-50%);   /* ❌ no zoom */
+}
+
+.strip-nav-left {
+  left: 8px;
+}
+
+.strip-nav-right {
+  right: 8px;
+}
+
+/* 👇 Arrow position adjust if needed */
+.strip-nav-btn span {
+  display: inline-block;
+  transform: translate(0, -2px); /* 🔼 Up 2px */
+}
+.image-strip-container {
+  display: flex;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.strip-media {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  object-fit: cover;
+  max-height: 320px;
+}
+
+.strip-media[controls] {
+  background: #000;
+}
+  .menu-divider {
+  width: 100vw;
+  height: 1px;
+  background-color: #e1dcd5;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+  .dropdown-icon {
+  font-size: 18px;
+  color: #000; /* black arrow */
+  font-family: 'Roboto Slab', serif;
+}
+  .header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 17px;
+  font-weight: 400;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+}
+  
+
+.side-menu.active {
+  left: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  z-index: 4000;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.menu-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.menu-link, .submenu-link {
+  display: block;
+  color: #5a3d2b;
+  text-decoration: none;
+  padding: 10px;
+  font-weight: 500;
+}
+
+.submenu-container {
+  margin-left: 15px;
+  padding-left: 10px;
+}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .site-header {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 16px; /* 🔁 increased from 12px */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  min-height: 72px;   /* ✅ added for height consistency */
+}
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hamburger-wrapper {
+  width: 24px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+
+  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue Android highlight */
+  touch-action: manipulation;               /* ✅ Prevent default touch delay */
+}
+
+    .hamburger-wrapper div {
+  width: 100%;
+  height: 3px;
+  background-color: #000; /* ✅ black */
+  border-radius: 2px;
+}
+
+    .logo-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .insta-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .insta-handle {
+  font-size: 17px;
+  color: #000; /* ✅ black */
+  font-weight: 500;
+}
+
+    .insta-handle a {
+      text-decoration: none;
+      color: #000;
+    }
+
+    .insta-handle a:hover {
+      text-decoration: underline;
+    }
+
+    .right-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  cursor: pointer;
+  border-radius: 50%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+    .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */ /* REMOVE THIS */
+  /* padding-top: 100px; */  /* REMOVE THIS */
+  z-index: 3000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+    .popup-box {
+  background-color: #ffffff;         /* white like header */
+  border: 2px solid #000;         /* premium brown */
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.4s ease;
+  pointer-events: none;
+  width: 90vw;
+  max-width: 320px;
+  position: absolute;
+  top: 120px;
+}
+
+    .popup-logo-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .popup-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .popup-insta {
+      font-size: 16px;
+      font-weight: 500;
+      color: #5a3d2b;
+    }
+
+    .popup-insta a {
+      color: #5a3d2b;
+      text-decoration: none;
+    }
+
+    .popup-insta a:hover {
+      text-decoration: underline;
+    }
+
+    .popup-text {
+      color: #5a3d2b;
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 90%;
+      word-wrap: break-word;
+    }
+
+    .close-btn {
+  position: absolute;
+  top: 8px;                 /* 🟢 adjust vertically inside */
+  right: 8px;               /* 🟢 adjust horizontally inside */
+  width: 22px;              /* 🟢 smaller size */
+  height: 22px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;          /* 🟢 smaller font */
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.close-btn:hover {
+  transform: scale(1.1);     /* hover zoom effect */
+}
+
+    #announcementBar {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #ffffff;
+  background: #000000;
+  border-top: none;
+  border-bottom: none;
+  font-weight: 500;
+  text-align: center;
+  font-family: 'Roboto Slab', serif; /* ✅ Use Roboto Slab */
+  min-height: 24px;
+  line-height: 22px;
+  user-select: none;
+}
+
+    @media (max-width: 480px) {
+      .logo-img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .insta-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      .insta-handle {
+        font-size: 15px;
+      }
+
+      
+
+      .hamburger-wrapper {
+        width: 22px;
+        height: 18px;
+      }
+
+      .hamburger-wrapper div {
+        height: 2.5px;
+      }
+    }
+  .overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.popup-box.active {
+  opacity: 1;
+  transform: translateY(-10px); /* Final position slightly above */
+  pointer-events: auto;
+}
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+  user-select: none;  /* 👈 Yeh line add karo */
+}
+.menu-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+}
+}
+}
+
+.menu-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000; /* 🔁 black */
+  font-family: 'Roboto Slab', serif;
+}
+
+.menu-close {
+  font-size: 24px;
+  font-weight: bold;
+  color: #000; /* ✅ black color */
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.menu-close:hover {
+  transform: scale(1.2);
+}
+
+/* Updated side-menu for premium look */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translateX(-100%);
+  width: 80%;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+  padding: 20px 16px;
+  overflow-y: auto;
+  z-index: 5000;
+  font-family: 'Roboto Slab', serif;
+
+  /* ✅ Ultra smooth animation */
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.side-menu.active {
+  transform: translateX(0%);
+}
+
+.menu-link {
+  font-size: 17px;
+  color: #000;
+  text-decoration: none;
+  padding: 14px 18px 14px 24px;
+  font-weight: 500;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: none !important; /* ✅ Remove the line */
+}
+
+.submenu-link {
+  font-size: 15px;
+  color: #444;
+  padding: 10px 20px 10px 36px;
+  text-decoration: none;
+  font-weight: 400;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #eaeaea; /* ✅ Light line for submenu */
+}
+down-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px 14px 24px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  border-bottom: 1px solid #e1dcd5;
+  cursor: pointer;
+}
+
+.down-icon {
+  font-size: 18px;
+  color: #000; /* 🔁 black */
+}
+.menu-text, .header-title {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -ms-user-select: none !important;
+}
+  body.no-scroll {
+    overflow: hidden;
+    height: 100vh;
+    touch-action: none;
+  }
+  .fade-slider {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+}
+
+.fade-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.fade-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 1;
+}
+.fade-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  z-index: 5;
+}
+
+.fade-dot {
+  width: 14px;
+  height: 6px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.15); /* soft black */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.fade-dot.active {
+  background-color: rgba(0, 0, 0, 0.35); /* slightly darker */
+}
+  
+#categorySection {
+  padding: 0 14px 40px 14px;   /* ✅ upar ka 10px hata diya */
+}
+#categorySection h3 {
+  font-size: 18px;
+  font-weight: 400;
+  text-align: center;
+  margin: 16px 0 10px;
+  font-family: 'Roboto Slab', serif;
+}
+#categorySection img {
+  border-radius: 16px;
+  object-fit: cover;
+}
+#categorySection a {
+  text-decoration: none;
+  color: inherit;
+}
+    
+/* ==== Smart header ==== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 3500;
+  transition: transform .35s ease;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.site-header.header-hidden { transform: translateY(-100%); }
+
+/* === MENU – ULTRA SMOOTH OPEN/CLOSE === */
+.menu-overlay{
+  opacity:0;
+  transition: opacity .35s cubic-bezier(.22,1,.36,1) !important;
+}
+.menu-overlay.active{opacity:1; display:block;}
+
+.side-menu {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.8s cubic-bezier(.25, 1, .3, 1) !important;
+}
+.side-menu.active{ transform: translateX(0); }
+
+/* Keep items still (no hover color), crisp separators */
+.menu-link, .submenu-link, .dropdown-toggle{ transition: none !important; }
+
+/* ===== Unified button list (same size, nice borders) ===== */
+#sideMenu #menuContent{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding: 6px 8px 14px;
+}
+#sideMenu .menu-link{
+  display:block;
+  text-align:center;
+  padding:10px 14px;
+  border:1px solid #e9e9e9;
+  border-radius:12px;
+  background:#ffffff;
+  color:#111 !important;
+  font-family:'Roboto Slab', serif;
+  font-size:17px;
+  font-weight:500;
+  text-decoration:none;
+  min-height:auto;
+  box-shadow:0 1px 0 rgba(0,0,0,.02);
+}
+#sideMenu .menu-link--primary{
+  background:#e9fef1;
+  border:1.5px solid #c5ecd6;
+  color:#064c2c !important;
+  font-weight:600;
+}
+/* Remove old bottom borders in menu list */
+#sideMenu .menu-link,
+#sideMenu .submenu-link{ border-bottom:none !important; }
+
+/* No color/size change on tap */
+#sideMenu .menu-link:active,
+#sideMenu .menu-link--primary:active{
+  background: inherit !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+/* Submenu base (if you use dropdowns) */
+.menu-link,
+.dropdown-toggle {
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:14px 16px; min-height:48px; font-size:17px; color:#000;
+  text-decoration:none; font-family:'Roboto Slab', serif;
+  border-bottom:1px solid #f1f1f1; background:transparent;
+}
+.submenu-container, .submenu { display:none; background:#fafafa; padding-left:8px; }
+.submenu-container.open, .submenu.open { display:block; }
+.submenu-link {
+  display:block; padding:12px 16px 12px 24px; font-size:15px; color:#333;
+  text-decoration:none; font-family:'Roboto Slab', serif;
+  border-bottom:1px solid #f1f1f1;
+}
+
+
+
+/* === Make try.html menu exactly like index.html === */
+
+/* Square close button with border (like index.html) */
+.menu-close{
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid #000;
+  border-radius: 10px;
+  font-size: 18px; font-weight: 700; color: #000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: none !important;
+}
+.menu-close:hover{ transform: none !important; }
+
+/* Same inside padding for the list */
+#sideMenu #menuContent{ padding: 8px 16px 18px !important; }
+
+/* Stronger border + soft shadow */
+#sideMenu .menu-link{
+  border: 1px solid #dcdcdc !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03) !important;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+/* Track Order style */
+#sideMenu .menu-link--primary{
+  background:#e9fef1 !important;
+  border:1.5px solid #c5ecd6 !important;
+  color:#064c2c !important;
+}
+
+/* Disable hover/tap changes */
+#sideMenu .menu-link:hover,
+#sideMenu .menu-link--primary:hover{
+  background: inherit !important;
+  color: inherit !important;
+}
+#sideMenu .menu-link:active,
+#sideMenu .menu-link--primary:active{
+  background: inherit !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+/* Font weight match */
+.menu-link,
+.menu-link--primary{ font-weight: 500 !important; }
+#cartCountBadge {
+  font-family: 'Roboto Slab', serif !important;
+  font-weight: 200; /* bold look */
+  font-size: 14px;  /* adjust number size */
+}
+/* ============ Search bar with Back pill ============ */
+#searchOverlay .search-box{
+  position: relative;
+  display: block;
+}
+
+#searchOverlay .search-box input{
+  width: 100%;
+  padding: 12px 86px 12px 14px;        /* right padding for Back button */
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;    /* consistent font */
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+#searchOverlay .search-box input:focus{
+  border-color: #bfbfbf;
+}
+
+/* Back button inside the input (pill) */
+#searchOverlay .back-btn{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 32px;
+  padding: 0 12px;
+  font: 500 14px 'Roboto Slab', serif;  /* normal, bold nahi */
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);    /* halka border */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+#searchOverlay .back-btn{ z-index:2; }
+#searchOverlay .search-box input{ position:relative; z-index:1; }
+
+#searchOverlay .back-btn:active{
+  transform: translateY(-50%) scale(0.98);
+}
+
+/* Safety: purani close-btn style ko neutralize */
+#searchOverlay .close-btn { display: none !important; }
+/* ============ Search bar with Back pill ============ */
+#searchOverlay .search-box{
+  position: relative;
+  display: block;
+}
+
+#searchOverlay .search-box input{
+  width: 100%;
+  padding: 12px 86px 12px 14px;        /* right padding for Back button */
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;    /* consistent font */
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+#searchOverlay .search-box input:focus{
+  border-color: #bfbfbf;
+}
+
+/* Back button inside the input (pill) */
+#searchOverlay .back-btn{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 32px;
+  padding: 0 12px;
+  font: 500 14px 'Roboto Slab', serif;  /* normal, bold nahi */
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);    /* halka border */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+#searchOverlay .back-btn{ z-index:2; }
+#searchOverlay .search-box input{ position:relative; z-index:1; }
+
+#searchOverlay .back-btn:active{
+  transform: translateY(-50%) scale(0.98);
+}
+
+/* Safety: purani close-btn style ko neutralize */
+#searchOverlay .close-btn { display: none !important; }
+
+/* === Header search mode (inline) === */
+.header-search {
+  display: none;               /* default hidden */
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.header-search input {
+  flex: 1;
+  padding: 12px 14px;
+  font: 400 16px 'Roboto Slab', serif;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+.header-search input:focus { border-color: #bfbfbf; }
+
+#headerSearchBack {
+  height: 36px;
+  padding: 0 14px;
+  font: 500 14px 'Roboto Slab', serif;
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* When searching: hide logo/menu/icons, show input+back pill */
+.site-header.searching .hamburger-wrapper,
+.site-header.searching #logoWrap,
+.site-header.searching #rightIcons { display: none !important; }
+
+.site-header.searching #headerSearchBar {
+  display: flex !important;
+}
+
+/* Keep header from jumping */
+.site-header { position: sticky; top: 0; z-index: 3500; }
+</style>
+<style>
+  /* === Admin button (bottom-left) === */
+  #adminBtn {
+    position: fixed; left: 12px; bottom: 14px;
+    width: 58px; height: 58px; border-radius: 50%;
+    background:#000; color:#fff; border:none; outline:none;
+    display:none; align-items:center; justify-content:center;
+    box-shadow: 0 8px 18px rgba(0,0,0,.22);
+    z-index: 7000; cursor:pointer; -webkit-tap-highlight-color: transparent;
+  }
+  #adminBtn svg { width: 28px; height: 28px; stroke:#fff; fill:none; stroke-width:2.2; }
+
+  /* === Admin overlay + panel === */
+  #adminOverlay{
+    position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    display:none; z-index: 7000;
+  }
+  #adminPanel{
+    position: fixed; left: 50%; top: 52%;
+    transform: translate(-50%, -50%);
+    width: min(960px, 94vw); max-height: 86vh; overflow: hidden;
+    background:#fff; border: 2px solid #000; border-radius: 20px;
+    display:none; z-index: 7001; font-family: 'Roboto Slab', serif;
+  }
+  .ap-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 12px 14px; border-bottom:1px solid #ececec;
+  }
+  .ap-title{ font-size:18px; font-weight:700; }
+  .ap-close{
+    width:34px; height:34px; border:1px solid #000; border-radius:10px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:800;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ap-tabs{ display:flex; gap:8px; padding:10px 12px; border-bottom:1px solid #f0f0f0; flex-wrap:wrap; }
+  .ap-tab{
+    padding:8px 12px; border:1px solid #ddd; border-radius:10px; cursor:pointer; user-select:none;
+    font-weight:600; background:#fff;
+  }
+  .ap-tab.active{ border-color:#000; }
+  .ap-body{ padding:12px; overflow:auto; max-height: calc(86vh - 126px); }
+
+  /* Editor tables */
+  .ap-table{ width:100%; border-collapse:separate; border-spacing:0 10px; }
+  .ap-table th{ text-align:left; font-size:13px; color:#333; padding:0 8px; }
+  .ap-row{
+    display:grid; grid-template-columns: 78px 1fr 1fr 1fr auto; gap:8px; align-items:center;
+    padding:8px; border:1px solid #eee; border-radius:12px; margin-bottom:8px;
+  }
+  .ap-row img{ width:72px; height:72px; border-radius:10px; object-fit:cover; border:1px solid #e6e6e6; }
+  .ap-row input{ width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:10px; font-size:14px; }
+  .ap-row .ap-del{ border:1px solid #e33; color:#e33; background:#fff; border-radius:10px; padding:10px 12px; cursor:pointer; }
+
+  .ap-actions{ display:flex; gap:8px; padding:12px; border-top:1px solid #f0f0f0; }
+  .ap-btn{
+    padding:10px 14px; border-radius:10px; border:1px solid #000; background:#fff; cursor:pointer; font-weight:700;
+  }
+  .ap-btn.primary{ background:#e9fef1; border-color:#c5ecd6; color:#064c2c; }
+  .ap-add{ margin:10px 0; }
+  .ap-note{ font-size:12px; color:#666; margin-top:6px; }
+</style>
+<style>
+#searchResults{
+  max-height: 62vh;
+  overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+#searchResults::-webkit-scrollbar{ display:none; }
+
+#searchOverlay .close-btn { display: none !important; }
+
+
+
+#searchOverlay .search-header{
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+/* Header search suggestions */
+#headerSearchResults{
+  position: absolute;
+  left: 0; right: 0;
+  margin-top: 8px;
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  max-height: 62vh;
+  overflow: auto;
+  padding: 6px;
+  z-index: 4000;
+}
+.header-suggest{
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 10px;
+}
+.header-suggest:hover{ background:#f9f9f9; }
+.header-suggest img{
+  width:56px; height:56px; border-radius:10px; object-fit:cover;
+}
+.header-suggest .name{ font-size:14px; font-weight:600; }
+.header-suggest .price{ font-size:13px; color:#111; }
+.header-suggest .tag{
+  font-size:11px; padding:3px 6px; border:1px solid #ddd; border-radius:8px; color:#333;
+}
+/* Make the search bar a positioning anchor */
+#headerSearchBar { position: relative; }
+
+/* Show suggestions BELOW the search bar */
+#headerSearchResults{
+  position: absolute;
+  top: calc(100% + 10px);   /* exactly below the bar with 10px gap */
+  left: 0;
+  right: 0;
+  max-height: 62vh;         /* already there is fine */
+  overflow: auto;           /* already there is fine */
+  z-index: 4000;            /* keep it above page content */
+}
+
+</style>
+</head>
+<body>
+<!-- 👇 SIDE MENU STRUCTURE NEEDED FOR OVERLAY -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+<div class="menu-header">
+<span class="menu-title">Menu</span>
+<span class="menu-close" onclick="toggleMenu()">✕</span>
+</div>
+<div id="menuContent">
+  <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+  <a href="https://precioussly.com/" class="menu-link">Home</a>
+</div>
+</nav>
+<script>
+  document.addEventListener('click', function (e) {
+    const menu = document.getElementById('sideMenu');
+    if (!menu || !menu.contains(e.target)) return;
+    const toggle = e.target.closest('.dropdown-toggle');
+    if (toggle) {
+      const next = toggle.nextElementSibling;
+      if (next && (next.classList.contains('submenu-container') || next.classList.contains('submenu'))) {
+        const isOpen = next.classList.contains('open') || next.style.display === 'block';
+        next.classList.toggle('open', !isOpen);
+        next.style.display = isOpen ? 'none' : 'block';
+      }
+      e.preventDefault();
+      return;
+    }
+    const a = e.target.closest('a');
+    if (a && a.href) { if (typeof toggleMenu === 'function') toggleMenu(); }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      const menu = document.getElementById('sideMenu');
+      if (menu && menu.classList.contains('active') && typeof toggleMenu === 'function') toggleMenu();
+    }
+  });
+</script>
+
+<header class="site-header">
+  <!-- Hamburger -->
+  <div class="hamburger-wrapper" onclick="toggleMenu()">
+    <div></div><div></div><div></div>
+  </div>
+
+  <!-- Logo -->
+  <div id="logoWrap" style="display:flex; align-items:center; position:absolute; left:70px; top:6px;">
+    <img
+      alt="Precioussly Logo"
+      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+      onclick="location.href='https://precioussly.com';"
+      style="width:110px; height:auto; object-fit:contain; cursor:pointer; transition:opacity .3s ease; -webkit-tap-highlight-color:transparent;"
+    />
+  </div>
+
+  <!-- Right icons -->
+  <div id="rightIcons" style="display:flex; align-items:center; gap:12px;">
+    <!-- Search icon -->
+    <img
+      src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
+      alt="Search"
+      class="right-icon"
+      style="cursor:pointer; border-radius:0; width:25px; height:26px; margin-top:2px;"
+      onclick="openHeaderSearch()"
+    />
+    <!-- Profile icon -->
+    <img
+      src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
+      alt="Profile"
+      id="profileIcon"
+      class="right-icon icon-size"
+      style="cursor:pointer;"
+      onclick="handleProfileClick()"
+    />
+    <!-- Cart with badge -->
+    <a href="https://www.precioussly.com/cart" style="position:relative; display:inline-block; margin-top:5px;">
+      <img
+        src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
+        alt="Cart"
+        class="right-icon icon-size"
+      />
+      <span id="cartCountBadge"
+            style="position:absolute; top:-6px; right:-6px; background:#fff; color:#000; font-size:12px; border:1px solid #888; border-radius:50%; width:21px; height:21px; display:flex; align-items:center; justify-content:center;">
+        0
+      </span>
+    </a>
+  </div>
+
+  <!-- Inline header search (same as index.html) -->
+  <div id="headerSearchBar" class="header-search">
+    <input id="headerSearchInput" type="text" placeholder="Search products..." autocomplete="off" />
+    <button id="headerSearchBack" class="back-btn" type="button" onclick="closeHeaderSearch()">Back</button>
+    <div id="headerSearchResults" style="display:none;"></div>
+  </div>
+</header>
+
+<div id="announcementBar">🧿</div>
+<!-- Category Section (still working) -->
+<div id="categorySection"></div>
+<!-- 🔽 CATEGORY SCRIPT FROM SHEET -->
+<script>
+  const categorySheetURL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
+
+  fetch(categorySheetURL)
+    .then(res => res.json())
+    .then(rows => {
+      const container = document.getElementById("categorySection");
+      const grouped = {};
+
+      rows.forEach(row => {
+        const section = row["Title"]?.trim();
+        const name = row["Category Name"]?.trim();
+        const img = row["Category Image"]?.trim();
+        const link = row["Link"]?.trim() || "#";
+
+        if (!section || !name || !img) return;
+
+        if (!grouped[section]) grouped[section] = [];
+        grouped[section].push({ name, img, link });
+      });
+
+      Object.entries(grouped).forEach(([section, items]) => {
+        const title = document.createElement("h3");
+        title.innerText = section;
+        title.style.fontFamily = "'Roboto Slab', serif";
+        title.style.fontSize = "18px";
+        title.style.margin = "10px 0";
+        title.style.textAlign = "center";
+        title.style.textTransform = "capitalize";
+        title.style.fontWeight = "400";
+        container.appendChild(title);
+
+        const grid = document.createElement("div");
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "1fr 1fr";
+        grid.style.gap = "14px";
+
+        items.forEach(item => {
+          const box = document.createElement("a");
+          box.href = item.link;
+          box.style.textDecoration = "none";
+          box.style.color = "inherit";
+
+          box.innerHTML = `
+            <div style="text-align: center;">
+              <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 20px; object-fit: cover;">
+              <div style="margin-top: 8px; font-family: 'Roboto Slab', serif; font-size: 15px;">${item.name}</div>
+            </div>
+          `;
+          grid.appendChild(box);
+        });
+
+        container.appendChild(grid);
+      });
+    });
+</script>
+<script>
+  // Announcement Bar from Google Sheet
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
+  // Popup function
+  function togglePopup() {
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = overlay.querySelector(".popup-box");
+    const isOpen = overlay.classList.contains("active");
+    overlay.classList.toggle("active", !isOpen);
+    popupBox.classList.toggle("active", !isOpen);
+  }
+
+  // Hamburger toggle function
+function toggleMenu() {
+  const menu = document.getElementById("sideMenu");
+  const overlay = document.getElementById("menuOverlay");
+  const body = document.body;
+
+  const isOpen = menu.classList.contains("active");
+
+  if (isOpen) {
+    menu.classList.remove("active");
+    overlay.classList.remove("active");
+    body.classList.remove("no-scroll");
+  } else {
+    menu.classList.add("active");
+    overlay.classList.add("active");
+    body.classList.add("no-scroll");
+  }
+}
+  // 🔽 POPUP DATA FROM SHEET
+  const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
+
+  fetch(sheetURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const row = data[0];
+        const logo = document.querySelector(".popup-logo");
+        if (row.popup_logo) logo.src = row.popup_logo;
+
+        const popupText = document.querySelector(".popup-text");
+        if (row.popup_text) popupText.innerHTML = row.popup_text;
+
+        const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
+        instaLinks.forEach(link => {
+          if (row.popup_insta_link) link.href = row.popup_insta_link;
+          if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
+        });
+      }
+    });
+
+// 🔽 MENU DATA FROM SHEET (complete block)
+(function(){
+  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+  const desiredOrder = ["Resin","Fashion Jewellery","Crochet","Gift Hampers"];
+  const skipSet = new Set(["home","track order"]);
+  const menuContent = document.getElementById("menuContent");
+  if (!menuContent) return;
+
+  function toggleSubmenu(id){
+    const el = document.getElementById(id);
+    if (!el) return;
+    const open = el.style.display === "block" || el.classList.contains("open");
+    el.style.display = open ? "none" : "block";
+    el.classList.toggle("open", !open);
+  }
+  window.toggleSubmenu = toggleSubmenu;
+
+  function renderItem(title, info){
+    if ((info.subs && info.subs.length)) {
+      const menuId = title.replace(/\s+/g, '-') + '-submenu';
+      menuContent.insertAdjacentHTML('beforeend', `
+        <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+          <span>${title}</span>
+          <span class="dropdown-icon">›</span>
+        </div>
+        <div class="submenu-container" id="${menuId}" style="display:none;">
+          ${info.subs.map(s => `<a href="${s.link||'#'}" class="submenu-link">› ${s.name}</a>`).join("")}
+        </div>
+      `);
+    } else {
+      menuContent.insertAdjacentHTML('beforeend',
+        `<a href="${info.link||'#'}" class="menu-link">${title}</a>`
+      );
+    }
+  }
+
+  fetch(menuURL)
+    .then(res => res.json())
+    .then(data => {
+      const grouped = {};
+      data.forEach(row => {
+        const menu = (row.Menu||'').trim();
+        const sub  = (row.Submenu||'').trim();
+        const link = (row.Link||'').trim();
+        if (!menu) return;
+        if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+        if (sub) {
+          grouped[menu].subs.push({ name: sub, link: link || '#' });
+        } else {
+          grouped[menu].link = link || '#';
+        }
+      });
+
+      const used = new Set(["home","track order"]);
+      desiredOrder.forEach(want => {
+        const key = Object.keys(grouped).find(k => k.toLowerCase() === want.toLowerCase());
+        if (key) { renderItem(key, grouped[key]); used.add(key.toLowerCase()); delete grouped[key]; }
+      });
+      Object.entries(grouped).forEach(([menu, info]) => {
+        if (skipSet.has(menu.toLowerCase())) return;
+        renderItem(menu, info);
+      });
+    });
+})();
+
+// 🟢 Wide Media (Image/Video) Strip from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    const strip = document.getElementById("imageStrip");
+    data.forEach(row => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.trim().endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url.trim();
+        el.controls = true;
+        el.muted = true;
+        el.loop = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url.trim();
+      }
+
+      el.className = "strip-media";
+      strip.appendChild(el);
+      setTimeout(() => {
+  const itemWidth = strip.children[0]?.offsetWidth || 0;
+  if (itemWidth) strip.scrollLeft = itemWidth;
+}, 300);
+    });
+  });
+let currentIndex = 0;
+let slides = [];
+let dots = [];
+const slider = document.getElementById("fadeSlider");
+const dotsContainer = document.getElementById("fadeDots");
+
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    data.forEach((row, index) => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url;
+        el.loop = true;
+        el.muted = true;
+        el.autoplay = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url;
+      }
+
+      el.className = "fade-slide";
+      if (index === 0) el.classList.add("active");
+
+      slider.appendChild(el);
+      slides.push(el);
+
+      // dots
+      const dot = document.createElement("div");
+      dot.className = "fade-dot";
+      if (index === 0) dot.classList.add("active");
+      dot.addEventListener("click", () => showSlide(index));
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
+    });
+  });
+
+function showSlide(index) {
+  slides[currentIndex]?.classList.remove("active");
+  dots[currentIndex]?.classList.remove("active");
+
+  currentIndex = index;
+
+  slides[currentIndex]?.classList.add("active");
+  dots[currentIndex]?.classList.add("active");
+}
+
+function showNextSlide() {
+  showSlide((currentIndex + 1) % slides.length);
+}
+
+function showPrevSlide() {
+  showSlide((currentIndex - 1 + slides.length) % slides.length);
+}
+
+// Swipe gesture
+let startX = 0;
+slider.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+});
+slider.addEventListener("touchend", e => {
+  const deltaX = e.changedTouches[0].clientX - startX;
+  if (Math.abs(deltaX) > 50) {
+    if (deltaX < 0) showNextSlide();
+    else showPrevSlide();
+  }
+});
+</script><script>
+  function handleCredentialResponse(response) {
+    const data = jwt_decode(response.credential);
+    alert("Welcome " + data.name + " (" + data.email + ")");
+  }
+
+  
+</script><script>
+  // If redirected from Google login
+  if (window.location.hash.includes("access_token")) {
+    const accessToken = window.location.hash.split("=")[1].split("&")[0];
+    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+      localStorage.setItem("user_name", data.name);
+      localStorage.setItem("user_email", data.email);
+      localStorage.setItem("user_photo", data.picture);
+      location.href = "https://precioussly.com"; // redirect clean
+    });
+  }
+
+  // Show profile photo if already logged in
+  const photo = localStorage.getItem("user_photo");
+  if (photo) {
+    document.getElementById("profileIcon").src = photo;
+  }
+
+  // When user taps profile icon
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+    }
+  }
+</script>
+<script>
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) {
+      if (count > 0) {
+        badge.innerText = count;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+  }
+
+  updateCartBadge(); // run on load
+</script>
+
+<script>
+  // ✅ Minimal & reliable hide-on-scroll logic
+(() => {
+  const header = document.querySelector('.site-header');
+  if (!header) return;
+
+  let lastY = window.pageYOffset;
+
+  const show = () => header.classList.remove('header-hidden');
+  const hide = () => header.classList.add('header-hidden');
+
+  const atTopOrSearching = () =>
+    window.pageYOffset < 10 || header.classList.contains('searching');
+
+  window.addEventListener('scroll', () => {
+    const y = window.pageYOffset;
+    const delta = y - lastY; // +ve = scrolling down, -ve = up
+
+    // Top par ya search khula ho to hamesha dikhana
+    if (atTopOrSearching()) { show(); lastY = y; return; }
+
+    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
+    else if (delta < -3) show(); // upar aate hi show
+
+    lastY = y;
+  }, { passive: true });
+})();
+</script>
+<!-- Floating Buttons: Back to Top + WhatsApp -->
+<div class="fab-stack">
+  <!-- Back to Top button -->
+  <button id="toTopBtn" class="fab-btn" aria-label="Back to top" title="Back to top" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"></path>
+    </svg>
+  </button>
+
+  <!-- WhatsApp button -->
+  <a id="waBtn" class="fab-btn" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" rel="noopener" target="_blank">
+    <img src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png" alt="WhatsApp">
+  </a>
+</div>
+<script>
+  const WA_NUMBER = "918586057887"; // 91 + 8586057887
+  const DEFAULT_MSG = "Hi Precioussly! I need help with my order.";
+
+  (function () {
+    const wa = document.getElementById("waBtn");
+    if (wa) {
+      const msg = encodeURIComponent(DEFAULT_MSG);
+      wa.href = `https://wa.me/${WA_NUMBER}?text=${msg}`;
+    }
+  })();
+
+  (function () {
+  const header = document.querySelector(".site-header");
+  if (!header) return;
+
+  let lastY = window.scrollY;
+  const TOL = 4; // px tolerance to avoid jitter
+
+  window.addEventListener("scroll", () => {
+    const y = window.scrollY;
+    const delta = y - lastY;
+    const movingDown = delta > TOL;
+    const movingUp   = delta < -TOL;
+
+    // ✅ Required behavior: UP => show, DOWN => hide
+    if (movingDown) {
+      header.classList.add("header-hidden");   // hide
+    } else if (movingUp) {
+      header.classList.remove("header-hidden"); // show
+    }
+    lastY = y;
+  }, { passive: true });
+})();
+</script>
+
+<script>
+  const toTopBtn = document.getElementById("toTopBtn");
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 200) {
+      toTopBtn.style.display = "flex";
+    } else {
+      toTopBtn.style.display = "none";
+    }
+  });
+  toTopBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+</script>
+<script>
+/* ===== Multi-page Search Setup (index.html) =====
+   - Do NOT change the two SHEET URLs below; ye wahi hain jo aap pages me use karte ho.
+   - Resin Necklace sheet (target page: /resin-necklace/)
+   - Hello sheet (target page: /hello/)  ← agar aapka actual path /hello.html hai to isey '/hello.html' kar dein.
+*/
+const CATALOGS = [
+  {
+    name: "Resin Necklace",
+    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
+    page : "/resin-necklace/"
+  },
+  {
+    name: "Hello",
+    sheet: "https://opensheet.elk.sh/1Y5ZgzCKg9DTAQbPBLwQ3F-BSp06QfIRJCizMQFO6dPg/Sheet1",
+    page : "/hello/"
+  }
+];
+
+// Global merged list
+window.allProducts = [];
+
+// Load all catalogs
+Promise.all(
+  CATALOGS.map(cat =>
+    fetch(cat.sheet).then(r => r.json()).then(rows => {
+      const items = rows
+        .filter(row => (row["Product Name"] || "").trim())
+        .map(row => ({
+          name: String(row["Product Name"]).trim(),
+          price: Number(row["Selling Price"] || 0),
+          mrp: Number(row["MRP"] || 0),
+          image: row["photo 1"] || row["Photo 1"] || "",
+          page: cat.page,
+          from: cat.name
+        }));
+      return items;
+    })
+  )
+).then(listOfLists => {
+  window.allProducts = listOfLists.flat();
+}).catch(()=>{});
+
+/* ========== UI wiring ========== */
+const inputEl   = document.getElementById('headerSearchInput');
+const boxEl     = document.getElementById('headerSearchResults');
+
+function openHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.add('searching');
+  header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.remove('searching');
+  hideSuggest();
+}
+function hideSuggest(){ if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; } }
+
+/* Filter + render */
+function renderSuggestions(q){
+  const ql = (q||"").toLowerCase().trim();
+  if(!ql){ hideSuggest(); return; }
+
+  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
+  const top = list.slice(0, 12); // max 12 items
+
+  if(!top.length){ hideSuggest(); return; }
+
+  // Build rows
+  boxEl.innerHTML = top.map(p => `
+    <div class="header-suggest" onclick="goToProduct('${p.page}', '${p.name.replace(/'/g,"\\'")}')">
+      <img src="${p.image || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
+      <div>
+        <div class="name">${p.name}</div>
+        <div class="price">₹${p.price || '-'}</div>
+      </div>
+      <div class="tag">${p.from}</div>
+    </div>
+  `).join('');
+
+
+  boxEl.style.display = 'block';
+}
+
+/* Navigate to correct page and auto-open popup there via ?p=
+   (Your product pages already re-open popup from ?p=... on load) */
+function goToProduct(pagePath, productName){
+  const base = location.origin;
+  location.href = `${base}${pagePath}?p=${encodeURIComponent(productName)}`;
+}
+
+/* On typing → live suggestions */
+if (inputEl){
+  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
+  inputEl.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      const typed = (inputEl.value||'').trim();
+      if(!typed){ closeHeaderSearch(); return; }
+      // If suggestions are visible, pick the first result; otherwise fall back to best match
+      const list = (window.allProducts || [])
+        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      const chosen = list[0] ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase()) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase())) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      if (chosen){
+        goToProduct(chosen.page, chosen.name);
+      } else {
+        // default: Resin Necklace page search
+        goToProduct('/resin-necklace/', typed);
+      }
+    }
+  });
+}
+
+// Expose for inline onclick in HTML we rendered
+window.goToProduct = goToProduct;
+window.openHeaderSearch = openHeaderSearch;
+window.closeHeaderSearch = closeHeaderSearch;
+</script>
+<!-- === Admin: floating button + popup === -->
+<button id="adminBtn" title="Edit page data">
+  <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+</button>
+
+<div id="adminOverlay"></div>
+<div id="adminPanel" role="dialog" aria-modal="true" aria-label="Content Editor">
+  <div class="ap-head">
+    <div class="ap-title">Content Editor</div>
+    <div class="ap-close" id="apClose">✕</div>
+  </div>
+
+  <div class="ap-tabs">
+    <div class="ap-tab active" data-tab="categories">Categories (photos)</div>
+    <div class="ap-tab" data-tab="announcement">Announcement</div>
+    <div class="ap-tab" data-tab="menu">Menu</div>
+    <div class="ap-tab" data-tab="media">Media Strip</div>
+  </div>
+
+  <div class="ap-body" id="apBody"><!-- dynamic --></div>
+
+  <div class="ap-actions">
+    <button class="ap-btn primary" id="apApply">Apply to Page</button>
+    <button class="ap-btn" id="apExport">Export CSV of Current Tab</button>
+  </div>
+</div>
+<script>
+/* ========= Admin Editor =========
+   - Shows only for this email:
+*/
+const ADMIN_EMAIL = "preciously906@gmail.com";
+
+/* These are already defined in your page; we reuse them:
+   - categorySheetURL  ✅ (Resin grid) 
+   - announceURL       ✅ (announcement bar)
+   - menuURL           ✅ (side menu)
+   - The media sheet uses the same "1tjNd2z..." Sheet1 with column "(media_url)"
+*/
+
+/* ---------- State ---------- */
+const AdminState = {
+  tab: "categories",
+  categories: [],         // [{Title, name, img, link}]
+  announcement: "",       // string
+  menuRows: [],           // [{Menu, Submenu, Link}]
+  media: []               // [{url}]
+};
+
+/* ---------- Boot ---------- */
+(function initAdmin(){
+  const email = (localStorage.getItem("user_email") || "").trim().toLowerCase();
+  const btn   = document.getElementById("adminBtn");
+  if (email === ADMIN_EMAIL.toLowerCase()) {
+    btn.style.display = "flex";
+  }
+  btn?.addEventListener("click", openAdmin);
+  document.getElementById("adminOverlay")?.addEventListener("click", closeAdmin);
+  document.getElementById("apClose")?.addEventListener("click", closeAdmin);
+  document.getElementById("apApply")?.addEventListener("click", applyCurrentTab);
+  document.getElementById("apExport")?.addEventListener("click", exportCurrentTab);
+
+  // tab switching
+  document.querySelectorAll(".ap-tab").forEach(t=>{
+    t.addEventListener("click", ()=>{
+      document.querySelectorAll(".ap-tab").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      AdminState.tab = t.dataset.tab;
+      renderTab(AdminState.tab);
+    });
+  });
+})();
+
+/* ---------- Open/Close ---------- */
+async function openAdmin(){
+  document.getElementById("adminOverlay").style.display = "block";
+  document.getElementById("adminPanel").style.display   = "block";
+
+  // lazy-load data only first time
+  if (!AdminState._loaded){
+    await loadAllSheets();
+    AdminState._loaded = true;
+  }
+  renderTab(AdminState.tab);
+}
+function closeAdmin(){
+  document.getElementById("adminOverlay").style.display = "none";
+  document.getElementById("adminPanel").style.display   = "none";
+}
+
+/* ---------- Fetch helpers ---------- */
+async function getJSON(url){
+  const r = await fetch(url);
+  return r.json();
+}
+async function loadAllSheets(){
+  try{
+    // Categories sheet: Title, Category Name, Category Image, Link
+    const catRows = await getJSON(categorySheetURL);
+    AdminState.categories = catRows.map(r=>({
+      Title: (r["Title"]||"").trim(),
+      name : (r["Category Name"]||"").trim(),
+      img  : (r["Category Image"]||"").trim(),
+      link : (r["Link"]||"").trim()
+    }));
+
+    // Announcement
+    const ann = await getJSON(announceURL);
+    AdminState.announcement = (ann?.[0]?.["(announcement_text)"] || "").trim();
+
+    // Menu: Menu, Submenu, Link
+    const menuRows = await getJSON(menuURL);
+    AdminState.menuRows = menuRows.map(r=>({
+      Menu:(r["Menu"]||"").trim(),
+      Submenu:(r["Submenu"]||"").trim(),
+      Link:(r["Link"]||"").trim()
+    }));
+
+    // Media strip: same ID (column "(media_url)")
+    const mediaRows = await getJSON("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1");
+    AdminState.media = mediaRows
+      .map(r => (r["(media_url)"]||"").trim())
+      .filter(Boolean)
+      .map(url => ({url}));
+  }catch(e){ console.error(e); }
+}
+
+/* ---------- Render tabs ---------- */
+function renderTab(which){
+  const box = document.getElementById("apBody");
+  if (!box) return;
+  if (which === "categories") return renderCategories(box);
+  if (which === "announcement") return renderAnnouncement(box);
+  if (which === "menu") return renderMenu(box);
+  if (which === "media") return renderMedia(box);
+}
+
+/* CATEGORIES */
+function renderCategories(box){
+  box.innerHTML = `
+    <div class="ap-note">Edit your category grid. Photos are shown for easy editing.</div>
+    <div id="catRows"></div>
+    <button class="ap-btn ap-add" onclick="addCatRow()">+ Add row</button>
+  `;
+  const host = box.querySelector("#catRows");
+  AdminState.categories.forEach((row, i)=> host.appendChild(catRowEl(row, i)));
+}
+function catRowEl(row, i){
+  const wrap = document.createElement("div");
+  wrap.className = "ap-row";
+  wrap.innerHTML = `
+    <img src="${row.img || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
+    <input placeholder="Title (e.g., Resin)" value="${escapeHtml(row.Title)}" data-k="Title">
+    <input placeholder="Category Name" value="${escapeHtml(row.name)}" data-k="name">
+    <input placeholder="Category Image URL" value="${escapeHtml(row.img)}" data-k="img">
+    <button class="ap-del">Delete</button>
+    <div style="grid-column: 2 / span 3;"><input placeholder="Link" value="${escapeHtml(row.link)}" data-k="link"></div>
+  `;
+  wrap.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", (e)=>{
+      const key = e.target.dataset.k;
+      AdminState.categories[i][key] = e.target.value.trim();
+      if (key === "img"){
+        const im = wrap.querySelector("img");
+        im.src = e.target.value.trim() || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png';
+      }
+    });
+  });
+  wrap.querySelector(".ap-del").addEventListener("click", ()=>{
+    AdminState.categories.splice(i,1);
+    renderTab("categories");
+  });
+  return wrap;
+}
+function addCatRow(){
+  AdminState.categories.push({Title:"Resin", name:"", img:"", link:""});
+  renderTab("categories");
+}
+
+/* ANNOUNCEMENT */
+function renderAnnouncement(box){
+  box.innerHTML = `
+    <div class="ap-note">One line that appears in the black bar on top.</div>
+    <input id="annInput" placeholder="Announcement text" value="${escapeHtml(AdminState.announcement)}" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px;">
+  `;
+  box.querySelector("#annInput").addEventListener("input", (e)=> AdminState.announcement = e.target.value);
+}
+
+/* MENU */
+function renderMenu(box){
+  box.innerHTML = `
+    <div class="ap-note">Columns: Menu, Submenu (optional), Link. Leave Submenu empty to make a top-level link.</div>
+    <div id="menuRows"></div>
+    <button class="ap-btn ap-add" onclick="addMenuRow()">+ Add row</button>
+  `;
+  const host = box.querySelector("#menuRows");
+  AdminState.menuRows.forEach((r,i)=> host.appendChild(menuRowEl(r,i)));
+}
+function menuRowEl(r,i){
+  const wrap = document.createElement("div");
+  wrap.className = "ap-row";
+  wrap.style.gridTemplateColumns = "1fr 1fr 1fr auto";
+  wrap.innerHTML = `
+    <input placeholder="Menu" value="${escapeHtml(r.Menu)}" data-k="Menu">
+    <input placeholder="Submenu" value="${escapeHtml(r.Submenu)}" data-k="Submenu">
+    <input placeholder="Link" value="${escapeHtml(r.Link)}" data-k="Link">
+    <button class="ap-del">Delete</button>
+  `;
+  wrap.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", (e)=>{
+      AdminState.menuRows[i][e.target.dataset.k] = e.target.value;
+    });
+  });
+  wrap.querySelector(".ap-del").addEventListener("click", ()=>{
+    AdminState.menuRows.splice(i,1);
+    renderTab("menu");
+  });
+  return wrap;
+}
+function addMenuRow(){ AdminState.menuRows.push({Menu:"", Submenu:"", Link:""}); renderTab("menu"); }
+
+/* MEDIA */
+function renderMedia(box){
+  box.innerHTML = `
+    <div class="ap-note">Paste image or MP4 URLs. These power your wide strip / fade slider (if present).</div>
+    <div id="mediaRows"></div>
+    <button class="ap-btn ap-add" onclick="addMediaRow()">+ Add media</button>
+  `;
+  const host = box.querySelector("#mediaRows");
+  AdminState.media.forEach((m,i)=> host.appendChild(mediaRowEl(m,i)));
+}
+function mediaRowEl(m,i){
+  const wrap = document.createElement("div");
+  wrap.className = "ap-row";
+  wrap.style.gridTemplateColumns = "78px 1fr auto";
+  const isVideo = /\.mp4(\?|$)/i.test(m.url||"");
+  wrap.innerHTML = `
+    ${isVideo ? `<video src="${m.url}" style="width:72px;height:72px;border-radius:10px;object-fit:cover" muted></video>`
+              : `<img src="${m.url || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">`}
+    <input placeholder="https://..." value="${escapeHtml(m.url)}" data-k="url">
+    <button class="ap-del">Delete</button>
+  `;
+  wrap.querySelector("input").addEventListener("input", (e)=>{
+    AdminState.media[i].url = e.target.value.trim();
+  });
+  wrap.querySelector(".ap-del").addEventListener("click", ()=>{
+    AdminState.media.splice(i,1);
+    renderTab("media");
+  });
+  return wrap;
+}
+function addMediaRow(){ AdminState.media.push({url:""}); renderTab("media"); }
+
+/* ---------- Apply to page (local preview) ---------- */
+function applyCurrentTab(){
+  if (AdminState.tab === "categories") applyCategoriesToPage();
+  if (AdminState.tab === "announcement") applyAnnouncementToPage();
+  if (AdminState.tab === "menu") applyMenuToPage();
+  if (AdminState.tab === "media") applyMediaToPage();
+  alert("Applied on this page (local). To save permanently in Google Sheets, export CSV and paste there.");
+}
+
+/* Categories -> rebuild #categorySection */
+function applyCategoriesToPage(){
+  const container = document.getElementById("categorySection");
+  if (!container) return;
+  container.innerHTML = "";
+  // group by Title
+  const grouped = {};
+  AdminState.categories.forEach(r=>{
+    if(!r.Title || !r.name || !r.img) return;
+    grouped[r.Title] ??= [];
+    grouped[r.Title].push({name:r.name, img:r.img, link:r.link||"#"});
+  });
+  Object.entries(grouped).forEach(([section, items])=>{
+    const title = document.createElement("h3");
+    title.innerText = section;
+    container.appendChild(title);
+
+    const grid = document.createElement("div");
+    grid.style.display="grid"; grid.style.gridTemplateColumns="1fr 1fr"; grid.style.gap="14px";
+    items.forEach(it=>{
+      const a = document.createElement("a");
+      a.href = it.link || "#";
+      a.style.textDecoration = "none";
+      a.style.color = "inherit";
+      a.innerHTML = `
+        <div style="text-align:center;">
+          <img src="${it.img}" alt="${it.name}" style="width:100%; border-radius:20px; object-fit:cover;">
+          <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${it.name}</div>
+        </div>`;
+      grid.appendChild(a);
+    });
+    container.appendChild(grid);
+  });
+}
+
+/* Announcement -> #announcementBar */
+function applyAnnouncementToPage(){
+  const el = document.getElementById("announcementBar");
+  if (el) el.innerText = AdminState.announcement || "";
+}
+
+/* Menu -> #menuContent */
+function applyMenuToPage(){
+  const menuContent = document.getElementById("menuContent");
+  if (!menuContent) return;
+  menuContent.innerHTML = `
+    <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+    <a href="https://precioussly.com/" class="menu-link">Home</a>
+  `;
+
+  // Group like your live code
+  const grouped = {};
+  AdminState.menuRows.forEach(r=>{
+    const m=(r.Menu||"").trim(); const s=(r.Submenu||"").trim(); const l=(r.Link||"#").trim();
+    if(!m) return;
+    grouped[m] ??= {link:null, subs:[]};
+    if (s) grouped[m].subs.push({name:s, link:l});
+    else grouped[m].link = l;
+  });
+
+  function renderItem(title, info){
+    if ((info.subs && info.subs.length)){
+      const id = title.replace(/\s+/g,'-')+'-submenu';
+      menuContent.insertAdjacentHTML('beforeend', `
+        <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${id}')">
+          <span>${title}</span><span class="dropdown-icon">›</span>
+        </div>
+        <div class="submenu-container" id="${id}" style="display:none;">
+          ${info.subs.map(s=>`<a href="${s.link||'#'}" class="submenu-link">› ${s.name}</a>`).join("")}
+        </div>
+      `);
+    } else {
+      menuContent.insertAdjacentHTML('beforeend', `<a href="${info.link||'#'}" class="menu-link">${title}</a>`);
+    }
+  }
+  Object.entries(grouped).forEach(([k,v])=>renderItem(k,v));
+}
+
+/* Media -> #imageStrip and fade slider (if present) */
+function applyMediaToPage(){
+  const strip = document.getElementById("imageStrip");
+  if (strip){
+    strip.innerHTML = "";
+    AdminState.media.forEach(m=>{
+      if(!m.url) return;
+      let el;
+      if (/\.mp4(\?|$)/i.test(m.url)){
+        el = document.createElement("video");
+        el.src = m.url; el.controls=true; el.muted=true; el.loop=true; el.playsInline=true;
+      } else {
+        el = document.createElement("img"); el.src = m.url;
+      }
+      el.className = "strip-media";
+      strip.appendChild(el);
+    });
+  }
+  const slider = document.getElementById("fadeSlider");
+  const dots   = document.getElementById("fadeDots");
+  if (slider && dots){
+    slider.innerHTML=""; dots.innerHTML="";
+    AdminState.media.forEach((m,idx)=>{
+      if(!m.url) return;
+      let el;
+      if (/\.mp4(\?|$)/i.test(m.url)){
+        el = document.createElement("video");
+        el.src = m.url; el.loop=true; el.muted=true; el.autoplay=true; el.playsInline=true;
+      } else {
+        el = document.createElement("img"); el.src = m.url;
+      }
+      el.className = "fade-slide"; if(idx===0) el.classList.add("active");
+      slider.appendChild(el);
+
+      const d = document.createElement("div");
+      d.className = "fade-dot"; if(idx===0) d.classList.add("active");
+      d.addEventListener("click", ()=>{ document.querySelectorAll(".fade-slide").forEach(x=>x.classList.remove("active"));
+                                        document.querySelectorAll(".fade-dot").forEach(x=>x.classList.remove("active"));
+                                        el.classList.add("active"); d.classList.add("active"); });
+      dots.appendChild(d);
+    });
+  }
+}
+
+/* ---------- Export CSV of current tab ---------- */
+function exportCurrentTab(){
+  let csv = "", filename = "data.csv";
+  if (AdminState.tab === "categories"){
+    csv = "Title,Category Name,Category Image,Link\n" + AdminState.categories
+      .map(r=>[r.Title,r.name,r.img,r.link].map(csvCell).join(",")).join("\n");
+    filename = "categories.csv";
+  } else if (AdminState.tab === "announcement"){
+    csv = "(announcement_text)\n" + csvCell(AdminState.announcement||"");
+    filename = "announcement.csv";
+  } else if (AdminState.tab === "menu"){
+    csv = "Menu,Submenu,Link\n" + AdminState.menuRows
+      .map(r=>[r.Menu,r.Submenu,r.Link].map(csvCell).join(",")).join("\n");
+    filename = "menu.csv";
+  } else if (AdminState.tab === "media"){
+    csv = "(media_url)\n" + AdminState.media.map(m=>csvCell(m.url)).join("\n");
+    filename = "media.csv";
+  }
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ---------- Utils ---------- */
+function csvCell(v=""){ v=String(v).replaceAll('"','""'); return `"${v}"`; }
+function escapeHtml(s=""){ return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
+</script>
+<!-- Hidden footer initially -->
+<footer id="delayedFooter" 
+        style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
+  © 2025 Precioussly. All rights reserved.
+</footer>
+
+<script>
+  // Ensure footer sticks at bottom if content is short
+  function adjustFooter() {
+    const footer = document.getElementById("delayedFooter");
+    if (!footer) return;
+    const bodyHeight = document.body.scrollHeight;
+    const winHeight = window.innerHeight;
+    if (bodyHeight < winHeight) {
+      footer.style.position = "fixed";
+      footer.style.bottom = "0";
+      footer.style.width = "100%";
+      footer.style.background = "#fff";  // clean background
+    } else {
+      footer.style.position = "relative";
+      footer.style.width = "100%";
+    }
+  }
+
+  // Show footer 3 seconds after page load with fade-in
+  window.addEventListener("load", function(){
+    setTimeout(function(){
+      const footer = document.getElementById("delayedFooter");
+      footer.style.display = "block";
+      footer.style.opacity = "0";
+      footer.style.transition = "opacity 1s ease";
+      requestAnimationFrame(() => { footer.style.opacity = "1"; });
+      adjustFooter();
+    }, 3000);
+  });
+
+  // Re-check if window is resized
+  window.addEventListener("resize", adjustFooter);
+</script>
+</body>
+</html>
