@@ -1565,18 +1565,31 @@ fetch(menuURL)
 </script>
 
 <script>
-// Smart header
-(function(){
-  const header = document.querySelector(".site-header");
+// ✅ Minimal & reliable hide-on-scroll logic
+(() => {
+  const header = document.querySelector('.site-header');
   if (!header) return;
-  let lastY = window.scrollY;
-  const TOL = 4;
-  window.addEventListener("scroll", () => {
-    const y = window.scrollY, delta = y - lastY;
-    if (delta > TOL) header.classList.add("header-hidden");
-    else if (delta < -TOL) header.classList.remove("header-hidden");
+
+  let lastY = window.pageYOffset;
+
+  const show = () => header.classList.remove('header-hidden');
+  const hide = () => header.classList.add('header-hidden');
+
+  const atTopOrSearching = () =>
+    window.pageYOffset < 10 || header.classList.contains('searching');
+
+  window.addEventListener('scroll', () => {
+    const y = window.pageYOffset;
+    const delta = y - lastY; // +ve = scrolling down, -ve = up
+
+    // Top par ya search khula ho to hamesha dikhana
+    if (atTopOrSearching()) { show(); lastY = y; return; }
+
+    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
+    else if (delta < -3) show(); // upar aate hi show
+
     lastY = y;
-  }, {passive:true});
+  }, { passive: true });
 })();
 </script>
 
@@ -1652,8 +1665,16 @@ const boxEl   = document.getElementById('headerSearchResults');
 
 function openHeaderSearch(){
   const header = document.querySelector('.site-header');
-  if(header) header.classList.add('searching');
+  header.classList.add('searching');
+  header.classList.remove('header-hidden');
   if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+if (bar) bar.setAttribute('hidden','');
   hideSuggest();
 }
 function closeHeaderSearch(){
