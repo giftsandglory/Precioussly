@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <meta name="google-signin-client_id" content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Precioussly</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+
+  /* 🔵 Disable blue tap highlight everywhere */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-focus-ring-color: transparent;
+  outline: none;
+}
+  .header-logo-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo-img {
+  width: 110px;
+  height: auto;
+  object-fit: contain;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+  .icon-size {
+  width: 10px;
+  height: 10px;
+}
+  .product-badge {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.coupon-strip {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  scroll-behavior: smooth;
+}
+.coupon-card {
+  background: #e9fef1;
+  border: 1px solid #c5ecd6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  width: 220px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.coupon-card h3 {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  color: #064c2c;
+}
+.coupon-card p {
+  font-size: 12px;
+  margin: 2px 0 6px;
+  color: #064c2c;
+}
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.code-box {
+  background: #d5f5e5;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #064c2c;
+  letter-spacing: 0.3px;
+}
+.copy-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.copy-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #064c2c;
+  stroke-width: 2;
+}
+.copy-btn:hover {
+  opacity: 0.6;
+}
+.strip-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 42px;
+  height: 42px;
+  background: rgba(0, 0, 0, 0.4); /* ✅ fixed background */
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 0;
+
+  /* ✅ Prevent tap glow & outlines */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-focus-ring-color: transparent;
+  outline: none;
+
+  /* ✅ Remove hover scale effect */
+  transition: none;
+}
+
+.strip-nav-btn:hover,
+.strip-nav-btn:active,
+.strip-nav-btn:focus {
+  background: rgba(0, 0, 0, 0.4); /* ❌ no change on hover/tap */
+  transform: translateY(-50%);   /* ❌ no zoom */
+}
+
+.strip-nav-left {
+  left: 8px;
+}
+
+.strip-nav-right {
+  right: 8px;
+}
+
+/* 👇 Arrow position adjust if needed */
+.strip-nav-btn span {
+  display: inline-block;
+  transform: translate(0, -2px); /* 🔼 Up 2px */
+}
+.image-strip-container {
+  display: flex;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.strip-media {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  object-fit: cover;
+  max-height: 320px;
+}
+
+.strip-media[controls] {
+  background: #000;
+}
+  .menu-divider {
+  width: 100vw;
+  height: 1px;
+  background-color: #e1dcd5;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+  .dropdown-icon {
+  font-size: 18px;
+  color: #000; /* black arrow */
+  font-family: 'Roboto Slab', serif;
+}
+  .header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 17px;
+  font-weight: 400;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+}
+  
+
+.side-menu.active {
+  left: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  z-index: 4000;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.menu-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.menu-link, .submenu-link {
+  display: block;
+  color: #5a3d2b;
+  text-decoration: none;
+  padding: 10px;
+  font-weight: 500;
+}
+
+.submenu-container {
+  margin-left: 15px;
+  padding-left: 10px;
+}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .site-header {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 16px; /* 🔁 increased from 12px */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  min-height: 72px;   /* ✅ added for height consistency */
+}
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hamburger-wrapper {
+  width: 24px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+
+  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue Android highlight */
+  touch-action: manipulation;               /* ✅ Prevent default touch delay */
+}
+
+    .hamburger-wrapper div {
+  width: 100%;
+  height: 3px;
+  background-color: #000; /* ✅ black */
+  border-radius: 2px;
+}
+
+    .logo-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .insta-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .insta-handle {
+  font-size: 17px;
+  color: #000; /* ✅ black */
+  font-weight: 500;
+}
+
+    .insta-handle a {
+      text-decoration: none;
+      color: #000;
+    }
+
+    .insta-handle a:hover {
+      text-decoration: underline;
+    }
+
+    .right-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  cursor: pointer;
+  border-radius: 50%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+    .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */ /* REMOVE THIS */
+  /* padding-top: 100px; */  /* REMOVE THIS */
+  z-index: 3000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+    .popup-box {
+  background-color: #ffffff;         /* white like header */
+  border: 2px solid #000;         /* premium brown */
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.4s ease;
+  pointer-events: none;
+  width: 90vw;
+  max-width: 320px;
+  position: absolute;
+  top: 120px;
+}
+
+    .popup-logo-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .popup-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .popup-insta {
+      font-size: 16px;
+      font-weight: 500;
+      color: #5a3d2b;
+    }
+
+    .popup-insta a {
+      color: #5a3d2b;
+      text-decoration: none;
+    }
+
+    .popup-insta a:hover {
+      text-decoration: underline;
+    }
+
+    .popup-text {
+      color: #5a3d2b;
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 90%;
+      word-wrap: break-word;
+    }
+
+    .close-btn {
+  position: absolute;
+  top: 8px;                 /* 🟢 adjust vertically inside */
+  right: 8px;               /* 🟢 adjust horizontally inside */
+  width: 22px;              /* 🟢 smaller size */
+  height: 22px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;          /* 🟢 smaller font */
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.close-btn:hover {
+  transform: scale(1.1);     /* hover zoom effect */
+}
+
+    #announcementBar {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #ffffff;
+  background: #000000;
+  border-top: none;
+  border-bottom: none;
+  font-weight: 500;
+  text-align: center;
+  font-family: 'Roboto Slab', serif; /* ✅ Use Roboto Slab */
+  min-height: 24px;
+  line-height: 22px;
+  user-select: none;
+}
+
+    @media (max-width: 480px) {
+      .logo-img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .insta-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      .insta-handle {
+        font-size: 15px;
+      }
+
+      
+
+      .hamburger-wrapper {
+        width: 22px;
+        height: 18px;
+      }
+
+      .hamburger-wrapper div {
+        height: 2.5px;
+      }
+    }
+  .overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.popup-box.active {
+  opacity: 1;
+  transform: translateY(-10px); /* Final position slightly above */
+  pointer-events: auto;
+}
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+  user-select: none;  /* 👈 Yeh line add karo */
+}
+.menu-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+}
+}
+}
+
+.menu-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000; /* 🔁 black */
+  font-family: 'Roboto Slab', serif;
+}
+
+.menu-close {
+  font-size: 24px;
+  font-weight: bold;
+  color: #000; /* ✅ black color */
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.menu-close:hover {
+  transform: scale(1.2);
+}
+
+/* Updated side-menu for premium look */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translateX(-100%);
+  width: 80%;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+  padding: 20px 16px;
+  overflow-y: auto;
+  z-index: 5000;
+  font-family: 'Roboto Slab', serif;
+
+  /* ✅ Ultra smooth animation */
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.side-menu.active {
+  transform: translateX(0%);
+}
+
+.menu-link {
+  font-size: 17px;
+  color: #000;
+  text-decoration: none;
+  padding: 14px 18px 14px 24px;
+  font-weight: 500;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: none !important; /* ✅ Remove the line */
+}
+
+.submenu-link {
+  font-size: 15px;
+  color: #444;
+  padding: 10px 20px 10px 36px;
+  text-decoration: none;
+  font-weight: 400;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #eaeaea; /* ✅ Light line for submenu */
+}
+down-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px 14px 24px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  border-bottom: 1px solid #e1dcd5;
+  cursor: pointer;
+}
+
+.down-icon {
+  font-size: 18px;
+  color: #000; /* 🔁 black */
+}
+.menu-text, .header-title {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -ms-user-select: none !important;
+}
+  body.no-scroll {
+    overflow: hidden;
+    height: 100vh;
+    touch-action: none;
+  }
+  .fade-slider {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+}
+
+.fade-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.fade-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 1;
+}
+.fade-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  z-index: 5;
+}
+
+.fade-dot {
+  width: 14px;
+  height: 6px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.15); /* soft black */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.fade-dot.active {
+  background-color: rgba(0, 0, 0, 0.35); /* slightly darker */
+}
+  
+
+/* --- sticky links at top of side menu (aligned) --- */
+.menu-fixed {
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 2;
+  padding: 0 0 8px 0;   /* no extra top spacing */
+  /* no border line here so it looks same as list */
+}
+
+.menu-fixed .home-link {
+  display: block;
+  padding: 14px 18px 14px 24px;  /* same as .menu-link */
+  font-family: 'Roboto Slab', serif;
+  font-size: 17px;
+  color: #000;
+  text-decoration: none;
+  margin: 0;
+}
+
+/* green theme button, aligned with left edge via margin-left */
+.menu-fixed .track-btn {
+  display: inline-block;
+  margin-left: 24px;   /* align with text of other menu items */
+  margin-top: 6px;
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #064c2c;
+  background: #e9fef1;
+  border: 1.5px solid #c5ecd6;
+  padding: 9px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+
+.menu-fixed .track-btn:active { transform: scale(0.98); }
+
+
+
+
+
+/* ✅ Pink theme certified strip — Vertical layout */
+.certified-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #ffe6f0;
+  padding: 16px 14px;
+  border-radius: 18px;
+  margin: 18px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.certified-strip.show { opacity: 1; transform: none; }
+
+.certified-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 8px;
+  background: #fff0f6;
+  border: 1px solid #ffd3e5;
+  border-radius: 14px;
+}
+
+.certified-item img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.certified-item span {
+  font-family: 'Roboto Slab', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+  line-height: 1.3;
+  text-align: center;
+}
+
+@media (max-width: 420px) {
+  .certified-item img { width: 52px; height: 52px; }
+  .certified-item span { font-size: 14px; }
+}
+
+}
+
+
+/* --- OVERRIDES: Certified strip appears 3s after refresh, no blank space before --- */
+.certified-strip {
+  /* keep flex but collapse space */
+  max-height: 0;
+  padding: 0 14px;
+  margin: 0 12px;
+  opacity: 0;
+  overflow: hidden;
+}
+.certified-strip.show {
+  /* expand + fade in */
+  max-height: 2000px;
+  padding: 16px 14px;
+  margin: 18px 12px;
+  opacity: 1;
+  transform: none;
+  transition: max-height 0.5s ease, opacity 0.5s ease, padding 0.5s ease, margin 0.5s ease;
+}
+
+
+
+/* === MENU (NO HOVER / NO ANIMATION) – OVERRIDES === */
+
+/* Overlay: just show/hide, no fade */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: none;
+  z-index: 4000;
+  opacity: 1 !important;
+  transition: none !important;
+}
+.menu-overlay.active { display: block; }
+
+/* Drawer: instant open/close, bigger width & padding */
+.side-menu {
+  position: fixed;
+  top: 0; left: 0;
+  width: 80vw;
+  max-width: 340px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: 4px 0 16px rgba(0,0,0,.1);
+  padding: 16px 12px;
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: none !important;
+  z-index: 5000;
+}
+.side-menu.active { transform: translateX(0); }
+
+/* Header row */
+.menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px 12px;
+  border-bottom: 1px solid #eaeaea;
+  margin-bottom: 12px;
+}
+.menu-title {
+  font-family: 'Roboto Slab', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+}
+.menu-close {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid #000;
+  border-radius: 10px;
+  font-size: 18px; font-weight: 700; color: #000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: none !important;
+}
+.menu-close:hover { transform: none !important; }
+
+/* Sticky “Home” + “Track Order” block */
+.menu-fixed { position: sticky; top: 0; background: #fff; padding-bottom: 8px; z-index: 2; }
+.menu-fixed a { text-decoration: none; color: #000; font-family: 'Roboto Slab', serif; }
+.menu-fixed .home-link { display: block; padding: 14px 16px; font-size: 17px; }
+.menu-fixed .track-btn {
+  display: block;
+  margin: 6px 16px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #e9fef1;
+  border: 1.5px solid #c5ecd6;
+  font-size: 16px; font-weight: 600; text-align: center;
+}
+
+/* Main list */
+.menu-link,
+.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px;
+  min-height: 48px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  text-decoration: none;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #f1f1f1;
+  background: transparent;
+}
+.dropdown-icon,
+.caret { font-size: 18px; line-height: 1; color: #000; }
+
+/* Submenus */
+.submenu-container,
+.submenu {
+  display: none;
+  background: #fafafa;
+  padding-left: 8px;
+}
+.submenu-container.open,
+.submenu.open { display: block; }
+.submenu-link {
+  display: block;
+  padding: 12px 16px 12px 24px;
+  font-size: 15px; color: #333;
+  text-decoration: none;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+/* Kill hovers */
+.menu-link:hover,
+.submenu-link:hover,
+.dropdown-toggle:hover { background: transparent !important; }
+
+
+
+
+/* === MENU – ULTRA SMOOTH OPEN/CLOSE (OVERRIDES) === */
+.menu-overlay{
+  opacity:0;
+  transition: opacity .35s cubic-bezier(.22,1,.36,1) !important; /* smooth fade */
+}
+.menu-overlay.active{opacity:1; display:block;}
+
+.side-menu {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.8s cubic-bezier(.25, 1, .3, 1) !important; /* smoother & slower */
+}
+.side-menu.active{ transform: translateX(0); }
+
+/* keep items still: no hover color, but give crisp separators */
+.menu-link, .submenu-link, .dropdown-toggle{ transition: none !important; }
+
+
+/* ===== Unified button list with equal size & spacing ===== */
+#sideMenu #menuContent{
+  display:flex;
+  flex-direction:column;
+  gap:10px;                 /* same space between all buttons */
+  padding: 6px 8px 14px;
+}
+
+#sideMenu .menu-link{
+  display:block;
+  text-align:center;
+  padding:10px 14px;
+  border:1px solid #e9e9e9;
+  border-radius:12px;        /* little round corners */
+  background:#ffffff;
+  color:#111 !important;
+  font-family:'Roboto Slab', serif;
+  font-size:17px;
+  font-weight:500;
+  text-decoration:none;
+  min-height:auto;          /* same height control */
+  box-shadow:0 1px 0 rgba(0,0,0,.02);
+}
+
+#sideMenu .menu-link--primary{
+  background:#e9fef1;                /* keep green */
+  border:1.5px solid #c5ecd6;
+  color:#064c2c !important;
+  font-weight:600;
+}
+/* Make first button in menu always green */
+#menuContent .menu-link:first-child {
+  background: #e9fef1 !important;
+  border: 1.5px solid #c5ecd6 !important;
+  color: #064c2c !important;
+  font-weight: 600 !important;
+}
+/* remove old separator lines effect */
+#sideMenu .menu-link,
+#sideMenu .submenu-link{ border-bottom:none !important; }
+
+/* tap feedback only */
+#sideMenu .menu-link:active{ transform:scale(.98); }
+
+
+/* ===== Menu button border & tap fixes (no color/size change) ===== */
+
+
+#sideMenu #menuContent{ padding: 8px 16px 18px !important; } /* breathing room for full rounded edges */
+
+#sideMenu .menu-link{
+  border:1px solid #dcdcdc !important;   /* stronger border */
+  box-shadow:0 1px 2px rgba(0,0,0,.03) !important;
+  -webkit-tap-highlight-color: transparent; 
+  outline:none;
+}
+
+#sideMenu .menu-link--primary{
+  background:#e9fef1 !important;          /* keep green */
+  border:1.5px solid #c5ecd6 !important;
+  color:#064c2c !important;
+}
+
+/* Do not change size or color on tap */
+#sideMenu .menu-link:active,
+#sideMenu .menu-link--primary:active{
+  background: inherit !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+/* Also remove any hover variations just in case */
+#sideMenu .menu-link:hover,
+#sideMenu .menu-link--primary:hover{
+  background: inherit !important;
+  color: inherit !important;
+}
+/* Prevent Track Order color change on click */
+.menu-link:active,
+.menu-link--primary:active {
+  background: inherit !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+/* Remove bold text for Track Order and Home */
+.menu-link,
+.menu-link--primary {
+  font-weight: 500 !important; /* normal weight */
+}
+/* ============ Search bar with Back pill ============ */
+#searchOverlay .search-box{
+  position: relative;
+  display: block;
+}
+
+#searchOverlay .search-box input{
+  width: 100%;
+  padding: 12px 86px 12px 14px;        /* right padding for Back button */
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;    /* consistent font */
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+#searchOverlay .search-box input:focus{
+  border-color: #bfbfbf;
+}
+
+/* Back button inside the input (pill) */
+#searchOverlay .back-btn{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 32px;
+  padding: 0 12px;
+  font: 500 14px 'Roboto Slab', serif;  /* normal, bold nahi */
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);    /* halka border */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+#searchOverlay .back-btn{ z-index:2; }
+#searchOverlay .search-box input{ position:relative; z-index:1; }
+
+#searchOverlay .back-btn:active{
+  transform: translateY(-50%) scale(0.98);
+}
+
+/* Safety: purani close-btn style ko neutralize */
+#searchOverlay .close-btn { display: none !important; }
+
+/* === Header search mode (inline) === */
+.header-search {
+  display: none;               /* default hidden */
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.header-search input {
+  flex: 1;
+  padding: 12px 14px;
+  font: 400 16px 'Roboto Slab', serif;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+.header-search input:focus { border-color: #bfbfbf; }
+
+#headerSearchBack {
+  height: 36px;
+  padding: 0 14px;
+  font: 500 14px 'Roboto Slab', serif;
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* When searching: hide logo/menu/icons, show input+back pill */
+.site-header.searching .hamburger-wrapper,
+.site-header.searching #logoWrap,
+.site-header.searching #rightIcons { display: none !important; }
+
+.site-header.searching #headerSearchBar {
+  display: flex !important;
+}
+
+/* Keep header from jumping */
+.site-header { position: sticky; top: 0; z-index: 3500; }
+</style>
+
+<style>
+/* ==== Floating action buttons (WhatsApp + Top) ==== */
+
+#toTopBtn {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+#toTopBtn svg {
+  width: 26px;
+  height: 26px;
+}
+
+.fab-stack {
+  position: fixed;
+  right: 10px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 6000;
+  pointer-events: none;
+}
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+/* ✅ WhatsApp button ka icon perfect center me, without misalignment */
+#waBtn {
+  width: 55px; /* icon ka size */
+  height: 55px;
+  border: none; /* circle ka border hata diya */
+  border-radius: 0; /* circle shape off */
+  background: none; /* background color hataya */
+  box-shadow: none; /* shadow bhi hataya */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Image ko full size pe dikhao */
+#waBtn img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* ==== Smart header ==== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 3500;
+  transition: transform .35s ease;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.site-header.header-hidden { transform: translateY(-100%); }
+#cartCountBadge {
+  font-family: 'Roboto Slab', serif !important;
+  font-weight: 200; /* bold look */
+  font-size: 14px;  /* adjust number size */
+}
+</style>
+<style>
+#searchResults{
+  max-height: 62vh;
+  overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+#searchResults::-webkit-scrollbar{ display:none; }
+
+#searchOverlay .close-btn { display: none !important; }
+
+
+
+#searchOverlay .search-header{
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+/* Header search suggestions */
+#headerSearchResults{
+  position: absolute;
+  left: 0; right: 0;
+  margin-top: 8px;
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  max-height: 62vh;
+  overflow: auto;
+  padding: 6px;
+  z-index: 4000;
+}
+.header-suggest{
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 10px;
+}
+.header-suggest:hover{ background:#f9f9f9; }
+.header-suggest img{
+  width:56px; height:56px; border-radius:10px; object-fit:cover;
+}
+.header-suggest .name{ font-size:14px; font-weight:600; }
+.header-suggest .price{ font-size:13px; color:#111; }
+.header-suggest .tag{
+  font-size:11px; padding:3px 6px; border:1px solid #ddd; border-radius:8px; color:#333;
+}
+/* Make the search bar a positioning anchor */
+#headerSearchBar { position: relative; }
+
+/* Show suggestions BELOW the search bar */
+#headerSearchResults{
+  position: absolute;
+  top: calc(100% + 10px);   /* exactly below the bar with 10px gap */
+  left: 0;
+  right: 0;
+  max-height: 62vh;         /* already there is fine */
+  overflow: auto;           /* already there is fine */
+  z-index: 4000;            /* keep it above page content */
+}
+
+</style>
+<style>
+#siteFooter{
+  display:none;            /* hidden at start */
+  opacity:0;               /* fade from 0 -> 1 */
+  transition:opacity .35s ease;
+  background:#fff;
+  border-top:1px solid #eaeaea;
+  text-align:center;
+  padding:6px 8px;         /* was 16px 12px 28px – reduced height */
+  font-family:'Roboto Slab', serif;
+  color:#000;
+  font-size:13px;          /* smaller text */
+  line-height:1.4;         /* tighter spacing */
+}
+#siteFooter.show{ display:block; opacity:1; }
+
+#siteFooter .brand{
+  margin-bottom:4px;       /* minimal space */
+}
+
+#siteFooter .links{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:4px 8px;              /* small gap */
+}
+#siteFooter .links a{
+  color:#000;
+  text-decoration:none;
+}
+#siteFooter .links a:hover{
+  text-decoration:underline;
+}
+#siteFooter .dot{ opacity:.6; }
+</style>
+<style>
+/* Make slide wrapper (anchor) fill the frame 100% */
+.fade-slide { display: block; text-decoration: none; }
+.fade-slide > img, .fade-slide > video { width: 100%; height: 100%; object-fit: cover; }
+</style>
+</head>
+<body>
+<header class="site-header" id="mainHeader">
+  <!-- Left: Menu (unchanged) -->
+  <button class="hamburger-wrapper" onclick="toggleMenu()" aria-label="Menu">
+    <div></div><div></div><div></div>
+  </button>
+
+  <!-- Center: Logo (same image, just wrapped for easy hide/show) -->
+  <div id="logoWrap" style="display:flex; align-items:center; position:absolute; left:70px; top:6px;">
+    <img
+      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+      alt="Precioussly Logo"
+      onclick="location.href = 'https://precioussly.com';"
+      style="width:110px; height:auto; object-fit:contain; cursor:pointer; transition:opacity .3s ease; -webkit-tap-highlight-color:transparent;"
+    />
+  </div>
+
+  <!-- Right: Icons (search, profile, cart) -->
+  <div id="rightIcons" style="display:flex; align-items:center; gap:12px;">
+    <!-- Search icon → NEW handler -->
+    <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
+         alt="Search" class="right-icon"
+         style="cursor:pointer; border-radius:0; width:25px; height:26px; margin-top:2px;"
+         onclick="openHeaderSearch()">
+
+    <!-- Profile icon (unchanged) -->
+    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
+         alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor:pointer;" />
+
+    <!-- Cart icon with badge (unchanged) -->
+    <a href="https://www.precioussly.com/cart" style="position:relative; display:inline-block; margin-top:5px;">
+      <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
+      <span id="cartCountBadge" style="position:absolute; top:-6px; right:-6px; background:white; color:black; font-size:12px; border:1px solid grey; border-radius:50%; width:21px; height:21px; display:flex; align-items:center; justify-content:center;">0</span>
+    </a>
+  </div>
+
+  <!-- Inline search bar (hidden until search mode) -->
+  <div id="headerSearchBar" class="header-search">
+    <input type="search" id="headerSearchInput" placeholder="Search products..." autocomplete="off" />
+    <button type="button" id="headerSearchBack" aria-label="Back" onclick="closeHeaderSearch()">Back</button>
+    <!-- 🔎 Live suggestions (multi-page catalog) -->
+<div id="headerSearchResults" style="display:none;"></div>
+
+  </div>
+</header>
+
+
+
+
+  <!-- Announcement Bar -->
+  <div id="announcementBar">🧿</div>
+  <div style="position: relative; overflow: hidden;">
+<div id="fadeSlider" class="fade-slider"></div>
+<div class="fade-dots" id="fadeDots"></div>
+</div>
+<div id="couponContainer" class="coupon-strip"></div>
+
+<div id="categorySection" style="padding: 16px 12px; display: flex; flex-wrap: wrap; gap: 12px;"></div>
+<!-- ✅ Certified Strip (Pink Theme) -->
+<div class="certified-strip" id="certifiedStrip">
+  <div class="certified-item">
+    <img src="https://i.postimg.cc/050Tt5sQ/file-0000000064dc61f697002e63e38cb125.png" alt="Secure Payment">
+    <span>Secure Payment</span>
+  </div>
+  <div class="certified-item">
+    <img src="https://i.postimg.cc/hPCHBChR/file-000000008834622fb699f7a7eb4bc3af.png" alt="Assured Quality">
+    <span>Assured Quality</span>
+  </div>
+  <div class="certified-item">
+    <img src="https://i.postimg.cc/B6cVwpRy/file-00000000449061f980b8bbbf0956d223.png" alt="Made in India">
+    <span>Made In India</span>
+  </div>
+  <div class="certified-item">
+    <img src="https://i.postimg.cc/L5x0mX93/file-000000005be061f9bfa70e7d2ef4c797.png" alt="Timely Delivery">
+    <span>Timely Delivery</span>
+  </div>
+</div>
+
+
+
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+<!-- Side Menu -->
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu()">✕</span>
+  </div>
+<!-- 🔒 Always-visible links -->
+
+
+<!-- scrollable area for the rest of menu items from Google Sheet -->
+<div id="menuContent">
+</div>
+
+</nav>
+
+<script>
+  document.addEventListener('click', function (e) {
+    const menu = document.getElementById('sideMenu');
+    if (!menu.contains(e.target)) return;
+    const toggle = e.target.closest('.dropdown-toggle');
+    if (toggle) {
+      const next = toggle.nextElementSibling;
+      if (next && (next.classList.contains('submenu-container') || next.classList.contains('submenu'))) {
+        const isOpen = next.classList.contains('open') || next.style.display === 'block';
+        next.classList.toggle('open', !isOpen);
+        next.style.display = isOpen ? 'none' : 'block';
+      }
+      e.preventDefault();
+      return;
+    }
+    const a = e.target.closest('a');
+    if (a && a.href) {
+      toggleMenu();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      const menu = document.getElementById('sideMenu');
+      if (menu.classList.contains('active')) toggleMenu();
+    }
+  });
+  window.addEventListener('load', function () {
+    const here = location.pathname.replace(/\/+$/, '');
+    document.querySelectorAll('#sideMenu a.menu-link, #sideMenu .home-link').forEach(a => {
+      try {
+        const path = new URL(a.href).pathname.replace(/\/+$/, '');
+        
+      } catch (_) {}
+    });
+  });
+</script>
+
+
+<!-- 🔽 Final Working Script -->
+<script>
+  // Announcement Bar from Google Sheet
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
+  // Popup function
+  function togglePopup() {
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = overlay.querySelector(".popup-box");
+    const isOpen = overlay.classList.contains("active");
+    overlay.classList.toggle("active", !isOpen);
+    popupBox.classList.toggle("active", !isOpen);
+  }
+
+  // Hamburger toggle function
+function toggleMenu() {
+  const menu = document.getElementById("sideMenu");
+  const overlay = document.getElementById("menuOverlay");
+  const body = document.body;
+
+  const isOpen = menu.classList.contains("active");
+
+  if (isOpen) {
+    menu.classList.remove("active");
+    overlay.classList.remove("active");
+    body.classList.remove("no-scroll");
+  } else {
+    menu.classList.add("active");
+    overlay.classList.add("active");
+    body.classList.add("no-scroll");
+  }
+}
+  // 🔽 POPUP DATA FROM SHEET
+  const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
+
+  fetch(sheetURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const row = data[0];
+        const logo = document.querySelector(".popup-logo");
+        if (row.popup_logo) logo.src = row.popup_logo;
+
+        const popupText = document.querySelector(".popup-text");
+        if (row.popup_text) popupText.innerHTML = row.popup_text;
+
+        const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
+        instaLinks.forEach(link => {
+          if (row.popup_insta_link) link.href = row.popup_insta_link;
+          if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
+        });
+      }
+    });
+
+  // 🔽 MENU DATA FROM SHEET
+  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+
+  fetch(menuURL)
+    .then(res => res.json())
+    .then(data => {
+      const menuContent = document.getElementById("menuContent");
+      const grouped = {};
+
+      data.forEach(item => {
+        const menu = item.Menu?.trim();
+        const sub = item.Submenu?.trim();
+        const link = item.Link?.trim();
+        if (!menu) return;
+
+        if (sub) {
+          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+          grouped[menu].subs.push({ name: sub, link });
+        } else {
+          grouped[menu] = { link, subs: [] };
+        }
+      });
+
+      Object.entries(grouped).forEach(([menu, info]) => {
+  if (info.subs.length === 0) {
+    menuContent.innerHTML += `<a href="${info.link}" class="menu-link">${menu}</a>`;
+  } else {
+    const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+    menuContent.innerHTML += `
+      <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+        <span>${menu}</span>
+        <span class="dropdown-icon">›</span>
+      </div>
+      <div class="submenu-container" id="${menuId}" style="display: none;">
+        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link">› ${s.name}</a>`).join("")}
+      </div>
+    `;
+  }
+});
+    });
+    function toggleSubmenu(id) {
+  const submenu = document.getElementById(id);
+  submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+}
+// 🟢 Wide Media (Image/Video) Strip from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    const strip = document.getElementById("imageStrip");
+    data.forEach(row => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.trim().endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url.trim();
+        el.controls = true;
+        el.muted = true;
+        el.loop = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url.trim();
+      }
+
+      el.className = "strip-media";
+      strip.appendChild(el);
+      setTimeout(() => {
+  const itemWidth = strip.children[0]?.offsetWidth || 0;
+  if (itemWidth) strip.scrollLeft = itemWidth;
+}, 300);
+    });
+  });
+let currentIndex = 0;
+let slides = [];
+let dots = [];
+
+const slider = document.getElementById("fadeSlider");
+const dotsContainer = document.getElementById("fadeDots");
+
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    data.forEach((row, index) => {
+      const url   = (row["(media_url)"] || "").trim();
+      if (!url) return;
+
+      const link  = (row["Linked"] || row["linked"] || row["Link"] || row["link"] || "").trim();
+
+      // Wrapper is an <a> if link exists, otherwise a simple <div>
+      const wrapper = document.createElement(link ? "a" : "div");
+      wrapper.className = "fade-slide";
+      if (index === 0) wrapper.classList.add("active");
+      if (link) {
+        wrapper.href = link;         // open in the same tab
+        wrapper.style.cursor = "pointer";
+      }
+
+      // Create the media element
+      let media;
+      if (url.toLowerCase().endsWith(".mp4")) {
+        media = document.createElement("video");
+        media.src = url;
+        media.loop = true;
+        media.muted = true;
+        media.autoplay = true;
+        media.playsInline = true;
+      } else {
+        media = document.createElement("img");
+        media.src = url;
+        media.alt = "";
+      }
+
+      // Fill the wrapper (CSS also enforces this)
+      media.style.width = "100%";
+      media.style.height = "100%";
+      media.style.objectFit = "cover";
+
+      wrapper.appendChild(media);
+      slider.appendChild(wrapper);
+      slides.push(wrapper);
+
+      // Dot for this slide
+      const dot = document.createElement("div");
+      dot.className = "fade-dot";
+      if (index === 0) dot.classList.add("active");
+      dot.addEventListener("click", () => showSlide(index));
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
+    });
+  });
+
+
+function showSlide(index) {
+  slides[currentIndex]?.classList.remove("active");
+  dots[currentIndex]?.classList.remove("active");
+
+  currentIndex = index;
+
+  slides[currentIndex]?.classList.add("active");
+  dots[currentIndex]?.classList.add("active");
+}
+
+function showNextSlide() {
+  showSlide((currentIndex + 1) % slides.length);
+}
+
+function showPrevSlide() {
+  showSlide((currentIndex - 1 + slides.length) % slides.length);
+}
+
+// Swipe gesture
+let startX = 0;
+slider.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+});
+slider.addEventListener("touchend", e => {
+  const deltaX = e.changedTouches[0].clientX - startX;
+  if (Math.abs(deltaX) > 50) {
+    if (deltaX < 0) showNextSlide();
+    else showPrevSlide();
+  }
+});
+</script>
+<script>
+const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
+
+fetch(couponSheetURL)
+  .then(res => res.json())
+  .then(data => {
+    const container = document.getElementById("couponContainer");
+    data.forEach(c => {
+      if (!c.Title || !c.MinAmount || !c.Code || !c.Discount) return;
+      const html = `
+        <div class="coupon-card">
+          <h3>${c.Title}</h3>
+          <p>Buy for min of ₹${c.MinAmount}</p>
+          <div class="code-row">
+            <div class="code-box">${c.Code}</div>
+            <div class="copy-btn" onclick="navigator.clipboard.writeText('${c.Code}')">
+              <svg viewBox="0 0 24 24">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4
+                         a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </div>
+          </div>
+        </div>`;
+      container.innerHTML += html;
+    });
+  });
+</script>
+<script>
+const categorySheetURL = "https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/Sheet1";
+
+fetch(categorySheetURL)
+  .then(res => res.json())
+  .then(rows => {
+    const container = document.getElementById("categorySection");
+    const grouped = {};
+
+    rows.forEach(row => {
+      const section = row.section?.trim();
+      const name = row["category name"]?.trim();
+      const img = row.image?.trim();
+      const link = row.link?.trim() || "#";
+      if (!section || !name || !img) return;
+      if (!grouped[section]) grouped[section] = [];
+      grouped[section].push({ name, img, link });
+    });
+
+    Object.entries(grouped).forEach(([section, items]) => {
+      const sectionTitle = document.createElement("h3");
+      sectionTitle.innerText = section;
+      sectionTitle.style.width = "100%";
+      sectionTitle.style.fontFamily = "'Roboto Slab', serif";
+      sectionTitle.style.fontSize = "17px";
+      sectionTitle.style.fontWeight = "400";
+      sectionTitle.style.margin = "0";
+      sectionTitle.style.padding = "0";
+      sectionTitle.style.textAlign = "center";
+
+      container.appendChild(sectionTitle);
+
+      items.forEach(item => {
+        const card = document.createElement("a");
+        card.href = item.link;
+        card.style.textDecoration = "none";
+        card.style.width = "calc(50% - 6px)";
+        card.style.border = "none";
+        card.style.borderRadius = "18px";
+        card.style.background = "transparent";
+        card.style.boxShadow = "none";
+        card.style.fontFamily = "'Roboto Slab', serif";
+card.style.webkitTapHighlightColor = "transparent";
+card.style.outline = "none";
+card.style.userSelect = "none";
+
+
+        card.innerHTML = `
+          <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 18px; display: block;" />
+          <div style="text-align: center; padding-top: 6px; font-size: 15px; font-weight: 500; font-family: 'Roboto Slab', serif; color: #000;">
+            ${item.name}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    });
+  });
+  </script>
+  
+
+<script>
+  function handleCredentialResponse(response) {
+    const data = jwt_decode(response.credential);
+    alert("Welcome " + data.name + " (" + data.email + ")");
+  }
+
+  
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+<script>
+  function clearStorage() {
+    localStorage.clear();
+    sessionStorage.clear();
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+<script>
+  // If redirected from Google login
+  if (window.location.hash.includes("access_token")) {
+    const accessToken = window.location.hash.split("=")[1].split("&")[0];
+    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+      localStorage.setItem("user_name", data.name);
+      localStorage.setItem("user_email", data.email);
+      localStorage.setItem("user_photo", data.picture);
+      location.href = "https://precioussly.com"; // redirect clean
+    });
+  }
+
+  // Show profile photo if already logged in
+  const photo = localStorage.getItem("user_photo");
+  if (photo) {
+    document.getElementById("profileIcon").src = photo;
+  }
+
+  // When user taps profile icon
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+    }
+  }
+</script>
+<script>
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) {
+  if (count > 0) {
+    badge.innerText = count;
+    badge.style.display = "flex";
+  } else {
+    badge.style.display = "none";
+  }
+}
+  }
+  // Call once on page load
+  updateCartBadge();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var cs = document.getElementById('certifiedStrip');
+  if (cs) { setTimeout(function(){ cs.classList.add('show'); }, 1600); }
+});
+</script>
+
+
+<!-- Floating Buttons: Back to Top + WhatsApp -->
+<div class="fab-stack">
+  <!-- Back to Top button -->
+  <button id="toTopBtn" class="fab-btn" aria-label="Back to top" title="Back to top" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"></path>
+    </svg>
+  </button>
+
+  <!-- WhatsApp button -->
+  <a id="waBtn" class="fab-btn" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" rel="noopener" target="_blank">
+    <img src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png" alt="WhatsApp">
+  </a>
+</div>
+
+<script>
+  const WA_NUMBER = "918586057887"; // 91 + 8586057887
+  const DEFAULT_MSG = "Hi Precioussly! I need help with my order.";
+
+  (function () {
+    const wa = document.getElementById("waBtn");
+    if (wa) {
+      const msg = encodeURIComponent(DEFAULT_MSG);
+      wa.href = `https://wa.me/${WA_NUMBER}?text=${msg}`;
+    }
+  })();
+
+  
+
+// ✅ Minimal & reliable hide-on-scroll logic
+(() => {
+  const header = document.querySelector('.site-header');
+  if (!header) return;
+
+  let lastY = window.pageYOffset;
+
+  const show = () => header.classList.remove('header-hidden');
+  const hide = () => header.classList.add('header-hidden');
+
+  const atTopOrSearching = () =>
+    window.pageYOffset < 10 || header.classList.contains('searching');
+
+  window.addEventListener('scroll', () => {
+    const y = window.pageYOffset;
+    const delta = y - lastY; // +ve = scrolling down, -ve = up
+
+    // Top par ya search khula ho to hamesha dikhana
+    if (atTopOrSearching()) { show(); lastY = y; return; }
+
+    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
+    else if (delta < -3) show(); // upar aate hi show
+
+    lastY = y;
+  }, { passive: true });
+})();
+</script>
+
+<script>
+  const toTopBtn = document.getElementById("toTopBtn");
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 200) {
+      toTopBtn.style.display = "flex";
+    } else {
+      toTopBtn.style.display = "none";
+    }
+  });
+  toTopBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+</script>
+<script>
+/* ===== Multi-page Search Setup (index.html) =====
+   - Do NOT change the two SHEET URLs below; ye wahi hain jo aap pages me use karte ho.
+   - Resin Necklace sheet (target page: /resin-necklace/)
+   - Hello sheet (target page: /hello/)  ← agar aapka actual path /hello.html hai to isey '/hello.html' kar dein.
+*/
+const CATALOGS = [
+  {
+    name: "Resin Necklace",
+    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
+    page : "/resin-necklace/"
+  },
+  {
+    name: "Hello",
+    sheet: "https://opensheet.elk.sh/1Y5ZgzCKg9DTAQbPBLwQ3F-BSp06QfIRJCizMQFO6dPg/Sheet1",
+    page : "/hello/"
+  }
+];
+
+// Global merged list
+window.allProducts = [];
+
+// Load all catalogs
+Promise.all(
+  CATALOGS.map(cat =>
+    fetch(cat.sheet).then(r => r.json()).then(rows => {
+      const items = rows
+        .filter(row => (row["Product Name"] || "").trim())
+        .map(row => ({
+          name: String(row["Product Name"]).trim(),
+          price: Number(row["Selling Price"] || 0),
+          mrp: Number(row["MRP"] || 0),
+          image: row["photo 1"] || row["Photo 1"] || "",
+          page: cat.page,
+          from: cat.name
+        }));
+      return items;
+    })
+  )
+).then(listOfLists => {
+  window.allProducts = listOfLists.flat();
+}).catch(()=>{});
+
+/* ========== UI wiring ========== */
+const inputEl   = document.getElementById('headerSearchInput');
+const boxEl     = document.getElementById('headerSearchResults');
+
+function openHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.add('searching');
+  header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
+}
+function hideSuggest(){ if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; } }
+
+/* Filter + render */
+function renderSuggestions(q){
+  const ql = (q||"").toLowerCase().trim();
+  if(!ql){ hideSuggest(); return; }
+
+  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
+  const top = list.slice(0, 12); // max 12 items
+
+  if(!top.length){ hideSuggest(); return; }
+
+  // Build rows
+  boxEl.innerHTML = top.map(p => `
+    <div class="header-suggest" onclick="goToProduct('${p.page}', '${p.name.replace(/'/g,"\\'")}')">
+      <img src="${p.image || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
+      <div>
+        <div class="name">${p.name}</div>
+        <div class="price">₹${p.price || '-'}</div>
+      </div>
+      <div class="tag">${p.from}</div>
+    </div>
+  `).join('');
+
+
+  boxEl.style.display = 'block';
+}
+
+/* Navigate to correct page and auto-open popup there via ?p=
+   (Your product pages already re-open popup from ?p=... on load) */
+function goToProduct(pagePath, productName){
+  const base = location.origin;
+  location.href = `${base}${pagePath}?p=${encodeURIComponent(productName)}`;
+}
+
+/* On typing → live suggestions */
+if (inputEl){
+  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
+  inputEl.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      const typed = (inputEl.value||'').trim();
+      if(!typed){ closeHeaderSearch(); return; }
+      // If suggestions are visible, pick the first result; otherwise fall back to best match
+      const list = (window.allProducts || [])
+        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      const chosen = list[0] ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase()) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase())) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      if (chosen){
+        goToProduct(chosen.page, chosen.name);
+      } else {
+        // default: Resin Necklace page search
+        goToProduct('/resin-necklace/', typed);
+      }
+    }
+  });
+}
+
+// Expose for inline onclick in HTML we rendered
+window.goToProduct = goToProduct;
+window.openHeaderSearch = openHeaderSearch;
+window.closeHeaderSearch = closeHeaderSearch;
+</script>
+<footer id="siteFooter" aria-label="Site footer">
+  <div class="brand">© <span id="footerYear"></span> Precioussly. All rights reserved.</div>
+
+  <nav class="links" aria-label="Policies">
+    <a href="https://precioussly.com/privacy-policy">Privacy Policy</a>
+    <span class="dot">•</span>
+    <!-- Note: & in URLs must be written as &amp; in HTML -->
+    <a href="https://precioussly.com/terms&amp;conditions">Terms &amp; Conditions</a>
+    <span class="dot">•</span>
+    <a href="https://precioussly.com/return-policy">Refund Policy</a>
+    <span class="dot">•</span>
+    <a href="https://precioussly.com/shipping-policy">Shipping Policy</a>
+    <span class="dot">•</span>
+    <a href="https://precioussly.com/about-us">About Us</a>
+  </nav>
+</footer>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Set the live year
+    var y = document.getElementById('footerYear');
+    if (y) y.textContent = new Date().getFullYear();
+
+    // Show footer after 3 seconds
+    var f = document.getElementById('siteFooter');
+    setTimeout(function () {
+      if (f) f.classList.add('show');
+    }, 3000);
+  });
+</script>
+
+</body>
+</html>
