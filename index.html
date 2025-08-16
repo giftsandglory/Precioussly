@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <meta name="google-signin-client_id" content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com">
+  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Precioussly</title>
@@ -1757,7 +1757,7 @@ card.style.userSelect = "none";
 
   
 </script>
-<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+
 <script>
   function clearStorage() {
     localStorage.clear();
@@ -1765,35 +1765,36 @@ card.style.userSelect = "none";
   }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+
 <script>
-  // If redirected from Google login
-  if (window.location.hash.includes("access_token")) {
-    const accessToken = window.location.hash.split("=")[1].split("&")[0];
-    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    })
-    .then(res => res.json())
-    .then(data => {
-      localStorage.setItem("user_name", data.name);
-      localStorage.setItem("user_email", data.email);
-      localStorage.setItem("user_photo", data.picture);
-      location.href = "https://precioussly.com"; // redirect clean
-    });
+  // === Login status + profile image from secure cookie ===
+  let USER = null;
+
+  async function refreshUser() {
+    try {
+      const res = await fetch("/api/me", { credentials: "include" });
+      if (res.ok) {
+        USER = await res.json();
+        if (USER?.picture) {
+          document.getElementById("profileIcon").src = USER.picture;
+        }
+      } else {
+        USER = null;
+      }
+    } catch (_) {}
   }
 
-  // Show profile photo if already logged in
-  const photo = localStorage.getItem("user_photo");
-  if (photo) {
-    document.getElementById("profileIcon").src = photo;
-  }
+  // call once on page load
+  refreshUser();
 
-  // When user taps profile icon
   function handleProfileClick() {
-    const isLoggedIn = localStorage.getItem("user_email");
-    if (isLoggedIn) {
+    if (USER && USER.email) {
       window.location.href = "/dashboard";
     } else {
-      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+      // Start safe server-side OAuth (no secrets in page)
+      window.location.href = "/api/auth-start";
+      // If you used netlify.toml redirect, you can also use: /api/auth-start
+      // Without redirect, use: /.netlify/functions/auth-start
     }
   }
 </script>
