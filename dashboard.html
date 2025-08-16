@@ -492,14 +492,7 @@ main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
     }
   }
 
-  function handleProfileClick() {
-    const isLoggedIn = localStorage.getItem("user_email");
-    if (isLoggedIn) {
-      window.location.href = "/dashboard";
-    } else {
-      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
-    }
-  }
+  
 
   const name = localStorage.getItem("user_name");
   const email = localStorage.getItem("user_email");
@@ -513,11 +506,7 @@ main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
   document.getElementById("userEmail").innerText = email;
   document.getElementById("userImage").src = photo;
 
-  function logout() {
-    localStorage.clear();
-    window.location.href = "/";
-  }
-
+  
   function updateCartBadge() {
     const items = JSON.parse(localStorage.getItem("cartItems")) || [];
     let count = 0;
@@ -915,4 +904,64 @@ window.closeHeaderSearch = closeHeaderSearch;
   window.addEventListener("resize", adjustFooter);
 </script>
 </body>
+<script>
+  // --- Session helper: ask Netlify Function if user is logged in (HttpOnly cookie, no tokens in JS) ---
+  async function getSession() {
+    try {
+      const r = await fetch('/.netlify/functions/session', { credentials: 'include' });
+      if (!r.ok) return null;
+      const data = await r.json();
+      return data && data.user ? data : null;
+    } catch { return null; }
+  }
+
+  // --- On page load: show profile (and protect dashboard) using server session ---
+  (async function bootDashboard() {
+    const s = await getSession();
+
+    // Not logged in → send home page
+    if (!s || !s.user || !s.user.email) {
+      if (location.hostname !== 'localhost') window.location.href = '/';
+      return;
+    }
+
+    // Update UI safely
+    const nameEl  = document.getElementById('userName');
+    const emailEl = document.getElementById('userEmail');
+    const imgEl   = document.getElementById('userImage');
+    if (nameEl)  nameEl.innerText = `Hello, ${s.user.name || 'User'}`;
+    if (emailEl) emailEl.innerText = s.user.email || '';
+    if (imgEl && s.user.picture) imgEl.src = s.user.picture;
+
+    // For your other UI that checks localStorage (cart badge, admin checks), keep only non-sensitive hints:
+    if (s.user.email) localStorage.setItem('user_email', s.user.email);
+    if (s.user.name)  localStorage.setItem('user_name',  s.user.name);
+    if (s.user.picture) localStorage.setItem('user_photo', s.user.picture);
+
+    // If you show profile icon in header:
+    const headerPic = document.getElementById('profileIcon');
+    if (headerPic && s.user.picture) headerPic.src = s.user.picture;
+  })();
+
+  // --- New login handler: always go via server (creates state/PKCE, no tokens in URL) ---
+  async function handleProfileClick() {
+    const s = await getSession();
+    if (s && s.user) {
+      // already logged in → stay on dashboard (or take to orders page)
+      window.location.href = '/dashboard';
+      return;
+    }
+    // Start OAuth via Netlify
+    window.location.href = '/.netlify/functions/auth-start';
+  }
+
+  // --- New logout: clear HttpOnly session cookie on server ---
+  async function logout() {
+    try { await fetch('/.netlify/functions/logout', { credentials: 'include' }); } catch {}
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_photo');
+    window.location.href = '/';
+  }
+</script>
 </html>
