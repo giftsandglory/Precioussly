@@ -2917,5 +2917,44 @@ window.goToProduct = goToProduct;
 window.openHeaderSearch = openHeaderSearch;
 window.closeHeaderSearch = closeHeaderSearch;
 </script>
+<!-- Hidden footer initially -->
+<footer id="delayedFooter" 
+        style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
+  © 2025 Precioussly. All rights reserved.
+</footer>
+
+<script>
+  // Ensure footer sticks at bottom if content is short
+  function adjustFooter() {
+    const footer = document.getElementById("delayedFooter");
+    if (!footer) return;
+    const bodyHeight = document.body.scrollHeight;
+    const winHeight = window.innerHeight;
+    if (bodyHeight < winHeight) {
+      footer.style.position = "fixed";
+      footer.style.bottom = "0";
+      footer.style.width = "100%";
+      footer.style.background = "#fff";  // clean background
+    } else {
+      footer.style.position = "relative";
+      footer.style.width = "100%";
+    }
+  }
+
+  // Show footer 3 seconds after page load with fade-in
+  window.addEventListener("load", function(){
+    setTimeout(function(){
+      const footer = document.getElementById("delayedFooter");
+      footer.style.display = "block";
+      footer.style.opacity = "0";
+      footer.style.transition = "opacity 1s ease";
+      requestAnimationFrame(() => { footer.style.opacity = "1"; });
+      adjustFooter();
+    }, 2000);
+  });
+
+  // Re-check if window is resized
+  window.addEventListener("resize", adjustFooter);
+</script>
 </body>
 </html>
