@@ -1599,25 +1599,32 @@ slider.addEventListener("touchend", e => {
 </script>
 
 <script>
-  (function(){
-    const header = document.querySelector('.site-header');
-    if (!header) return;
-    let lastY = window.scrollY;
-    let ticking = false;
-    function onScroll() {
-      const y = window.scrollY;
-      const goingDown = y > lastY && y > 40;
-      header.classList.toggle('header-hidden', goingDown);
-      lastY = y;
-      ticking = false;
-    }
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        window.requestAnimationFrame(onScroll);
-        ticking = true;
-      }
-    }, { passive: true });
-  })();
+  // ✅ Minimal & reliable hide-on-scroll logic
+(() => {
+  const header = document.querySelector('.site-header');
+  if (!header) return;
+
+  let lastY = window.pageYOffset;
+
+  const show = () => header.classList.remove('header-hidden');
+  const hide = () => header.classList.add('header-hidden');
+
+  const atTopOrSearching = () =>
+    window.pageYOffset < 10 || header.classList.contains('searching');
+
+  window.addEventListener('scroll', () => {
+    const y = window.pageYOffset;
+    const delta = y - lastY; // +ve = scrolling down, -ve = up
+
+    // Top par ya search khula ho to hamesha dikhana
+    if (atTopOrSearching()) { show(); lastY = y; return; }
+
+    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
+    else if (delta < -3) show(); // upar aate hi show
+
+    lastY = y;
+  }, { passive: true });
+})();
 </script>
 <!-- Floating Buttons: Back to Top + WhatsApp -->
 <div class="fab-stack">
@@ -1732,7 +1739,15 @@ const boxEl     = document.getElementById('headerSearchResults');
 function openHeaderSearch(){
   const header = document.querySelector('.site-header');
   header.classList.add('searching');
+  header.classList.remove('header-hidden');
   if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+if (bar) bar.setAttribute('hidden','');
   hideSuggest();
 }
 function closeHeaderSearch(){
