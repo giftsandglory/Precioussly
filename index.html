@@ -1289,6 +1289,11 @@ down-toggle {
 }
 #siteFooter .dot{ opacity:.6; }
 </style>
+<style>
+/* Make slide wrapper (anchor) fill the frame 100% */
+.fade-slide { display: block; text-decoration: none; }
+.fade-slide > img, .fade-slide > video { width: 100%; height: 100%; object-fit: cover; }
+</style>
 </head>
 <body>
 <header class="site-header" id="mainHeader">
@@ -1567,6 +1572,7 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
 let currentIndex = 0;
 let slides = [];
 let dots = [];
+
 const slider = document.getElementById("fadeSlider");
 const dotsContainer = document.getElementById("fadeDots");
 
@@ -1574,29 +1580,45 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
   .then(res => res.json())
   .then(data => {
     data.forEach((row, index) => {
-      const url = row["(media_url)"];
+      const url   = (row["(media_url)"] || "").trim();
       if (!url) return;
 
-      let el;
-      if (url.endsWith(".mp4")) {
-        el = document.createElement("video");
-        el.src = url;
-        el.loop = true;
-        el.muted = true;
-        el.autoplay = true;
-        el.playsInline = true;
-      } else {
-        el = document.createElement("img");
-        el.src = url;
+      const link  = (row["Linked"] || row["linked"] || row["Link"] || row["link"] || "").trim();
+
+      // Wrapper is an <a> if link exists, otherwise a simple <div>
+      const wrapper = document.createElement(link ? "a" : "div");
+      wrapper.className = "fade-slide";
+      if (index === 0) wrapper.classList.add("active");
+      if (link) {
+        wrapper.href = link;         // open in the same tab
+        wrapper.style.cursor = "pointer";
       }
 
-      el.className = "fade-slide";
-      if (index === 0) el.classList.add("active");
+      // Create the media element
+      let media;
+      if (url.toLowerCase().endsWith(".mp4")) {
+        media = document.createElement("video");
+        media.src = url;
+        media.loop = true;
+        media.muted = true;
+        media.autoplay = true;
+        media.playsInline = true;
+      } else {
+        media = document.createElement("img");
+        media.src = url;
+        media.alt = "";
+      }
 
-      slider.appendChild(el);
-      slides.push(el);
+      // Fill the wrapper (CSS also enforces this)
+      media.style.width = "100%";
+      media.style.height = "100%";
+      media.style.objectFit = "cover";
 
-      // dots
+      wrapper.appendChild(media);
+      slider.appendChild(wrapper);
+      slides.push(wrapper);
+
+      // Dot for this slide
       const dot = document.createElement("div");
       dot.className = "fade-dot";
       if (index === 0) dot.classList.add("active");
@@ -1605,6 +1627,7 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
       dots.push(dot);
     });
   });
+
 
 function showSlide(index) {
   slides[currentIndex]?.classList.remove("active");
