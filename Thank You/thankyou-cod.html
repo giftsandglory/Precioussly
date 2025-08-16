@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thank You – Cash on Delivery</title>
+  <meta name="color-scheme" content="light only" />
+
+  <style>
+    :root{
+      --brand:#2874f0;        /* Primary blue */
+      --text:#1d2939;         /* Neutral ink */
+      --muted:#667085;        /* Subtext */
+      --card:#ffffff;         /* Card bg */
+      --ring:#d0d5dd;         /* Soft outline */
+      --success:#22c55e;      /* Green */
+      --radius:20px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+                   Roboto, "Helvetica Neue", Arial, "Noto Sans";
+      color:var(--text);
+      background:#f8fafc;
+      -webkit-font-smoothing:antialiased;
+      line-height:1.45;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding:28px 16px;
+    }
+
+    .card{
+      width:100%;
+      max-width:460px;
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:28px 20px 26px;
+      border:1.5px solid var(--brand);
+      box-shadow:
+        0 10px 24px rgba(2,6,23,.06),
+        0 2px 6px rgba(2,6,23,.04);
+    }
+
+    /* ===== Success mark (CSS only) with robust animation ===== */
+    .success{
+      width:96px;height:96px;margin:4px auto 18px;position:relative;
+      display:grid;place-items:center;
+    }
+    .success .circle{
+      width:86px;height:86px;border-radius:999px;background:var(--success);
+      box-shadow:0 6px 18px rgba(34,197,94,.35) inset, 0 0 0 0 rgba(34,197,94,.25);
+      transform:scale(.85);
+      animation: pop 600ms cubic-bezier(.2,.8,.2,1) forwards,
+                 pulse 1600ms ease-out 700ms 2;
+    }
+/* ===== Success mark (SVG) with premium animation ===== */
+.success{
+  width:96px;height:96px;margin:4px auto 18px;display:grid;place-items:center;
+  position:relative;
+}
+.success-svg{
+  display:block;
+  transform:scale(.88);
+  filter: drop-shadow(0 10px 20px rgba(34,197,94,.25));
+  animation: pop 600ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+.success-svg .check{
+  stroke-dasharray: 90;
+  stroke-dashoffset: 90;              /* starts hidden */
+  animation: drawCheck 620ms ease-out 360ms forwards;
+}
+
+@keyframes pop{to{transform:scale(1)}}
+@keyframes drawCheck{to{stroke-dashoffset:0}}
+
+    h1{
+      margin:8px 0 6px;
+      font-size:26px;
+      line-height:1.2;
+      letter-spacing:.2px;
+      text-align:center;
+    }
+    .lead{
+      margin:0 auto 12px;
+      text-align:center;
+      color:var(--muted);
+      font-size:15.5px;
+      max-width:34ch;
+    }
+
+    .info{
+      margin:14px auto 18px;
+      padding:12px 14px;
+      background:#f9fafb;
+      border:1px solid var(--ring);
+      border-radius:14px;
+      color:#374151;
+      font-size:15px;
+      text-align:left;
+    }
+    .info p{margin:8px 0}
+
+    .actions{
+      display:flex; gap:10px; flex-wrap:wrap;
+      justify-content:center;
+      margin-top:18px;      /* <-- a little lower so it doesn’t feel “upward” */
+    }
+    .btn{
+      appearance:none; border:0; cursor:pointer;
+      padding:13px 16px;
+      border-radius:14px;
+      font-weight:700; font-size:16px;
+      line-height:1;
+      transition:transform .06s ease, box-shadow .2s ease, opacity .2s ease;
+      text-decoration:none; display:inline-flex; align-items:center; gap:10px;
+      justify-content:center; min-width:48%;
+    }
+    .btn:active{ transform:translateY(1px) }
+
+    .btn-primary{
+      background:var(--brand); color:#fff;
+      box-shadow: 0 8px 18px rgba(40,116,240,.25);
+    }
+    .btn-secondary{
+      background:#e8fff2; color:#064e3b; border:1px solid #c8f2d9;
+    }
+    .btn-primary:focus-visible,.btn-secondary:focus-visible{
+      outline:2px solid #93c5fd; outline-offset:2px
+    }
+
+    .footnote{
+      text-align:center; color:#6b7280; font-size:12.5px; margin-top:12px;
+    }
+
+    @media (max-width:380px){
+      h1{font-size:23px}
+      .btn{min-width:100%}
+      .card{padding:24px 16px}
+    }
+    @media (prefers-reduced-motion: reduce){
+      .btn{transition:none}
+      .success .circle,.success::before{animation:none}
+      .success .check i{animation:none; transform:scaleX(1)}
+    }
+  </style>
+</head>
+<body>
+<!-- 🔊 Confirmation sound (keep just under <body>) -->
+<audio id="confirmSound" preload="auto" src="https://drive.google.com/uc?export=download&id=1JbYL8Y5p-N_JUzIIblXj36X16uM3nmqs"></audio>
+
+
+  <main class="wrap">
+    <section class="card" role="status" aria-live="polite">
+      <!-- Animated success mark (no SVG) -->
+      <div class="success" aria-hidden="true">
+  <svg class="success-svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="Order placed successfully">
+    <defs>
+      <linearGradient id="okGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#34d399"/>
+        <stop offset="100%" stop-color="#22c55e"/>
+      </linearGradient>
+    </defs>
+    <!-- soft ring -->
+    <circle cx="48" cy="48" r="44" fill="rgba(34,197,94,.12)"></circle>
+    <!-- main green disc -->
+    <circle cx="48" cy="48" r="38" fill="url(#okGrad)"></circle>
+    <!-- white check that draws in -->
+    <path class="check"
+          d="M30 50 L43 63 L68 38"
+          fill="none"
+          stroke="#fff"
+          stroke-width="8"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </svg>
+</div>
+
+      <h1>Thank You for Your Order!</h1>
+      <p class="lead">
+        Your Cash on Delivery order has been placed successfully.
+      </p>
+
+      <div class="info">
+        <p><strong>Estimated Delivery:</strong> You can expect your parcel within <strong>5–7 days</strong>.</p>
+        <p><strong>Tracking on WhatsApp:</strong> As soon as your order is dispatched, we’ll send your tracking details on WhatsApp.</p>
+        <p><strong>Need help?</strong> Message us on WhatsApp at <strong>+91&nbsp;85860&nbsp;57887</strong>.</p>
+      </div>
+
+      <div class="actions">
+        <a class="btn btn-primary" href="https://precioussly.com/" rel="noopener">Continue Shopping</a>
+        <a class="btn btn-secondary"
+           href="https://wa.me/918586057887?text=Hello%20Team%2C%20I%20need%20help%20with%20my%20order."
+           target="_blank" rel="noopener">
+          WhatsApp
+        </a>
+      </div>
+
+      <p class="footnote">We appreciate your trust in us.</p>
+    </section>
+  </main>
+
+<script>
+(function () {
+  const shouldPlay = sessionStorage.getItem('playConfirmAudio') === '1';
+  const audio = document.getElementById('confirmSound');
+
+  async function tryPlay() {
+    if (!audio) return;
+    try {
+      audio.currentTime = 0;
+      await audio.play();
+      // clear the flag so it doesn't replay on refresh
+      sessionStorage.removeItem('playConfirmAudio');
+    } catch (e) {
+      // If autoplay blocked, try again shortly
+      setTimeout(tryPlay, 250);
+    }
+  }
+
+  if (shouldPlay) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      tryPlay();
+    } else {
+      document.addEventListener('DOMContentLoaded', tryPlay);
+    }
+  }
+
+  // Extra safety if page comes from back/forward cache
+  window.addEventListener('pageshow', function () {
+    if (sessionStorage.getItem('playConfirmAudio') === '1') {
+      tryPlay();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
