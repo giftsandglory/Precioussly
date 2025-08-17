@@ -1,0 +1,24 @@
+
+// /.netlify/functions/admin-auth
+exports.handler = async (event) => {
+  try {
+    if (event.httpMethod !== 'POST') {
+      return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+    }
+    const { password } = JSON.parse(event.body || '{}');
+    const adminPass = process.env.ADMIN_PASS; // set in Netlify env
+    if (!adminPass) {
+      return { statusCode: 500, body: JSON.stringify({ error: 'Server misconfigured: ADMIN_PASS not set' }) };
+    }
+    if (String(password) === String(adminPass)) {
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ok: true })
+      };
+    }
+    return { statusCode: 401, body: JSON.stringify({ ok: false, error: 'Invalid password' }) };
+  } catch (e) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'Auth error' }) };
+  }
+};
