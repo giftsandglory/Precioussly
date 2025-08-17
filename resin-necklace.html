@@ -784,8 +784,8 @@ nav.side-menu {
 .site-header{ position:sticky; top:0; z-index:3500; }
 </style>
 <style>
-/* ===== Admin FAB & Popup ===== */
-#adminFab{
+/* ===== Admin FAB + Editor (admin-only) ===== */
+#adminFab {
   position: fixed; left: 12px; bottom: 14px; z-index: 7000;
   width: 56px; height: 56px; border-radius: 50%;
   border: 1px solid rgba(0,0,0,.15); background:#111; color:#fff;
@@ -794,34 +794,58 @@ nav.side-menu {
 }
 #adminFab svg{ width:26px; height:26px; }
 
-#adminOverlay{
-  position:fixed; inset:0; background:rgba(0,0,0,.25);
-  display:none; align-items:center; justify-content:center; z-index: 99999;
+#adminEditorOverlay{
+  display:none; position:fixed; inset:0; z-index:10000;
+  background:rgba(0,0,0,.35);
 }
-#adminCard{
-  width:min(780px, 92vw); max-height:88vh; overflow:auto;
-  background:#fff; border-radius:16px; padding:14px;
-  box-shadow:0 12px 40px rgba(0,0,0,.25); border:1px solid #eee;
-  font-family: 'Roboto Slab', serif;
+#adminEditor {
+  position: absolute; left:50%; top:50%; transform: translate(-50%,-50%);
+  width:min(100vw, 980px); max-height:86vh; overflow:auto;
+  background:#fff; border:1px solid rgba(0,0,0,.1); border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25); padding:14px;
+  font-family:'Roboto Slab', serif;
 }
-.admin-row{ display:grid; grid-template-columns:80px 1fr 120px 120px 90px; gap:10px; align-items:center; padding:8px; border-bottom:1px solid #f0f0f0; }
-.admin-row img{ width:72px; height:72px; object-fit:cover; border-radius:10px; }
-.admin-input, .admin-textarea{
-  width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:10px;
-  padding:10px 12px; font:400 14px 'Roboto Slab', serif;
+#adminEditor h2{
+  margin:0 0 12px; font-size:18px; display:flex; align-items:center; justify-content:space-between;
 }
-.admin-textarea{ min-height:72px; resize:vertical; }
-.admin-toolbar{ display:flex; gap:8px; }
-.admin-btn{
-  padding:8px 10px; border:1px solid #ccc; border-radius:10px; background:#f7f7f7; cursor:pointer;
+.admin-topbar{ display:flex; gap:8px; align-items:center; }
+.admin-btn {
+  border:1px solid #d9d9d9; background:#fff; border-radius:10px; padding:8px 10px;
+  font-size:13px; cursor:pointer;
 }
-.admin-section{
-  padding:8px 10px; margin:10px 0 6px; background:#f9f9f9; border:1px solid #eee; border-radius:10px;
-  display:flex; align-items:center; justify-content:space-between;
+.admin-btn.primary { background:#2563eb; color:#fff; border-color:#2563eb; }
+.admin-list { display:flex; flex-direction:column; gap:10px; }
+
+.admin-section {
+  border:1px solid #eee; border-radius:12px; padding:10px; background:#fafafa;
 }
-.admin-small{ font-size:12px; color:#666; }
-.admin-grid{ display:flex; gap:12px; flex-wrap:wrap; }
-.admin-half{ flex:1 1 360px; }
+.admin-section-head {
+  display:flex; gap:8px; align-items:center; margin-bottom:8px;
+}
+.admin-input { width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:10px; font:400 14px 'Roboto Slab', serif; }
+
+.admin-row {
+  border:1px dashed #ddd; border-radius:12px; padding:10px; background:#fff; margin:8px 0;
+}
+.admin-row .grid {
+  display:grid; grid-template-columns:1.2fr 1fr 1fr 0.8fr; gap:10px;
+}
+.admin-row .grid.longname { grid-template-columns:1.6fr 1fr 1fr 0.8fr; }
+
+.admin-photos { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
+.admin-photos input.admin-input{ width:100%; }
+.admin-actions {
+  display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;
+}
+.smallbtn { padding:6px 10px; font-size:12px; border-radius:10px; border:1px solid #ddd; background:#fff; cursor:pointer; }
+.smallbtn.danger{ border-color:#ef4444; color:#ef4444; }
+.smallbtn.move{ border-color:#888; }
+.img-thumb { width:64px; height:64px; border-radius:10px; object-fit:cover; border:1px solid #eee; }
+
+@media (max-width:640px){
+  #adminEditor { width:96vw; }
+  .admin-row .grid, .admin-row .grid.longname { grid-template-columns:1fr; }
+}
 </style>
 </head>
 <body>
@@ -1920,122 +1944,416 @@ function applyDirectionFromSheet(rows){
       .catch(() => {});
   })();
 </script>
-<!-- ===== Admin FAB + Popup ===== -->
-<button id="adminFab" title="Edit page">
-  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
-  </svg>
-</button>
-
-<div id="adminOverlay" onclick="closeAdmin()">
-  <div id="adminCard" onclick="event.stopPropagation()">
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
-      <h3 style="margin:0; font-size:18px;">Admin Editor</h3>
-      <div class="admin-toolbar">
-        <button class="admin-btn" onclick="reloadFromSheet()">Reload from Sheet</button>
-        <button class="admin-btn" onclick="closeAdmin()">Close</button>
-      </div>
-    </div>
-
-    <div class="admin-section">
-      <div><b>Sections</b> <span class="admin-small">(reorder with Up/Down)</span></div>
-      <div id="sectionList" class="admin-grid"></div>
-    </div>
-
-    <div class="admin-section">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <b>Products in:</b>
-        <select id="sectionSelect" class="admin-input" style="max-width:260px;"></select>
-      </div>
-      <div class="admin-toolbar">
-        <button class="admin-btn" onclick="addNewProductUI()">+ Add Product</button>
-      </div>
-    </div>
-
-    <div id="productRows"></div>
-  </div>
-</div>
-<!-- other scripts already on your page -->
-
-<script>
-async function reloadPageDataAfterEdit(){
-  // simplest: reload the whole page to refetch from opensheet
-  location.reload();
-}
-</script>
-<script>
-/* == Admin FAB visibility controller ==
-   Shows the bottom-left admin button only for allowed emails.
-   Place this just above </body>, AFTER the #adminFab button markup.
-*/
-
-(function () {
-  // ✅ Sirf in emails ko admin dikhana hai
-  const ALLOWED_EMAILS = [
-    "preciously906@gmail.com",
-    "ask.precioussly@gmail.com"
-  ];
-
-  const fab = document.getElementById("adminFab");
-  if (!fab) return; // safety
-
-  // Helper: lower-case compare
-  function isAllowedEmail(email) {
-    if (!email) return false;
-    const e = String(email).toLowerCase().trim();
-    return ALLOWED_EMAILS.includes(e);
-  }
-
-  // 1) Try Netlify session (recommended)
-  fetch("/.netlify/functions/session", { credentials: "include" })
-    .then(r => r.ok ? r.json() : { loggedIn: false })
-    .then(s => {
-      if (s && s.loggedIn && s.user && isAllowedEmail(s.user.email)) {
-        // ✅ Logged-in & allowed -> show admin icon
-        fab.style.display = "flex";
-      } else {
-        // Not allowed or not logged in -> keep hidden
-      }
-    })
-    .catch(() => {
-      // 2) Fallback: URL param ?admin=1 for testing
-      const p = new URLSearchParams(location.search);
-      if (p.get("admin") === "1") {
-        fab.style.display = "flex"; // temporary testing
-      }
-    });
-
-  // (Optional) click wiring — apna editor kholne wala function
-  fab.addEventListener("click", function () {
-    // Yahan aap apna admin popup open karte ho
-    // Example: openAdminEditor();
-    // Agar abhi popup code nahi dala to temporary:
-    // alert("Admin editor will open here.");
-    if (typeof openAdminEditor === "function") {
-      openAdminEditor();
-    } else {
-      alert("Admin editor code not loaded yet. (Button visibility fix OK)");
-    }
-  });
-})();
-</script>
 <!-- ===== Admin FAB button (must live INSIDE <body>, just above </body>) ===== -->
-<button id="adminFab" title="Admin"
-  style="position: fixed; left: 12px; bottom: 14px; z-index: 7000; width: 56px; height: 56px; border-radius: 50%;
-         border: 1px solid rgba(0,0,0,.15); background:#111; color:#fff; display:none; align-items:center; justify-content:center;
-         box-shadow:0 6px 16px rgba(0,0,0,.20); -webkit-tap-highlight-color:transparent;">
-  <!-- simple gear icon -->
-  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"
+<button id="adminFab" title="Admin">
+  <!-- gear icon -->
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <circle cx="12" cy="12" r="3"></circle>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33
-             1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06
-             a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
-             a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 0 1 7.04 3.4l.06.06c.5.5 1.22.65 1.82.33
-             .48-.25 1-.39 1.51-.39s1.03.14 1.51.39c.6.32 1.32.17 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06
-             a1.65 1.65 0 0 0-.33 1.82c.25.48.39 1 .39 1.51s-.14 1.03-.39 1.51z"></path>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l0 0a2 2 0 1 1-2.83 2.83l0 0A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6l0 0a2 2 0 1 1-4 0l0 0a1.65 1.65 0 0 0-1-.6A1.65 1.65 0 0 0 4.6 15l0 0a2 2 0 1 1-2.83-2.83l0 0A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.6-1l0 0a2 2 0 1 1 2.83-2.83l0 0A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-.6l0 0a2 2 0 1 1 4 0l0 0a1.65 1.65 0 0 0 1 .6A1.65 1.65 0 0 0 19.4 9l0 0a2 2 0 1 1 2.83 2.83l0 0A1.65 1.65 0 0 0 19.4 15z"></path>
   </svg>
 </button>
-</body>
 
+<!-- ===== Admin Editor Overlay ===== -->
+<div id="adminEditorOverlay" onclick="closeAdminEditor(event)">
+  <div id="adminEditor" onclick="event.stopPropagation()">
+    <h2>
+      <span>Sheet Editor</span>
+      <div class="admin-topbar">
+        <button class="admin-btn" onclick="reloadFromSheet()">Reload</button>
+        <button class="admin-btn primary" onclick="saveAllChanges()">Save changes</button>
+        <button class="admin-btn" onclick="closeAdminEditor()">Close</button>
+      </div>
+    </h2>
+
+    <!-- Rendered controls go here -->
+    <div id="adminEditorBody" class="admin-list"></div>
+
+    <!-- Add Section -->
+    <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+      <input id="newSectionName" class="admin-input" placeholder="New section name (e.g., 'Featured')" />
+      <button class="admin-btn" onclick="addSection()">Add Section</button>
+    </div>
+  </div>
+</div>
+<script>
+/* ===== Admin-only editor ===== */
+const ADMIN_EMAIL = "ask.gifts.and.glory@gmail.com";
+/* 🔗 Paste your Apps Script Web App URL here (from step 0) */
+const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycby0k2RAcT6RvrVfqdFnPc3Kk8ft5xZk47JBMO2T26bPci55RiLK3czz1qJ8hKr0pRuP/exec";
+
+let sheetRows = [];        // latest raw rows from Sheet (same data you render products with)
+let model = [];            // editor model: [{ section:"...", items:[{...row...}], __id:... }, ...]
+
+/* 1) Show FAB only if admin is logged-in as that email */
+function bootstrapAdminFab(){
+  fetch('/.netlify/functions/session', { credentials: 'include' })
+    .then(r => r.ok ? r.json() : { loggedIn:false })
+    .then(s => {
+      const ok = !!(s && s.loggedIn && s.user && s.user.email === ADMIN_EMAIL);
+      const btn = document.getElementById('adminFab');
+      if (btn) btn.style.display = ok ? 'flex' : 'none';
+    })
+    .catch(()=>{ /* hide on errors */ });
+}
+
+/* 2) Clicking FAB opens editor, building model from current window.catalogData */
+document.getElementById('adminFab').addEventListener('click', openAdminEditor);
+
+function openAdminEditor(){
+  if (!window.catalogData || !Array.isArray(window.catalogData)) {
+    alert("Products not loaded yet. Try again in a moment.");
+    return;
+  }
+  sheetRows = window.catalogData.slice();
+  buildModelFromSheet(sheetRows);
+  renderAdmin();
+  const ov = document.getElementById('adminEditorOverlay');
+  ov.style.display = 'block';
+  document.body.classList.add('noscroll');
+}
+function closeAdminEditor(e){
+  const ov = document.getElementById('adminEditorOverlay');
+  ov.style.display = 'none';
+  document.body.classList.remove('noscroll');
+}
+
+/* 3) Build {sections → items[]} model & render controls */
+function buildModelFromSheet(rows){
+  model = [];
+  let current = null;
+  rows.forEach((r, idx) => {
+    if (r["Section"]) {
+      current = { section: String(r["Section"]).trim(), items: [], __id: cryptoRandom() };
+      model.push(current);
+    }
+    if (r["Product Name"]) {
+      if (!current) { // if the sheet starts with product rows without an explicit section row
+        current = { section: "", items: [], __id: cryptoRandom() };
+        model.push(current);
+      }
+      const item = {
+        name: r["Product Name"] || "",
+        mrp: r["MRP"] || "",
+        price: r["Selling Price"] || "",
+        stock: r["in stock"] || "",
+        badge: r["Badge"] || "",
+        dsc: getSheetDescription(r) || "",
+        photo1: r["photo 1"] || r["Photo 1"] || "",
+        photo2: r["photo 2"] || r["Photo 2"] || "",
+        photo3: r["photo 3"] || r["Photo 3"] || "",
+        photo4: r["photo 4"] || r["Photo 4"] || "",
+        __id: cryptoRandom()
+      };
+      current.items.push(item);
+    }
+  });
+}
+function cryptoRandom(){ return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+
+function renderAdmin(){
+  const box = document.getElementById('adminEditorBody');
+  if (!box) return;
+  box.innerHTML = "";
+
+  model.forEach((sec, sIndex) => {
+    const sWrap = document.createElement('div');
+    sWrap.className = 'admin-section';
+
+    // section header (editable) + reorder
+    const sh = document.createElement('div');
+    sh.className = 'admin-section-head';
+    sh.innerHTML = `
+      <input class="admin-input" value="${escapeHtml(sec.section)}" placeholder="Section title (leave empty if none)"
+             oninput="model[${sIndex}].section=this.value" />
+      <div class="admin-actions">
+        <button class="smallbtn move" onclick="moveSection(${sIndex}, -1)">↑ Section</button>
+        <button class="smallbtn move" onclick="moveSection(${sIndex}, 1)">↓ Section</button>
+        <button class="smallbtn danger" onclick="deleteSection(${sIndex})">Delete Section</button>
+      </div>
+    `;
+    sWrap.appendChild(sh);
+
+    // items list
+    sec.items.forEach((it, iIndex) => {
+      const r = document.createElement('div');
+      r.className = 'admin-row';
+
+      const nameRow = document.createElement('div');
+      nameRow.className = 'grid longname';
+      nameRow.innerHTML = `
+        <input class="admin-input" placeholder="Name (bigger field)" value="${escapeHtml(it.name)}"
+               oninput="model[${sIndex}].items[${iIndex}].name=this.value" />
+        <input class="admin-input" placeholder="MRP" value="${escapeHtml(it.mrp)}"
+               oninput="model[${sIndex}].items[${iIndex}].mrp=this.value" />
+        <input class="admin-input" placeholder="Selling Price" value="${escapeHtml(it.price)}"
+               oninput="model[${sIndex}].items[${iIndex}].price=this.value" />
+        <input class="admin-input" placeholder="in stock" value="${escapeHtml(it.stock)}"
+               oninput="model[${sIndex}].items[${iIndex}].stock=this.value" />
+      `;
+      r.appendChild(nameRow);
+
+      const row2 = document.createElement('div');
+      row2.className = 'grid';
+      row2.style.marginTop = "8px";
+      row2.innerHTML = `
+        <input class="admin-input" placeholder="Badge (optional)" value="${escapeHtml(it.badge)}"
+               oninput="model[${sIndex}].items[${iIndex}].badge=this.value" />
+        <input class="admin-input" placeholder="Description" value="${escapeHtml(it.dsc)}"
+               oninput="model[${sIndex}].items[${iIndex}].dsc=this.value" />
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img class="img-thumb" src="${escapeAttr(it.photo1)}" onerror="this.src='https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'"/>
+          <input class="admin-input" placeholder="Photo 1 URL" value="${escapeHtml(it.photo1)}"
+                 oninput="model[${sIndex}].items[${iIndex}].photo1=this.value" />
+        </div>
+        <div class="admin-actions">
+          <button class="smallbtn move" onclick="moveItem(${sIndex}, ${iIndex}, -1)">↑ Item</button>
+          <button class="smallbtn move" onclick="moveItem(${sIndex}, ${iIndex}, 1)">↓ Item</button>
+          <button class="smallbtn danger" onclick="deleteItem(${sIndex}, ${iIndex})">Delete</button>
+        </div>
+      `;
+      r.appendChild(row2);
+
+      const photos = document.createElement('div');
+      photos.className = 'admin-photos';
+      photos.innerHTML = `
+        <div style="display:flex; gap:8px; align-items:center;">
+          <img class="img-thumb" src="${escapeAttr(it.photo2)}" onerror="this.src='https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'"/>
+          <input class="admin-input" placeholder="Photo 2 URL" value="${escapeHtml(it.photo2)}"
+                 oninput="model[${sIndex}].items[${iIndex}].photo2=this.value" />
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <img class="img-thumb" src="${escapeAttr(it.photo3)}" onerror="this.src='https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'"/>
+          <input class="admin-input" placeholder="Photo 3 URL" value="${escapeHtml(it.photo3)}"
+                 oninput="model[${sIndex}].items[${iIndex}].photo3=this.value" />
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <img class="img-thumb" src="${escapeAttr(it.photo4)}" onerror="this.src='https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'"/>
+          <input class="admin-input" placeholder="Photo 4 URL" value="${escapeHtml(it.photo4)}"
+                 oninput="model[${sIndex}].items[${iIndex}].photo4=this.value" />
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="smallbtn" onclick="duplicateItem(${sIndex}, ${iIndex})">Duplicate</button>
+          <button class="smallbtn" onclick="addItemBelow(${sIndex}, ${iIndex})">Add new below</button>
+        </div>
+      `;
+      r.appendChild(photos);
+
+      sWrap.appendChild(r);
+    });
+
+    // add-item at end of section
+    const addRow = document.createElement('div');
+    addRow.style.marginTop = "8px";
+    addRow.innerHTML = `<button class="admin-btn" onclick="addItem(${sIndex})">+ Add product in this section</button>`;
+    sWrap.appendChild(addRow);
+
+    box.appendChild(sWrap);
+  });
+}
+
+/* Helpers to safely inject strings */
+function escapeHtml(s=""){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function escapeAttr(s=""){ return escapeHtml(s); }
+
+/* 4) Section & item operations */
+function addSection(){
+  const nm = document.getElementById('newSectionName').value.trim();
+  model.push({ section: nm, items: [], __id: cryptoRandom() });
+  document.getElementById('newSectionName').value = "";
+  renderAdmin();
+}
+function deleteSection(sIndex){ model.splice(sIndex,1); renderAdmin(); }
+function moveSection(sIndex, dir){
+  const n = sIndex + dir;
+  if (n<0 || n>=model.length) return;
+  const tmp = model[sIndex]; model[sIndex]=model[n]; model[n]=tmp;
+  renderAdmin();
+}
+
+function addItem(sIndex){
+  model[sIndex].items.push({
+    name:"", mrp:"", price:"", stock:"", badge:"", dsc:"",
+    photo1:"", photo2:"", photo3:"", photo4:"", __id:cryptoRandom()
+  });
+  renderAdmin();
+}
+function addItemBelow(sIndex, iIndex){
+  model[sIndex].items.splice(iIndex+1, 0, {
+    name:"", mrp:"", price:"", stock:"", badge:"", dsc:"",
+    photo1:"", photo2:"", photo3:"", photo4:"", __id:cryptoRandom()
+  });
+  renderAdmin();
+}
+function duplicateItem(sIndex, iIndex){
+  const src = model[sIndex].items[iIndex];
+  model[sIndex].items.splice(iIndex+1, 0, { ...src, __id: cryptoRandom() });
+  renderAdmin();
+}
+function deleteItem(sIndex, iIndex){ model[sIndex].items.splice(iIndex,1); renderAdmin(); }
+function moveItem(sIndex, iIndex, dir){
+  const n = iIndex + dir; const arr = model[sIndex].items;
+  if (n<0 || n>=arr.length) return;
+  const tmp = arr[iIndex]; arr[iIndex]=arr[n]; arr[n]=tmp;
+  renderAdmin();
+}
+
+/* 5) Convert editor model back to rows in the same format your page expects */
+function flattenModelToRows(){
+  const out = [];
+  model.forEach(sec => {
+    // section marker row
+    out.push({ "Section": sec.section });
+    // products
+    sec.items.forEach(it => {
+      out.push({
+        "Product Name": it.name,
+        "MRP": it.mrp,
+        "Selling Price": it.price,
+        "in stock": it.stock,
+        "Badge": it.badge,
+        "Description": it.dsc,
+        "photo 1": it.photo1,
+        "photo 2": it.photo2,
+        "photo 3": it.photo3,
+        "photo 4": it.photo4
+      });
+    });
+  });
+  return out;
+}
+
+/* 6) Save: send to Apps Script */
+async function saveAllChanges(){
+  if (!GAS_ENDPOINT || GAS_ENDPOINT.startsWith("PASTE_")) {
+    alert("Please set GAS_ENDPOINT to your Apps Script Web App URL first.");
+    return;
+  }
+  try{
+    const payload = {
+      action: "writeAllRows",
+      rows: flattenModelToRows()
+    };
+    const r = await fetch(GAS_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error("Server error");
+    const res = await r.json();
+    if (res.ok){
+      // Soft refresh the grid
+      await reloadFromSheet();
+      alert("Saved!");
+      closeAdminEditor();
+    } else {
+      alert("Save failed: " + (res.message || "unknown error"));
+    }
+  }catch(e){
+    alert("Save failed: "+e.message);
+  }
+}
+
+/* 7) Reload from the read endpoint (your existing opensheet URL) and rebuild content */
+async function reloadFromSheet(){
+  try{
+    const r = await fetch(SHEET_URL);
+    const data = await r.json();
+    window.catalogData = data;
+    // Rebuild grid
+    rebuildContentFrom(window.catalogData);
+  }catch(e){ alert("Reload failed"); }
+}
+
+/* Minimal rebuild that re-renders the #content grid like first load */
+function rebuildContentFrom(data){
+  const content = document.getElementById('content');
+  if (!content) return;
+  content.innerHTML = "";
+
+  let currentSection = '';
+  let sectionWrapper;
+
+  data.forEach(item => {
+    if (item["Section"]) {
+      currentSection = item["Section"];
+      const sectionTitle = document.createElement('div');
+      sectionTitle.className = 'section-title';
+      sectionTitle.innerText = currentSection;
+      content.appendChild(sectionTitle);
+
+      sectionWrapper = document.createElement('div');
+      sectionWrapper.className = 'product-grid';
+      content.appendChild(sectionWrapper);
+    }
+    if (!item["Product Name"]) return;
+
+    const product = document.createElement('div');
+    product.className = 'product';
+
+    const img = document.createElement('img');
+    img.src = item["photo 1"];
+    img.alt = item["Product Name"];
+    img.onclick = () => {
+      const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
+      openPopup(allPhotos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"], getSheetDescription(item));
+    };
+    product.appendChild(img);
+
+    if (item["Badge"]) {
+      const badge = document.createElement('div');
+      badge.className = 'badge';
+      badge.innerText = item["Badge"];
+      product.appendChild(badge);
+    }
+
+    const infoWrapper = document.createElement('div');
+    infoWrapper.style.padding = "0 6px";
+
+    const title = document.createElement('div');
+    title.style.fontSize = "14px";
+    title.style.textAlign = "left";
+    title.style.marginTop = "8px";
+    title.innerText = item["Product Name"];
+    infoWrapper.appendChild(title);
+
+    const info = document.createElement('div');
+    info.className = 'product-info';
+
+    let priceHTML = "";
+    if (item["MRP"] && item["Selling Price"]) {
+      const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
+      priceHTML = `
+        <div style="text-align:left; font-size:14px; font-weight:bold; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+          <span>₹${item["Selling Price"]}</span>
+          <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+          <span style="color:green; font-size:13px;">${discount}% off</span>
+        </div>`;
+    }
+
+    if (+item["in stock"] === 0) {
+      info.innerHTML = `${priceHTML}
+        <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>`;
+    } else {
+      const productData = {
+        photo: item["photo 1"],
+        name: item["Product Name"],
+        mrp: item["MRP"],
+        price: item["Selling Price"]
+      };
+      info.innerHTML = `${priceHTML}
+        <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>`;
+    }
+
+    infoWrapper.appendChild(info);
+    product.appendChild(infoWrapper);
+    sectionWrapper.appendChild(product);
+  });
+}
+
+/* 8) Utility: run on page load and also when session changes */
+if (document.readyState !== "loading") bootstrapAdminFab();
+else document.addEventListener("DOMContentLoaded", bootstrapAdminFab);
+</script>
+</body>
 </html>
