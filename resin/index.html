@@ -504,6 +504,11 @@
   line-height: 22px;
   user-select: none;
 }
+#announcementBar {
+  cursor: pointer;          /* looks clickable */
+  user-select: none;
+  -webkit-user-select: none;
+}
 
     @media (max-width: 480px) {
       .logo-img {
@@ -1871,17 +1876,40 @@ window.closeHeaderSearch = closeHeaderSearch;
   </div>
 </div>
 <script>
-/* ========= Admin Editor ========= */
-(function initAdmin(){
-  const btn = document.getElementById("adminBtn");
+/* ========= Admin Editor =========
+   - Shows only for this email:
+*/
+const ADMIN_EMAILS = [
+  "preciously906@gmail.com",
+  "ask.precioussly@gmail.com",
+  "ritiktyagi0033@gmail.com",
+  "ask.gifts.and.glory@gmail.com"
+];
 
-  // Show button if:
-  //  (A) user is allowed admin, OR
-  //  (B) we are on /admin route (to let you open the editor even before login)
-  if (isAllowedAdmin() || IS_ADMIN_ROUTE) {
-    if (btn) btn.style.display = "flex";
+function isAdminEmail(email){
+  return !!email && ADMIN_EMAILS.some(e => e.toLowerCase() === String(email).toLowerCase());
+}
+
+/* These are already defined in your page; we reuse them:
+   - categorySheetURL  ✅ (Resin grid) 
+   - announceURL       ✅ (announcement bar)
+   - menuURL           ✅ (side menu)
+   - The media sheet uses the same "1tjNd2z..." Sheet1 with column "(media_url)"
+*/
+
+/* ---------- State ---------- */
+const AdminState = {
+  tab: "categories",
+  categories: [],         // [{Title, name, img, link}]
+  announcement: "",       // string
+  menuRows: [],           // [{Menu, Submenu, Link}]
+  media: []               // [{url}]
+};
+
+/* ---------- Boot ---------- */
+if (isAdminEmail(email)) {
+    btn.style.display = "flex";
   }
-
   btn?.addEventListener("click", openAdmin);
   document.getElementById("adminOverlay")?.addEventListener("click", closeAdmin);
   document.getElementById("apClose")?.addEventListener("click", closeAdmin);
@@ -1897,14 +1925,362 @@ window.closeHeaderSearch = closeHeaderSearch;
       renderTab(AdminState.tab);
     });
   });
-
-  // Auto-open editor when URL has /admin
-  window.addEventListener("load", async () => {
-    if (IS_ADMIN_ROUTE) {
-      await openAdmin();
-    }
-  });
 })();
+
+/* ---------- Open/Close ---------- */
+async function openAdmin(){
+  document.getElementById("adminOverlay").style.display = "block";
+  document.getElementById("adminPanel").style.display   = "block";
+
+  // lazy-load data only first time
+  if (!AdminState._loaded){
+    await loadAllSheets();
+    AdminState._loaded = true;
+  }
+  renderTab(AdminState.tab);
+}
+function closeAdmin(){
+  document.getElementById("adminOverlay").style.display = "none";
+  document.getElementById("adminPanel").style.display   = "none";
+}
+
+/* ---------- Fetch helpers ---------- */
+async function getJSON(url){
+  const r = await fetch(url);
+  return r.json();
+}
+async function loadAllSheets(){
+  try{
+    // Categories sheet: Title, Category Name, Category Image, Link
+    const catRows = await getJSON(categorySheetURL);
+    AdminState.categories = catRows.map(r=>({
+      Title: (r["Title"]||"").trim(),
+      name : (r["Category Name"]||"").trim(),
+      img  : (r["Category Image"]||"").trim(),
+      link : (r["Link"]||"").trim()
+    }));
+
+    // Announcement
+    const ann = await getJSON(announceURL);
+    AdminState.announcement = (ann?.[0]?.["(announcement_text)"] || "").trim();
+
+    // Menu: Menu, Submenu, Link
+    const menuRows = await getJSON(menuURL);
+    AdminState.menuRows = menuRows.map(r=>({
+      Menu:(r["Menu"]||"").trim(),
+      Submenu:(r["Submenu"]||"").trim(),
+      Link:(r["Link"]||"").trim()
+    }));
+
+    // Media strip: same ID (column "(media_url)")
+    const mediaRows = await getJSON("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1");
+    AdminState.media = mediaRows
+      .map(r => (r["(media_url)"]||"").trim())
+      .filter(Boolean)
+      .map(url => ({url}));
+  }catch(e){ console.error(e); }
+}
+
+/* ---------- Render tabs ---------- */
+function renderTab(which){
+  const box = document.getElementById("apBody");
+  if (!box) return;
+  if (which === "categories") return renderCategories(box);
+  if (which === "announcement") return renderAnnouncement(box);
+  if (which === "menu") return renderMenu(box);
+  if (which === "media") return renderMedia(box);
+}
+
+/* CATEGORIES */
+function renderCategories(box){
+  box.innerHTML = `
+    <div class="ap-note">Edit your category grid. Photos are shown for easy editing.</div>
+    <div id="catRows"></div>
+    <button class="ap-btn ap-add" onclick="addCatRow()">+ Add row</button>
+  `;
+  const host = box.querySelector("#catRows");
+AdminState.categories.forEach((row, i) => {
+  const el = catRowEl(row, i);
+  host.appendChild(el);
+  makeRowDraggable(el, i, (from, to) => {
+    AdminState.categories = reorderArray(AdminState.categories, from, to);
+    renderTab("categories"); // re-render to reflect new order
+  });
+});
+}
+function catRowEl(row, i){
+  const wrap = document.createElement("div");
+  wrap.className = "ap-row";
+  wrap.innerHTML = `
+    <img src="${row.img || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
+    <input placeholder="Title (e.g., Resin)" value="${escapeHtml(row.Title)}" data-k="Title">
+    <input placeholder="Category Name" value="${escapeHtml(row.name)}" data-k="name">
+    <input placeholder="Category Image URL" value="${escapeHtml(row.img)}" data-k="img">
+    <button class="ap-del">Delete</button>
+    <div style="grid-column: 2 / span 3;"><input placeholder="Link" value="${escapeHtml(row.link)}" data-k="link"></div>
+  `;
+  wrap.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", (e)=>{
+      const key = e.target.dataset.k;
+      AdminState.categories[i][key] = e.target.value.trim();
+      if (key === "img"){
+        const im = wrap.querySelector("img");
+        im.src = e.target.value.trim() || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png';
+      }
+    });
+  });
+  wrap.querySelector(".ap-del").addEventListener("click", ()=>{
+    AdminState.categories.splice(i,1);
+    renderTab("categories");
+  });
+  return wrap;
+}
+function addCatRow(){
+  AdminState.categories.push({Title:"Resin", name:"", img:"", link:""});
+  renderTab("categories");
+}
+
+/* ANNOUNCEMENT */
+function renderAnnouncement(box){
+  box.innerHTML = `
+    <div class="ap-note">One line that appears in the black bar on top.</div>
+    <input id="annInput" placeholder="Announcement text" value="${escapeHtml(AdminState.announcement)}" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px;">
+  `;
+  box.querySelector("#annInput").addEventListener("input", (e)=> AdminState.announcement = e.target.value);
+}
+
+/* MENU */
+function renderMenu(box){
+  box.innerHTML = `
+    <div class="ap-note">Columns: Menu, Submenu (optional), Link. Leave Submenu empty to make a top-level link.</div>
+    <div id="menuRows"></div>
+    <button class="ap-btn ap-add" onclick="addMenuRow()">+ Add row</button>
+  `;
+  const host = box.querySelector("#menuRows");
+  AdminState.menuRows.forEach((r,i)=> host.appendChild(menuRowEl(r,i)));
+}
+function menuRowEl(r,i){
+  const wrap = document.createElement("div");
+  wrap.className = "ap-row";
+  wrap.style.gridTemplateColumns = "1fr 1fr 1fr auto";
+  wrap.innerHTML = `
+    <input placeholder="Menu" value="${escapeHtml(r.Menu)}" data-k="Menu">
+    <input placeholder="Submenu" value="${escapeHtml(r.Submenu)}" data-k="Submenu">
+    <input placeholder="Link" value="${escapeHtml(r.Link)}" data-k="Link">
+    <button class="ap-del">Delete</button>
+  `;
+  wrap.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", (e)=>{
+      AdminState.menuRows[i][e.target.dataset.k] = e.target.value;
+    });
+  });
+  wrap.querySelector(".ap-del").addEventListener("click", ()=>{
+    AdminState.menuRows.splice(i,1);
+    renderTab("menu");
+  });
+  return wrap;
+}
+function addMenuRow(){ AdminState.menuRows.push({Menu:"", Submenu:"", Link:""}); renderTab("menu"); }
+
+/* MEDIA */
+function renderMedia(box){
+  box.innerHTML = `
+    <div class="ap-note">Paste image or MP4 URLs. These power your wide strip / fade slider (if present).</div>
+    <div id="mediaRows"></div>
+    <button class="ap-btn ap-add" onclick="addMediaRow()">+ Add media</button>
+  `;
+  const host = box.querySelector("#mediaRows");
+AdminState.media.forEach((row, i) => {
+  const el = mediaRowEl(row, i);   // your existing row builder
+  host.appendChild(el);
+  makeRowDraggable(el, i, (from, to) => {
+    AdminState.media = reorderArray(AdminState.media, from, to);
+    renderTab("media");
+  });
+});
+}
+function mediaRowEl(m,i){
+  const wrap = document.createElement("div");
+  wrap.className = "ap-row";
+  wrap.style.gridTemplateColumns = "78px 1fr auto";
+  const isVideo = /\.mp4(\?|$)/i.test(m.url||"");
+  wrap.innerHTML = `
+    ${isVideo ? `<video src="${m.url}" style="width:72px;height:72px;border-radius:10px;object-fit:cover" muted></video>`
+              : `<img src="${m.url || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">`}
+    <input placeholder="https://..." value="${escapeHtml(m.url)}" data-k="url">
+    <button class="ap-del">Delete</button>
+  `;
+  wrap.querySelector("input").addEventListener("input", (e)=>{
+    AdminState.media[i].url = e.target.value.trim();
+  });
+  wrap.querySelector(".ap-del").addEventListener("click", ()=>{
+    AdminState.media.splice(i,1);
+    renderTab("media");
+  });
+  return wrap;
+}
+function addMediaRow(){ AdminState.media.push({url:""}); renderTab("media"); }
+
+/* ---------- Apply to page (local preview) ---------- */
+function applyCurrentTab(){
+  if (AdminState.tab === "categories") applyCategoriesToPage();
+  if (AdminState.tab === "announcement") applyAnnouncementToPage();
+  if (AdminState.tab === "menu") applyMenuToPage();
+  if (AdminState.tab === "media") applyMediaToPage();
+  alert("Applied on this page (local). To save permanently in Google Sheets, export CSV and paste there.");
+}
+
+/* Categories -> rebuild #categorySection */
+function applyCategoriesToPage(){
+  const container = document.getElementById("categorySection");
+  if (!container) return;
+  container.innerHTML = "";
+  // group by Title
+  const grouped = {};
+  AdminState.categories.forEach(r=>{
+    if(!r.Title || !r.name || !r.img) return;
+    grouped[r.Title] ??= [];
+    grouped[r.Title].push({name:r.name, img:r.img, link:r.link||"#"});
+  });
+  Object.entries(grouped).forEach(([section, items])=>{
+    const title = document.createElement("h3");
+    title.innerText = section;
+    container.appendChild(title);
+
+    const grid = document.createElement("div");
+    grid.style.display="grid"; grid.style.gridTemplateColumns="1fr 1fr"; grid.style.gap="14px";
+    items.forEach(it=>{
+      const a = document.createElement("a");
+      a.href = it.link || "#";
+      a.style.textDecoration = "none";
+      a.style.color = "inherit";
+      a.innerHTML = `
+        <div style="text-align:center;">
+          <img src="${it.img}" alt="${it.name}" style="width:100%; border-radius:20px; object-fit:cover;">
+          <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${it.name}</div>
+        </div>`;
+      grid.appendChild(a);
+    });
+    container.appendChild(grid);
+  });
+}
+
+/* Announcement -> #announcementBar */
+function applyAnnouncementToPage(){
+  const el = document.getElementById("announcementBar");
+  if (el) el.innerText = AdminState.announcement || "";
+}
+
+/* Menu -> #menuContent */
+function applyMenuToPage(){
+  const menuContent = document.getElementById("menuContent");
+  if (!menuContent) return;
+  menuContent.innerHTML = `
+    <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+    <a href="https://precioussly.com/" class="menu-link">Home</a>
+  `;
+
+  // Group like your live code
+  const grouped = {};
+  AdminState.menuRows.forEach(r=>{
+    const m=(r.Menu||"").trim(); const s=(r.Submenu||"").trim(); const l=(r.Link||"#").trim();
+    if(!m) return;
+    grouped[m] ??= {link:null, subs:[]};
+    if (s) grouped[m].subs.push({name:s, link:l});
+    else grouped[m].link = l;
+  });
+
+  function renderItem(title, info){
+    if ((info.subs && info.subs.length)){
+      const id = title.replace(/\s+/g,'-')+'-submenu';
+      menuContent.insertAdjacentHTML('beforeend', `
+        <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${id}')">
+          <span>${title}</span><span class="dropdown-icon">›</span>
+        </div>
+        <div class="submenu-container" id="${id}" style="display:none;">
+          ${info.subs.map(s=>`<a href="${s.link||'#'}" class="submenu-link">› ${s.name}</a>`).join("")}
+        </div>
+      `);
+    } else {
+      menuContent.insertAdjacentHTML('beforeend', `<a href="${info.link||'#'}" class="menu-link">${title}</a>`);
+    }
+  }
+  Object.entries(grouped).forEach(([k,v])=>renderItem(k,v));
+}
+
+/* Media -> #imageStrip and fade slider (if present) */
+function applyMediaToPage(){
+  const strip = document.getElementById("imageStrip");
+  if (strip){
+    strip.innerHTML = "";
+    AdminState.media.forEach(m=>{
+      if(!m.url) return;
+      let el;
+      if (/\.mp4(\?|$)/i.test(m.url)){
+        el = document.createElement("video");
+        el.src = m.url; el.controls=true; el.muted=true; el.loop=true; el.playsInline=true;
+      } else {
+        el = document.createElement("img"); el.src = m.url;
+      }
+      el.className = "strip-media";
+      strip.appendChild(el);
+    });
+  }
+  const slider = document.getElementById("fadeSlider");
+  const dots   = document.getElementById("fadeDots");
+  if (slider && dots){
+    slider.innerHTML=""; dots.innerHTML="";
+    AdminState.media.forEach((m,idx)=>{
+      if(!m.url) return;
+      let el;
+      if (/\.mp4(\?|$)/i.test(m.url)){
+        el = document.createElement("video");
+        el.src = m.url; el.loop=true; el.muted=true; el.autoplay=true; el.playsInline=true;
+      } else {
+        el = document.createElement("img"); el.src = m.url;
+      }
+      el.className = "fade-slide"; if(idx===0) el.classList.add("active");
+      slider.appendChild(el);
+
+      const d = document.createElement("div");
+      d.className = "fade-dot"; if(idx===0) d.classList.add("active");
+      d.addEventListener("click", ()=>{ document.querySelectorAll(".fade-slide").forEach(x=>x.classList.remove("active"));
+                                        document.querySelectorAll(".fade-dot").forEach(x=>x.classList.remove("active"));
+                                        el.classList.add("active"); d.classList.add("active"); });
+      dots.appendChild(d);
+    });
+  }
+}
+
+/* ---------- Export CSV of current tab ---------- */
+function exportCurrentTab(){
+  let csv = "", filename = "data.csv";
+  if (AdminState.tab === "categories"){
+    csv = "Title,Category Name,Category Image,Link\n" + AdminState.categories
+      .map(r=>[r.Title,r.name,r.img,r.link].map(csvCell).join(",")).join("\n");
+    filename = "categories.csv";
+  } else if (AdminState.tab === "announcement"){
+    csv = "(announcement_text)\n" + csvCell(AdminState.announcement||"");
+    filename = "announcement.csv";
+  } else if (AdminState.tab === "menu"){
+    csv = "Menu,Submenu,Link\n" + AdminState.menuRows
+      .map(r=>[r.Menu,r.Submenu,r.Link].map(csvCell).join(",")).join("\n");
+    filename = "menu.csv";
+  } else if (AdminState.tab === "media"){
+    csv = "(media_url)\n" + AdminState.media.map(m=>csvCell(m.url)).join("\n");
+    filename = "media.csv";
+  }
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ---------- Utils ---------- */
+function csvCell(v=""){ v=String(v).replaceAll('"','""'); return `"${v}"`; }
+function escapeHtml(s=""){ return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
 </script>
 <!-- Hidden footer initially -->
 <footer id="delayedFooter" 
@@ -1994,285 +2370,63 @@ window.closeHeaderSearch = closeHeaderSearch;
   }
 </script>
 <script>
-  // 1) Route detector: works for /resin-necklace/admin or any /something/admin
-  const IS_ADMIN_ROUTE = /\/admin\/?$/.test(location.pathname);
-
-  // 2) Allowed admin accounts (add more if needed)
-  const ADMIN_EMAILS = [
-    "preciously906@gmail.com",
-    "ask.precioussly@gmail.com"
-  ];
-
-  // 3) Helper to know if current user is an allowed admin
-  function isAllowedAdmin() {
-    const email = (localStorage.getItem("user_email") || "").trim().toLowerCase();
-    return ADMIN_EMAILS.includes(email);
+  // ===== Admin unlock via the black announcement bar =====
+  async function tryOpenAdminFromBar(){
+    // email is stored by your Netlify-based login boot code
+    const email = (localStorage.getItem("user_email") || "").trim();
+    if (isAdminEmail && isAdminEmail(email)) {
+      if (typeof openAdmin === "function") openAdmin(); // open the existing editor
+      return;
+    }
+    // Not logged in as admin -> send to login (your existing flow)
+    if (typeof handleProfileClick === "function") {
+      alert("Please log in with your admin email to edit.");
+      handleProfileClick();
+    }
   }
-</script>
-<script>
-// Enable drag sort inside a container
-function enableDragSort(containerSelector, stateArrayName) {
-  const host = document.querySelector(containerSelector);
-  if (!host) return;
 
-  let draggingEl = null, startY = 0, startIndex = -1, longPressTimer = null;
+  // Make the black bar open the admin editor
+  const bar = document.getElementById("announcementBar");
+  if (bar) {
+    bar.addEventListener("click", tryOpenAdminFromBar, {passive:true});
+  }
+  /* ===== Drag & Drop helpers (simple & mobile-friendly) ===== */
+function makeRowDraggable(rowEl, idx, onReorder){
+  rowEl.setAttribute('draggable', 'true');
 
-  [...host.children].forEach((rowEl, idx) => {
-    rowEl.style.touchAction = "none";
+  rowEl.addEventListener('dragstart', (e) => {
+    rowEl.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(idx));
+  });
 
-    const startDrag = (clientY) => {
-      draggingEl = rowEl;
-      startY = clientY;
-      startIndex = idx;
-      rowEl.style.opacity = "0.6";
-      rowEl.style.transform = "scale(0.98)";
-    };
+  rowEl.addEventListener('dragend', () => {
+    rowEl.classList.remove('dragging');
+  });
 
-    const onPointerDown = (e) => {
-      const y = e.touches ? e.touches[0].clientY : e.clientY;
-      longPressTimer = setTimeout(() => startDrag(y), 220); // long-press 220ms
-    };
-    const onPointerMove = (e) => {
-      if (!draggingEl) return;
-      const y = e.touches ? e.touches[0].clientY : e.clientY;
-      const dy = y - startY;
-      // Swap with previous/next when crossing halfway of neighbour
-      const currentIndex = [...host.children].indexOf(draggingEl);
-      const prev = draggingEl.previousElementSibling;
-      const next = draggingEl.nextElementSibling;
+  rowEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  });
 
-      if (dy < -20 && prev) {
-        host.insertBefore(draggingEl, prev);
-        startY = y;
-      } else if (dy > 20 && next) {
-        host.insertBefore(next, draggingEl);
-        startY = y;
-      }
-    };
-    const endDrag = () => {
-      clearTimeout(longPressTimer);
-      if (!draggingEl) return;
-
-      draggingEl.style.opacity = "";
-      draggingEl.style.transform = "";
-      draggingEl = null;
-
-      // Write new order into AdminState
-      const newOrder = [...host.children].map(el => {
-        const inputs = el.querySelectorAll("input");
-        return {
-          Title: inputs[0].value.trim(),
-          name : inputs[1].value.trim(),
-          img  : inputs[2].value.trim(),
-          link : inputs[3].value.trim()
-        };
-      });
-      AdminState[stateArrayName] = newOrder;
-    };
-
-    rowEl.addEventListener("touchstart", onPointerDown, {passive:true});
-    rowEl.addEventListener("mousedown", onPointerDown);
-
-    rowEl.addEventListener("touchmove", onPointerMove, {passive:false});
-    rowEl.addEventListener("mousemove", onPointerMove);
-
-    ["touchend","mouseup","mouseleave","touchcancel"].forEach(ev=>{
-      rowEl.addEventListener(ev, endDrag);
-    });
+  rowEl.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const from = Number(e.dataTransfer.getData('text/plain'));
+    const host = rowEl.parentElement;
+    const children = [...host.children];
+    const to = children.indexOf(rowEl);
+    if (typeof from === 'number' && typeof to === 'number' && from !== to) {
+      onReorder(from, to);
+    }
   });
 }
 
-// Call this after rows are rendered
-const _origRenderCategories = renderCategories;
-renderCategories = function(box){
-  _origRenderCategories(box);
-  // Make rows draggable (affects AdminState.categories)
-  enableDragSort("#catRows", "categories");
-};
-</script>
-<script>
-function applyCurrentTab(){
-  const tab = AdminState.tab;
-
-  if (tab === "categories") {
-    // Rebuild the visible category grid from AdminState.categories
-    const container = document.getElementById("categorySection");
-    if (!container) return;
-
-    container.innerHTML = ""; // clear
-    const grouped = {};
-    AdminState.categories.forEach(r => {
-      if (!r.Title || !r.name || !r.img) return;
-      if (!grouped[r.Title]) grouped[r.Title] = [];
-      grouped[r.Title].push({name:r.name, img:r.img, link:r.link || "#"});
-    });
-
-    Object.entries(grouped).forEach(([section, items]) => {
-      const title = document.createElement("h3");
-      title.innerText = section;
-      container.appendChild(title);
-
-      const grid = document.createElement("div");
-      grid.style.display = "grid";
-      grid.style.gridTemplateColumns = "1fr 1fr";
-      grid.style.gap = "14px";
-
-      items.forEach(item => {
-        const box = document.createElement("a");
-        box.href = item.link;
-        box.style.textDecoration = "none";
-        box.style.color = "inherit";
-        box.innerHTML = `
-          <div style="text-align:center;">
-            <img src="${item.img}" alt="${item.name}" style="width:100%; border-radius:20px; object-fit:cover;">
-            <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
-          </div>`;
-        grid.appendChild(box);
-      });
-
-      container.appendChild(grid);
-    });
-  }
-
-  if (tab === "announcement") {
-    const bar = document.getElementById("announcementBar");
-    if (bar) bar.innerText = AdminState.announcement || "🧿";
-  }
-
-  if (tab === "menu") {
-    // Simple rebuild of the side menu from AdminState.menuRows
-    const menuContent = document.getElementById("menuContent");
-    if (menuContent) {
-      menuContent.innerHTML = `
-        <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
-        <a href="https://precioussly.com/" class="menu-link">Home</a>
-      `;
-      const grouped = {};
-      AdminState.menuRows.forEach(r=>{
-        const m = r.Menu || "";
-        if (!m) return;
-        if (!grouped[m]) grouped[m] = {link:null, subs:[]};
-        if ((r.Submenu||"").trim()) grouped[m].subs.push({name:r.Submenu, link:r.Link||"#"});
-        else grouped[m].link = r.Link || "#";
-      });
-      Object.entries(grouped).forEach(([menu, info])=>{
-        if (info.subs.length) {
-          const id = menu.replace(/\s+/g,'-') + '-submenu';
-          menuContent.insertAdjacentHTML("beforeend", `
-            <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${id}')">
-              <span>${menu}</span><span class="dropdown-icon">›</span>
-            </div>
-            <div class="submenu-container" id="${id}" style="display:none;">
-              ${info.subs.map(s=>`<a href="${s.link}" class="submenu-link">› ${s.name}</a>`).join("")}
-            </div>`);
-        } else {
-          menuContent.insertAdjacentHTML("beforeend", `<a href="${info.link}" class="menu-link">${menu}</a>`);
-        }
-      });
-    }
-  }
-
-  if (tab === "media") {
-    // Rebuild the strip from AdminState.media
-    const strip = document.getElementById("imageStrip");
-    if (strip) {
-      strip.innerHTML = "";
-      AdminState.media.forEach(({url})=>{
-        let el = url.endsWith(".mp4") ? document.createElement("video") : document.createElement("img");
-        el.src = url; el.className = "strip-media";
-        if (el.tagName === "VIDEO") { el.controls = true; el.muted = true; el.loop = true; el.playsInline = true; }
-        strip.appendChild(el);
-      });
-    }
-  }
+function reorderArray(arr, from, to){
+  const copy = arr.slice();
+  const item = copy.splice(from, 1)[0];
+  copy.splice(to, 0, item);
+  return copy;
 }
-</script>
-<script>
-// Set ONE of these (uncomment the one you use)
-const SAVE_ENDPOINT = "/.netlify/functions/sheets-write"; 
-// const SAVE_ENDPOINT = "https://script.google.com/macros/s/AKfycbxxxxxx/exec"; // your Web App URL
-
-async function saveToSheets() {
-  if (!SAVE_ENDPOINT) { alert("No save endpoint set."); return; }
-
-  const payload = {
-    categories : AdminState.categories,
-    announcement: AdminState.announcement,
-    menu       : AdminState.menuRows,
-    media      : AdminState.media
-  };
-
-  try {
-    const res = await fetch(SAVE_ENDPOINT, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error(await res.text());
-    alert("Saved to Google Sheets!");
-  } catch (e) {
-    alert("Save failed: " + e.message);
-  }
-}
-
-// (Optional) Add a SAVE button next to Apply/Export if you want:
-const actions = document.querySelector(".ap-actions");
-if (actions && !document.getElementById("apSave")) {
-  const b = document.createElement("button");
-  b.id = "apSave";
-  b.className = "ap-btn";
-  b.textContent = "Save to Google Sheets";
-  b.onclick = saveToSheets;
-  actions.appendChild(b);
-}
-</script>
-<script>
-// Detect admin mode via /admin path, ?admin=1, or #admin
-const IS_ADMIN_ROUTE =
-  /\/admin\/?$/.test(location.pathname) ||
-  /(\?|&)admin=1(\&|$)/.test(location.search) ||
-  /#admin$/.test(location.hash);
-
-// Support multiple possible button IDs you might be using
-const ADMIN_BUTTON_IDS = ["adminBtn", "adminFab", "adminButton"];
-
-// Fallback: show admin button for route, even before login
-function showAdminButtonIfNeeded() {
-  if (!IS_ADMIN_ROUTE) return;
-  for (const id of ADMIN_BUTTON_IDS) {
-    const el = document.getElementById(id);
-    if (el) { el.style.display = "flex"; break; }
-  }
-}
-
-// Wait until admin panel elements & openAdmin() exist, then open once
-function waitAndOpenAdmin(maxWaitMs = 6000) {
-  if (!IS_ADMIN_ROUTE) return;
-
-  const start = Date.now();
-  const tryOpen = () => {
-    const panel   = document.getElementById("adminPanel");
-    const overlay = document.getElementById("adminOverlay");
-    const opener  = typeof openAdmin === "function";
-
-    if (panel && overlay && opener) {
-      // small delay so your page data finishes rendering
-      setTimeout(() => openAdmin(), 50);
-      return;
-    }
-    if (Date.now() - start < maxWaitMs) {
-      requestAnimationFrame(tryOpen);
-    } else {
-      console.warn("Admin auto-open: timed out waiting for UI or openAdmin().");
-    }
-  };
-  tryOpen();
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  showAdminButtonIfNeeded();
-  waitAndOpenAdmin();
-});
 </script>
 </body>
 </html>
