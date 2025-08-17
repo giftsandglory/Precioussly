@@ -417,7 +417,7 @@
   border: none;
   border-radius: 50%;
   font-size: 16px;          /* 🟢 smaller font */
-  font-weight: bol;
+  font-weight: bold;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease;
@@ -666,6 +666,13 @@ down-toggle {
 
 .fade-dot.active {
   background-color: rgba(0, 0, 0, 0.35); /* slightly darker */
+}
+/* Make slide media fill the full clickable link */
+.fade-media{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
 }
   
 
@@ -1011,6 +1018,99 @@ down-toggle {
 .menu-link--primary {
   font-weight: 500 !important; /* normal weight */
 }
+/* ============ Search bar with Back pill ============ */
+#searchOverlay .search-box{
+  position: relative;
+  display: block;
+}
+
+#searchOverlay .search-box input{
+  width: 100%;
+  padding: 12px 86px 12px 14px;        /* right padding for Back button */
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;    /* consistent font */
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+#searchOverlay .search-box input:focus{
+  border-color: #bfbfbf;
+}
+
+/* Back button inside the input (pill) */
+#searchOverlay .back-btn{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 32px;
+  padding: 0 12px;
+  font: 500 14px 'Roboto Slab', serif;  /* normal, bold nahi */
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);    /* halka border */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+#searchOverlay .back-btn{ z-index:2; }
+#searchOverlay .search-box input{ position:relative; z-index:1; }
+
+#searchOverlay .back-btn:active{
+  transform: translateY(-50%) scale(0.98);
+}
+
+/* Safety: purani close-btn style ko neutralize */
+#searchOverlay .close-btn { display: none !important; }
+
+/* === Header search mode (inline) === */
+.header-search {
+  display: none;               /* default hidden */
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.header-search input {
+  flex: 1;
+  padding: 12px 14px;
+  font: 400 16px 'Roboto Slab', serif;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+.header-search input:focus { border-color: #bfbfbf; }
+
+#headerSearchBack {
+  height: 36px;
+  padding: 0 14px;
+  font: 500 14px 'Roboto Slab', serif;
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* When searching: hide logo/menu/icons, show input+back pill */
+.site-header.searching .hamburger-wrapper,
+.site-header.searching #logoWrap,
+.site-header.searching #rightIcons { display: none !important; }
+
+.site-header.searching #headerSearchBar {
+  display: flex !important;
+}
+
+/* Keep header from jumping */
+.site-header { position: sticky; top: 0; z-index: 3500; }
 </style>
 
 <style>
@@ -1095,33 +1195,6 @@ down-toggle {
 }
 </style>
 <style>
-/* ===== Search overlay cards (index.html) ===== */
-#searchOverlay{backdrop-filter:blur(2px)}
-.search-card{
-  display:flex; gap:10px; padding:10px; border:1px solid #eee; border-radius:12px;
-  margin:6px 0; background:#fff; align-items:center;
-}
-.search-thumb{
-  width:56px; height:56px; border-radius:10px; object-fit:cover; flex:0 0 56px; background:#f3f3f3;
-}
-.search-meta{flex:1; min-width:0}
-.search-name{font:600 14px 'Roboto Slab',serif; color:#111; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.search-price{font:500 13px 'Roboto Slab',serif; color:#111; margin-top:2px}
-.search-price s{color:#999; margin-left:6px; font-weight:400}
-.search-badge{font:700 10px 'Roboto Slab',serif; background:#fbb6ce; color:#87003b; padding:3px 6px; border-radius:6px; margin-left:8px}
-.search-empty{padding:14px; text-align:center; color:#666; font:400 14px 'Roboto Slab',serif}
-.search-hit{background:linear-gradient(transparent 70%, #ffec99 0)}
-</style>
-<style>
-/* Remove right side vertical line when scrolling in search overlay */
-#searchOverlay .search-box, 
-#searchOverlay .search-box input, 
-#searchOverlay .search-box button {
-    border-right: none !important;
-    box-shadow: none !important;
-}
-</style>
-<style>
 #searchResults{
   max-height: 62vh;
   overflow: auto;
@@ -1130,29 +1203,10 @@ down-toggle {
 }
 #searchResults::-webkit-scrollbar{ display:none; }
 
-#searchOverlay .close-btn {
-  position: sticky;
-  top: 10px;
-  margin-left: auto;
-  width: 36px;                /* square shape */
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #000;     /* black outline */
-  background: #fff;
-  border-radius: 10px;        /* rectangle with rounded corners */
-  font-size: 20px;            /* bigger X */
-  font-weight: bold;
-  color: #000;
-  cursor: pointer;
-  z-index: 3;
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-}
-#searchOverlay .close-btn:hover {
-  background: #f9f9f9;
-}
+#searchOverlay .close-btn { display: none !important; }
+
+
+
 #searchOverlay .search-header{
   position: sticky;
   top: 0;
@@ -1161,65 +1215,135 @@ down-toggle {
   border-top-left-radius: 14px;
   border-top-right-radius: 14px;
 }
+/* Header search suggestions */
+#headerSearchResults{
+  position: absolute;
+  left: 0; right: 0;
+  margin-top: 8px;
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  max-height: 62vh;
+  overflow: auto;
+  padding: 6px;
+  z-index: 4000;
+}
+.header-suggest{
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 10px;
+}
+.header-suggest:hover{ background:#f9f9f9; }
+.header-suggest img{
+  width:56px; height:56px; border-radius:10px; object-fit:cover;
+}
+.header-suggest .name{ font-size:14px; font-weight:600; }
+.header-suggest .price{ font-size:13px; color:#111; }
+.header-suggest .tag{
+  font-size:11px; padding:3px 6px; border:1px solid #ddd; border-radius:8px; color:#333;
+}
+/* Make the search bar a positioning anchor */
+#headerSearchBar { position: relative; }
+
+/* Show suggestions BELOW the search bar */
+#headerSearchResults{
+  position: absolute;
+  top: calc(100% + 10px);   /* exactly below the bar with 10px gap */
+  left: 0;
+  right: 0;
+  max-height: 62vh;         /* already there is fine */
+  overflow: auto;           /* already there is fine */
+  z-index: 4000;            /* keep it above page content */
+}
+
+</style>
+<style>
+#siteFooter{
+  display:none;            /* hidden at start */
+  opacity:0;               /* fade from 0 -> 1 */
+  transition:opacity .35s ease;
+  background:#fff;
+  border-top:1px solid #eaeaea;
+  text-align:center;
+  padding:6px 8px;         /* was 16px 12px 28px – reduced height */
+  font-family:'Roboto Slab', serif;
+  color:#000;
+  font-size:13px;          /* smaller text */
+  line-height:1.4;         /* tighter spacing */
+}
+#siteFooter.show{ display:block; opacity:1; }
+
+#siteFooter .brand{
+  margin-bottom:4px;       /* minimal space */
+}
+
+#siteFooter .links{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:4px 8px;              /* small gap */
+}
+#siteFooter .links a{
+  color:#000;
+  text-decoration:none;
+}
+#siteFooter .links a:hover{
+  text-decoration:underline;
+}
+#siteFooter .dot{ opacity:.6; }
 </style>
 </head>
 <body>
-  <header class="site-header">
-  <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div>
-    <div></div>
-    <div></div>
+<header class="site-header" id="mainHeader">
+  <!-- Left: Menu (unchanged) -->
+  <button class="hamburger-wrapper" onclick="toggleMenu()" aria-label="Menu">
+    <div></div><div></div><div></div>
+  </button>
+
+  <!-- Center: Logo (same image, just wrapped for easy hide/show) -->
+  <div id="logoWrap" style="display:flex; align-items:center; position:absolute; left:70px; top:6px;">
+    <img
+      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+      alt="Precioussly Logo"
+      onclick="location.href = 'https://precioussly.com';"
+      style="width:110px; height:auto; object-fit:contain; cursor:pointer; transition:opacity .3s ease; -webkit-tap-highlight-color:transparent;"
+    />
   </div>
 
- <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
-  <img
-    src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
-    alt="Precioussly Logo"
-    onclick="location.href = 'https://precioussly.com';"
-    style="
-      width: 110px;
-      height: auto;
-      object-fit: contain;
-      cursor: pointer;
-      transition: opacity 0.3s ease;
-      -webkit-tap-highlight-color: transparent;
-    "
-  />
-</div>
-</div>
+  <!-- Right: Icons (search, profile, cart) -->
+  <div id="rightIcons" style="display:flex; align-items:center; gap:12px;">
+    <!-- Search icon → NEW handler -->
+    <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
+         alt="Search" class="right-icon"
+         style="cursor:pointer; border-radius:0; width:25px; height:26px; margin-top:2px;"
+         onclick="openHeaderSearch()">
 
- <div style="display: flex; align-items: center; gap: 12px;">
-<!-- Search icon -->
-<img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="cursor: pointer; border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" onclick="openSearch()">
+    <!-- Profile icon (unchanged) -->
+    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
+         alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor:pointer;" />
 
-<!-- Profile icon -->
-<img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor: pointer;" />
-
-<!-- Cart icon with badge -->
-<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-  <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 21px; height: 21px; display: flex; align-items: center; justify-content: center;">0</span>
-</a>
-</div>
-</div>
+    <!-- Cart icon with badge (unchanged) -->
+    <a href="https://www.precioussly.com/cart" style="position:relative; display:inline-block; margin-top:5px;">
+      <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
+      <span id="cartCountBadge" style="position:absolute; top:-6px; right:-6px; background:white; color:black; font-size:12px; border:1px solid grey; border-radius:50%; width:21px; height:21px; display:flex; align-items:center; justify-content:center;">0</span>
+    </a>
   </div>
-</div>
+
+  <!-- Inline search bar (hidden until search mode) -->
+  <div id="headerSearchBar" class="header-search">
+    <input type="search" id="headerSearchInput" placeholder="Search products..." autocomplete="off" />
+    <button type="button" id="headerSearchBack" aria-label="Back" onclick="closeHeaderSearch()">Back</button>
+    <!-- 🔎 Live suggestions (multi-page catalog) -->
+<div id="headerSearchResults" style="display:none;"></div>
+
+  </div>
 </header>
 
-<!-- 🔎 Search Overlay -->
-<div id="searchOverlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 9999; justify-content: center; align-items: flex-start; padding-top: 80px;">
-  <div style="background: white; padding: 12px; border-radius: 8px; width: 90%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.25)">
-    <div style="display:flex; gap:8px; align-items:center;">
-      <input type="text" id="searchInput" placeholder="Search products..." 
-        style="flex:1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; outline:none;" 
-        oninput="filterSearchResults()" />
-      <button onclick="closeSearch()" aria-label="Close search" class="close-btn">
-  ×
-</button>
-    </div>
-    <div id="searchResults" style="margin-top: 10px; max-height: 320px; overflow-y: auto;"></div>
-  </div>
-</div>
+
 
 
   <!-- Announcement Bar -->
@@ -1418,40 +1542,60 @@ function toggleMenu() {
   submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
 }
 // 🟢 Wide Media (Image/Video) Strip from Google Sheet
+
 fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
   .then(res => res.json())
   .then(data => {
-    const strip = document.getElementById("imageStrip");
-    data.forEach(row => {
-      const url = row["(media_url)"];
+    data.forEach((row, index) => {
+      const url   = (row["(media_url)"] || "").trim();
+      const link  = (row["Linked"] || "").trim();   // ← use your “Linked” column
       if (!url) return;
 
-      let el;
-      if (url.trim().endsWith(".mp4")) {
-        el = document.createElement("video");
-        el.src = url.trim();
-        el.controls = true;
-        el.muted = true;
-        el.loop = true;
-        el.playsInline = true;
+      // Make a full-area clickable anchor
+      const a = document.createElement("a");
+      a.className = "fade-slide";
+      if (index === 0) a.classList.add("active");
+      if (link) {
+        a.href = link;
       } else {
-        el = document.createElement("img");
-        el.src = url.trim();
+        // no link provided → prevent empty navigation
+        a.href = "javascript:void(0)";
       }
+      a.setAttribute("aria-label", "Open linked page");
 
-      el.className = "strip-media";
-      strip.appendChild(el);
-      setTimeout(() => {
-  const itemWidth = strip.children[0]?.offsetWidth || 0;
-  if (itemWidth) strip.scrollLeft = itemWidth;
-}, 300);
+      // Create the media inside the anchor
+      let media;
+      if (url.toLowerCase().endsWith(".mp4")) {
+        media = document.createElement("video");
+        media.src = url;
+        media.loop = true;
+        media.muted = true;
+        media.autoplay = true;
+        media.playsInline = true;
+      } else {
+        media = document.createElement("img");
+        media.src = url;
+        media.alt = "Banner";
+      }
+      media.className = "fade-media";
+
+      // Build DOM
+      a.appendChild(media);
+      slider.appendChild(a);
+
+      // Track slide anchors instead of media
+      slides.push(a);
+
+      // Dot for each slide
+      const dot = document.createElement("div");
+      dot.className = "fade-dot";
+      if (index === 0) dot.classList.add("active");
+      dot.addEventListener("click", () => showSlide(index));
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
     });
   });
-let currentIndex = 0;
-let slides = [];
-let dots = [];
-const slider = document.getElementById("fadeSlider");
-const dotsContainer = document.getElementById("fadeDots");
+
 
 fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
   .then(res => res.json())
@@ -1711,25 +1855,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   })();
 
-  (function () {
-  const header = document.querySelector(".site-header");
+  
+
+// ✅ Minimal & reliable hide-on-scroll logic
+(() => {
+  const header = document.querySelector('.site-header');
   if (!header) return;
 
-  let lastY = window.scrollY;
-  const TOL = 4; // px tolerance to avoid jitter
+  let lastY = window.pageYOffset;
 
-  window.addEventListener("scroll", () => {
-    const y = window.scrollY;
-    const delta = y - lastY;
-    const movingDown = delta > TOL;
-    const movingUp   = delta < -TOL;
+  const show = () => header.classList.remove('header-hidden');
+  const hide = () => header.classList.add('header-hidden');
 
-    // ✅ Required behavior: UP => show, DOWN => hide
-    if (movingDown) {
-      header.classList.add("header-hidden");   // hide
-    } else if (movingUp) {
-      header.classList.remove("header-hidden"); // show
-    }
+  const atTopOrSearching = () =>
+    window.pageYOffset < 10 || header.classList.contains('searching');
+
+  window.addEventListener('scroll', () => {
+    const y = window.pageYOffset;
+    const delta = y - lastY; // +ve = scrolling down, -ve = up
+
+    // Top par ya search khula ho to hamesha dikhana
+    if (atTopOrSearching()) { show(); lastY = y; return; }
+
+    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
+    else if (delta < -3) show(); // upar aate hi show
+
     lastY = y;
   }, { passive: true });
 })();
@@ -1748,202 +1898,160 @@ document.addEventListener('DOMContentLoaded', function() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 </script>
-
-
 <script>
-// === Simple Product Search that jumps to Resin page with ?p=Product Name ===
-let allProducts = [];
-
-function openSearch() {
-  const ov = document.getElementById('searchOverlay');
-  if (ov) {
-    ov.style.display = 'flex';
-    setTimeout(() => { const i = document.getElementById('searchInput'); if (i) i.focus(); }, 0);
+/* ===== Multi-page Search Setup (index.html) =====
+   - Do NOT change the two SHEET URLs below; ye wahi hain jo aap pages me use karte ho.
+   - Resin Necklace sheet (target page: /resin-necklace/)
+   - Hello sheet (target page: /hello/)  ← agar aapka actual path /hello.html hai to isey '/hello.html' kar dein.
+*/
+const CATALOGS = [
+  {
+    name: "Resin Necklace",
+    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
+    page : "/resin-necklace/"
+  },
+  {
+    name: "Hello",
+    sheet: "https://opensheet.elk.sh/1Y5ZgzCKg9DTAQbPBLwQ3F-BSp06QfIRJCizMQFO6dPg/Sheet1",
+    page : "/hello/"
   }
+];
+
+// Global merged list
+window.allProducts = [];
+
+// Load all catalogs
+Promise.all(
+  CATALOGS.map(cat =>
+    fetch(cat.sheet).then(r => r.json()).then(rows => {
+      const items = rows
+        .filter(row => (row["Product Name"] || "").trim())
+        .map(row => ({
+          name: String(row["Product Name"]).trim(),
+          price: Number(row["Selling Price"] || 0),
+          mrp: Number(row["MRP"] || 0),
+          image: row["photo 1"] || row["Photo 1"] || "",
+          page: cat.page,
+          from: cat.name
+        }));
+      return items;
+    })
+  )
+).then(listOfLists => {
+  window.allProducts = listOfLists.flat();
+}).catch(()=>{});
+
+/* ========== UI wiring ========== */
+const inputEl   = document.getElementById('headerSearchInput');
+const boxEl     = document.getElementById('headerSearchResults');
+
+function openHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.add('searching');
+  header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
 }
-function closeSearch() {
-  const ov = document.getElementById('searchOverlay');
-  if (ov) ov.style.display = 'none';
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
 }
+function hideSuggest(){ if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; } }
 
-function filterSearchResults() {
-  const qEl = document.getElementById('searchInput');
-  const resultsDiv = document.getElementById('searchResults');
-  if (!qEl || !resultsDiv) return;
-  const query = qEl.value.trim().toLowerCase();
-  resultsDiv.innerHTML = '';
-  if (!query) return;
+/* Filter + render */
+function renderSuggestions(q){
+  const ql = (q||"").toLowerCase().trim();
+  if(!ql){ hideSuggest(); return; }
 
-  const matches = allProducts.filter(p => p.name.toLowerCase().includes(query)).slice(0, 30);
+  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
+  const top = list.slice(0, 12); // max 12 items
 
-  matches.forEach(p => {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid #eee; cursor:pointer;';
-    row.innerHTML = '<img src="' + (p.photo || '') + '" style="width:44px;height:44px;object-fit:cover;border-radius:8px;">' +
-                    '<div style="font-size:15px;">' + p.name + '</div>';
-    row.onclick = () => {
-      window.location.href = 'https://precioussly.com/resin-necklace/?p=' + encodeURIComponent(p.name);
-    };
-    resultsDiv.appendChild(row);
-  });
-}
+  if(!top.length){ hideSuggest(); return; }
 
-// Load products from the same Google Sheet
-(function(){
-  const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
-  fetch(SHEET_URL).then(r=>r.json()).then(data=>{
-    allProducts = (data || []).filter(x => x["Product Name"]).map(x => ({
-      name: x["Product Name"],
-      photo: x["photo 1"] || ''
-    }));
-  }).catch(()=>{});
-})();
-</script>
-
-<script>
-/** ==== SETTINGS (same sheet as Resin page) ==== */
-const RESIN_SHEET_URL =
-  "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1"; // Resin products
-
-/** ==== DOM refs (already in your HTML) ==== */
-const overlay      = document.getElementById('searchOverlay');
-const inputEl      = document.getElementById('searchInput');
-const resultsBox   = document.getElementById('searchResults');
-
-/** ==== Local cache ==== */
-let searchData = null;     // [{name, mrp, price, img, badge}]
-let loadedOnce = false;
-let lastQuery  = "";
-
-/** ==== Helpers ==== */
-const enc = (s)=> encodeURIComponent(String(s || "").trim());
-const priceHTML = (p, mrp) => {
-  if (!p) return "";
-  const sale = Number(p), mrpN = Number(mrp);
-  const discount = (sale && mrpN && mrpN>sale) ? ` <s>₹${mrpN}</s>` : "";
-  return `<span>₹${sale}</span>${discount}`;
-};
-function hi(text, q){
-  if(!q) return text;
-  const i = text.toLowerCase().indexOf(q.toLowerCase());
-  if(i<0) return text;
-  return text.slice(0,i) + '<span class="search-hit">' +
-         text.slice(i,i+q.length) + '</span>' + text.slice(i+q.length);
-}
-
-/** ==== Load sheet (once) ==== */
-async function ensureData(){
-  if (loadedOnce && Array.isArray(searchData)) return;
-  const res = await fetch(RESIN_SHEET_URL);
-  const rows = await res.json();
-  searchData = rows
-    .filter(r => (r["Product Name"] || "").trim())
-    .map(r => ({
-      name:  r["Product Name"].trim(),
-      mrp:   r["MRP"],
-      price: r["Selling Price"],
-      img:   r["photo 1"] || r["photo 2"] || "",
-      badge: r["Badge"] || ""
-    }));
-  loadedOnce = true;
-}
-
-/** ==== Open / close ==== */
-async function openSearch(){
-  await ensureData();
-  overlay.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-  setTimeout(()=> inputEl?.focus(), 30);
-  renderResults("");
-}
-function closeSearch(){
-  overlay.style.display = 'none';
-  document.body.style.overflow = '';
-  inputEl.value = "";
-  resultsBox.innerHTML = "";
-}
-
-/** ==== Render ==== */
-function renderResults(q){
-  const qTrim = (q||"").trim();
-  lastQuery = qTrim;
-  if(!searchData || !searchData.length){
-    resultsBox.innerHTML = '<div class="search-empty">No products found.</div>';
-    return;
-  }
-
-  // lightweight fuzzy: startsWith gets priority, then includes
-  const starts = [];
-  const includes = [];
-  for (const it of searchData){
-    const nm = it.name.toLowerCase();
-    if(!qTrim) { starts.push(it); continue; }
-    if(nm.startsWith(qTrim.toLowerCase())) starts.push(it);
-    else if(nm.includes(qTrim.toLowerCase())) includes.push(it);
-  }
-  const list = (qTrim ? starts.concat(includes) : searchData).slice(0, 50);
-
-  if(!list.length){
-    resultsBox.innerHTML = '<div class="search-empty">No results. Try another keyword.</div>';
-    return;
-  }
-
-  resultsBox.innerHTML = list.map(it => `
-    <div class="search-card" data-name="${it.name}">
-      <img class="search-thumb" src="${it.img}" alt="${it.name}">
-      <div class="search-meta">
-        <div class="search-name">${hi(it.name, qTrim)}${
-          it.badge ? `<span class="search-badge">${it.badge}</span>` : ""
-        }</div>
-        <div class="search-price">${priceHTML(it.price, it.mrp)}</div>
+  // Build rows
+  boxEl.innerHTML = top.map(p => `
+    <div class="header-suggest" onclick="goToProduct('${p.page}', '${p.name.replace(/'/g,"\\'")}')">
+      <img src="${p.image || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
+      <div>
+        <div class="name">${p.name}</div>
+        <div class="price">₹${p.price || '-'}</div>
       </div>
+      <div class="tag">${p.from}</div>
     </div>
   `).join('');
 
-  // click → go to resin-necklace with ?p=... (popup opens there)
-  [...resultsBox.querySelectorAll('.search-card')].forEach(card=>{
-    card.addEventListener('click', ()=>{
-      const name = card.getAttribute('data-name');
-      const url = `https://precioussly.com/resin-necklace/?p=${enc(name)}`;
-      location.href = url;
-    }, {passive:true});
+
+  boxEl.style.display = 'block';
+}
+
+/* Navigate to correct page and auto-open popup there via ?p=
+   (Your product pages already re-open popup from ?p=... on load) */
+function goToProduct(pagePath, productName){
+  const base = location.origin;
+  location.href = `${base}${pagePath}?p=${encodeURIComponent(productName)}`;
+}
+
+/* On typing → live suggestions */
+if (inputEl){
+  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
+  inputEl.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      const typed = (inputEl.value||'').trim();
+      if(!typed){ closeHeaderSearch(); return; }
+      // If suggestions are visible, pick the first result; otherwise fall back to best match
+      const list = (window.allProducts || [])
+        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      const chosen = list[0] ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase()) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase())) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      if (chosen){
+        goToProduct(chosen.page, chosen.name);
+      } else {
+        // default: Resin Necklace page search
+        goToProduct('/resin-necklace/', typed);
+      }
+    }
   });
 }
 
-/** ==== Input handling (debounced) ==== */
-let tId=null;
-window.filterSearchResults = function(){
-  if(tId) cancelAnimationFrame(tId);
-  tId = requestAnimationFrame(()=> renderResults(inputEl.value));
-};
+// Expose for inline onclick in HTML we rendered
+window.goToProduct = goToProduct;
+window.openHeaderSearch = openHeaderSearch;
+window.closeHeaderSearch = closeHeaderSearch;
+</script>
+<footer id="siteFooter" aria-label="Site footer">
+  <div class="brand">© <span id="footerYear"></span> Precioussly. All rights reserved.</div>
 
-/** ==== UX niceties ==== */
-overlay?.addEventListener('click', (e)=>{
-  if(e.target === overlay) closeSearch();
-});
-document.addEventListener('keydown', (e)=>{
-  if(overlay && overlay.style.display === 'flex'){
-    if(e.key === 'Escape') closeSearch();
-    if(e.key === 'Enter'){
-      const first = resultsBox.querySelector('.search-card');
-      if(first){
-        first.click();
-        e.preventDefault();
-      }
-    }
-  }
-});
-</script>
+  <nav class="links" aria-label="Policies">
+    <a href="https://precioussly.com/privacy-policy">Privacy Policy</a>
+    <span class="dot">•</span>
+    <!-- Note: & in URLs must be written as &amp; in HTML -->
+    <a href="https://precioussly.com/terms&amp;conditions">Terms &amp; Conditions</a>
+    <span class="dot">•</span>
+    <a href="https://precioussly.com/return-policy">Refund Policy</a>
+    <span class="dot">•</span>
+    <a href="https://precioussly.com/shipping-policy">Shipping Policy</a>
+    <span class="dot">•</span>
+    <a href="https://precioussly.com/about-us">About Us</a>
+  </nav>
+</footer>
 <script>
-(function ensureCloseButtonStyles(){
-  const box = document.getElementById('searchOverlay');
-  if(!box) return;
-  const input = document.getElementById('searchInput');
-  let header = input ? input.closest('div') : box.firstElementChild;
-  if(header){ header.classList.add('search-header'); }
-  const closeBtn = box.querySelector('button, .close, .closeBtn, [data-close]');
-  if(closeBtn){ closeBtn.classList.add('close-btn'); }
-})();
+  document.addEventListener('DOMContentLoaded', function () {
+    // Set the live year
+    var y = document.getElementById('footerYear');
+    if (y) y.textContent = new Date().getFullYear();
+
+    // Show footer after 3 seconds
+    var f = document.getElementById('siteFooter');
+    setTimeout(function () {
+      if (f) f.classList.add('show');
+    }, 3000);
+  });
 </script>
+
 </body>
 </html>
