@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/>
+<script sync defer src="https://accounts.google.com/gsi/client"></script>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet"/>
   <meta charset="UTF-8">
   <title>Your Cart - Precioussly</title>
@@ -262,7 +264,6 @@ body {
   justify-content: space-between;
   margin-bottom: 8px;
 }
-
 
 .proceed-btn {
   background: #2874f0;               /* Flipkart blue */
@@ -684,48 +685,6 @@ button.remove-btn:hover {
 .submenu{ display:none; padding:8px 0 0; }
 .submenu.open{ display:block !important; }
 </style>
-<style>
-/* ===== Header Search (inline) ===== */
-.header-search{ display:none; align-items:center; gap:8px; width:100%; }
-.header-search input{
-  flex:1; padding:12px 14px; font:400 16px 'Roboto Slab', serif;
-  border:1px solid #d9d9d9; border-radius:12px; outline:none; background:#fff;
-}
-.header-search input:focus{ border-color:#bfbfbf; }
-
-/* Back pill button */
-#headerSearchBack{
-  height:36px; padding:0 14px; font:500 14px 'Roboto Slab', serif; color:#222;
-  background:#fff; border:1px solid rgba(0,0,0,.18); border-radius:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,.06); cursor:pointer; -webkit-tap-highlight-color:transparent;
-}
-
-/* Searching mode: logo/menu/icons hide, input row show */
-.site-header.searching .hamburger-wrapper,
-.site-header.searching #logoWrap,
-.site-header.searching #rightIcons{ display:none !important; }
-.site-header.searching #headerSearchBar{ display:flex !important; }
-
-/* Suggestions box: search bar ke BILKUL niche */
-#headerSearchBar{ position:relative; }
-#headerSearchResults{
-  position:absolute; top:calc(100% + 10px); left:0; right:0;
-  display:none; background:#fff; border:1px solid #eaeaea; border-radius:12px;
-  box-shadow:0 8px 22px rgba(0,0,0,0.08); max-height:62vh; overflow:auto; padding:6px; z-index:4000;
-}
-.header-suggest{
-  display:grid; grid-template-columns:56px 1fr auto; gap:10px; align-items:center;
-  padding:8px; border-radius:10px;
-}
-.header-suggest:hover{ background:#f9f9f9; }
-.header-suggest img{ width:56px; height:56px; border-radius:10px; object-fit:cover; }
-.header-suggest .name{ font-size:14px; font-weight:600; }
-.header-suggest .price{ font-size:13px; color:#111; }
-.header-suggest .tag{ font-size:11px; padding:3px 6px; border:1px solid #ddd; border-radius:8px; color:#333; }
-
-/* Header sticky (already present; ensure z-index high) */
-.site-header{ position:sticky; top:0; z-index:3500; }
-</style>
 
 </head>
 <body>
@@ -741,15 +700,14 @@ button.remove-btn:hover {
 </nav>
 
  <header class="site-header">
-  <!-- Hamburger menu -->
-  <div class="hamburger-wrapper" onclick="toggleMenu()">
-    <div></div>
-    <div></div>
-    <div></div>
-  </div>
+<!-- Hamburger menu -->
+<div class="hamburger-wrapper" onclick="toggleMenu()">
+  <div></div>
+  <div></div>
+  <div></div>
+</div>
 
-  <!-- Logo -->
-  <div id="logoWrap" style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+  <div style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
     <img
       src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
       alt="Precioussly Logo"
@@ -758,48 +716,15 @@ button.remove-btn:hover {
     />
   </div>
 
-  <div id="rightIcons" style="display: flex; align-items: center; gap: 12px;">
-    <!-- Search icon -->
-    <img
-      src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
-      alt="Search"
-      class="right-icon"
-      style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px; cursor: pointer;"
-      onclick="openHeaderSearch()"
-    />
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" alt="Search" class="right-icon" style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px;" />
 
-    <!-- Profile icon -->
-    <img
-      id="profileIcon"
-      src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
-      alt="Profile"
-      class="right-icon"
-      onclick="handleProfileClick()"
-      style="width: 28px; height: 28px; cursor: pointer;"
-    />
+    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" alt="Profile" class="right-icon" onclick="handleProfileClick()" style="width: 28px; height: 28px;" />
 
-    <!-- Cart icon -->
-    <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
-      <img
-        src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
-        alt="Cart"
-        class="right-icon"
-        style="width: 28px; height: 28px;"
-      />
-      <span
-        id="cartCountBadge"
-        style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 19px; height: 19px; display: none; align-items: center; justify-content: center;"
-      >
-        0
-      </span>
+<a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+  <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon" style="width: 28px; height: 28px;" />
+      <span id="cartCountBadge" style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center;">0</span>
     </a>
-  </div>
-
-  <!-- 🔎 Inline header search row -->
-  <div id="headerSearchBar" class="header-search">
-    <input id="headerSearchInput" type="text" placeholder="Search products..." autocomplete="off" />
-    <button id="headerSearchBack" class="back-btn" type="button" onclick="closeHeaderSearch()">Back</button>
-    <div id="headerSearchResults"></div>
   </div>
 </header>
 
@@ -936,9 +861,7 @@ function updateSummary() {
 
   const fee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
 
-  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee
-  try { syncCouponInput(); } catch(e){}
-}</span>`;
+  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee}</span>`;
 
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
@@ -948,6 +871,21 @@ function updateSummary() {
     </div>
   `;
 }
+
+  const fee = window.deliveryFee;
+  const feeText = fee === 0
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${fee}`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+      <span>Order Total</span><span>₹${total + fee}</span>
+    </div>
+  `;
+}
+
   function updateCartBadge() {
     const items = JSON.parse(localStorage.getItem("cartItems")) || [];
     let count = 0;
@@ -1131,7 +1069,36 @@ function confirmAddress() {
       }
     });
 
-  
+  const photo = localStorage.getItem("user_photo");
+  if (photo) {
+    document.getElementById("profileIcon").src = photo;
+  }
+
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
+    }
+  }
+
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) {
+      if (count > 0) {
+        badge.innerText = count;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+  }
+
+  updateCartBadge();
 </script>
 <script>
   const feeSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
@@ -1203,7 +1170,7 @@ function confirmAddress() {
     });
 </script>
 <script>
-window.codCharge = 95; // default until sheet loads
+window.codCharge = 89; // default until sheet loads
 window.cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1308,11 +1275,30 @@ function removeItem(index) {
   location.reload(); // Page reload to re-render all cart items
 }
 </script>
-
 <script>
-let selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || "razorpay";
-window.selectedPayment = selectedPayment;
+function updateSummary() {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cartData.forEach(item => {
+    total += item.price * item.qty;
+  });
 
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 100;
+
+  const feeText = deliveryFee === 0
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
+  `;
+}
+</script>
+<script>
+let selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || "razorpay"; // default from current radio
+window.selectedPayment = selectedPayment;
 function updatePaymentMethod() {
   const method = document.querySelector('input[name="paymentMethod"]:checked').value;
   selectedPayment = method;
@@ -1323,78 +1309,31 @@ function updatePaymentMethod() {
     labelEl.textContent = (method === "cod") ? "Continue with COD" : "Proceed to Pay";
   }
 
-  updateSummary();
-  // minimum order ka notice total ke hisaab se dubara check ho
-  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
+  updateSummary(); // keeps COD charges logic
 }
-
 
 
 // Override updateSummary to include COD charge
 function updateSummary() {
-  // ---- totals ----
-  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
 
-  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-  const codFee      = (selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
 
-  // ---- coupon logic (same as before) ----
-  let couponToUse = null, discount = 0;
-  if (window.allCoupons && allCoupons.length){
-    if (window.manualLock && window.appliedCoupon){
-      couponToUse = window.appliedCoupon;
-      discount = (subtotal >= couponToUse.min) ? discountOnSubtotal(subtotal, couponToUse) : 0;
-    } else {
-      const {coupon, amount} = bestCouponFor(subtotal);
-      couponToUse = coupon;
-      discount = amount;
-      window.appliedCoupon = coupon || null; try{syncCouponInput();}catch(e){}
-    }
-  }
-
-  // “Free Delivery” ya amount ki text
-  const feeText = (deliveryFee === 0)
+  const feeText = deliveryFee === 0
     ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
     : `₹${deliveryFee}`;
 
-  // ✅ COD par Delivery Fee line HIDE — chahe free ho ya paid
-  const showDeliveryRow = !(selectedPayment === "cod");
+  const grandTotal = total + deliveryFee + codFee;
 
-  // grand total: agar Delivery row hide hai to usko add na karein
-  const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
-
-  // ---- build rows ----
-  let rows = `
-    <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    ${selectedPayment === "cod" ? `<div class="summary-row"><span>COD Charges</span><span>₹${Number(window.codCharge)||0}</span></div>` : ""}
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${grandTotal}</span></div>
   `;
-
-  if (showDeliveryRow) {
-    rows += `<div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>`;
-  }
-
-  // ✅ COD amount ko green rounded chip me dikhayein
-  if (codFee) {
-    rows += `<div class="summary-row" style="justify-content: flex-start; gap: 20px;">
-            <span>COD Charges</span>
-            <span style="font-weight: bold;">₹${codFee}</span>
-          </div>`;
-  }
-
-  if (discount) {
-    rows += `<div class="summary-row"><span>Coupon (${couponToUse.code})</span><span>-₹${discount}</span></div>`;
-  }
-
-  rows += `<div class="summary-row" style="font-weight: bold; font-size: 18px;">
-            <span>Order Total</span><span>₹${grand}</span>
-          </div>`;
-
-  document.getElementById("summaryBox").innerHTML = rows;
-
-  // helpers jinhe aap pehle se use kar rahe the
-  try { showAppliedTag(subtotal); } catch(e){}
-  try { showProgress(subtotal); } catch(e){}
-  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
 }
 </script>
 <!-- ✅ COD Razorpay Suggestion Popup -->
@@ -1473,19 +1412,12 @@ function updateSummary() {
     }
   }
 
-  
-  // REPLACE the whole function with this version
   function startRazorpayWithSpinner(btnEl) {
     setLoading(btnEl, true);
-
-    // 1) Send pre-payment Telegram now
-    preNotifyTelegram("Razorpay 😎");
-
-    // 2) Wait ~2 seconds BEFORE opening Razorpay
     setTimeout(() => {
       setLoading(btnEl, false);
-      payViaRazorpay(); // opens Razorpay after the ~2s gap
-    }, 2000);
+      payViaRazorpay();  // opens Razorpay
+    }, 1000);
   }
 </script>
 <script>
@@ -1504,7 +1436,7 @@ function handleProceed() {
 
   if (method === "cod") {
     // COD → show suggestion popup (no spinner here)
-    openCOD95Popup();
+    openCOD1Popup();
     document.body.style.overflow = "hidden";
   } else {
     // Razorpay → show 1s spinner on Proceed button, then open Razorpay
@@ -1513,89 +1445,65 @@ function handleProceed() {
   }
 }
 
+function continueWithCOD(btnEl) {
+  // Button par spinner dikhao
+  if (btnEl) {
+    btnEl.classList.add('is-loading');
+    btnEl.setAttribute('aria-busy','true');
+  }
 
-  // REPLACE the whole continueWithCOD with this version
-  function continueWithCOD(btnEl) {
+  // 1 second baad sound play
+  setTimeout(() => {
+    playCODConfirm();
+  }, 1000); // 1000 ms = 1 second
+
+  // Bilkul 2 second wait ke baad spinner stop + redirect
+  setTimeout(() => {
     if (btnEl) {
-      btnEl.classList.add('is-loading');
-      btnEl.setAttribute('aria-busy', 'true');
+      btnEl.classList.remove('is-loading');
+      btnEl.removeAttribute('aria-busy');
     }
 
-    // 1) Pre-notify now and freeze an ID to reuse on Thank-You
-    const pre = preNotifyTelegram("Cash on Delivery", buildCODPreview());
-    const fixedId = pre.id; // reuse this so TG and Saved Order match
-
-    // Keep your sound timing
-    setTimeout(() => { try { playCODConfirm(); } catch(e){} }, 1000);
-
-    // 2) After ~2s, stop spinner and place order + redirect
+    // Audio start ho chuka hoga, ab redirect
     setTimeout(() => {
-      if (btnEl) {
-        btnEl.classList.remove('is-loading');
-        btnEl.removeAttribute('aria-busy');
-      }
-      setTimeout(() => {
-        placeCODOrderAndRedirect(fixedId, /*alreadyNotified=*/true);
-      }, 150);
-    }, 2000);
-  }
+      placeCODOrderAndRedirect();
+    }, 150);
+
+  }, 2000); // 2000 ms = 2 seconds
+}
 </script>
 <script>
-function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
-  // --- items subtotal ---
-  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+  function placeCODOrderAndRedirect() {
+    // --- amounts ---
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+    const grandTotal = itemsTotal + deliveryFee + codFee;
 
-  // ✅ COD flow me delivery fee NA dikhana/NA add karna
-  const deliveryFee = 0;
+    // --- order object (dashboard ke liye useful) ---
+    const order = {
+      id: "COD-" + Date.now(),
+      method: "COD",
+      items,
+      amounts: { itemsTotal, deliveryFee, codFee, grandTotal },
+      address: localStorage.getItem("shippingAddress") || "",
+      createdAt: new Date().toISOString()
+    };
+    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    orders.unshift(order);
+    localStorage.setItem("orders", JSON.stringify(orders));
 
-  // ✅ Sheet/variable se COD fee
-  const codFee = Number(window.codCharge || 0);
+    // --- clear cart before redirect ---
+    localStorage.setItem("cartItems", "[]");
+    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
 
-  // ✅ Coupon/discount (agar appliedCoupon mila ho)
-  let discount = 0, couponCode = null;
-  try {
-    if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0)) {
-      couponCode = window.appliedCoupon.code || null;
-      if (typeof discountOnSubtotal === "function") {
-        discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
-      }
-    }
-  } catch(e){}
+    // BFCache se wapas aane par hard refresh karane ke liye flag
+    localStorage.setItem("lastOrderClearedCart", "1");
 
-  // ✅ Grand total = items + COD − discount
-  const grandTotal = Math.max(0, itemsTotal + codFee - discount);
-
-  const order = {
-    id: orderIdOverride || ("COD-" + Date.now()),
-    method: "Cash on Delivery",
-    items,
-    coupon: couponCode || null,
-    amounts: {
-      itemsTotal,
-      deliveryFee,     // 0 for COD
-      codFee,          // ✅ important
-      discount,        // ✅ important
-      grandTotal
-    },
-    address: localStorage.getItem("shippingAddress") || "",
-    createdAt: new Date().toISOString(),
-    preNotified: !!alreadyNotified
-  };
-
-  // Save & clear
-  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-  orders.unshift(order);
-  localStorage.setItem("orders", JSON.stringify(orders));
-  localStorage.setItem("cartItems", "[]");
-  try{ if(typeof updateCartBadge==='function') updateCartBadge(); }catch(e){}
-  localStorage.setItem("lastOrderClearedCart","1");
-
-  // Pre-notify bheja tha to dubara TG mat bhejo
-  if (!order.preNotified) { try{ sendOrderToTelegram(order); }catch(e){} }
-
-  window.location.href = "https://precioussly.com/thankyou-cod";
-}
+await saveCODOrder(order);  // <-- add this line
+window.location.href = "https://precioussly.com/thankyou-cod";
+  }
 </script>
 <script>
 function closeCODPopup() {
@@ -1682,8 +1590,8 @@ function openAddressAndClosePopup() {
         try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
         localStorage.setItem("lastOrderClearedCart", "1");
 
-        try{ sendOrderToTelegram(order); }catch(e){}
-        window.location.href = "https://precioussly.com/thankyou-razorpay";
+        await savePaidOrder(response, order);   // <-- add this line
+window.location.href = "https://precioussly.com/thankyou-razorpay";
       },
 
       modal: {
@@ -1816,7 +1724,7 @@ const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2i
 
 // ====== 2) State ======
 window.allCoupons = [];            // raw coupons from sheet
-window.appliedCoupon = null; try{syncCouponInput();}catch(e){}       // {code,title,min,amount,isPercent,raw}
+window.appliedCoupon = null;       // {code,title,min,amount,isPercent,raw}
 window.manualLock = false;         // if user applied manually, don't auto-switch
 
 // ====== 3) Helpers ======
@@ -1909,15 +1817,15 @@ function applyCouponManually(){
 
   if (found){
     if (subtotal >= found.min) {
-      window.appliedCoupon = found; try{syncCouponInput();}catch(e){}
+      window.appliedCoupon = found;
     } else {
       alert(`Minimum order ₹${found.min} required for this coupon.`);
-      window.appliedCoupon = null; try{syncCouponInput();}catch(e){}
+      window.appliedCoupon = null;
       input.value = "";
     }
   } else {
     alert("Invalid coupon");
-    window.appliedCoupon = null; try{syncCouponInput();}catch(e){}
+    window.appliedCoupon = null;
   }
   
   updateSummary();
@@ -1925,7 +1833,7 @@ function applyCouponManually(){
 
 function clearManualCoupon(){
   window.manualLock = false;
-  window.appliedCoupon = null; try{syncCouponInput();}catch(e){}
+  window.appliedCoupon = null;
   document.getElementById("couponInput").value = "";
   updateSummary();
 }
@@ -1971,7 +1879,7 @@ if (coupWrap){
       const {coupon, amount} = bestCouponFor(subtotal);
       couponToUse = coupon;
       discount = amount;
-      window.appliedCoupon = coupon || null; try{syncCouponInput();}catch(e){}
+      window.appliedCoupon = coupon || null;
     }
   }
   // ✅ Auto-fill the input box with applied coupon code
@@ -2218,812 +2126,150 @@ if (couponToUse && document.getElementById("couponInput")) {
 </script>
 
 <!-- ✅ COD ₹95 ADVANCE POPUP (auto-inserted) -->
-<div class="address-popup-overlay" id="cod95Popup" style="display:none;">
+<div class="address-popup-overlay" id="cod1Popup" style="display:none;">
   <div class="address-popup-box" style="text-align:center;max-width:320px;">
     <div style="font-size:18px;font-weight:700;margin-bottom:6px;">
-      Pay ₹95 now, rest to Delivery Partner
+      Pay ₹1 now, rest to Delivery Partner
     </div>
     <div style="font-size:15px;color:#444;margin-bottom:14px;">
       This confirms your COD order. Remaining amount will be collected by the delivery partner at doorstep.
     </div>
     <div class="button-row" style="flex-direction:column;gap:10px;margin-top:12px;">
-      <button class="popup-razorpay-btn" onclick="startCOD95WithSpinner(this)" style="background:#2874f0;color:#fff;border:none;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
-        <span class="btn-label">Pay ₹95 now</span>
+      <button class="popup-razorpay-btn" onclick="startCOD1WithSpinner(this)" style="background:#2874f0;color:#fff;border:none;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
+        <span class="btn-label">Pay ₹1 now</span>
         <span class="btn-spinner" aria-hidden="true"></span>
       </button>
-      <button class="popup-razorpay-btn btn--outline" onclick="closeCOD95Popup()" style="background:#fff;color:#000;border:1.4px solid #000;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
+      <button class="popup-razorpay-btn btn--outline" onclick="closeCOD1Popup()" style="background:#fff;color:#000;border:1.4px solid #000;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
         Back
       </button>
     </div>
   </div>
 </div>
-<!-- COD ₹95 popup + pre-notification + spinner -->
 <script>
-  /* ========= CONFIG: Telegram =========
-     For security, prefer setting these via JS before this script runs
-     or saving in localStorage:
-       localStorage.TG_BOT_TOKEN = "123:ABC..."
-       localStorage.TG_CHAT_ID   = "792731562"
-  */
-  const TG_BOT  = (window.TELEGRAM_BOT_TOKEN || localStorage.getItem("TG_BOT_TOKEN") || "").trim();
-  const TG_CHAT = (window.TELEGRAM_CHAT_ID  || localStorage.getItem("TG_CHAT_ID")  || "").trim();
-
-  function openCOD95Popup(){
-    var el = document.getElementById('cod95Popup');
-    if(el){ el.style.display='flex'; document.body.style.overflow='hidden'; }
-  }
-  function closeCOD95Popup(){
-    var el = document.getElementById('cod95Popup');
-    if(el){ el.style.display='none'; document.body.style.overflow=''; }
-  }
-
-  /** Build a lightweight preview of the order for the pre-notification */
-  function buildPreCODPreview(){
-    let addrObj = {};
-    try{ addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); }catch(e){}
-
-    const name  = addrObj.fullname || (localStorage.getItem("user_name") || "");
-    const phone = addrObj.phone || "";
-    const email = localStorage.getItem("user_email") || "";
-    const address = localStorage.getItem("shippingAddress") || "";
-
-    let items = [];
-    try{ items = JSON.parse(localStorage.getItem("cartItems") || "[]"); }catch(e){}
-
-    const itemsTotal = items.reduce((s,it)=> s + (Number(it.price)||0)*(Number(it.qty)||0), 0);
-    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-    const codFee = Number(window.codCharge) || 0;
-    const remaining = Math.max(0, itemsTotal + deliveryFee + codFee - 95);
-
-    // 1–2 top items to keep the message compact
-    const itemLines = items.slice(0,2).map(it => `• ${it.title || "Item"} × ${it.qty || 1}`).join('\n')
-      + (items.length > 2 ? `\n• +${items.length-2} more…` : "");
-
-    return {
-      text:
-`🟦 <b>COD ₹95 Clicked — Payment Pending</b>
-Name: ${name || "-"}
-Phone: ${phone || "-"}
-Email: ${email || "-"}
-Address: ${address || "-"}
-
-Items:
-${itemLines || "• (empty cart)"}
-
-Amounts:
-Items: ₹${itemsTotal}
-Delivery: ₹${deliveryFee}
-COD Fee: ₹${codFee}
-To Pay Now: ₹95
-Remaining on Delivery: ₹${remaining}
-
-Time: ${new Date().toLocaleString()}`,
-      debug: {itemsTotal, deliveryFee, codFee, remaining}
-    };
-  }
-
-  /** Fire-and-forget Telegram pre-notification (doesn’t block the UI) */
-  function preNotifyTelegram(){
-    if(!TG_BOT || !TG_CHAT) return; // silently skip if not configured
-    const preview = buildPreCODPreview();
-    const url = `https://api.telegram.org/bot${TG_BOT}/sendMessage`;
-    const body = {
-      chat_id: TG_CHAT,
-      text: preview.text,
-      parse_mode: "HTML",
-      disable_web_page_preview: true
-    };
-    // Don’t await — we want Razorpay to open regardless.
-    try {
-      fetch(url, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(body),
-        keepalive: true
-      }).catch(()=>{});
-    } catch(e){}
-  }
-
-  /** Main click handler for the blue “Pay ₹95 now” button */
-  function startCOD95WithSpinner(btnEl){
-    // Start spinner immediately
-    if (typeof setLoading === 'function') setLoading(btnEl, true);
-
-    // 1) Send Telegram PRE-NOTIFICATION right away
-    preNotifyTelegram("Cash on Delivery 😅");
-
-    // 2) After ~2 seconds, stop spinner and open Razorpay for ₹95
-    setTimeout(function(){
-      if (typeof setLoading === 'function') setLoading(btnEl, false);
-      payCODAdvance95();
-    }, 2000);
-  }
+  function openCOD1Popup(){ var el=document.getElementById('cod1Popup'); if(el){ el.style.display='flex'; document.body.style.overflow='hidden'; }}
+  function closeCOD1Popup(){ var el=document.getElementById('cod1Popup'); if(el){ el.style.display='none'; document.body.style.overflow=''; }}
+  function startCOD1WithSpinner(btnEl){ if(typeof setLoading==='function'){ setLoading(btnEl,true); setTimeout(function(){ setLoading(btnEl,false); payCODAdvance1(); },1000);} else { payCODAdvance1(); } }
 </script>
 
-<!-- Razorpay flow (unchanged logic, small safety tweaks) -->
 <script>
-function payCODAdvance95(){
-  // Prefills
-  var addrObj = {};
-  try{ addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); }catch(e){}
+function payCODAdvance1(){
+  try{
+    var addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
+  }catch(e){ var addrObj = {}; }
   var preName  = addrObj.fullname || (localStorage.getItem("user_name") || "");
   var preEmail = localStorage.getItem("user_email") || "";
   var prePhone = addrObj.phone || "";
 
-  // Cart + amounts
   var items = [];
-  try{ items = JSON.parse(localStorage.getItem("cartItems") || "[]"); }catch(e){}
+  try{ items = JSON.parse(localStorage.getItem("cartItems") || "[]"); }catch(e){ items = []; }
   var itemsTotal = items.reduce(function(s,it){ var p=Number(it.price)||0; var q=Number(it.qty)||0; return s + p*q; }, 0);
   var deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
   var codFee = Number(window.codCharge) || 0;
-  var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - 95);
+  var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - 1);
 
   var options = {
     key: "rzp_live_S4Dmi0UXQYNAyV",
-    amount: 95 * 100,
+    amount: 1 * 100,
     currency: "INR",
     name: "Precioussly",
-    description: "COD advance ₹95",
+    description: "COD advance ₹1",
     image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
     prefill: { name: preName, email: preEmail, contact: prePhone },
     notes: { address: localStorage.getItem("shippingAddress") || "" },
     theme: { color: "#2874f0" },
-
     handler: function (response) {
-      // Build order object
       var order = {
         id: "COD-" + Date.now(),
         method: "COD",
-        prepaidAmount: 95,
+        prepaidAmount: 1,
         remainingAmount: remaining,
         razorpay_payment_id: response.razorpay_payment_id || "",
         items: items,
         amounts: {
           itemsTotal: itemsTotal, deliveryFee: deliveryFee, codFee: codFee,
-          prepaid: 95, remaining: remaining, grandTotal: itemsTotal + deliveryFee + codFee
+          prepaid: 1, remaining: remaining, grandTotal: itemsTotal + deliveryFee + codFee
         },
         address: localStorage.getItem("shippingAddress") || "",
         createdAt: new Date().toISOString()
       };
-
-      // Save to local orders
       try{
         var orders = JSON.parse(localStorage.getItem("orders") || "[]");
         orders.unshift(order);
         localStorage.setItem("orders", JSON.stringify(orders));
       }catch(e){}
-
-      // Clear cart + UI badge
       localStorage.setItem("cartItems", "[]");
       try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
       localStorage.setItem("lastOrderClearedCart", "1");
-
-      // Final Telegram (successful) notification — already in your codebase
-      try{ sendOrderToTelegram(order); }catch(e){}
-
-      // Redirect
       window.location.href = "https://precioussly.com/thankyou-cod";
     },
-
     modal: {
       ondismiss: function () {
-        // Ensure any loading state on the popup button is cleared
         var btns = document.querySelectorAll(".popup-razorpay-btn.is-loading");
         btns.forEach(function(b){ b.classList.remove("is-loading"); b.removeAttribute("aria-busy"); });
       }
     }
   };
-
   var rzp = new Razorpay(options);
   rzp.open();
 }
 </script>
-
-<!-- ======= Telegram Order Notifier (auto-inserted) ======= -->
 <script>
-const TG_BOT_TOKEN = "8338453495:AAGlEj98SoocsWjT2qa6FRo6qjHInDafqfA";
-const TG_CHAT_ID   = "792731562";
+  // Web App endpoint for saving orders
+  const ORDERS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxy1MX0Je3l6Kjjr0SUYHRWWj2V1zGtUa94J6m5vPx_7oDGNKWaw6geWDp8Szjt7T4QWw/exec';
+  const ORDERS_SECRET = 'precioussly_2024'; // must match Apps Script SECRET_KEY
 
-/* Build the exact text we send to Telegram */
-function formatOrderForTelegram(order){
-  try{
-    const when = new Date(order.createdAt || Date.now())
-      .toLocaleString("en-IN", { day: "2-digit", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
-
-    const a = order.amounts || {};
-    const isCOD = /cod/i.test(String(order.displayMethod || order.method || ""));
-
-    const lines = [];
-    lines.push(`🧾 <b>New Order</b>  <code>${order.id || ""}</code>`);
-    lines.push(`💳 Method: <b>${order.displayMethod || order.method || "-"}</b>`);
-    lines.push(`⏱️ Time: ${when}`);
-    lines.push(``);
-    lines.push(`<b>Items:</b>`);
-
-    (order.items || []).forEach((it, idx) => {
-      const qty   = Number(it.qty)   || 1;
-      const price = Number(it.price) || 0;
-      lines.push(`${idx+1}) ${it.name || "Item"} × ${qty} — ₹${price * qty}`);
-    });
-
-    lines.push(``);
-    // Totals section
-    if (a.itemsTotal != null) lines.push(`Item Total: ₹${a.itemsTotal}`);
-
-    // Delivery: hide on COD, otherwise show "Free Delivery" when 0
-    if (!isCOD && a.deliveryFee != null) {
-      lines.push(`Delivery: ${Number(a.deliveryFee) === 0 ? "Free Delivery" : `₹${a.deliveryFee}`}`);
-    }
-
-    // COD charges: show only when present (>0)
-    const codFeeNum = Number(a.codFee || 0);
-    if (codFeeNum > 0) {
-      lines.push(`COD Charges: ₹${codFeeNum}`);
-    }
-
-    if (Number(a.discount || 0) > 0) {
-      const couponTag = order.coupon ? ` (${order.coupon})` : "";
-      lines.push(`Coupon${couponTag}: -₹${a.discount}`);
-    }
-
-    if (a.grandTotal != null) lines.push(`<b>Order Total: ₹${a.grandTotal}</b>`);
-
-    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
-
-    lines.push(``);
-    lines.push(`<b>Shipping Address</b>`);
-    lines.push(order.address ? String(order.address).replace(/<br\s*\/?>(\n)?/gi, "\n") : "(not provided)");
-
-    // Optional product photos
-    const photos = (order.items || [])
-      .map(i => i.photo)
-      .filter(u => typeof u === "string" && /^https?:\/\//i.test(u));
-    if (photos.length){ lines.push(`\nPhotos:\n` + photos.join("\n")); }
-
-    return lines.join("\n");
-  }catch(e){
-    try{ return JSON.stringify(order,null,2); }catch(_){ return "New order"; }
-  }
-}
-
-/* Send the message */
-async function sendOrderToTelegram(order){
-  try{
-    const url  = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`;
-    const text = formatOrderForTelegram(order);
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({
-        chat_id: TG_CHAT_ID,
-        text,
-        parse_mode: "HTML",
-        disable_web_page_preview: true
-      })
-    });
-    if (!res.ok){
-      const t = await res.text().catch(()=> "");
-      console.warn("Telegram send failed", res.status, t);
-    }
-  } catch(err){
-    console.warn("Telegram send error", err);
-  }
-}
-</script>
-<!-- PRE-PAY Telegram helpers: paste AFTER formatOrderForTelegram, BEFORE sendOrderToTelegram -->
-<script>
-  // Build a consistent order snapshot (used for the pre-payment ping)
-  function buildOrderSnapshot(methodLabel, forcedId) {
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
-
-    // Detect COD from label like "Cash on Delivery" or "COD"
-    const isCOD = /(cash\s*on\s*delivery|cod)/i.test(String(methodLabel));
-
-    // Delivery is NOT charged for COD pre-notify snapshot (to match your UI)
-    const deliveryFee = isCOD ? 0 : (typeof window.deliveryFee === "number" ? window.deliveryFee : 0);
-
-    // COD fee only when COD
-    const codFee = isCOD ? (Number(window.codCharge) || 0) : 0;
-
-    // Optional coupon logic
-    let discount = 0, applied = null;
+  // Core poster
+  async function postOrderToSheet(order, extra={}) {
     try {
-      if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0)) {
-        discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
-        applied  = window.appliedCoupon.code || null;
-      }
-    } catch (_) {}
+      const payload = {
+        secret: ORDERS_SECRET,
+        id: order?.id,
+        method: order?.method,
+        items: Array.isArray(order?.items) ? order.items : [],
+        coupon: order?.coupon || null,
+        amounts: order?.amounts || {}, // { itemsTotal, deliveryFee, codFee, discount, grandTotal }
+        address: order?.address || '',
+        razorpay_payment_id: extra.razorpay_payment_id || '',
+        status: extra.status || 'New',
+        customer: order?.customer || (function() {
+          // Fallbacks from localStorage if your page uses these keys
+          let addr={};
+          try { addr = JSON.parse(localStorage.getItem('shippingAddressObj')||'{}'); } catch(_){}
+          return {
+            name: addr.fullname || localStorage.getItem('user_name') || '',
+            email: localStorage.getItem('user_email') || '',
+            phone: addr.phone || '',
+            city: addr.city || '',
+            state: addr.state || '',
+            pincode: addr.pincode || ''
+          };
+        })()
+      };
 
-    const grandTotal = Math.max(0, itemsTotal + deliveryFee + codFee - discount);
-    const address = localStorage.getItem("shippingAddress") || "";
-
-    // Freeze an ID so Thank-You can reuse the same one
-    const orderId = forcedId || ((isCOD ? "COD" : "RZP") + "-PRE-" + Date.now());
-
-    return {
-      id: orderId,
-      method: String(methodLabel || ""),
-      items,
-      coupon: applied,
-      amounts: { itemsTotal, deliveryFee, codFee, discount, grandTotal },
-      address,
-      createdAt: new Date().toISOString(),
-      preNotified: true
-    };
-  }
-
-  /**
-   * Fire-and-forget pre-notification.
-   *  - If 2nd arg is an OBJECT, it will be used as the snapshot directly.
-   *  - If 2nd arg is a STRING (forcedId) or empty, we build a snapshot now.
-   */
-  function preNotifyTelegram(methodLabel, snapshotOrForcedId) {
-    const snapshot = (snapshotOrForcedId && typeof snapshotOrForcedId === "object")
-      ? snapshotOrForcedId
-      : buildOrderSnapshot(methodLabel, typeof snapshotOrForcedId === "string" ? snapshotOrForcedId : undefined);
-
-    try { sendOrderToTelegram(snapshot); } catch (_) {}
-    window._lastPreNotify = snapshot;   // remember for COD handoff
-    return snapshot;
-  }
-</script>
-<script>
-(function(){
-  try {
-    window.selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || window.selectedPayment || "razorpay";
-  } catch(e){ window.selectedPayment = "razorpay"; }
-
-  window.updateSummary = function(){
-    try{
-      const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-      const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
-
-      const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-      const codFee = (window.selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
-
-      let discount = 0, couponCode = null;
-      try{
-        if (window.appliedCoupon && subtotal >= window.appliedCoupon.min) {
-          discount = discountOnSubtotal(subtotal, window.appliedCoupon);
-          couponCode = window.appliedCoupon.code;
-        }
-      }catch(e){}
-
-      const showDeliveryRow = !(window.selectedPayment === "cod");
-      const feeText = (deliveryFee === 0)
-        ? '<span style="color: green; font-family: \'Roboto Slab\', serif;">Free Delivery</span>'
-        : '₹' + deliveryFee;
-
-      const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
-
-      let rows = '';
-      rows += '<div class="summary-row"><span>Item Total</span><span>₹'+subtotal+'</span></div>';
-      if (showDeliveryRow) {
-        rows += '<div class="summary-row"><span>Delivery Fee</span><span>'+feeText+'</span></div>';
-      }
-      if (codFee) {
-        rows += '<div class="summary-row"><span>COD Charges</span><span><span class="cod-chip">₹'+codFee+'</span></span></div>';
-      }
-      if (discount) {
-        rows += '<div class="summary-row"><span>Coupon ('+(couponCode||'')+')</span><span>-₹'+discount+'</span></div>';
-      }
-      rows += '<div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹'+grand+'</span></div>';
-
-      var box = document.getElementById("summaryBox");
-      if (box) box.innerHTML = rows;
-    }catch(e){ console.error('updateSummary error', e); }
-  };
-
-  document.addEventListener('change', function(ev){
-    if (ev.target && ev.target.name === 'paymentMethod') {
-      window.selectedPayment = ev.target.value;
-      try{
-        const labelEl = document.querySelector('#proceedBtn .btn-label');
-        if (labelEl) labelEl.textContent = (window.selectedPayment === "cod") ? "Continue with COD" : "Proceed to Pay";
-      }catch(e){}
-      window.updateSummary();
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', function(){ try{ window.updateSummary(); }catch(e){} });
-})();
-</script>
-<script>
-// ===== Final Override: COD-aware updateSummary that PRESERVES coupons =====
-window.selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || window.selectedPayment || "razorpay";
-
-document.addEventListener('change', function(ev){
-  if (ev.target && ev.target.name === 'paymentMethod') {
-    window.selectedPayment = ev.target.value;
-    try{
-      const labelEl = document.querySelector('#proceedBtn .btn-label');
-      if (labelEl) labelEl.textContent = (window.selectedPayment === "cod") ? "Continue with COD" : "Proceed to Pay";
-    }catch(e){}
-    updateSummary();
-  }
-});
-
-window.updateSummary = function() {
-  try{
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
-
-    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-    const codFee = (window.selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
-
-    // ---- coupons (respect manualLock/appliedCoupon; else bestCouponFor) ----
-    let couponToUse = null, discount = 0;
-    try {
-      if (window.allCoupons && allCoupons.length){
-        if (window.manualLock && window.appliedCoupon){
-          couponToUse = window.appliedCoupon;
-          discount = (subtotal >= couponToUse.min) ? discountOnSubtotal(subtotal, couponToUse) : 0;
-        } else {
-          const pick = bestCouponFor(subtotal);
-          couponToUse = pick.coupon;
-          discount = pick.amount;
-          window.appliedCoupon = couponToUse || null; try{syncCouponInput();}catch(e){}
-        }
-      }
-    } catch(e){}
-
-    const showDeliveryRow = !(window.selectedPayment === "cod");
-    const feeText = (deliveryFee === 0)
-      ? '<span style="color: green; font-family: \'Roboto Slab\', serif;">Free Delivery</span>'
-      : '₹' + deliveryFee;
-
-    const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
-
-    let rows = '';
-    rows += '<div class="summary-row"><span>Item Total</span><span>₹'+subtotal+'</span></div>';
-    if (showDeliveryRow) {
-      rows += '<div class="summary-row"><span>Delivery Fee</span><span>'+feeText+'</span></div>';
-    }
-    if (codFee) {
-      rows += '<div class="summary-row"><span>COD Charges</span><span><span class="cod-chip">₹'+codFee+'</span></span></div>';
-    }
-    if (discount) {
-      const code = (couponToUse && couponToUse.code) ? couponToUse.code : '';
-      rows += '<div class="summary-row"><span>Coupon ('+code+')</span><span>-₹'+discount+'</span></div>';
-    }
-    rows += '<div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹'+grand+'</span></div>';
-
-    var box = document.getElementById("summaryBox");
-    if (box) box.innerHTML = rows;
-
-    // Keep coupon UI in sync
-    try { showAppliedTag(subtotal); } catch(e){}
-    try { showProgress(subtotal); } catch(e){}
-    try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
-  }catch(e){ console.error('updateSummary error', e); }
-};
-
-document.addEventListener('DOMContentLoaded', function(){ try{ updateSummary(); }catch(e){} });
-</script>
-<script>
-function ensureCouponSectionVisibility() {
-  try {
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    const hasItems = items.length > 0;
-    const sec = document.getElementById("couponSection");
-    if (sec) sec.style.display = hasItems ? "block" : "none";
-  } catch(e){}
-}
-document.addEventListener("DOMContentLoaded", ensureCouponSectionVisibility);
-</script>
-<script>
-/* === Keep the coupon input always in sync with the active coupon === */
-function syncCouponInput(){
-  var inp = document.getElementById('couponInput');
-  if(!inp) return;
-  var c = (window.appliedCoupon || null);
-  if(c && c.code){ inp.value = c.code; } else { inp.value = ''; }
-}
-document.addEventListener('DOMContentLoaded', function(){ try{ syncCouponInput(); }catch(e){} });
-
-/* Wrap manual apply to lock and resync */
-(function(){
-  var _orig = window.applyCouponManually;
-  window.applyCouponManually = function(){
-    if(typeof _orig === 'function'){ _orig.apply(this, arguments); }
-    window.manualLock = true;
-    setTimeout(function(){
-      try{ syncCouponInput(); }catch(e){}
-      try{ if(typeof updateSummary==='function') updateSummary(); }catch(e){}
-    }, 0);
-  };
-})();
-</script>
-<script>
-function buildCODPreview() {
-  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
-  const codFee = Number(window.codCharge || 0);
-  let discount = 0, couponCode = null;
-  try {
-    if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0)) {
-      couponCode = window.appliedCoupon.code || null;
-      if (typeof discountOnSubtotal === "function") {
-        discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
-      }
-    }
-  } catch(e){}
-  const grandTotal = Math.max(0, itemsTotal + codFee - discount);
-
-  return {
-    method: "Cash on Delivery",
-    items,
-    coupon: couponCode,
-    amounts: { itemsTotal, deliveryFee: 0, codFee, discount, grandTotal },
-    address: localStorage.getItem("shippingAddress") || "",
-    createdAt: new Date().toISOString()
-  };
-}
-</script>
-<script>
-/* ===== Multi-Page Search Setup =====
-   👉 "CATALOGS" me jitne pages/sheets chahen add kijiye.
-   ✅ page ko safest tarike se current page path par set kiya (location.pathname),
-      taaki yahin ka popup ?p= se open ho (aapka maybeOpenFromURL already handle karta hai).
-*/
-const CATALOGS = [
-  {
-    name: "Resin Necklace",
-    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
-    page : location.pathname            // e.g. "/resin-necklace/" or "/Resin Necklace.html"
-  },
-  // { name:"Hello", sheet:"https://opensheet.elk.sh/XXXX/Sheet1", page:"/hello.html" },
-  // { name:"Rings", sheet:"https://opensheet.elk.sh/YYYY/Sheet1", page:"/rings/" },
-];
-
-// Global merged list
-window.allProducts = [];
-
-// Load all catalogs from Google Sheets
-Promise.all(
-  CATALOGS.map(cat =>
-    fetch(cat.sheet).then(r => r.json()).then(rows => {
-      const items = rows
-        .filter(row => (row["Product Name"] || "").trim())
-        .map(row => ({
-          name: String(row["Product Name"]).trim(),
-          price: Number(row["Selling Price"] || 0),
-          mrp: Number(row["MRP"] || 0),
-          image: row["photo 1"] || row["Photo 1"] || "",
-          page: cat.page,
-          from: cat.name
-        }));
-      return items;
-    })
-  )
-).then(listOfLists => {
-  window.allProducts = listOfLists.flat();
-}).catch(()=>{ /* ignore */ });
-
-/* ========== UI wiring ========== */
-const inputEl = document.getElementById('headerSearchInput');
-const boxEl   = document.getElementById('headerSearchResults');
-
-function openHeaderSearch(){
-  const header = document.querySelector('.site-header');
-  if(header) header.classList.add('searching');
-  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
-  hideSuggest();
-}
-function closeHeaderSearch(){
-  const header = document.querySelector('.site-header');
-  if(header) header.classList.remove('searching');
-  hideSuggest();
-}
-function hideSuggest(){
-  if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
-}
-
-/* Filter + render suggestions below the bar */
-function renderSuggestions(q){
-  const ql = (q||"").toLowerCase().trim();
-  if(!ql){ hideSuggest(); return; }
-
-  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
-  const top  = list.slice(0, 12); // max 12 items
-
-  if(!top.length){ hideSuggest(); return; }
-
-  boxEl.innerHTML = top.map(p => `
-    <div class="header-suggest" onclick="goToProduct('${p.page}', '${(p.name||"").replace(/'/g,"\\'")}')">
-      <img src="${p.image || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
-      <div>
-        <div class="name">${p.name}</div>
-        <div class="price">₹${p.price || '-'}</div>
-      </div>
-      <div class="tag">${p.from}</div>
-    </div>
-  `).join('');
-
-  boxEl.style.display = 'block';
-}
-
-/* Go to that page and auto-open the product popup via ?p= */
-function goToProduct(pagePath, productName){
-  // Agar pagePath current file hi hai to same-page URL banega
-  const base = location.origin;
-  location.href = `${base}${pagePath}?p=${encodeURIComponent(productName)}`;
-}
-
-/* Typing events */
-if (inputEl){
-  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
-
-  // Enter: first best match open, bina kisi unwanted redirect ke
-  inputEl.addEventListener('keydown', e => {
-    if(e.key === 'Enter'){
-      e.preventDefault();
-      const typed = (inputEl.value||'').trim();
-      if(!typed){ closeHeaderSearch(); return; }
-
-      const list = (window.allProducts || [])
-        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
-
-      const chosen =
-        list[0] ||
-        (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase()) ||
-        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase())) ||
-        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
-
-      if (chosen){
-        goToProduct(chosen.page, chosen.name);
-      } else {
-        // Fallback: isi page par typed name ke saath popup kholne ki koshish
-        goToProduct(location.pathname, typed);
-      }
-    }
-  });
-}
-
-// Expose for inline onclick
-window.goToProduct = goToProduct;
-window.openHeaderSearch = openHeaderSearch;
-window.closeHeaderSearch = closeHeaderSearch;
-</script>
-<!-- Hidden footer initially -->
-<footer id="delayedFooter" 
-        style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
-  © 2025 Precioussly. All rights reserved.
-</footer>
-
-<script>
-  // Ensure footer sticks at bottom if content is short
-  function adjustFooter() {
-    const footer = document.getElementById("delayedFooter");
-    if (!footer) return;
-    const bodyHeight = document.body.scrollHeight;
-    const winHeight = window.innerHeight;
-    if (bodyHeight < winHeight) {
-      footer.style.position = "fixed";
-      footer.style.bottom = "0";
-      footer.style.width = "100%";
-      footer.style.background = "#fff";  // clean background
-    } else {
-      footer.style.position = "relative";
-      footer.style.width = "100%";
+      await fetch(ORDERS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      console.log('[Orders] posted to sheet');
+    } catch (e) {
+      console.warn('[Orders] post failed', e);
     }
   }
 
-  // Show footer 3 seconds after page load with fade-in
-  window.addEventListener("load", function(){
-    setTimeout(function(){
-      const footer = document.getElementById("delayedFooter");
-      footer.style.display = "block";
-      footer.style.opacity = "0";
-      footer.style.transition = "opacity 1s ease";
-      requestAnimationFrame(() => { footer.style.opacity = "1"; });
-      adjustFooter();
-    }, 2000);
-  });
-
-  // Re-check if window is resized
-  window.addEventListener("resize", adjustFooter);
-</script>
-<!-- Hidden footer initially -->
-<footer id="delayedFooter" 
-        style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
-  © 2025 Precioussly. All rights reserved.
-</footer>
-
-<script>
-  // Ensure footer sticks at bottom if content is short
-  function adjustFooter() {
-    const footer = document.getElementById("delayedFooter");
-    if (!footer) return;
-    const bodyHeight = document.body.scrollHeight;
-    const winHeight = window.innerHeight;
-    if (bodyHeight < winHeight) {
-      footer.style.position = "fixed";
-      footer.style.bottom = "0";
-      footer.style.width = "100%";
-      footer.style.background = "#fff";  // clean background
-    } else {
-      footer.style.position = "relative";
-      footer.style.width = "100%";
-    }
+  // Convenience hooks you can call in your code:
+  // 1) Call this INSIDE Razorpay success callback (before redirect)
+  //    Example: on Razorpay success -> savePaidOrder(response, order)
+  async function savePaidOrder(response, order) {
+    await postOrderToSheet(order, { razorpay_payment_id: response?.razorpay_payment_id || '', status: 'Paid' });
   }
 
-  // Show footer 3 seconds after page load with fade-in
-  window.addEventListener("load", function(){
-    setTimeout(function(){
-      const footer = document.getElementById("delayedFooter");
-      footer.style.display = "block";
-      footer.style.opacity = "0";
-      footer.style.transition = "opacity 1s ease";
-      requestAnimationFrame(() => { footer.style.opacity = "1"; });
-      adjustFooter();
-    }, 2000);
-  });
-
-  // Re-check if window is resized
-  window.addEventListener("resize", adjustFooter);
-</script>
-<script>
-  // ---- Ask server if user is logged in (HttpOnly cookie; no tokens in JS/localStorage) ----
-  async function getSession() {
-    try {
-      const r = await fetch('/.netlify/functions/session', { credentials: 'include' });
-      if (!r.ok) return null;
-      const data = await r.json();
-      return data && data.user ? data : null;
-    } catch {
-      return null;
-    }
-  }
-
-  // ---- On page load: show profile icon using server session (fallback to existing local data if any) ----
-  (async function bootAuthUI(){
-    const s = await getSession();
-
-    // Update header profile icon
-    const picEl = document.getElementById('profileIcon');
-    if (picEl) {
-      if (s && s.user && s.user.picture) {
-        picEl.src = s.user.picture;
-      } else {
-        // fallback (only cosmetic); does NOT store tokens
-        const cached = localStorage.getItem('user_photo');
-        if (cached) picEl.src = cached;
-      }
-    }
-
-    // If you rely on user_email in other UI (like badges), set only non-sensitive hints:
-    if (s && s.user && s.user.email) {
-      localStorage.setItem('user_email', s.user.email);
-      if (s.user.name) localStorage.setItem('user_name', s.user.name);
-      if (s.user.picture) localStorage.setItem('user_photo', s.user.picture);
-    } else {
-      // not logged in
-      localStorage.removeItem('user_email');
-    }
-  })();
-
-  // ---- New login: always go through Netlify Function (creates state/PKCE, no tokens in URL) ----
-  async function handleProfileClick() {
-    const s = await getSession();
-    if (s && s.user) {
-      // already logged in → go to dashboard (or stay)
-      window.location.href = '/dashboard';
-      return;
-    }
-    // start OAuth (server-side); no client_id in HTML; no token in hash
-    window.location.href = '/.netlify/functions/auth-start';
-  }
-
-  // ---- Optional: safe logout you can call from any logout button ----
-  async function logout() {
-    try { await fetch('/.netlify/functions/logout', { credentials: 'include' }); } catch {}
-    localStorage.removeItem('user_email');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_photo');
-    window.location.reload();
+  // 2) Call this in COD flow just before redirect
+  function saveCODOrder(order) {
+    postOrderToSheet(order, { status: 'COD Pending' });
   }
 </script>
 </body>
 </html>
+
+
