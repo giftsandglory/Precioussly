@@ -1906,26 +1906,36 @@ const AdminState = {
   media: []               // [{url}]
 };
 
-/* ---------- Boot ---------- */
-if (isAdminEmail(email)) {
-    btn.style.display = "flex";
-  }
+<!-- REPLACE the broken boot code with this self-contained block -->
+
+(() => {
+  const btn   = document.getElementById("adminBtn");
+  const getEmail = () => (localStorage.getItem("user_email") || "").trim();
+
+  // Show FAB only for allowed emails
+  const email = getEmail();
+  if (isAdminEmail(email) && btn) btn.style.display = "flex";
+
+  // FAB click opens admin
   btn?.addEventListener("click", openAdmin);
+
+  // Panel close / actions
   document.getElementById("adminOverlay")?.addEventListener("click", closeAdmin);
   document.getElementById("apClose")?.addEventListener("click", closeAdmin);
   document.getElementById("apApply")?.addEventListener("click", applyCurrentTab);
   document.getElementById("apExport")?.addEventListener("click", exportCurrentTab);
 
-  // tab switching
-  document.querySelectorAll(".ap-tab").forEach(t=>{
-    t.addEventListener("click", ()=>{
-      document.querySelectorAll(".ap-tab").forEach(x=>x.classList.remove("active"));
+  // Tab switching
+  document.querySelectorAll(".ap-tab").forEach(t => {
+    t.addEventListener("click", () => {
+      document.querySelectorAll(".ap-tab").forEach(x => x.classList.remove("active"));
       t.classList.add("active");
       AdminState.tab = t.dataset.tab;
       renderTab(AdminState.tab);
     });
   });
 })();
+
 
 /* ---------- Open/Close ---------- */
 async function openAdmin(){
@@ -2427,6 +2437,25 @@ function reorderArray(arr, from, to){
   copy.splice(to, 0, item);
   return copy;
 }
+</script>
+<script>
+  // Unlock editor from the black announcement bar
+  (function () {
+    const bar = document.getElementById("announcementBar");
+    if (!bar) return;
+
+    bar.addEventListener("click", () => {
+      const email = (localStorage.getItem("user_email") || "").trim();
+      if (isAdminEmail(email)) {
+        // Already an admin -> open editor
+        if (typeof openAdmin === "function") openAdmin();
+      } else {
+        // Not admin -> send to your existing login flow
+        alert("Please log in with your admin email to edit.");
+        if (typeof handleProfileClick === "function") handleProfileClick();
+      }
+    }, { passive: true });
+  })();
 </script>
 </body>
 </html>
