@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<head>
-  
+<head><meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/><script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
@@ -504,11 +503,6 @@
   line-height: 22px;
   user-select: none;
 }
-#announcementBar {
-  cursor: pointer;          /* looks clickable */
-  user-select: none;
-  -webkit-user-select: none;
-}
 
     @media (max-width: 480px) {
       .logo-img {
@@ -728,7 +722,7 @@ down-toggle {
 }
   
 #categorySection {
-  padding: 0 14px 40px 14px;   /* ✅ upar ka 10px hata diya */
+  padding: 10px 14px 40px 14px;
 }
 #categorySection h3 {
   font-size: 18px;
@@ -1028,67 +1022,6 @@ down-toggle {
 
 /* Keep header from jumping */
 .site-header { position: sticky; top: 0; z-index: 3500; }
-</style>
-<style>
-  /* === Admin button (bottom-left) === */
-  #adminBtn {
-    position: fixed; left: 12px; bottom: 14px;
-    width: 58px; height: 58px; border-radius: 50%;
-    background:#000; color:#fff; border:none; outline:none;
-    display:none; align-items:center; justify-content:center;
-    box-shadow: 0 8px 18px rgba(0,0,0,.22);
-    z-index: 7000; cursor:pointer; -webkit-tap-highlight-color: transparent;
-  }
-  #adminBtn svg { width: 28px; height: 28px; stroke:#fff; fill:none; stroke-width:2.2; }
-
-  /* === Admin overlay + panel === */
-  #adminOverlay{
-    position: fixed; inset: 0; background: rgba(0,0,0,.45);
-    display:none; z-index: 7000;
-  }
-  #adminPanel{
-    position: fixed; left: 50%; top: 52%;
-    transform: translate(-50%, -50%);
-    width: min(960px, 94vw); max-height: 86vh; overflow: hidden;
-    background:#fff; border: 2px solid #000; border-radius: 20px;
-    display:none; z-index: 7001; font-family: 'Roboto Slab', serif;
-  }
-  .ap-head{
-    display:flex; align-items:center; justify-content:space-between;
-    padding: 12px 14px; border-bottom:1px solid #ececec;
-  }
-  .ap-title{ font-size:18px; font-weight:700; }
-  .ap-close{
-    width:34px; height:34px; border:1px solid #000; border-radius:10px;
-    display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:800;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .ap-tabs{ display:flex; gap:8px; padding:10px 12px; border-bottom:1px solid #f0f0f0; flex-wrap:wrap; }
-  .ap-tab{
-    padding:8px 12px; border:1px solid #ddd; border-radius:10px; cursor:pointer; user-select:none;
-    font-weight:600; background:#fff;
-  }
-  .ap-tab.active{ border-color:#000; }
-  .ap-body{ padding:12px; overflow:auto; max-height: calc(86vh - 126px); }
-
-  /* Editor tables */
-  .ap-table{ width:100%; border-collapse:separate; border-spacing:0 10px; }
-  .ap-table th{ text-align:left; font-size:13px; color:#333; padding:0 8px; }
-  .ap-row{
-    display:grid; grid-template-columns: 78px 1fr 1fr 1fr auto; gap:8px; align-items:center;
-    padding:8px; border:1px solid #eee; border-radius:12px; margin-bottom:8px;
-  }
-  .ap-row img{ width:72px; height:72px; border-radius:10px; object-fit:cover; border:1px solid #e6e6e6; }
-  .ap-row input{ width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:10px; font-size:14px; }
-  .ap-row .ap-del{ border:1px solid #e33; color:#e33; background:#fff; border-radius:10px; padding:10px 12px; cursor:pointer; }
-
-  .ap-actions{ display:flex; gap:8px; padding:12px; border-top:1px solid #f0f0f0; }
-  .ap-btn{
-    padding:10px 14px; border-radius:10px; border:1px solid #000; background:#fff; cursor:pointer; font-weight:700;
-  }
-  .ap-btn.primary{ background:#e9fef1; border-color:#c5ecd6; color:#064c2c; }
-  .ap-add{ margin:10px 0; }
-  .ap-note{ font-size:12px; color:#666; margin-top:6px; }
 </style>
 <style>
 #searchResults{
@@ -1553,8 +1486,22 @@ slider.addEventListener("touchend", e => {
   }
 
   
-</script>
-<script>
+</script><script>
+  // If redirected from Google login
+  if (window.location.hash.includes("access_token")) {
+    const accessToken = window.location.hash.split("=")[1].split("&")[0];
+    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+      localStorage.setItem("user_name", data.name);
+      localStorage.setItem("user_email", data.email);
+      localStorage.setItem("user_photo", data.picture);
+      location.href = "https://precioussly.com"; // redirect clean
+    });
+  }
+
   // Show profile photo if already logged in
   const photo = localStorage.getItem("user_photo");
   if (photo) {
@@ -1562,51 +1509,13 @@ slider.addEventListener("touchend", e => {
   }
 
   // When user taps profile icon
-  // Call the session function to know if user is logged in
-  async function getSession() {
-    try {
-      const r = await fetch('/.netlify/functions/session', { credentials: 'include' });
-      if (!r.ok) return null;
-      const data = await r.json();
-      return data && data.user ? data : null;
-    } catch (e) { return null; }
-  }
-
-  // Use session to show profile and support your existing admin checks
-  (async function bootAuthUI(){
-    const s = await getSession();
-    if (s && s.user) {
-      // Show profile photo if available
-      if (s.user.picture) {
-        const el = document.getElementById('profileIcon');
-        if (el) el.src = s.user.picture;
-      }
-      // For your existing admin button logic which reads localStorage:
-      if (s.user.email) {
-        localStorage.setItem('user_email', s.user.email); // (No tokens stored)
-      }
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
     } else {
-      localStorage.removeItem('user_email');
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
     }
-  })();
-
-  // New login handler: go via Netlify Functions (server-side OAuth)
-  async function handleProfileClick() {
-    const s = await getSession();
-    if (s && s.user) {
-      // already logged in
-      window.location.href = '/dashboard';
-      return;
-    }
-    // Start server-side OAuth (sets state/PKCE in HttpOnly cookies)
-    window.location.href = '/.netlify/functions/auth-start';
-  }
-
-  // Optional: logout helper (hook to a button if you add one)
-  async function logout() {
-    await fetch('/.netlify/functions/logout', { credentials: 'include' });
-    localStorage.removeItem('user_email');
-    window.location.reload();
   }
 </script>
 <script>
@@ -1629,32 +1538,25 @@ slider.addEventListener("touchend", e => {
 </script>
 
 <script>
-  // ✅ Minimal & reliable hide-on-scroll logic
-(() => {
-  const header = document.querySelector('.site-header');
-  if (!header) return;
-
-  let lastY = window.pageYOffset;
-
-  const show = () => header.classList.remove('header-hidden');
-  const hide = () => header.classList.add('header-hidden');
-
-  const atTopOrSearching = () =>
-    window.pageYOffset < 10 || header.classList.contains('searching');
-
-  window.addEventListener('scroll', () => {
-    const y = window.pageYOffset;
-    const delta = y - lastY; // +ve = scrolling down, -ve = up
-
-    // Top par ya search khula ho to hamesha dikhana
-    if (atTopOrSearching()) { show(); lastY = y; return; }
-
-    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
-    else if (delta < -3) show(); // upar aate hi show
-
-    lastY = y;
-  }, { passive: true });
-})();
+  (function(){
+    const header = document.querySelector('.site-header');
+    if (!header) return;
+    let lastY = window.scrollY;
+    let ticking = false;
+    function onScroll() {
+      const y = window.scrollY;
+      const goingDown = y > lastY && y > 40;
+      header.classList.toggle('header-hidden', goingDown);
+      lastY = y;
+      ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(onScroll);
+        ticking = true;
+      }
+    }, { passive: true });
+  })();
 </script>
 <!-- Floating Buttons: Back to Top + WhatsApp -->
 <div class="fab-stack">
@@ -1769,15 +1671,7 @@ const boxEl     = document.getElementById('headerSearchResults');
 function openHeaderSearch(){
   const header = document.querySelector('.site-header');
   header.classList.add('searching');
-  header.classList.remove('header-hidden');
   if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
-  hideSuggest();
-}
-function closeHeaderSearch(){
-  const header = document.querySelector('.site-header');
-  header.classList.remove('searching');
-  const bar = document.getElementById('headerSearchBar');
-if (bar) bar.setAttribute('hidden','');
   hideSuggest();
 }
 function closeHeaderSearch(){
@@ -1848,614 +1742,6 @@ if (inputEl){
 window.goToProduct = goToProduct;
 window.openHeaderSearch = openHeaderSearch;
 window.closeHeaderSearch = closeHeaderSearch;
-</script>
-<!-- === Admin: floating button + popup === -->
-<button id="adminBtn" title="Edit page data">
-  <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-</button>
-
-<div id="adminOverlay"></div>
-<div id="adminPanel" role="dialog" aria-modal="true" aria-label="Content Editor">
-  <div class="ap-head">
-    <div class="ap-title">Content Editor</div>
-    <div class="ap-close" id="apClose">✕</div>
-  </div>
-
-  <div class="ap-tabs">
-    <div class="ap-tab active" data-tab="categories">Categories (photos)</div>
-    <div class="ap-tab" data-tab="announcement">Announcement</div>
-    <div class="ap-tab" data-tab="menu">Menu</div>
-    <div class="ap-tab" data-tab="media">Media Strip</div>
-  </div>
-
-  <div class="ap-body" id="apBody"><!-- dynamic --></div>
-
-  <div class="ap-actions">
-    <button class="ap-btn primary" id="apApply">Apply to Page</button>
-    <button class="ap-btn" id="apExport">Export CSV of Current Tab</button>
-  </div>
-</div>
-<script>
-/* ========= Admin Editor =========
-   - Shows only for this email:
-*/
-const ADMIN_EMAILS = [
-  "preciously906@gmail.com",
-  "ask.precioussly@gmail.com",
-  "ritiktyagi0033@gmail.com",
-  "ask.gifts.and.glory@gmail.com"
-];
-
-function isAdminEmail(email){
-  return !!email && ADMIN_EMAILS.some(e => e.toLowerCase() === String(email).toLowerCase());
-}
-
-/* These are already defined in your page; we reuse them:
-   - categorySheetURL  ✅ (Resin grid) 
-   - announceURL       ✅ (announcement bar)
-   - menuURL           ✅ (side menu)
-   - The media sheet uses the same "1tjNd2z..." Sheet1 with column "(media_url)"
-*/
-
-/* ---------- State ---------- */
-const AdminState = {
-  tab: "categories",
-  categories: [],         // [{Title, name, img, link}]
-  announcement: "",       // string
-  menuRows: [],           // [{Menu, Submenu, Link}]
-  media: []               // [{url}]
-};
-
-<!-- REPLACE the broken boot code with this self-contained block -->
-
-(() => {
-  const btn   = document.getElementById("adminBtn");
-  const getEmail = () => (localStorage.getItem("user_email") || "").trim();
-
-  // Show FAB only for allowed emails
-  const email = getEmail();
-  if (isAdminEmail(email) && btn) btn.style.display = "flex";
-
-  // FAB click opens admin
-  btn?.addEventListener("click", openAdmin);
-
-  // Panel close / actions
-  document.getElementById("adminOverlay")?.addEventListener("click", closeAdmin);
-  document.getElementById("apClose")?.addEventListener("click", closeAdmin);
-  document.getElementById("apApply")?.addEventListener("click", applyCurrentTab);
-  document.getElementById("apExport")?.addEventListener("click", exportCurrentTab);
-
-  // Tab switching
-  document.querySelectorAll(".ap-tab").forEach(t => {
-    t.addEventListener("click", () => {
-      document.querySelectorAll(".ap-tab").forEach(x => x.classList.remove("active"));
-      t.classList.add("active");
-      AdminState.tab = t.dataset.tab;
-      renderTab(AdminState.tab);
-    });
-  });
-})();
-
-
-/* ---------- Open/Close ---------- */
-async function openAdmin(){
-  document.getElementById("adminOverlay").style.display = "block";
-  document.getElementById("adminPanel").style.display   = "block";
-
-  // lazy-load data only first time
-  if (!AdminState._loaded){
-    await loadAllSheets();
-    AdminState._loaded = true;
-  }
-  renderTab(AdminState.tab);
-}
-function closeAdmin(){
-  document.getElementById("adminOverlay").style.display = "none";
-  document.getElementById("adminPanel").style.display   = "none";
-}
-
-/* ---------- Fetch helpers ---------- */
-async function getJSON(url){
-  const r = await fetch(url);
-  return r.json();
-}
-async function loadAllSheets(){
-  try{
-    // Categories sheet: Title, Category Name, Category Image, Link
-    const catRows = await getJSON(categorySheetURL);
-    AdminState.categories = catRows.map(r=>({
-      Title: (r["Title"]||"").trim(),
-      name : (r["Category Name"]||"").trim(),
-      img  : (r["Category Image"]||"").trim(),
-      link : (r["Link"]||"").trim()
-    }));
-
-    // Announcement
-    const ann = await getJSON(announceURL);
-    AdminState.announcement = (ann?.[0]?.["(announcement_text)"] || "").trim();
-
-    // Menu: Menu, Submenu, Link
-    const menuRows = await getJSON(menuURL);
-    AdminState.menuRows = menuRows.map(r=>({
-      Menu:(r["Menu"]||"").trim(),
-      Submenu:(r["Submenu"]||"").trim(),
-      Link:(r["Link"]||"").trim()
-    }));
-
-    // Media strip: same ID (column "(media_url)")
-    const mediaRows = await getJSON("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1");
-    AdminState.media = mediaRows
-      .map(r => (r["(media_url)"]||"").trim())
-      .filter(Boolean)
-      .map(url => ({url}));
-  }catch(e){ console.error(e); }
-}
-
-/* ---------- Render tabs ---------- */
-function renderTab(which){
-  const box = document.getElementById("apBody");
-  if (!box) return;
-  if (which === "categories") return renderCategories(box);
-  if (which === "announcement") return renderAnnouncement(box);
-  if (which === "menu") return renderMenu(box);
-  if (which === "media") return renderMedia(box);
-}
-
-/* CATEGORIES */
-function renderCategories(box){
-  box.innerHTML = `
-    <div class="ap-note">Edit your category grid. Photos are shown for easy editing.</div>
-    <div id="catRows"></div>
-    <button class="ap-btn ap-add" onclick="addCatRow()">+ Add row</button>
-  `;
-  const host = box.querySelector("#catRows");
-AdminState.categories.forEach((row, i) => {
-  const el = catRowEl(row, i);
-  host.appendChild(el);
-  makeRowDraggable(el, i, (from, to) => {
-    AdminState.categories = reorderArray(AdminState.categories, from, to);
-    renderTab("categories"); // re-render to reflect new order
-  });
-});
-}
-function catRowEl(row, i){
-  const wrap = document.createElement("div");
-  wrap.className = "ap-row";
-  wrap.innerHTML = `
-    <img src="${row.img || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
-    <input placeholder="Title (e.g., Resin)" value="${escapeHtml(row.Title)}" data-k="Title">
-    <input placeholder="Category Name" value="${escapeHtml(row.name)}" data-k="name">
-    <input placeholder="Category Image URL" value="${escapeHtml(row.img)}" data-k="img">
-    <button class="ap-del">Delete</button>
-    <div style="grid-column: 2 / span 3;"><input placeholder="Link" value="${escapeHtml(row.link)}" data-k="link"></div>
-  `;
-  wrap.querySelectorAll("input").forEach(inp=>{
-    inp.addEventListener("input", (e)=>{
-      const key = e.target.dataset.k;
-      AdminState.categories[i][key] = e.target.value.trim();
-      if (key === "img"){
-        const im = wrap.querySelector("img");
-        im.src = e.target.value.trim() || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png';
-      }
-    });
-  });
-  wrap.querySelector(".ap-del").addEventListener("click", ()=>{
-    AdminState.categories.splice(i,1);
-    renderTab("categories");
-  });
-  return wrap;
-}
-function addCatRow(){
-  AdminState.categories.push({Title:"Resin", name:"", img:"", link:""});
-  renderTab("categories");
-}
-
-/* ANNOUNCEMENT */
-function renderAnnouncement(box){
-  box.innerHTML = `
-    <div class="ap-note">One line that appears in the black bar on top.</div>
-    <input id="annInput" placeholder="Announcement text" value="${escapeHtml(AdminState.announcement)}" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px;">
-  `;
-  box.querySelector("#annInput").addEventListener("input", (e)=> AdminState.announcement = e.target.value);
-}
-
-/* MENU */
-function renderMenu(box){
-  box.innerHTML = `
-    <div class="ap-note">Columns: Menu, Submenu (optional), Link. Leave Submenu empty to make a top-level link.</div>
-    <div id="menuRows"></div>
-    <button class="ap-btn ap-add" onclick="addMenuRow()">+ Add row</button>
-  `;
-  const host = box.querySelector("#menuRows");
-  AdminState.menuRows.forEach((r,i)=> host.appendChild(menuRowEl(r,i)));
-}
-function menuRowEl(r,i){
-  const wrap = document.createElement("div");
-  wrap.className = "ap-row";
-  wrap.style.gridTemplateColumns = "1fr 1fr 1fr auto";
-  wrap.innerHTML = `
-    <input placeholder="Menu" value="${escapeHtml(r.Menu)}" data-k="Menu">
-    <input placeholder="Submenu" value="${escapeHtml(r.Submenu)}" data-k="Submenu">
-    <input placeholder="Link" value="${escapeHtml(r.Link)}" data-k="Link">
-    <button class="ap-del">Delete</button>
-  `;
-  wrap.querySelectorAll("input").forEach(inp=>{
-    inp.addEventListener("input", (e)=>{
-      AdminState.menuRows[i][e.target.dataset.k] = e.target.value;
-    });
-  });
-  wrap.querySelector(".ap-del").addEventListener("click", ()=>{
-    AdminState.menuRows.splice(i,1);
-    renderTab("menu");
-  });
-  return wrap;
-}
-function addMenuRow(){ AdminState.menuRows.push({Menu:"", Submenu:"", Link:""}); renderTab("menu"); }
-
-/* MEDIA */
-function renderMedia(box){
-  box.innerHTML = `
-    <div class="ap-note">Paste image or MP4 URLs. These power your wide strip / fade slider (if present).</div>
-    <div id="mediaRows"></div>
-    <button class="ap-btn ap-add" onclick="addMediaRow()">+ Add media</button>
-  `;
-  const host = box.querySelector("#mediaRows");
-AdminState.media.forEach((row, i) => {
-  const el = mediaRowEl(row, i);   // your existing row builder
-  host.appendChild(el);
-  makeRowDraggable(el, i, (from, to) => {
-    AdminState.media = reorderArray(AdminState.media, from, to);
-    renderTab("media");
-  });
-});
-}
-function mediaRowEl(m,i){
-  const wrap = document.createElement("div");
-  wrap.className = "ap-row";
-  wrap.style.gridTemplateColumns = "78px 1fr auto";
-  const isVideo = /\.mp4(\?|$)/i.test(m.url||"");
-  wrap.innerHTML = `
-    ${isVideo ? `<video src="${m.url}" style="width:72px;height:72px;border-radius:10px;object-fit:cover" muted></video>`
-              : `<img src="${m.url || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">`}
-    <input placeholder="https://..." value="${escapeHtml(m.url)}" data-k="url">
-    <button class="ap-del">Delete</button>
-  `;
-  wrap.querySelector("input").addEventListener("input", (e)=>{
-    AdminState.media[i].url = e.target.value.trim();
-  });
-  wrap.querySelector(".ap-del").addEventListener("click", ()=>{
-    AdminState.media.splice(i,1);
-    renderTab("media");
-  });
-  return wrap;
-}
-function addMediaRow(){ AdminState.media.push({url:""}); renderTab("media"); }
-
-/* ---------- Apply to page (local preview) ---------- */
-function applyCurrentTab(){
-  if (AdminState.tab === "categories") applyCategoriesToPage();
-  if (AdminState.tab === "announcement") applyAnnouncementToPage();
-  if (AdminState.tab === "menu") applyMenuToPage();
-  if (AdminState.tab === "media") applyMediaToPage();
-  alert("Applied on this page (local). To save permanently in Google Sheets, export CSV and paste there.");
-}
-
-/* Categories -> rebuild #categorySection */
-function applyCategoriesToPage(){
-  const container = document.getElementById("categorySection");
-  if (!container) return;
-  container.innerHTML = "";
-  // group by Title
-  const grouped = {};
-  AdminState.categories.forEach(r=>{
-    if(!r.Title || !r.name || !r.img) return;
-    grouped[r.Title] ??= [];
-    grouped[r.Title].push({name:r.name, img:r.img, link:r.link||"#"});
-  });
-  Object.entries(grouped).forEach(([section, items])=>{
-    const title = document.createElement("h3");
-    title.innerText = section;
-    container.appendChild(title);
-
-    const grid = document.createElement("div");
-    grid.style.display="grid"; grid.style.gridTemplateColumns="1fr 1fr"; grid.style.gap="14px";
-    items.forEach(it=>{
-      const a = document.createElement("a");
-      a.href = it.link || "#";
-      a.style.textDecoration = "none";
-      a.style.color = "inherit";
-      a.innerHTML = `
-        <div style="text-align:center;">
-          <img src="${it.img}" alt="${it.name}" style="width:100%; border-radius:20px; object-fit:cover;">
-          <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${it.name}</div>
-        </div>`;
-      grid.appendChild(a);
-    });
-    container.appendChild(grid);
-  });
-}
-
-/* Announcement -> #announcementBar */
-function applyAnnouncementToPage(){
-  const el = document.getElementById("announcementBar");
-  if (el) el.innerText = AdminState.announcement || "";
-}
-
-/* Menu -> #menuContent */
-function applyMenuToPage(){
-  const menuContent = document.getElementById("menuContent");
-  if (!menuContent) return;
-  menuContent.innerHTML = `
-    <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
-    <a href="https://precioussly.com/" class="menu-link">Home</a>
-  `;
-
-  // Group like your live code
-  const grouped = {};
-  AdminState.menuRows.forEach(r=>{
-    const m=(r.Menu||"").trim(); const s=(r.Submenu||"").trim(); const l=(r.Link||"#").trim();
-    if(!m) return;
-    grouped[m] ??= {link:null, subs:[]};
-    if (s) grouped[m].subs.push({name:s, link:l});
-    else grouped[m].link = l;
-  });
-
-  function renderItem(title, info){
-    if ((info.subs && info.subs.length)){
-      const id = title.replace(/\s+/g,'-')+'-submenu';
-      menuContent.insertAdjacentHTML('beforeend', `
-        <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${id}')">
-          <span>${title}</span><span class="dropdown-icon">›</span>
-        </div>
-        <div class="submenu-container" id="${id}" style="display:none;">
-          ${info.subs.map(s=>`<a href="${s.link||'#'}" class="submenu-link">› ${s.name}</a>`).join("")}
-        </div>
-      `);
-    } else {
-      menuContent.insertAdjacentHTML('beforeend', `<a href="${info.link||'#'}" class="menu-link">${title}</a>`);
-    }
-  }
-  Object.entries(grouped).forEach(([k,v])=>renderItem(k,v));
-}
-
-/* Media -> #imageStrip and fade slider (if present) */
-function applyMediaToPage(){
-  const strip = document.getElementById("imageStrip");
-  if (strip){
-    strip.innerHTML = "";
-    AdminState.media.forEach(m=>{
-      if(!m.url) return;
-      let el;
-      if (/\.mp4(\?|$)/i.test(m.url)){
-        el = document.createElement("video");
-        el.src = m.url; el.controls=true; el.muted=true; el.loop=true; el.playsInline=true;
-      } else {
-        el = document.createElement("img"); el.src = m.url;
-      }
-      el.className = "strip-media";
-      strip.appendChild(el);
-    });
-  }
-  const slider = document.getElementById("fadeSlider");
-  const dots   = document.getElementById("fadeDots");
-  if (slider && dots){
-    slider.innerHTML=""; dots.innerHTML="";
-    AdminState.media.forEach((m,idx)=>{
-      if(!m.url) return;
-      let el;
-      if (/\.mp4(\?|$)/i.test(m.url)){
-        el = document.createElement("video");
-        el.src = m.url; el.loop=true; el.muted=true; el.autoplay=true; el.playsInline=true;
-      } else {
-        el = document.createElement("img"); el.src = m.url;
-      }
-      el.className = "fade-slide"; if(idx===0) el.classList.add("active");
-      slider.appendChild(el);
-
-      const d = document.createElement("div");
-      d.className = "fade-dot"; if(idx===0) d.classList.add("active");
-      d.addEventListener("click", ()=>{ document.querySelectorAll(".fade-slide").forEach(x=>x.classList.remove("active"));
-                                        document.querySelectorAll(".fade-dot").forEach(x=>x.classList.remove("active"));
-                                        el.classList.add("active"); d.classList.add("active"); });
-      dots.appendChild(d);
-    });
-  }
-}
-
-/* ---------- Export CSV of current tab ---------- */
-function exportCurrentTab(){
-  let csv = "", filename = "data.csv";
-  if (AdminState.tab === "categories"){
-    csv = "Title,Category Name,Category Image,Link\n" + AdminState.categories
-      .map(r=>[r.Title,r.name,r.img,r.link].map(csvCell).join(",")).join("\n");
-    filename = "categories.csv";
-  } else if (AdminState.tab === "announcement"){
-    csv = "(announcement_text)\n" + csvCell(AdminState.announcement||"");
-    filename = "announcement.csv";
-  } else if (AdminState.tab === "menu"){
-    csv = "Menu,Submenu,Link\n" + AdminState.menuRows
-      .map(r=>[r.Menu,r.Submenu,r.Link].map(csvCell).join(",")).join("\n");
-    filename = "menu.csv";
-  } else if (AdminState.tab === "media"){
-    csv = "(media_url)\n" + AdminState.media.map(m=>csvCell(m.url)).join("\n");
-    filename = "media.csv";
-  }
-  const blob = new Blob([csv], {type:"text/csv"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-/* ---------- Utils ---------- */
-function csvCell(v=""){ v=String(v).replaceAll('"','""'); return `"${v}"`; }
-function escapeHtml(s=""){ return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
-</script>
-<!-- Hidden footer initially -->
-<footer id="delayedFooter" 
-        style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
-  © 2025 Precioussly. All rights reserved.
-</footer>
-
-<script>
-  // Ensure footer sticks at bottom if content is short
-  function adjustFooter() {
-    const footer = document.getElementById("delayedFooter");
-    if (!footer) return;
-    const bodyHeight = document.body.scrollHeight;
-    const winHeight = window.innerHeight;
-    if (bodyHeight < winHeight) {
-      footer.style.position = "fixed";
-      footer.style.bottom = "0";
-      footer.style.width = "100%";
-      footer.style.background = "#fff";  // clean background
-    } else {
-      footer.style.position = "relative";
-      footer.style.width = "100%";
-    }
-  }
-
-  // Show footer 3 seconds after page load with fade-in
-  window.addEventListener("load", function(){
-    setTimeout(function(){
-      const footer = document.getElementById("delayedFooter");
-      footer.style.display = "block";
-      footer.style.opacity = "0";
-      footer.style.transition = "opacity 1s ease";
-      requestAnimationFrame(() => { footer.style.opacity = "1"; });
-      adjustFooter();
-    }, 3000);
-  });
-
-  // Re-check if window is resized
-  window.addEventListener("resize", adjustFooter);
-</script>
-<script>
-  // Call the session function to know if user is logged in
-  async function getSession() {
-    try {
-      const r = await fetch('/.netlify/functions/session', { credentials: 'include' });
-      if (!r.ok) return null;
-      const data = await r.json();
-      return data && data.user ? data : null;
-    } catch (e) { return null; }
-  }
-
-  // Use session to show profile and support your existing admin checks
-  (async function bootAuthUI(){
-    const s = await getSession();
-    if (s && s.user) {
-      // Show profile photo if available
-      if (s.user.picture) {
-        const el = document.getElementById('profileIcon');
-        if (el) el.src = s.user.picture;
-      }
-      // For your existing admin button logic which reads localStorage:
-      if (s.user.email) {
-        localStorage.setItem('user_email', s.user.email); // (No tokens stored)
-      }
-    } else {
-      localStorage.removeItem('user_email');
-    }
-  })();
-
-  // New login handler: go via Netlify Functions (server-side OAuth)
-  async function handleProfileClick() {
-    const s = await getSession();
-    if (s && s.user) {
-      // already logged in
-      window.location.href = '/dashboard';
-      return;
-    }
-    // Start server-side OAuth (sets state/PKCE in HttpOnly cookies)
-    window.location.href = '/.netlify/functions/auth-start';
-  }
-
-  // Optional: logout helper (hook to a button if you add one)
-  async function logout() {
-    await fetch('/.netlify/functions/logout', { credentials: 'include' });
-    localStorage.removeItem('user_email');
-    window.location.reload();
-  }
-</script>
-<script>
-  // ===== Admin unlock via the black announcement bar =====
-  async function tryOpenAdminFromBar(){
-    // email is stored by your Netlify-based login boot code
-    const email = (localStorage.getItem("user_email") || "").trim();
-    if (isAdminEmail && isAdminEmail(email)) {
-      if (typeof openAdmin === "function") openAdmin(); // open the existing editor
-      return;
-    }
-    // Not logged in as admin -> send to login (your existing flow)
-    if (typeof handleProfileClick === "function") {
-      alert("Please log in with your admin email to edit.");
-      handleProfileClick();
-    }
-  }
-
-  // Make the black bar open the admin editor
-  const bar = document.getElementById("announcementBar");
-  if (bar) {
-    bar.addEventListener("click", tryOpenAdminFromBar, {passive:true});
-  }
-  /* ===== Drag & Drop helpers (simple & mobile-friendly) ===== */
-function makeRowDraggable(rowEl, idx, onReorder){
-  rowEl.setAttribute('draggable', 'true');
-
-  rowEl.addEventListener('dragstart', (e) => {
-    rowEl.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', String(idx));
-  });
-
-  rowEl.addEventListener('dragend', () => {
-    rowEl.classList.remove('dragging');
-  });
-
-  rowEl.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  });
-
-  rowEl.addEventListener('drop', (e) => {
-    e.preventDefault();
-    const from = Number(e.dataTransfer.getData('text/plain'));
-    const host = rowEl.parentElement;
-    const children = [...host.children];
-    const to = children.indexOf(rowEl);
-    if (typeof from === 'number' && typeof to === 'number' && from !== to) {
-      onReorder(from, to);
-    }
-  });
-}
-
-function reorderArray(arr, from, to){
-  const copy = arr.slice();
-  const item = copy.splice(from, 1)[0];
-  copy.splice(to, 0, item);
-  return copy;
-}
-</script>
-<script>
-  // Unlock editor from the black announcement bar
-  (function () {
-    const bar = document.getElementById("announcementBar");
-    if (!bar) return;
-
-    bar.addEventListener("click", () => {
-      const email = (localStorage.getItem("user_email") || "").trim();
-      if (isAdminEmail(email)) {
-        // Already an admin -> open editor
-        if (typeof openAdmin === "function") openAdmin();
-      } else {
-        // Not admin -> send to your existing login flow
-        alert("Please log in with your admin email to edit.");
-        if (typeof handleProfileClick === "function") handleProfileClick();
-      }
-    }, { passive: true });
-  })();
 </script>
 </body>
 </html>
