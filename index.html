@@ -667,13 +667,6 @@ down-toggle {
 .fade-dot.active {
   background-color: rgba(0, 0, 0, 0.35); /* slightly darker */
 }
-/* Make slide media fill the full clickable link */
-.fade-media{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
   
 
 /* --- sticky links at top of side menu (aligned) --- */
@@ -1296,6 +1289,11 @@ down-toggle {
 }
 #siteFooter .dot{ opacity:.6; }
 </style>
+<style>
+/* Make slide wrapper (anchor) fill the frame 100% */
+.fade-slide { display: block; text-decoration: none; }
+.fade-slide > img, .fade-slide > video { width: 100%; height: 100%; object-fit: cover; }
+</style>
 </head>
 <body>
 <header class="site-header" id="mainHeader">
@@ -1542,28 +1540,61 @@ function toggleMenu() {
   submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
 }
 // 🟢 Wide Media (Image/Video) Strip from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    const strip = document.getElementById("imageStrip");
+    data.forEach(row => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.trim().endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url.trim();
+        el.controls = true;
+        el.muted = true;
+        el.loop = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url.trim();
+      }
+
+      el.className = "strip-media";
+      strip.appendChild(el);
+      setTimeout(() => {
+  const itemWidth = strip.children[0]?.offsetWidth || 0;
+  if (itemWidth) strip.scrollLeft = itemWidth;
+}, 300);
+    });
+  });
+let currentIndex = 0;
+let slides = [];
+let dots = [];
+
+const slider = document.getElementById("fadeSlider");
+const dotsContainer = document.getElementById("fadeDots");
 
 fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
   .then(res => res.json())
   .then(data => {
     data.forEach((row, index) => {
       const url   = (row["(media_url)"] || "").trim();
-      const link  = (row["Linked"] || "").trim();   // ← use your “Linked” column
       if (!url) return;
 
-      // Make a full-area clickable anchor
-      const a = document.createElement("a");
-      a.className = "fade-slide";
-      if (index === 0) a.classList.add("active");
-      if (link) {
-        a.href = link;
-      } else {
-        // no link provided → prevent empty navigation
-        a.href = "javascript:void(0)";
-      }
-      a.setAttribute("aria-label", "Open linked page");
+      const link  = (row["Linked"] || row["linked"] || row["Link"] || row["link"] || "").trim();
 
-      // Create the media inside the anchor
+      // Wrapper is an <a> if link exists, otherwise a simple <div>
+      const wrapper = document.createElement(link ? "a" : "div");
+      wrapper.className = "fade-slide";
+      if (index === 0) wrapper.classList.add("active");
+      if (link) {
+        wrapper.href = link;         // open in the same tab
+        wrapper.style.cursor = "pointer";
+      }
+
+      // Create the media element
       let media;
       if (url.toLowerCase().endsWith(".mp4")) {
         media = document.createElement("video");
@@ -1575,18 +1606,19 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
       } else {
         media = document.createElement("img");
         media.src = url;
-        media.alt = "Banner";
+        media.alt = "";
       }
-      media.className = "fade-media";
 
-      // Build DOM
-      a.appendChild(media);
-      slider.appendChild(a);
+      // Fill the wrapper (CSS also enforces this)
+      media.style.width = "100%";
+      media.style.height = "100%";
+      media.style.objectFit = "cover";
 
-      // Track slide anchors instead of media
-      slides.push(a);
+      wrapper.appendChild(media);
+      slider.appendChild(wrapper);
+      slides.push(wrapper);
 
-      // Dot for each slide
+      // Dot for this slide
       const dot = document.createElement("div");
       dot.className = "fade-dot";
       if (index === 0) dot.classList.add("active");
@@ -1596,42 +1628,6 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
     });
   });
 
-
-fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
-  .then(res => res.json())
-  .then(data => {
-    data.forEach((row, index) => {
-      const url = row["(media_url)"];
-      if (!url) return;
-
-      let el;
-      if (url.endsWith(".mp4")) {
-        el = document.createElement("video");
-        el.src = url;
-        el.loop = true;
-        el.muted = true;
-        el.autoplay = true;
-        el.playsInline = true;
-      } else {
-        el = document.createElement("img");
-        el.src = url;
-      }
-
-      el.className = "fade-slide";
-      if (index === 0) el.classList.add("active");
-
-      slider.appendChild(el);
-      slides.push(el);
-
-      // dots
-      const dot = document.createElement("div");
-      dot.className = "fade-dot";
-      if (index === 0) dot.classList.add("active");
-      dot.addEventListener("click", () => showSlide(index));
-      dotsContainer.appendChild(dot);
-      dots.push(dot);
-    });
-  });
 
 function showSlide(index) {
   slides[currentIndex]?.classList.remove("active");
@@ -2029,14 +2025,13 @@ window.closeHeaderSearch = closeHeaderSearch;
   <nav class="links" aria-label="Policies">
     <a href="https://precioussly.com/privacy-policy">Privacy Policy</a>
     <span class="dot">•</span>
-    <!-- Note: & in URLs must be written as &amp; in HTML -->
-    <a href="https://precioussly.com/terms&amp;conditions">Terms &amp; Conditions</a>
+    <a href="https://precioussly.com/policy/terms&amp;conditions">Terms &amp; Conditions</a>
     <span class="dot">•</span>
-    <a href="https://precioussly.com/return-policy">Refund Policy</a>
+    <a href="https://precioussly.com/policy/return-policy">Refund Policy</a>
     <span class="dot">•</span>
-    <a href="https://precioussly.com/shipping-policy">Shipping Policy</a>
+    <a href="https://precioussly.com/policy/shipping-policy/">Shipping Policy</a>
     <span class="dot">•</span>
-    <a href="https://precioussly.com/about-us">About Us</a>
+    <a href="https://precioussly.com/policy/about-us">About Us</a>
   </nav>
 </footer>
 <script>
@@ -2049,7 +2044,7 @@ window.closeHeaderSearch = closeHeaderSearch;
     var f = document.getElementById('siteFooter');
     setTimeout(function () {
       if (f) f.classList.add('show');
-    }, 3000);
+    }, 200);
   });
 </script>
 
