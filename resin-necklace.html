@@ -783,6 +783,46 @@ nav.side-menu {
 /* Header sticky (already present; ensure z-index high) */
 .site-header{ position:sticky; top:0; z-index:3500; }
 </style>
+<style>
+/* ===== Admin FAB & Popup ===== */
+#adminFab{
+  position: fixed; left: 12px; bottom: 14px; z-index: 7000;
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15); background:#111; color:#fff;
+  display:none; align-items:center; justify-content:center;
+  box-shadow:0 6px 16px rgba(0,0,0,.20); -webkit-tap-highlight-color:transparent;
+}
+#adminFab svg{ width:26px; height:26px; }
+
+#adminOverlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.25);
+  display:none; align-items:center; justify-content:center; z-index: 99999;
+}
+#adminCard{
+  width:min(780px, 92vw); max-height:88vh; overflow:auto;
+  background:#fff; border-radius:16px; padding:14px;
+  box-shadow:0 12px 40px rgba(0,0,0,.25); border:1px solid #eee;
+  font-family: 'Roboto Slab', serif;
+}
+.admin-row{ display:grid; grid-template-columns:80px 1fr 120px 120px 90px; gap:10px; align-items:center; padding:8px; border-bottom:1px solid #f0f0f0; }
+.admin-row img{ width:72px; height:72px; object-fit:cover; border-radius:10px; }
+.admin-input, .admin-textarea{
+  width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:10px;
+  padding:10px 12px; font:400 14px 'Roboto Slab', serif;
+}
+.admin-textarea{ min-height:72px; resize:vertical; }
+.admin-toolbar{ display:flex; gap:8px; }
+.admin-btn{
+  padding:8px 10px; border:1px solid #ccc; border-radius:10px; background:#f7f7f7; cursor:pointer;
+}
+.admin-section{
+  padding:8px 10px; margin:10px 0 6px; background:#f9f9f9; border:1px solid #eee; border-radius:10px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.admin-small{ font-size:12px; color:#666; }
+.admin-grid{ display:flex; gap:12px; flex-wrap:wrap; }
+.admin-half{ flex:1 1 360px; }
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -1880,5 +1920,49 @@ function applyDirectionFromSheet(rows){
       .catch(() => {});
   })();
 </script>
+<!-- ===== Admin FAB + Popup ===== -->
+<button id="adminFab" title="Edit page">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+  </svg>
+</button>
+
+<div id="adminOverlay" onclick="closeAdmin()">
+  <div id="adminCard" onclick="event.stopPropagation()">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
+      <h3 style="margin:0; font-size:18px;">Admin Editor</h3>
+      <div class="admin-toolbar">
+        <button class="admin-btn" onclick="reloadFromSheet()">Reload from Sheet</button>
+        <button class="admin-btn" onclick="closeAdmin()">Close</button>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <div><b>Sections</b> <span class="admin-small">(reorder with Up/Down)</span></div>
+      <div id="sectionList" class="admin-grid"></div>
+    </div>
+
+    <div class="admin-section">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <b>Products in:</b>
+        <select id="sectionSelect" class="admin-input" style="max-width:260px;"></select>
+      </div>
+      <div class="admin-toolbar">
+        <button class="admin-btn" onclick="addNewProductUI()">+ Add Product</button>
+      </div>
+    </div>
+
+    <div id="productRows"></div>
+  </div>
+</div>
+<!-- other scripts already on your page -->
+
+<script>
+async function reloadPageDataAfterEdit(){
+  // simplest: reload the whole page to refetch from opensheet
+  location.reload();
+}
+</script>
+
 </body>
 </html>
