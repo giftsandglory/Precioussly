@@ -878,15 +878,7 @@ nav.side-menu {
 
 <div id="content"></div>
 <script>
-// ✅ Dynamic sheet loader (no future code edits needed)
-const DEFAULT_SHEET_ID = "1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA"; // your current sheet
-const DEFAULT_TAB_NAME = "Sheet1"; // your current tab
-
-const _u = new URL(location.href);
-const sheetId = (_u.searchParams.get("sheet") || DEFAULT_SHEET_ID).trim();
-const tabName = (_u.searchParams.get("tab") || DEFAULT_TAB_NAME).trim();
-
-const SHEET_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
+const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
 // Robust: read "Description" even if header has spaces/case variants
 function getSheetDescription(row){
   const keys = [
@@ -906,19 +898,6 @@ fetch(SHEET_URL)
     // A2_DIRECTION_TOGGLE :: call
 applyDirectionFromSheet(data);
     window.catalogData = data;
-    // ✅ Also add current page's products to the global search list
-window.allProducts = window.allProducts || [];
-const _currentItems = (data || [])
-  .filter(row => (row["Product Name"] || "").trim())
-  .map(row => ({
-    name: String(row["Product Name"]).trim(),
-    price: Number(row["Selling Price"] || 0),
-    mrp: Number(row["MRP"] || 0),
-    image: row["photo 1"] || row["Photo 1"] || "",
-    page: location.pathname,     // this same page
-    from: "This Page"
-  }));
-window.allProducts = _currentItems.concat(window.allProducts);
     const content = document.getElementById('content');
     let currentSection = '';
     let sectionWrapper;
@@ -1407,14 +1386,27 @@ if (existing) {
     document.getElementById("profileIcon").src = photo;
   }
 
+
+  /* ...keep the rest of your script above... */
+
+  // SAFE: ask server if logged-in; if not, start server-side Google auth
   function handleProfileClick() {
-    const isLoggedIn = localStorage.getItem("user_email");
-    if (isLoggedIn) {
-      window.location.href = "/dashboard";
-    } else {
-      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
-    }
+    fetch('/.netlify/functions/session', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : { loggedIn: false })
+      .then(s => {
+        if (s && s.loggedIn) {
+          window.location.href = '/dashboard';
+        } else {
+          const from = location.pathname + location.search;
+          window.location.href = '/.netlify/functions/auth-start?from=' + encodeURIComponent(from);
+        }
+      })
+      .catch(() => {
+        window.location.href = '/.netlify/functions/auth-start';
+      });
   }
+
+  /* ...keep the rest of your script below... */
   
   function updateCartBadge(animate = true) {
   const items = JSON.parse(localStorage.getItem("cartItems")) || [];
@@ -1869,6 +1861,24 @@ function applyDirectionFromSheet(rows){
 
   // Re-check if window is resized
   window.addEventListener("resize", adjustFooter);
+</script>
+<script>
+  // Session bootstrap: run once near the end of the page
+  (function(){
+    const img = document.getElementById('profileIcon');
+    if (!img) return;
+
+    fetch('/.netlify/functions/session', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : { loggedIn:false })
+      .then(s => {
+        if (s && s.loggedIn && s.user && s.user.photo) {
+          img.src = s.user.photo;   // set from server session
+        } else {
+          // keep your default icon as-is
+        }
+      })
+      .catch(() => {});
+  })();
 </script>
 </body>
 </html>
