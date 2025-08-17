@@ -1965,4 +1965,60 @@ async function reloadPageDataAfterEdit(){
 </script>
 
 </body>
+<script>
+/* == Admin FAB visibility controller ==
+   Shows the bottom-left admin button only for allowed emails.
+   Place this just above </body>, AFTER the #adminFab button markup.
+*/
+
+(function () {
+  // ✅ Sirf in emails ko admin dikhana hai
+  const ALLOWED_EMAILS = [
+    "preciously906@gmail.com",
+    "ask.precioussly@gmail.com"
+  ];
+
+  const fab = document.getElementById("adminFab");
+  if (!fab) return; // safety
+
+  // Helper: lower-case compare
+  function isAllowedEmail(email) {
+    if (!email) return false;
+    const e = String(email).toLowerCase().trim();
+    return ALLOWED_EMAILS.includes(e);
+  }
+
+  // 1) Try Netlify session (recommended)
+  fetch("/.netlify/functions/session", { credentials: "include" })
+    .then(r => r.ok ? r.json() : { loggedIn: false })
+    .then(s => {
+      if (s && s.loggedIn && s.user && isAllowedEmail(s.user.email)) {
+        // ✅ Logged-in & allowed -> show admin icon
+        fab.style.display = "flex";
+      } else {
+        // Not allowed or not logged in -> keep hidden
+      }
+    })
+    .catch(() => {
+      // 2) Fallback: URL param ?admin=1 for testing
+      const p = new URLSearchParams(location.search);
+      if (p.get("admin") === "1") {
+        fab.style.display = "flex"; // temporary testing
+      }
+    });
+
+  // (Optional) click wiring — apna editor kholne wala function
+  fab.addEventListener("click", function () {
+    // Yahan aap apna admin popup open karte ho
+    // Example: openAdminEditor();
+    // Agar abhi popup code nahi dala to temporary:
+    // alert("Admin editor will open here.");
+    if (typeof openAdminEditor === "function") {
+      openAdminEditor();
+    } else {
+      alert("Admin editor code not loaded yet. (Button visibility fix OK)");
+    }
+  });
+})();
+</script>
 </html>
