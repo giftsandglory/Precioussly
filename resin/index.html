@@ -2226,5 +2226,53 @@ if (actions && !document.getElementById("apSave")) {
   actions.appendChild(b);
 }
 </script>
+<script>
+// Detect admin mode via /admin path, ?admin=1, or #admin
+const IS_ADMIN_ROUTE =
+  /\/admin\/?$/.test(location.pathname) ||
+  /(\?|&)admin=1(\&|$)/.test(location.search) ||
+  /#admin$/.test(location.hash);
+
+// Support multiple possible button IDs you might be using
+const ADMIN_BUTTON_IDS = ["adminBtn", "adminFab", "adminButton"];
+
+// Fallback: show admin button for route, even before login
+function showAdminButtonIfNeeded() {
+  if (!IS_ADMIN_ROUTE) return;
+  for (const id of ADMIN_BUTTON_IDS) {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = "flex"; break; }
+  }
+}
+
+// Wait until admin panel elements & openAdmin() exist, then open once
+function waitAndOpenAdmin(maxWaitMs = 6000) {
+  if (!IS_ADMIN_ROUTE) return;
+
+  const start = Date.now();
+  const tryOpen = () => {
+    const panel   = document.getElementById("adminPanel");
+    const overlay = document.getElementById("adminOverlay");
+    const opener  = typeof openAdmin === "function";
+
+    if (panel && overlay && opener) {
+      // small delay so your page data finishes rendering
+      setTimeout(() => openAdmin(), 50);
+      return;
+    }
+    if (Date.now() - start < maxWaitMs) {
+      requestAnimationFrame(tryOpen);
+    } else {
+      console.warn("Admin auto-open: timed out waiting for UI or openAdmin().");
+    }
+  };
+  tryOpen();
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  showAdminButtonIfNeeded();
+  waitAndOpenAdmin();
+});
+</script>
 </body>
 </html>
