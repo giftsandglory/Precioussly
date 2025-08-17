@@ -1963,8 +1963,6 @@ async function reloadPageDataAfterEdit(){
   location.reload();
 }
 </script>
-
-</body>
 <script>
 /* == Admin FAB visibility controller ==
    Shows the bottom-left admin button only for allowed emails.
@@ -2021,4 +2019,23 @@ async function reloadPageDataAfterEdit(){
   });
 })();
 </script>
+<!-- ===== Admin FAB button (must live INSIDE <body>, just above </body>) ===== -->
+<button id="adminFab" title="Admin"
+  style="position: fixed; left: 12px; bottom: 14px; z-index: 7000; width: 56px; height: 56px; border-radius: 50%;
+         border: 1px solid rgba(0,0,0,.15); background:#111; color:#fff; display:none; align-items:center; justify-content:center;
+         box-shadow:0 6px 16px rgba(0,0,0,.20); -webkit-tap-highlight-color:transparent;">
+  <!-- simple gear icon -->
+  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33
+             1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06
+             a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
+             a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 0 1 7.04 3.4l.06.06c.5.5 1.22.65 1.82.33
+             .48-.25 1-.39 1.51-.39s1.03.14 1.51.39c.6.32 1.32.17 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06
+             a1.65 1.65 0 0 0-.33 1.82c.25.48.39 1 .39 1.51s-.14 1.03-.39 1.51z"></path>
+  </svg>
+</button>
+</body>
+
 </html>
