@@ -1649,30 +1649,32 @@ function openAddressAndClosePopup() {
   function payViaRazorpay() {
     // Koi popup khula ho to band
     try {
-      document.getElementById("codPopup").style.display = "none";
+      const p = document.getElementById("codPopup");
+      if (p) p.style.display = "none";
       document.body.style.overflow = "";
     } catch (e) {}
 
     // --- Amounts (coupon ko minus karke) ---
     const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+    const subtotal = items.reduce((s, it) => s + (Number(it.price || 0) * Number(it.qty || 1)), 0);
     const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
 
     // Applied coupon ka discount (agar min meet ho raha hai)
     let discount = 0;
     try {
-      if (window.appliedCoupon && subtotal >= window.appliedCoupon.min) {
+      if (window.appliedCoupon && subtotal >= Number(window.appliedCoupon.min || 0)) {
         // discountOnSubtotal helper aapke file me upar defined hai
-        discount = discountOnSubtotal(subtotal, window.appliedCoupon);
+        discount = Number(discountOnSubtotal(subtotal, window.appliedCoupon) || 0);
       }
     } catch (e) {}
 
     const finalAmount = Math.max(1, subtotal + deliveryFee - discount); // safeguard
 
     // Prefill details (address/localStorage se)
-    const name  = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").fullname) || (localStorage.getItem("user_name") || "");
+    const addressObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
+    const name  = addressObj.fullname || localStorage.getItem("user_name")  || "";
     const email = localStorage.getItem("user_email") || "";
-    const phone = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone) || "";
+    const phone = addressObj.phone     || "";
 
     const options = {
       key: "rzp_live_S4Dmi0UXQYNAyV",               // ✅ aapka live Key ID
@@ -1688,32 +1690,37 @@ function openAddressAndClosePopup() {
       handler: function (response) {
         // --- Success ke baad order ko localStorage me save + cart clear ---
         const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-        const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+        const itemsTotal = items.reduce((s, it) => s + (Number(it.price || 0) * Number(it.qty || 1)), 0);
         const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-        const applied = window.appliedCoupon ? window.appliedCoupon.code : null;
-        const discountAmt = discount; // upar calculate
+        const applied = (window.appliedCoupon && window.appliedCoupon.code) ? window.appliedCoupon.code : null;
+        const discountAmt = Number(discount || 0); // upar calculate (closure)
 
         const grandTotal = Math.max(0, itemsTotal + deliveryFee - discountAmt);
 
         const order = {
           id: "RZP-" + (response.razorpay_payment_id || Date.now()),
           method: "Razorpay",
-          items,
+          items: items, // {name, qty, price, photo} expected by formatter (photo optional)
           coupon: applied,
           amounts: { itemsTotal, deliveryFee, codFee: 0, discount: discountAmt, grandTotal },
           address: localStorage.getItem("shippingAddress") || "",
           createdAt: new Date().toISOString()
         };
 
+        // Orders list update
         const orders = JSON.parse(localStorage.getItem("orders") || "[]");
         orders.unshift(order);
         localStorage.setItem("orders", JSON.stringify(orders));
 
+        // Cart clear + badge update
         localStorage.setItem("cartItems", "[]");
         try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
         localStorage.setItem("lastOrderClearedCart", "1");
 
-        try{ sendOrderToTelegram(order); }catch(e){}
+        // ✅ Telegram (green card format) — requires the helper from previous step
+        try { sendOrderToTelegram(order); } catch(e) { console.warn("TG error", e); }
+
+        // Redirect
         window.location.href = "https://precioussly.com/thankyou-razorpay";
       },
 
@@ -2451,65 +2458,108 @@ function payCODAdvance95(){
 </script>
 
 <!-- ======= Telegram Order Notifier (auto-inserted) ======= -->
+<!-- ✅ TELEGRAM ORDER MESSAGE — paste ABOVE </body> -->
 <script>
+/* ===================== 1) CONFIG ===================== */
 const TG_BOT_TOKEN = "8338453495:AAGlEj98SoocsWjT2qa6FRo6qjHInDafqfA";
-const TG_CHAT_ID   = "792731562";
+const TG_CHAT_ID   = "792731562";   // if multiple people, send once per id in an array
 
-/* Build the exact text we send to Telegram */
+/* ===================== 2) HELPERS ===================== */
+function inr(n){ return Number(n||0).toLocaleString("en-IN"); }
+function escapeHTML(s){
+  return String(s ?? "")
+    .replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+function niceTime(ts){
+  const d = new Date(ts || Date.now());
+  // "16 August 2025 at 11:00 am"
+  return d.toLocaleString("en-IN", {
+    day:"2-digit", month:"long", year:"numeric",
+    hour:"numeric", minute:"2-digit", hour12:true
+  }).replace(",", " at");
+}
+/* turns "a<br>b<br>c" → "a\nb\nc" */
+function normalizeAddress(x){ return String(x||"").replace(/<br\s*\/?>/gi, "\n"); }
+
+/* ===================== 3) MESSAGE BUILDER ===================== */
+/*
+  Expected `order` shape (examples):
+  {
+    id: "RZP-PRE-1755322201321",
+    method: "Razorpay" | "COD",
+    displayMethod: "Razorpay",
+    createdAt: Date.now(),
+    items: [{name:"Red Ribbon", qty:33, price:10, photo:"https://..."}, ...],
+    amounts: {
+      itemsTotal: 330,
+      deliveryFee: 0,
+      codFee: 89,        // only for COD
+      discount: 30,
+      grandTotal: 300
+    },
+    coupon: "GET30",
+    address: "Ashu Tyagi<br>Pradhan Enclave buradi,<br>Burari, Delhi - 110084<br><a href='tel:8744841734'>8744841734</a>"
+  }
+*/
 function formatOrderForTelegram(order){
   try{
-    const when = new Date(order.createdAt || Date.now())
-      .toLocaleString("en-IN", { day: "2-digit", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
-
-    const a = order.amounts || {};
-    const isCOD = /cod/i.test(String(order.displayMethod || order.method || ""));
+    const when   = niceTime(order.createdAt);
+    const a      = order.amounts || {};
+    const method = String(order.displayMethod || order.method || "-");
+    const isCOD  = /cod/i.test(method);
 
     const lines = [];
-    lines.push(`🧾 <b>New Order</b>  <code>${order.id || ""}</code>`);
-    lines.push(`💳 Method: <b>${order.displayMethod || order.method || "-"}</b>`);
-    lines.push(`⏱️ Time: ${when}`);
+
+    // Header exactly like the green card
+    lines.push(`🧾 <b>New</b>`);
+    lines.push(`Order  <b>${escapeHTML(order.id || "")}</b>`);
+    lines.push(`🏁 <b>Method:</b> ${escapeHTML(method)} 😎`);
+    lines.push(`⏱ <b>Time:</b> ${when}`);
     lines.push(``);
     lines.push(`<b>Items:</b>`);
 
+    // Items with link line right below each item
     (order.items || []).forEach((it, idx) => {
       const qty   = Number(it.qty)   || 1;
       const price = Number(it.price) || 0;
-      lines.push(`${idx+1}) ${it.name || "Item"} × ${qty} — ₹${price * qty}`);
+      const total = price * qty;
+
+      lines.push(`${idx+1}) ${escapeHTML(it.name || "Item")} × ${qty} — ₹${inr(total)}`);
+      if (it.photo && /^https?:\/\//i.test(it.photo)){
+        const url = String(it.photo).trim();
+        lines.push(`👇`);
+        // clickable link (HTML mode)
+        lines.push(`<a href="${url}">${url}</a>`);
+      }
+      lines.push(""); // blank line between items
     });
 
-    lines.push(``);
-    // Totals section
-    if (a.itemsTotal != null) lines.push(`Item Total: ₹${a.itemsTotal}`);
+    // Totals block
+    if (a.itemsTotal != null) lines.push(`Item Total: ₹${inr(a.itemsTotal)}`);
 
-    // Delivery: hide on COD, otherwise show "Free Delivery" when 0
-    if (!isCOD && a.deliveryFee != null) {
-      lines.push(`Delivery: ${Number(a.deliveryFee) === 0 ? "Free Delivery" : `₹${a.deliveryFee}`}`);
+    // Delivery: show as "Free Delivery" when 0; (hide completely if you prefer for COD)
+    if (a.deliveryFee != null && !isCOD){
+      lines.push(`Delivery: ${Number(a.deliveryFee) === 0 ? "Free Delivery" : `₹${inr(a.deliveryFee)}`}`);
     }
 
-    // COD charges: show only when present (>0)
-    const codFeeNum = Number(a.codFee || 0);
-    if (codFeeNum > 0) {
-      lines.push(`COD Charges: ₹${codFeeNum}`);
+    // COD charges (only when present)
+    const codFee = Number(a.codFee || 0);
+    if (codFee > 0) lines.push(`COD Charges: ₹${inr(codFee)}`);
+
+    // Coupon lines (both name and discounted amount)
+    const discount = Number(a.discount || 0);
+    if (order.coupon) lines.push(`Coupon: ${escapeHTML(order.coupon)}`);
+    if (discount > 0){
+      const tag = order.coupon ? ` (${escapeHTML(order.coupon)})` : "";
+      lines.push(`Coupon${tag}: -₹${inr(discount)}`);
     }
 
-    if (Number(a.discount || 0) > 0) {
-      const couponTag = order.coupon ? ` (${order.coupon})` : "";
-      lines.push(`Coupon${couponTag}: -₹${a.discount}`);
-    }
+    if (a.grandTotal != null) lines.push(`<b>Order Total: ₹${inr(a.grandTotal)}</b>`);
 
-    if (a.grandTotal != null) lines.push(`<b>Order Total: ₹${a.grandTotal}</b>`);
-
-    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
-
+    // Address
     lines.push(``);
     lines.push(`<b>Shipping Address</b>`);
-    lines.push(order.address ? String(order.address).replace(/<br\s*\/?>(\n)?/gi, "\n") : "(not provided)");
-
-    // Optional product photos
-    const photos = (order.items || [])
-      .map(i => i.photo)
-      .filter(u => typeof u === "string" && /^https?:\/\//i.test(u));
-    if (photos.length){ lines.push(`\nPhotos:\n` + photos.join("\n")); }
+    lines.push(normalizeAddress(order.address) || "(not provided)");
 
     return lines.join("\n");
   }catch(e){
@@ -2517,20 +2567,21 @@ function formatOrderForTelegram(order){
   }
 }
 
-/* Send the message */
+/* ===================== 4) SENDER ===================== */
 async function sendOrderToTelegram(order){
   try{
-    const url  = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`;
     const text = formatOrderForTelegram(order);
+    const url  = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`;
+    const body = {
+      chat_id: TG_CHAT_ID,
+      text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true
+    };
     const res = await fetch(url, {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({
-        chat_id: TG_CHAT_ID,
-        text,
-        parse_mode: "HTML",
-        disable_web_page_preview: true
-      })
+      body: JSON.stringify(body)
     });
     if (!res.ok){
       const t = await res.text().catch(()=> "");
@@ -2989,7 +3040,7 @@ window.closeHeaderSearch = closeHeaderSearch;
       footer.style.transition = "opacity 1s ease";
       requestAnimationFrame(() => { footer.style.opacity = "1"; });
       adjustFooter();
-    }, 2000);
+    }, 200);
   });
 
   // Re-check if window is resized
