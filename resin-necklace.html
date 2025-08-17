@@ -784,86 +784,48 @@ nav.side-menu {
 .site-header{ position:sticky; top:0; z-index:3500; }
 </style>
 <style>
-/* ===== Admin FAB (bottom-left) ===== */
-#adminFab{
-  position: fixed; left: 12px; bottom: 14px; z-index: 7000;
-  width: 56px; height: 56px; border-radius: 50%;
-  border: 1px solid rgba(0,0,0,.15); background:#111; color:#fff;
-  display: none; align-items:center; justify-content:center;
-  box-shadow:0 6px 16px rgba(0,0,0,.20); -webkit-tap-highlight-color:transparent;
-}
-#adminFab svg{ width:26px; height:26px }
+  /* --- Admin FAB + modal --- */
+  #adminFab{
+    position:fixed; left:12px; bottom:14px; z-index:7000; width:56px; height:56px;
+    border-radius:50%; border:1px solid rgba(0,0,0,.15); background:#111; color:#fff;
+    display:none; align-items:center; justify-content:center; box-shadow:0 6px 16px rgba(0,0,0,.20);
+    -webkit-tap-highlight-color:transparent; cursor:pointer; font-family:'Roboto Slab', serif;
+  }
+  #adminFab svg{ width:26px; height:26px; }
 
-/* ===== Admin Editor Popup ===== */
-#adminEditorOverlay{
-  position: fixed; inset: 0; display: none;
-  background: rgba(0,0,0,.35); z-index: 99999;
-}
-#adminEditor{
-  position: absolute; inset: 40px 14px 14px 14px; background:#fff;
-  border-radius: 16px; border:1px solid #e9e9e9; box-shadow: 0 10px 30px rgba(0,0,0,.18);
-  display: flex; flex-direction: column; overflow: hidden; max-width: 980px; margin: 0 auto;
-  font-family: 'Roboto Slab', serif;
-}
-#adminEditorHeader{
-  display:flex; align-items:center; justify-content:space-between; gap:10px;
-  padding: 12px 14px; border-bottom:1px solid #eee; background:#fafafa;
-}
-#adminEditorHeader h3{ margin:0; font-size:18px; font-weight:700 }
-#adminEditorHeader .btn{
-  padding:9px 14px; border-radius:10px; border:1px solid #d9d9d9; background:#fff; cursor:pointer;
-  font-weight:600;
-}
-#adminEditorBody{ flex:1; overflow:auto; padding: 12px; }
-
-.editor-section{
-  border:1px solid #ececec; border-radius:14px; padding:12px; margin-bottom:12px; background:#fcfcfc;
-}
-.editor-section-head{
-  display:flex; align-items:center; gap:8px; margin-bottom:10px;
-}
-.editor-section-head input{
-  flex:1; padding:10px 12px; border:1px solid #d9d9d9; border-radius:12px; font-size:15px;
-}
-.small-btn{
-  padding:8px 10px; border:1px solid #d0d0d0; border-radius:10px; background:#fff; cursor:pointer; font-size:13px;
-}
-.danger-btn{
-  border-color:#f3c2c2; color:#8d0000; background:#fff5f5;
-}
-.add-row{ margin:8px 0 0; }
-
-.product-row{
-  background:#fff; border:1px solid #eee; border-radius:12px; padding:10px; margin:10px 0;
-  display:grid; grid-template-columns: 84px 1fr auto; gap:10px; align-items:center;
-}
-.product-thumb{
-  width:84px; height:84px; border-radius:10px; object-fit:cover; border:1px solid #e9e9e9;
-}
-.fields{ display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
-.fields input{
-  padding:10px 12px; border:1px solid #d9d9d9; border-radius:12px; font-size:14px; width:100%;
-}
-.fields input[name="Product Name"]{ grid-column: span 2; } /* bigger rectangular input */
-.fields input[name="Description"]{ grid-column: span 2; }
-.fields input[name="photo 2"], .fields input[name="photo 3"], .fields input[name="photo 4"]{ font-size:12px }
-.row-actions{ display:flex; flex-direction:column; gap:6px }
-
-.editor-footer{
-  display:flex; gap:10px; justify-content:flex-end; padding:12px 14px; border-top:1px solid #eee; background:#fafafa;
-}
-.save-btn{
-  padding:11px 16px; border-radius:12px; border:1px solid #2563eb; background:#2563eb; color:#fff; font-weight:700; cursor:pointer;
-}
-.cancel-btn{
-  padding:11px 16px; border-radius:12px; border:1px solid #d9d9d9; background:#fff; font-weight:700; cursor:pointer;
-}
-
-/* mobile tweaks */
-@media (max-width: 560px){
-  .product-row{ grid-template-columns: 70px 1fr; }
-  .row-actions{ flex-direction:row; justify-content:flex-end }
-}
+  #adminModalOverlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; z-index:99999;
+  }
+  #adminModal{
+    position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:min(92vw, 900px); max-height:86vh; background:#fff; border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.25); border:1px solid #eee; display:flex; flex-direction:column;
+  }
+  #adminBar{
+    padding:10px 12px; display:flex; gap:8px; align-items:center; border-bottom:1px solid #eee; flex-wrap:wrap;
+  }
+  #adminBar .pill{
+    padding:8px 12px; border:1px solid #ddd; border-radius:10px; background:#fafafa; font:600 13px 'Roboto Slab', serif;
+    cursor:pointer;
+  }
+  #adminBody{ padding:10px; overflow:auto; flex:1; display:grid; gap:10px; grid-template-columns: 1fr; }
+  #jsonArea{
+    width:100%; min-height:40vh; font:13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    border:1px solid #e5e5e5; border-radius:12px; padding:10px; background:#fff;
+  }
+  .kv{ display:grid; grid-template-columns: 140px 1fr; gap:8px; align-items:center; }
+  .kv input{ width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:10px; font:14px 'Roboto Slab', serif; }
+  .row{ display:grid; gap:10px; }
+  @media (min-width:700px){ .row{ grid-template-columns: repeat(2, 1fr); } }
+  #adminFooter{
+    border-top:1px solid #eee; padding:10px; display:flex; gap:8px; justify-content:flex-end;
+  }
+  #adminFooter button{
+    padding:10px 14px; border:1px solid #111; border-radius:10px; background:#111; color:#fff; font:600 14px 'Roboto Slab', serif;
+    cursor:pointer;
+  }
+  #adminFooter button.secondary{ background:#fff; color:#111; }
+  .hint{ font:12px 'Roboto Slab', serif; color:#666; }
 </style>
 </head>
 <body>
@@ -980,17 +942,6 @@ fetch(SHEET_URL)
     // A2_DIRECTION_TOGGLE :: call
 applyDirectionFromSheet(data);
     window.catalogData = data;
-    // ===== Prefer local draft if present (no Apps Script) =====
-    try{
-      const draft = localStorage.getItem("draftCatalog");
-      if (draft){
-        const parsed = JSON.parse(draft);
-        if (Array.isArray(parsed) && parsed.length){
-          data = parsed;
-          window.catalogData = parsed;
-        }
-      }
-    }catch(e){}
     const content = document.getElementById('content');
     let currentSection = '';
     let sectionWrapper;
@@ -1973,270 +1924,169 @@ function applyDirectionFromSheet(rows){
       .catch(() => {});
   })();
 </script>
-<script>
-/* Who can see the admin icon */
-const ADMIN_EMAILS = ["ritiktyagi0033@gmail.com"];
-
-/* Use your existing Netlify session function (you already call this elsewhere) */
-function showAdminIfAuthorized(){
-  fetch('/.netlify/functions/session', { credentials:'include' })
-    .then(r => r.ok ? r.json() : { loggedIn:false })
-    .then(s => {
-      const email = s && s.user && s.user.email;
-      if (email && ADMIN_EMAILS.includes(email)){
-        document.getElementById('adminFab').style.display = 'flex';
-      }
-    })
-    .catch(()=>{ /* silently ignore */ });
-}
-document.getElementById('adminFab').addEventListener('click', openAdminEditor);
-showAdminIfAuthorized();
-</script>
-<script>
-/* ===== Utilities: data <-> sections ===== */
-
-/* Split your flat array into [{section:"Name", products:[...]}] based on "Section" markers */
-function splitIntoSections(rows){
-  const sections = [];
-  let current = { section: "Untitled", products: [] };
-  rows.forEach(r => {
-    if (r["Section"]) {
-      if (current.products.length || sections.length===0) sections.push(current);
-      current = { section: String(r["Section"]).trim(), products: [] };
-    }
-    if (r["Product Name"]) current.products.push({...r});
-  });
-  sections.push(current);
-  return sections.filter(s => s.section || s.products.length);
-}
-
-/* Flatten back to sheet-like array:
-   Insert a {Section:"..."} marker row before each group's products. */
-function flattenSections(groups){
-  const out = [];
-  groups.forEach(g => {
-    out.push({ "Section": g.section }); // marker row
-    g.products.forEach(p => {
-      const row = { ...p };
-      delete row["Section"];
-      out.push(row);
-    });
-  });
-  return out;
-}
-
-/* Load source data (prefers draft) already present as window.catalogData */
-function getWorkingData(){
-  const src = Array.isArray(window.catalogData) ? window.catalogData : [];
-  return splitIntoSections(src);
-}
-
-/* ===== Editor UI ===== */
-function openAdminEditor(){
-  if (!Array.isArray(window.catalogData) || window.catalogData.length===0){
-    alert("No data loaded yet. Please wait for the catalog to load.");
-    return;
-  }
-  window.__editorModel = getWorkingData();
-  renderAdminEditor();
-  document.getElementById('adminEditorOverlay').style.display = 'block';
-  document.body.classList.add('noscroll');
-}
-function closeAdminEditor(){
-  document.getElementById('adminEditorOverlay').style.display = 'none';
-  document.body.classList.remove('noscroll');
-}
-
-function renderAdminEditor(){
-  const wrap = document.getElementById('adminEditorBody');
-  wrap.innerHTML = "";
-
-  window.__editorModel.forEach((sec, si) => {
-    const secEl = document.createElement('div');
-    secEl.className = 'editor-section';
-
-    // Header: Section name + actions
-    const head = document.createElement('div');
-    head.className = 'editor-section-head';
-    head.innerHTML = `
-      <input type="text" value="${sec.section || ''}" placeholder="Section name" oninput="__updateSectionName(${si}, this.value)" />
-      <button class="small-btn" onclick="__moveSection(${si}, -1)">↑ Section</button>
-      <button class="small-btn" onclick="__moveSection(${si}, 1)">↓ Section</button>
-      <button class="small-btn danger-btn" onclick="__removeSection(${si})">Delete Section</button>
-    `;
-    secEl.appendChild(head);
-
-    // Product list
-    sec.products.forEach((p, pi) => {
-      const row = document.createElement('div');
-      row.className = 'product-row';
-      const img = document.createElement('img');
-      img.className = 'product-thumb';
-      img.src = (p["photo 1"] || p["Photo 1"] || "").trim() || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png';
-      row.appendChild(img);
-
-      const fields = document.createElement('div');
-      fields.className = 'fields';
-      fields.innerHTML = `
-        <input name="Product Name" placeholder="Product Name" value="${p["Product Name"]||""}" oninput="__f(${si},${pi},this)" />
-        <input name="Badge" placeholder="Badge" value="${p["Badge"]||""}" oninput="__f(${si},${pi},this)" />
-
-        <input name="MRP" placeholder="MRP" value="${p["MRP"]||""}" oninput="__f(${si},${pi},this)" />
-        <input name="Selling Price" placeholder="Selling Price" value="${p["Selling Price"]||""}" oninput="__f(${si},${pi},this)" />
-
-        <input name="in stock" placeholder="in stock (0/1)" value="${p["in stock"]||""}" oninput="__f(${si},${pi},this)" />
-        <input name="Description" placeholder="Description" value="${(p["Description"]||"")}" oninput="__f(${si},${pi},this)" />
-
-        <input name="photo 1" placeholder="photo 1 URL" value="${p["photo 1"]||p["Photo 1"]||""}" oninput="__f(${si},${pi},this); this.closest('.product-row').querySelector('img').src=this.value||'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'" />
-        <input name="photo 2" placeholder="photo 2 URL" value="${p["photo 2"]||p["Photo 2"]||""}" oninput="__f(${si},${pi},this)" />
-        <input name="photo 3" placeholder="photo 3 URL" value="${p["photo 3"]||p["Photo 3"]||""}" oninput="__f(${si},${pi},this)" />
-        <input name="photo 4" placeholder="photo 4 URL" value="${p["photo 4"]||p["Photo 4"]||""}" oninput="__f(${si},${pi},this)" />
-      `;
-      row.appendChild(fields);
-
-      const actions = document.createElement('div');
-      actions.className = 'row-actions';
-      actions.innerHTML = `
-        <button class="small-btn" onclick="__moveProduct(${si},${pi},-1)">↑</button>
-        <button class="small-btn" onclick="__moveProduct(${si},${pi}, 1)">↓</button>
-        <button class="small-btn danger-btn" onclick="__removeProduct(${si},${pi})">Delete</button>
-      `;
-      row.appendChild(actions);
-
-      secEl.appendChild(row);
-    });
-
-    // add product button
-    const add = document.createElement('div');
-    add.className = 'add-row';
-    add.innerHTML = `<button class="small-btn" onclick="__addProduct(${si})">+ Add Product</button>`;
-    secEl.appendChild(add);
-
-    wrap.appendChild(secEl);
-  });
-}
-
-/* field change */
-function __f(si, pi, input){
-  const key = input.name;
-  window.__editorModel[si].products[pi][key] = input.value;
-}
-
-/* section ops */
-function __updateSectionName(si, v){ window.__editorModel[si].section = v; renderAdminEditor(); }
-function __moveSection(si, dir){
-  const idx = si + dir;
-  if (idx < 0 || idx >= window.__editorModel.length) return;
-  const [s] = window.__editorModel.splice(si, 1);
-  window.__editorModel.splice(idx, 0, s);
-  renderAdminEditor();
-}
-function __removeSection(si){
-  if (!confirm("Delete this section?")) return;
-  window.__editorModel.splice(si, 1);
-  renderAdminEditor();
-}
-function addSection(){
-  window.__editorModel.push({ section:"New Section", products:[] });
-  renderAdminEditor();
-}
-
-/* product ops */
-function __addProduct(si){
-  window.__editorModel[si].products.push({
-    "Product Name": "",
-    "MRP": "", "Selling Price": "", "in stock": "1",
-    "Badge": "", "Description": "",
-    "photo 1": "", "photo 2": "", "photo 3": "", "photo 4": ""
-  });
-  renderAdminEditor();
-}
-function __moveProduct(si, pi, dir){
-  const arr = window.__editorModel[si].products;
-  const idx = pi + dir;
-  if (idx < 0 || idx >= arr.length) return;
-  const [p] = arr.splice(pi, 1);
-  arr.splice(idx, 0, p);
-  renderAdminEditor();
-}
-function __removeProduct(si, pi){
-  if (!confirm("Delete this product?")) return;
-  window.__editorModel[si].products.splice(pi, 1);
-  renderAdminEditor();
-}
-
-/* actions */
-function applyAdminChanges(){
-  // Flatten editor model to rows like your sheet
-  const rows = flattenSections(window.__editorModel);
-
-  // Save a local draft and reload; a tiny hook (next step) will prefer this draft
-  localStorage.setItem("draftCatalog", JSON.stringify(rows));
-  alert("Saved draft locally. The page will reload to apply.");
-  location.reload();
-}
-function clearDraft(){
-  if (!confirm("Clear local draft?")) return;
-  localStorage.removeItem("draftCatalog");
-  alert("Draft cleared. Reloading…");
-  location.reload();
-}
-
-/* import/export draft helpers */
-function downloadDraft(){
-  const rows = flattenSections(window.__editorModel);
-  const blob = new Blob([JSON.stringify(rows, null, 2)], {type:"application/json"});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = "precioussly-draft.json";
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-function uploadDraft(){
-  const inp = document.createElement('input');
-  inp.type = "file"; inp.accept = "application/json";
-  inp.onchange = e => {
-    const file = e.target.files[0]; if (!file) return;
-    const r = new FileReader();
-    r.onload = () => {
-      try{
-        const arr = JSON.parse(r.result);
-        window.__editorModel = splitIntoSections(Array.isArray(arr) ? arr : []);
-        renderAdminEditor();
-      }catch(e){ alert("Invalid JSON"); }
-    };
-    r.readAsText(file);
-  };
-  inp.click();
-}
-</script>
-<!-- ===== Admin FAB: shown only for allowed email ===== -->
+<!-- ===== Admin FAB button (visible only to permitted email) ===== -->
 <button id="adminFab" title="Admin">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <circle cx="12" cy="12" r="3"></circle>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 3.2l.06.06c.46.46 1.12.6 1.71.39.6-.22 1-.78 1-1.41V2a2 2 0 0 1 4 0v.09c0 .63.4 1.19 1 1.41.59.21 1.25.07 1.71-.39l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.46.46-.6 1.12-.39 1.71.22.6.78 1 1.41 1H22a2 2 0 0 1 0 4h-.09c-.63 0-1.19.4-1.41 1z"></path>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V22a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 5 15.4a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8.6 4.6 1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09c0 .65.39 1.24 1 1.51.55.26 1.2.16 1.65-.29l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82c.26.55.86.94 1.51 1H21a2 2 0 1 1 0 4h-.09c-.65 0-1.24.39-1.51 1z"></path>
   </svg>
 </button>
 
-<!-- ===== Admin Editor Popup (overlay) ===== -->
-<div id="adminEditorOverlay" onclick="if(event.target===this) closeAdminEditor()">
-  <div id="adminEditor" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
-    <div id="adminEditorHeader">
-      <h3>Page Editor (Local Draft)</h3>
-      <div style="display:flex; gap:8px;">
-        <button class="btn" onclick="addSection()">+ Add Section</button>
-        <button class="btn danger-btn" onclick="clearDraft()">Clear Draft</button>
-        <button class="btn" onclick="downloadDraft()">Download JSON</button>
-        <button class="btn" onclick="uploadDraft()">Upload JSON</button>
+<!-- ===== Admin Modal ===== -->
+<div id="adminModalOverlay">
+  <div id="adminModal" role="dialog" aria-modal="true" aria-label="Sheet Editor">
+    <div id="adminBar">
+      <span class="pill" id="btnLoadCurrent">Load current data</span>
+      <span class="pill" id="btnInsertTemplate">Insert add-item template</span>
+      <span class="pill" id="btnClearOverride">Clear local override</span>
+      <span class="hint">Edits are local only (saved in your browser). No Apps Script.</span>
+    </div>
+    <div id="adminBody">
+      <textarea id="jsonArea" spellcheck="false" placeholder='[
+  {"Section":"Necklaces","Product Name":"Rose Pendant","MRP":999,"Selling Price":499,"photo 1":"https://...","in stock":1}
+]'></textarea>
+
+      <!-- Quick Add helper -->
+      <div class="row" id="quickAdd">
+        <div class="kv"><label>Section</label><input id="qa_section" placeholder="e.g., Necklaces"></div>
+        <div class="kv"><label>Product Name</label><input id="qa_name" placeholder="e.g., Rose Pendant"></div>
+        <div class="kv"><label>MRP</label><input id="qa_mrp" type="number" placeholder="999"></div>
+        <div class="kv"><label>Selling Price</label><input id="qa_price" type="number" placeholder="499"></div>
+        <div class="kv"><label>photo 1</label><input id="qa_photo1" placeholder="https://..."></div>
+        <div class="kv"><label>photo 2</label><input id="qa_photo2" placeholder="(optional)"></div>
+        <div class="kv"><label>in stock</label><input id="qa_stock" type="number" placeholder="1"></div>
+        <div class="kv"><label>Badge</label><input id="qa_badge" placeholder="(optional)"></div>
       </div>
     </div>
-    <div id="adminEditorBody"></div>
-    <div class="editor-footer">
-      <button class="cancel-btn" onclick="closeAdminEditor()">Cancel</button>
-      <button class="save-btn" onclick="applyAdminChanges()">Apply Changes</button>
+    <div id="adminFooter">
+      <button class="secondary" id="btnCloseAdmin">Close</button>
+      <button id="btnApplyNow">Save & Apply</button>
     </div>
   </div>
 </div>
+<script>
+/* ========= CONFIG ========= */
+const ADMIN_EMAIL = "ritiktyagi0033@gmail.com";
+
+/* ========= 0) Intercept the sheet fetch if a local override exists =========
+   We will return the JSON from localStorage when the page requests SHEET_URL.
+   This keeps your existing rendering code unchanged.
+*/
+(function(){
+  const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1"; // same as in page
+  const originalFetch = window.fetch;
+  window.fetch = async function(resource, init){
+    try{
+      const url = (typeof resource === 'string') ? resource : (resource?.url || "");
+      const override = localStorage.getItem("sheetOverride");
+      if (override && url === SHEET_URL){
+        const blob = new Blob([override], {type: "application/json"});
+        const fakeResponse = new Response(blob, { status:200, headers:{ "Content-Type":"application/json" }});
+        return fakeResponse;
+      }
+    }catch(e){}
+    return originalFetch.apply(this, arguments);
+  };
+})();
+
+/* ========= 1) Show FAB only for the allowed email =========
+   Uses your existing Netlify session function if available.
+   Fallback: if session returns nothing, we also check localStorage.user_email (for dev).
+*/
+(async function(){
+  const fab = document.getElementById("adminFab");
+  let email = null;
+
+  try{
+    const r = await fetch('/.netlify/functions/session', { credentials:'include' });
+    if (r.ok){
+      const s = await r.json();
+      email = s?.user?.email || null;
+    }
+  }catch(_){}
+
+  // Dev fallback (optional)
+  if (!email){
+    email = localStorage.getItem("user_email") || null;
+  }
+
+  if (email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
+    fab.style.display = "flex";
+  }
+})();
+
+/* ========= 2) Modal wiring ========= */
+(function(){
+  const $ = sel => document.querySelector(sel);
+  const fab = $("#adminFab");
+  const overlay = $("#adminModalOverlay");
+  const jsonArea = $("#jsonArea");
+
+  function openModal(){
+    overlay.style.display = "block";
+    // Try to load current in-memory data into editor
+    if (Array.isArray(window.catalogData)){
+      try { jsonArea.value = JSON.stringify(window.catalogData, null, 2); } catch(_){}
+    }
+  }
+  function closeModal(){ overlay.style.display = "none"; }
+
+  fab?.addEventListener("click", openModal);
+  $("#btnCloseAdmin")?.addEventListener("click", closeModal);
+  overlay?.addEventListener("click", (e)=>{ if (e.target === overlay) closeModal(); });
+
+  /* Load current sheet data into editor */
+  $("#btnLoadCurrent")?.addEventListener("click", ()=>{
+    if (Array.isArray(window.catalogData)){
+      jsonArea.value = JSON.stringify(window.catalogData, null, 2);
+    } else {
+      alert("Data not loaded yet. Try again after products appear.");
+    }
+  });
+
+  /* Insert a ready template for quick add (it appends into textarea) */
+  $("#btnInsertTemplate")?.addEventListener("click", ()=>{
+    const tmpl = {
+      "Section": $("#qa_section").value || "Necklaces",
+      "Product Name": $("#qa_name").value || "New Product",
+      "MRP": Number($("#qa_mrp").value || 0),
+      "Selling Price": Number($("#qa_price").value || 0),
+      "photo 1": $("#qa_photo1").value || "",
+      "photo 2": $("#qa_photo2").value || "",
+      "in stock": Number($("#qa_stock").value || 1),
+      "Badge": $("#qa_badge").value || ""
+    };
+    let arr = [];
+    try { arr = JSON.parse(jsonArea.value || "[]"); if (!Array.isArray(arr)) arr = []; } catch(_){ arr = []; }
+    arr.push(tmpl);
+    jsonArea.value = JSON.stringify(arr, null, 2);
+    alert("Added to editor. Review and then Save & Apply.");
+  });
+
+  /* Clear override */
+  $("#btnClearOverride")?.addEventListener("click", ()=>{
+    localStorage.removeItem("sheetOverride");
+    alert("Local override cleared. Reloading the page.");
+    location.reload();
+  });
+
+  /* Save & Apply: store JSON into localStorage and reload */
+  $("#btnApplyNow")?.addEventListener("click", ()=>{
+    try{
+      const parsed = JSON.parse(jsonArea.value || "[]");
+      if (!Array.isArray(parsed)) throw new Error("JSON must be an array of rows.");
+
+      // Minimal validation: ensure keys exist for core fields; we won't be strict
+      // Save override
+      localStorage.setItem("sheetOverride", JSON.stringify(parsed));
+      alert("Saved locally. Applying changes now.");
+      location.reload();
+    }catch(err){
+      alert("Invalid JSON:\n" + (err?.message || err));
+    }
+  });
+})();
+</script>
 </body>
 </html>
