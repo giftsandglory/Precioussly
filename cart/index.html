@@ -1332,12 +1332,122 @@ function decrease(index) {
   }
 }
 
+
 function removeItem(index) {
-  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-  cartData.splice(index, 1); // Remove the item from array
-  localStorage.setItem("cartItems", JSON.stringify(cartData));
-  location.reload(); // Page reload to re-render all cart items
+  // Read current cart
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+
+  // Remove the item at this index
+  items.splice(index, 1);
+
+  // Persist back
+  localStorage.setItem("cartItems", JSON.stringify(items));
+  window.cartData = items;
+
+  // Update the UI without a page reload
+  if (typeof renderCart === "function") {
+    renderCart();              // re-build the list with fresh indexes
+  } else {
+    // Fallback: minimal DOM update if renderCart isn't found
+    const container = document.getElementById("cartItems");
+    if (container && container.children[index]) {
+      container.removeChild(container.children[index]);
+    }
+  }
+
+  // Update header badge, summary & any min-order logic
+  try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+  try { if (typeof updateSummary === "function") updateSummary(); } catch(e){}
+  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
+
+  // If cart is now empty, show the empty-state and hide pay UI
+  if (items.length === 0) {
+    const container = document.getElementById("cartItems");
+    if (container) {
+      container.innerHTML = `
+        <div style="text-align:center; margin-top: 30px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
+          <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+          <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+        </div>
+      `;
+    }
+    const sb = document.getElementById("summaryBox");
+    if (sb) sb.innerHTML = "";
+    const pb = document.getElementById("paymentMethodBox");
+    if (pb) pb.style.display = "none";
+    const bb = document.getElementById("bottomBox");
+    if (bb) bb.style.display = "none";
+  }
 }
+
+
+// Re-render cart items list & ensure indexes stay correct
+function renderCart() {
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const container = document.getElementById("cartItems");
+  if (!container) return;
+
+  // If empty, show empty-state and bail
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; margin-top: 30px;">
+        <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
+        <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+        <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+      </div>
+    `;
+    const sb = document.getElementById("summaryBox");
+    if (sb) sb.innerHTML = "";
+    const pb = document.getElementById("paymentMethodBox");
+    if (pb) pb.style.display = "none";
+    const bb = document.getElementById("bottomBox");
+    if (bb) bb.style.display = "none";
+    return;
+  }
+
+  // Build fresh DOM
+  container.innerHTML = "";
+  items.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "item cart-item-animate";
+    div.innerHTML = `
+      <img src="${item.photo}" />
+      <div class="item-info">
+        <div class="item-name">${item.name}</div>
+        <div class="item-price">₹${item.price}</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+          <div class="quantity-bar" style="margin:0;">
+            <button onclick="decrease(${index})">
+              <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+            <button onclick="increase(${index})">
+              <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  // Ensure payment section is visible when items exist
+  const pb = document.getElementById("paymentMethodBox");
+  if (pb) pb.style.display = "block";
+  const bb = document.getElementById("bottomBox");
+  if (bb) bb.style.display = "block";
+
+  // Update totals & badges
+  try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+  try { if (typeof updateSummary === "function") updateSummary(); } catch(e){}
+}
+
 </script>
 
 <script>
