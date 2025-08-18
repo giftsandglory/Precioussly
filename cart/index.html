@@ -775,6 +775,15 @@ html, body { scroll-behavior: auto !important; }
 .coupon-strip { scroll-behavior: auto !important; }
 </style>
 
+
+<style id="address-validation-css">
+.floating-input.error input,
+.floating-input.error select { border-color:#e53935 !important; background:#fff; }
+.floating-input .error-msg { display:none; font-size:12px; line-height:1.35; margin-top:6px; color:#e53935; }
+.floating-input.error .error-msg { display:block; }
+
+</style>
+
 </head>
 <body>
 <!-- 👇 Resin-style MENU -->
@@ -1141,6 +1150,15 @@ function closeAddressPopup() {
 }
 
 function confirmAddress() {
+  if (!window.validateAddressFields || !window.validateAddressFields()) {
+    var firstErr = document.querySelector(".floating-input.error");
+    if (firstErr) {
+      var y = firstErr.getBoundingClientRect().top + window.scrollY - 40;
+      window.scrollTo(0, y);
+    }
+    return; // stop if invalid
+  }
+
   const fullName = document.getElementById("fullname").value;
   const state = document.getElementById("state").value;
   const city = document.getElementById("city").value;
@@ -1838,29 +1856,83 @@ function openAddressAndClosePopup() {
   </div>
 </div>
 
-<script>
+
+<script id="address-validation-strict">
+function ensureErrorContainers() {
+  var ids = ["fullname","email","state","city","pincode","address","phone","altphone"];
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el) return;
+    var wrap = el.closest(".floating-input");
+    if (!wrap) return;
+    if (!wrap.querySelector(".error-msg")) {
+      var div = document.createElement("div");
+      div.className = "error-msg";
+      wrap.appendChild(div);
+    }
+  });
+}
+
 function validateAddressFields() {
-  const fullName = document.getElementById("fullname").value.trim();
-  const state = document.getElementById("state").value;
-  const city = document.getElementById("city").value.trim();
-  const pincode = document.getElementById("pincode").value.trim();
-  const address = document.getElementById("address").value.trim();
-  const phone = document.getElementById("phone").value.trim();
+  ensureErrorContainers();
+  var EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+  var CITY_RE=/^[a-zA-Z][a-zA-Z .'-]{1,}$/;
+  var PIN_RE=/^\d{6}$/;
+  var PHONE_RE=/^\d{10}$/;
 
-  const isValid = fullName && state && city && pincode && address && phone;
-
-  const btn = document.getElementById("confirmAddressBtn");
-  if (isValid) {
-    btn.disabled = false;
-    btn.style.opacity = "1";
-    btn.style.cursor = "pointer";
-  } else {
-    btn.disabled = true;
-    btn.style.opacity = "0.5";
-    btn.style.cursor = "not-allowed";
+  function setError(id,msg){
+    var el=document.getElementById(id);
+    if(!el) return false;
+    var wrap=el.closest(".floating-input");
+    if(!wrap) return false;
+    var box=wrap.querySelector(".error-msg");
+    if(msg){
+      wrap.classList.add("error");
+      if(box) box.textContent=msg;
+      el.setAttribute("aria-invalid","true");
+      return false;
+    }else{
+      wrap.classList.remove("error");
+      if(box) box.textContent="";
+      el.removeAttribute("aria-invalid");
+      return true;
+    }
   }
+
+  var fullName=(document.getElementById("fullname")||{}).value||"";
+  var email=(document.getElementById("email")||{}).value||"";
+  var state=(document.getElementById("state")||{}).value||"";
+  var city=(document.getElementById("city")||{}).value||"";
+  var pincode=(document.getElementById("pincode")||{}).value||"";
+  var address=(document.getElementById("address")||{}).value||"";
+  var phone=(document.getElementById("phone")||{}).value||"";
+  var altphone=(document.getElementById("altphone")||{}).value||"";
+
+  var okName=fullName.trim().length>=3; setError("fullname", okName?"":"Please enter your full name.");
+  // Email: always OK, no error message
+var okEmail = true;
+setError("email", "");
+
+  var okState=!!state&&state.trim().length>0; setError("state", okState?"":"Please select your state.");
+  var okCity=CITY_RE.test(city.trim()); setError("city", okCity?"":"Enter a valid city name.");
+  var okPin=PIN_RE.test(pincode.trim()); setError("pincode", okPin?"":"Pincode must be 6 digits.");
+  var okAddr=address.trim().length>=10; setError("address", okAddr?"":"Address should be at least 10 characters.");
+  var okPhone=PHONE_RE.test(phone.trim()); setError("phone", okPhone?"":"Phone number must be 10 digits.");
+  var okAlt=true;
+  if(altphone.trim().length){ okAlt=PHONE_RE.test(altphone.trim()); setError("altphone", okAlt?"":"Alternate phone must be 10 digits." ); } else { setError("altphone",""); }
+
+  var allOK = okName && okEmail && okState && okCity && okPin && okAddr && okPhone && okAlt;
+  var btn=document.getElementById("confirmAddressBtn");
+  if(btn){
+    btn.disabled=!allOK;
+    btn.style.opacity=allOK?"1":"0.5";
+    btn.style.cursor=allOK?"pointer":"not-allowed";
+    btn.setAttribute("aria-disabled", String(!allOK));
+  }
+  return allOK;
 }
 </script>
+
 <script>
 let minimumOrderValue = null; // nothing shown until fetched
 
@@ -2648,6 +2720,11 @@ function renderCartUI() {
 document.addEventListener("DOMContentLoaded", function(){
   try { renderCartUI(); } catch(e){}
 });
+</script>
+
+
+<script id="validation-override-tail">
+window.validateAddressFields = validateAddressFields;
 </script>
 
 </body> -->
