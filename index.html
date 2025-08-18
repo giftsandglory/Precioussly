@@ -1689,64 +1689,105 @@ fetch(couponSheetURL)
   });
 </script>
 <script>
+/* ===== Categories from Google Sheet with HIDE/UNHIDE =====
+   Sheet columns required (case-insensitive):
+   - section
+   - category name
+   - image
+   - link
+   - visibility   ← write "hide" to hide the row; leave blank to show
+*/
 const categorySheetURL = "https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/Sheet1";
 
-fetch(categorySheetURL)
-  .then(res => res.json())
-  .then(rows => {
-    const container = document.getElementById("categorySection");
-    const grouped = {};
+function normalize(val){
+  return (val || "").toString().trim();
+}
+function isHidden(row){
+  const v =
+    normalize(row.visibility) ||
+    normalize(row.Visibility) ||
+    normalize(row.VISIBILITY) ||
+    normalize(row.visible) ||
+    normalize(row.Visible);
+  return v.toLowerCase() === "hide" || v.toLowerCase() === "hidden" || v === "0" || v.toLowerCase() === "no";
+}
 
-    rows.forEach(row => {
-      const section = row.section?.trim();
-      const name = row["category name"]?.trim();
-      const img = row.image?.trim();
-      const link = row.link?.trim() || "#";
-      if (!section || !name || !img) return;
-      if (!grouped[section]) grouped[section] = [];
-      grouped[section].push({ name, img, link });
-    });
+function renderCategories(rows){
+  const container = document.getElementById("categorySection");
+  if (!container) return;
+  container.innerHTML = ""; // clear for re-render
 
-    Object.entries(grouped).forEach(([section, items]) => {
-      const sectionTitle = document.createElement("h3");
-      sectionTitle.innerText = section;
-      sectionTitle.style.width = "100%";
-      sectionTitle.style.fontFamily = "'Roboto Slab', serif";
-      sectionTitle.style.fontSize = "17px";
-      sectionTitle.style.fontWeight = "400";
-      sectionTitle.style.margin = "0";
-      sectionTitle.style.padding = "0";
-      sectionTitle.style.textAlign = "center";
+  // group visible rows by section
+  const grouped = {};
+  rows.forEach(row => {
+    if (isHidden(row)) return; // 🔒 skip hidden categories
 
-      container.appendChild(sectionTitle);
+    const section = normalize(row.section);
+    const name    = normalize(row["category name"]);
+    const img     = normalize(row.image);
+    const link    = normalize(row.link) || "#";
+    if (!section || !name || !img) return;
 
-      items.forEach(item => {
-        const card = document.createElement("a");
-        card.href = item.link;
-        card.style.textDecoration = "none";
-        card.style.width = "calc(50% - 6px)";
-        card.style.border = "none";
-        card.style.borderRadius = "18px";
-        card.style.background = "transparent";
-        card.style.boxShadow = "none";
-        card.style.fontFamily = "'Roboto Slab', serif";
-card.style.webkitTapHighlightColor = "transparent";
-card.style.outline = "none";
-card.style.userSelect = "none";
+    if (!grouped[section]) grouped[section] = [];
+    grouped[section].push({ name, img, link });
+  });
 
+  // Render each section only if it has at least 1 visible item
+  Object.entries(grouped).forEach(([section, items]) => {
+    if (!items.length) return;
 
-        card.innerHTML = `
-          <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 18px; display: block;" />
-          <div style="text-align: center; padding-top: 6px; font-size: 15px; font-weight: 500; font-family: 'Roboto Slab', serif; color: #000;">
-            ${item.name}
-          </div>
-        `;
+    const sectionTitle = document.createElement("h3");
+    sectionTitle.innerText = section;
+    sectionTitle.style.width = "100%";
+    sectionTitle.style.fontFamily = "'Roboto Slab', serif";
+    sectionTitle.style.fontSize = "17px";
+    sectionTitle.style.fontWeight = "400";
+    sectionTitle.style.margin = "0";
+    sectionTitle.style.padding = "0";
+    sectionTitle.style.textAlign = "center";
 
-        container.appendChild(card);
-      });
+    container.appendChild(sectionTitle);
+
+    items.forEach(item => {
+      const card = document.createElement("a");
+      card.href = item.link;
+      card.style.textDecoration = "none";
+      card.style.width = "calc(50% - 6px)";
+      card.style.border = "none";
+      card.style.borderRadius = "18px";
+      card.style.background = "transparent";
+      card.style.boxShadow = "none";
+      card.style.fontFamily = "'Roboto Slab', serif";
+      card.style.webkitTapHighlightColor = "transparent";
+      card.style.outline = "none";
+      card.style.userSelect = "none";
+
+      card.innerHTML = `
+        <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 18px; display: block;" />
+        <div style="text-align: center; padding-top: 6px; font-size: 15px; font-weight: 500; font-family: 'Roboto Slab', serif; color: #000;">
+          ${item.name}
+        </div>
+      `;
+
+      container.appendChild(card);
     });
   });
-  </script>
+}
+
+async function loadCategories(){
+  try{
+    const res = await fetch(categorySheetURL);
+    const rows = await res.json();
+    renderCategories(rows);
+  }catch(e){
+    console.error("Failed to load categories:", e);
+  }
+}
+
+// Initial load + periodic refresh (every 3 minutes)
+loadCategories();
+setInterval(loadCategories, 180000);
+</script>
   
 
 <script>
