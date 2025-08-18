@@ -783,6 +783,32 @@ nav.side-menu {
 /* Header sticky (already present; ensure z-index high) */
 .site-header{ position:sticky; top:0; z-index:3500; }
 </style>
+
+<!-- === NO-ANIMATION OVERRIDES (injected) === -->
+<style id="no-anim-popup">
+  /* Remove ALL transitions for instant open/close */
+  #productPopup { transition: none !important; }
+  #productPopup.is-open { transition: none !important; }
+
+  .popup-card {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .popup-card.enter,
+  .popup-card.leave {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: none !important;
+  }
+
+  /* Slides change instantly (no fade duration) */
+  .popup-slide { transition: none !important; }
+
+  /* Dots update instantly */
+  .popup-dot { transition: none !important; }
+</style>
+
 </head>
 <body>
 <header class="site-header">
@@ -1849,5 +1875,65 @@ function applyDirectionFromSheet(rows){
   // Re-check if window is resized
   window.addEventListener("resize", adjustFooter);
 </script>
+
+<!-- === INSTANT POPUP BEHAVIOR (no animation) === -->
+<script>
+  (function(){
+    const popup = document.getElementById('productPopup');
+    const card  = popup ? popup.querySelector('.popup-card') : null;
+
+    // Helper: instantly hide the popup
+    function hideInstant(){
+      if (!popup) return;
+      popup.classList.remove('is-open');
+      if (card) card.classList.remove('enter','leave');
+      popup.style.display = 'none';
+      document.body.classList.remove('noscroll');
+    }
+
+    // Override the existing closePopup to be instant + Back-friendly
+    window.closePopup = function(){
+      try {
+        // If we opened via pushState, go back one step.
+        if (history.state && history.state.popupOpen) {
+          history.back();
+          return; // popstate listener will hide
+        }
+      } catch(e){}
+      // Fallback: hide right away
+      hideInstant();
+      try { history.replaceState(null, "", location.pathname); } catch(e) {}
+    };
+
+    // 1) Push a history state whenever the popup becomes visible
+    if (popup){
+      const obs = new MutationObserver(() => {
+        // When display becomes flex => popup opened
+        const isOpen = window.getComputedStyle(popup).display === 'flex';
+        if (isOpen && !(history.state && history.state.popupOpen)) {
+          try { history.pushState({ popupOpen: true }, "", location.href); } catch(e) {}
+        }
+      });
+      obs.observe(popup, { attributes: true, attributeFilter: ['style', 'class'] });
+    }
+
+    // 2) Pressing Back closes the popup (without navigating away)
+    window.addEventListener('popstate', (ev) => {
+      // If popup is visible, close it instantly
+      if (!popup) return;
+      const isVisible = window.getComputedStyle(popup).display !== 'none';
+      if (ev.state && ev.state.popupOpen) {
+        // We're popping the popup state -> hide instantly
+        hideInstant();
+        // Restore clean URL (remove ?p= if any)
+        try { history.replaceState(null, "", location.pathname); } catch(e) {}
+      } else if (isVisible) {
+        // Safety: if user pressed back and popup visible but no state, hide it
+        hideInstant();
+      }
+    });
+  })();
+</script>
+
 </body>
 </html>
