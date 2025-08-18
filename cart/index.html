@@ -1384,12 +1384,18 @@ function decrease(index) {
   }
 }
 
+
 function removeItem(index) {
-  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
-  cartData.splice(index, 1); // Remove the item from array
+  const cartData = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  cartData.splice(index, 1); // remove selected item
   localStorage.setItem("cartItems", JSON.stringify(cartData));
-  location.reload(); // Page reload to re-render all cart items
+
+  // Re-render UI instantly without page refresh
+  try { renderCartUI(); } catch(e) {}
+
+  // If you also send any analytics/telemetry, trigger here (optional)
 }
+
 </script>
 
 <script>
@@ -2561,6 +2567,89 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 </script>
 
+
+<script>
+// === Live re-render of cart without page refresh ===
+function renderCartUI() {
+  try {
+    const container = document.getElementById("cartItems");
+    if (!container) return;
+
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+
+    // Reset container
+    container.innerHTML = "";
+
+    if (!items.length) {
+      // Empty cart UI
+      container.innerHTML = `
+        <div style="text-align:center; margin-top: 30px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
+          <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+          <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+        </div>
+      `;
+      const sb = document.getElementById("summaryBox");
+      if (sb) sb.innerHTML = "";
+      const bb = document.getElementById("bottomBox");
+      if (bb) bb.style.display = "none";
+      const pmb = document.getElementById("paymentMethodBox");
+      if (pmb) pmb.style.display = "none";
+
+      try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
+      try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
+      return;
+    }
+
+    // If we have items, show payment box
+    const pmb = document.getElementById("paymentMethodBox");
+    if (pmb) pmb.style.display = "block";
+    const bb = document.getElementById("bottomBox");
+    if (bb) bb.style.display = "";
+
+    // Build each item row
+    items.forEach((item, index) => {
+      const row = document.createElement("div");
+      row.className = "item";
+      row.innerHTML = `
+        <img src="${item.photo}" />
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">₹${item.price}</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+            <div class="quantity-bar" style="margin:0;">
+              <button onclick="decrease(${index})">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                  <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+              <button onclick="increase(${index})">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                  <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+          </div>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+
+    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
+    try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
+  } catch (e) {
+    console.error("renderCartUI error", e);
+  }
+}
+
+// Ensure first render happens in case author wants to use it
+document.addEventListener("DOMContentLoaded", function(){
+  try { renderCartUI(); } catch(e){}
+});
+</script>
+
 </body> -->
 <script>
 /* ===================== 1) CONFIG ===================== */
@@ -3197,6 +3286,89 @@ function openCOD95Popup(){
 // Run once on load
 document.addEventListener("DOMContentLoaded", function(){
   try{ checkMinOrderCondition(); }catch(e){}
+});
+</script>
+
+
+<script>
+// === Live re-render of cart without page refresh ===
+function renderCartUI() {
+  try {
+    const container = document.getElementById("cartItems");
+    if (!container) return;
+
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+
+    // Reset container
+    container.innerHTML = "";
+
+    if (!items.length) {
+      // Empty cart UI
+      container.innerHTML = `
+        <div style="text-align:center; margin-top: 30px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
+          <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+          <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+        </div>
+      `;
+      const sb = document.getElementById("summaryBox");
+      if (sb) sb.innerHTML = "";
+      const bb = document.getElementById("bottomBox");
+      if (bb) bb.style.display = "none";
+      const pmb = document.getElementById("paymentMethodBox");
+      if (pmb) pmb.style.display = "none";
+
+      try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
+      try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
+      return;
+    }
+
+    // If we have items, show payment box
+    const pmb = document.getElementById("paymentMethodBox");
+    if (pmb) pmb.style.display = "block";
+    const bb = document.getElementById("bottomBox");
+    if (bb) bb.style.display = "";
+
+    // Build each item row
+    items.forEach((item, index) => {
+      const row = document.createElement("div");
+      row.className = "item";
+      row.innerHTML = `
+        <img src="${item.photo}" />
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">₹${item.price}</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+            <div class="quantity-bar" style="margin:0;">
+              <button onclick="decrease(${index})">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                  <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+              <button onclick="increase(${index})">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                  <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+          </div>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+
+    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
+    try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
+  } catch (e) {
+    console.error("renderCartUI error", e);
+  }
+}
+
+// Ensure first render happens in case author wants to use it
+document.addEventListener("DOMContentLoaded", function(){
+  try { renderCartUI(); } catch(e){}
 });
 </script>
 
