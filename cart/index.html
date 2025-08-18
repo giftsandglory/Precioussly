@@ -879,6 +879,7 @@ button.remove-btn:hover {
 
   document.addEventListener("DOMContentLoaded", () => {
     // Show saved address if exists
+    const cartData = JSON.parse(localStorage.getItem("cartItems") || "[]");
     if (shippingAddress) {
       document.getElementById("displayAddress").innerHTML = shippingAddress;
     }
@@ -932,18 +933,23 @@ button.remove-btn:hover {
 }
   });
 
+
 function updateSummary() {
-  let total = 0;
-  cartData.forEach(item => total += item.price * item.qty);
-
-  const fee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
-
-  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee
-  try { syncCouponInput(); } catch(e){}
-}</span>`;
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+  const fee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee}</span>`;
 
   document.getElementById("summaryBox").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+      <span>Order Total</span><span>₹${subtotal + fee}</span>
+    </div>
+  `;
+  try { if (typeof syncCouponInput === "function") syncCouponInput(); } catch(e) {}
+}
+</span></div>
     <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
     <div class="summary-row" style="font-weight: bold; font-size: 18px;">
       <span>Order Total</span><span>₹${total + fee}</span>
@@ -2458,7 +2464,58 @@ function payCODAdvance95(){
 </script>
 
 <!-- ======= Telegram Order Notifier (auto-inserted) ======= -->
-<!-- ✅ TELEGRAM ORDER MESSAGE — paste ABOVE </body> -->
+<!-- ✅ TELEGRAM ORDER MESSAGE — paste ABOVE 
+<script>
+// ---- Safety fallbacks (no-ops) ----
+(function(){
+  window.allCoupons = window.allCoupons || [];
+  if (typeof preNotifyTelegram !== 'function') window.preNotifyTelegram = function(method){ return { id: "PRE-"+Date.now(), method }; };
+  if (typeof discountOnSubtotal !== 'function') window.discountOnSubtotal = function(subtotal, c){ return Number(c && c.amount) || 0; };
+  if (typeof bestCouponFor !== 'function') window.bestCouponFor = function(){ return {coupon:null, amount:0}; };
+  if (typeof showAppliedTag !== 'function') window.showAppliedTag = function(){};
+  if (typeof showProgress !== 'function') window.showProgress = function(){};
+  if (typeof syncCouponInput !== 'function') window.syncCouponInput = function(){};
+  if (typeof sendOrderToTelegram !== 'function') window.sendOrderToTelegram = function(){};
+})();
+
+// ---- Minimum order gate + Proceed button visibility ----
+function checkMinOrderCondition() {
+  var MIN_TOTAL = 299;
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const subtotal = items.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
+  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const codFee = (window.selectedPayment === "cod") ? (Number(window.codCharge)||0) : 0;
+  const includeDelivery = (window.selectedPayment !== "cod");
+  const payable = Math.max(0, subtotal + (includeDelivery ? deliveryFee : 0) + codFee);
+
+  const notice = document.getElementById("minimumNotice");
+  const btn = document.getElementById("proceedBtn");
+
+  if (payable < MIN_TOTAL) {
+    notice.style.display = "block";
+    notice.textContent = "Minimum order amount is ₹" + MIN_TOTAL + " to proceed";
+    if (btn) btn.style.display = "none";
+  } else {
+    notice.style.display = "none";
+    if (btn) btn.style.display = "block";
+  }
+}
+
+// Open COD suggestion popup (95/variable charge)
+function openCOD95Popup(){
+  try{
+    const popup = document.getElementById("codPopup");
+    if (popup){ popup.style.display = "flex"; document.body.style.overflow = "hidden"; }
+  } catch(e){}
+}
+
+// Run once on load
+document.addEventListener("DOMContentLoaded", function(){
+  try{ checkMinOrderCondition(); }catch(e){}
+});
+</script>
+
+</body> -->
 <script>
 /* ===================== 1) CONFIG ===================== */
 const TG_BOT_TOKEN = "8338453495:AAGlEj98SoocsWjT2qa6FRo6qjHInDafqfA";
@@ -3046,5 +3103,56 @@ window.closeHeaderSearch = closeHeaderSearch;
   // Re-check if window is resized
   window.addEventListener("resize", adjustFooter);
 </script>
+
+<script>
+// ---- Safety fallbacks (no-ops) ----
+(function(){
+  window.allCoupons = window.allCoupons || [];
+  if (typeof preNotifyTelegram !== 'function') window.preNotifyTelegram = function(method){ return { id: "PRE-"+Date.now(), method }; };
+  if (typeof discountOnSubtotal !== 'function') window.discountOnSubtotal = function(subtotal, c){ return Number(c && c.amount) || 0; };
+  if (typeof bestCouponFor !== 'function') window.bestCouponFor = function(){ return {coupon:null, amount:0}; };
+  if (typeof showAppliedTag !== 'function') window.showAppliedTag = function(){};
+  if (typeof showProgress !== 'function') window.showProgress = function(){};
+  if (typeof syncCouponInput !== 'function') window.syncCouponInput = function(){};
+  if (typeof sendOrderToTelegram !== 'function') window.sendOrderToTelegram = function(){};
+})();
+
+// ---- Minimum order gate + Proceed button visibility ----
+function checkMinOrderCondition() {
+  var MIN_TOTAL = 299;
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const subtotal = items.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
+  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const codFee = (window.selectedPayment === "cod") ? (Number(window.codCharge)||0) : 0;
+  const includeDelivery = (window.selectedPayment !== "cod");
+  const payable = Math.max(0, subtotal + (includeDelivery ? deliveryFee : 0) + codFee);
+
+  const notice = document.getElementById("minimumNotice");
+  const btn = document.getElementById("proceedBtn");
+
+  if (payable < MIN_TOTAL) {
+    notice.style.display = "block";
+    notice.textContent = "Minimum order amount is ₹" + MIN_TOTAL + " to proceed";
+    if (btn) btn.style.display = "none";
+  } else {
+    notice.style.display = "none";
+    if (btn) btn.style.display = "block";
+  }
+}
+
+// Open COD suggestion popup (95/variable charge)
+function openCOD95Popup(){
+  try{
+    const popup = document.getElementById("codPopup");
+    if (popup){ popup.style.display = "flex"; document.body.style.overflow = "hidden"; }
+  } catch(e){}
+}
+
+// Run once on load
+document.addEventListener("DOMContentLoaded", function(){
+  try{ checkMinOrderCondition(); }catch(e){}
+});
+</script>
+
 </body>
 </html>
