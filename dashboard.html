@@ -321,6 +321,9 @@ main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
   padding: 3px !important;
 }
 
+
+/* helper row for totals */
+.row{display:flex;align-items:center;justify-content:space-between;margin:4px 0;font-size:13px}
 </style>
 <style>
 /* ===== Header Search (inline) ===== */
@@ -706,6 +709,72 @@ main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
       </div>`;
       return;
     }
+
+    // Professional cards WITHOUT status or order id
+    wrap.innerHTML = orders.map((o, i) => {
+      // Time in 12‑hour format e.g. "4:00 PM"
+      const dt = new Date(o.createdAt || o.date || Date.now());
+      const timeStr = dt.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true }).toUpperCase();
+      const dateStr = dt.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
+
+      const method = (o.displayMethod || o.method || o.paymentMethod || "-");
+
+      // Customer details (HTML saved from address popup)
+      const addressHTML = (o.address || "").trim();
+
+      // Item rows with photos
+      const itemsArr = Array.isArray(o.items) ? o.items : [];
+      const itemRows = itemsArr.map((it) => {
+        const qty   = Number(it.qty) || 1;
+        const price = Number(it.price) || 0;
+        const line  = `₹${price} × ${qty} = ₹${price * qty}`;
+        const img   = it.photo || it.image || it.img || "";
+        const name  = it.title || it.name || "Item";
+        return `<div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
+                  ${img ? `<img src="${img}" alt="" loading="lazy"
+                           style="width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid #eee;">`
+                        : `<div style="width:56px;height:56px;border-radius:10px;background:#f3f3f3;border:1px solid #eee;"></div>`}
+                  <div style="flex:1;">
+                    <div style="font-weight:700;font-size:14px;">${name}</div>
+                    <div style="font-size:13px;color:#444;">${line}</div>
+                  </div>
+                </div>`;
+      }).join("");
+
+      // Totals
+      const a = o.amounts || {};
+      const parts = [];
+      if (a.itemsTotal != null) parts.push(`<div class="row"><span>Item Total</span><span>₹${a.itemsTotal}</span></div>`);
+      if (a.deliveryFee != null) parts.push(`<div class="row"><span>Delivery</span><span>${a.deliveryFee === 0 ? "Free Delivery" : "₹"+a.deliveryFee}</span></div>`);
+      if (a.codFee) parts.push(`<div class="row"><span>COD Charge</span><span>₹${a.codFee}</span></div>`);
+      if (a.discount) parts.push(`<div class="row"><span>Discount</span><span>-₹${a.discount}</span></div>`);
+      const grand = (a.grandTotal != null) ? a.grandTotal : (o.total || "");
+      const totalsHTML = `
+        <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #e5e5e5;">
+          ${parts.join("")}
+          <div class="row" style="font-weight:800;font-size:16px;margin-top:6px;"><span>Grand Total</span><span>₹${grand}</span></div>
+        </div>`;
+
+      return `<div class="order-card" style="background:#fff;border:1px solid #eee;border-radius:12px;padding:12px;margin-top:12px;box-shadow:0 6px 16px rgba(0,0,0,.05)">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <div style="font-size:14px;color:#444;"><strong>${dateStr}</strong> • <span>${timeStr}</span></div>
+                  <div style="font-size:13px;padding:6px 10px;border:1px solid #c5ecd6;border-radius:999px;background:#e9fef1;color:#064c2c;font-weight:700;">${method}</div>
+                </div>
+
+                ${addressHTML ? `<div style="margin:10px 0 4px;padding:10px;border:1px solid #eee;border-radius:10px;background:#fafafa">
+                                    <div style="font-weight:700;margin-bottom:4px;">Customer Details</div>
+                                    <div style="font-size:13px;line-height:1.5;">${addressHTML}</div>
+                                  </div>` : ""}
+
+                <div style="margin-top:6px;">
+                  <div style="font-weight:700;margin-bottom:6px;">Items</div>
+                  ${itemRows || `<div style="font-size:13px;color:#777;">—</div>`}
+                </div>
+
+                ${totalsHTML}
+              </div>`;
+    }).join("");
+  }
 
     // Each order: expect {id, date, items[], total, method, status, photos[]}
     wrap.innerHTML = orders.map((o, i)=>{
