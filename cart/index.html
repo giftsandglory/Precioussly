@@ -667,6 +667,19 @@ button.remove-btn:hover {
 #menuContent .menu-link:first-child:hover {
   background-color: #d4f3df !important;       /* thoda dark hover green */
 }
+
+/* ==== Final tight positioning for error messages (just below the input) ==== */
+.floating-input .error-msg{
+  display:none;
+  font-size:12px;
+  line-height:1.2;
+  margin:0;               /* no margin */
+  padding:0;              /* no padding */
+  color:#e53935;
+}
+
+.floating-input.error .error-msg{ display:block; }
+
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
@@ -777,10 +790,58 @@ html, body { scroll-behavior: auto !important; }
 
 
 <style id="address-validation-css">
+
+/* ==== Precise positioning for warning icon + aligned error text ==== */
+.floating-input{ position:relative; }
+
+/* Red warning icon inside the input container */
+.floating-input.error::after{
+  content:"";
+  position:absolute;
+  right:12px;              /* a bit to the right */
+  top:10px;                /* slightly higher */
+  width:14px;
+  height:14px;
+  pointer-events:none;
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:contain;
+}
+
+/* Error message sits just below the input, aligned with its left padding */
+.floating-input .error-msg{
+  display:none;
+  font-size:12px;
+  line-height:1.35;
+  margin-top:4px;          /* a touch closer to the box */
+  padding-left:12px;       /* align with input text (matches input left padding) */
+  color:#e53935;
+  transform:translateY(-2px); /* nudge slightly upward */
+}
+
+/* Show message only when error class present */
+.floating-input.error .error-msg{ display:block; }
+
+/* Input/select visuals in error state */
+
+/* ==== Adjusted error message positioning ==== */
+.floating-input .error-msg{
+  display:none;
+  font-size:12px;
+  line-height:1.3;
+  margin-top:2px;          /* even closer to the input */
+  padding-left:12px;       /* align with input text */
+  color:#e53935;
+  transform:translateY(0); /* reset, no downward shift */
+}
+
+.floating-input.error .error-msg{ display:block; }
+
 .floating-input.error input,
-.floating-input.error select { border-color:#e53935 !important; background:#fff; }
-.floating-input .error-msg { display:none; font-size:12px; line-height:1.35; margin-top:6px; color:#e53935; }
-.floating-input.error .error-msg { display:block; }
+.floating-input.error select{
+  border-color:#e53935 !important;
+  background:#fff;
+}
 
 </style>
 
