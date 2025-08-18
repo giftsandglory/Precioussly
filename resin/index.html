@@ -1252,9 +1252,27 @@ down-toggle {
 <div id="announcementBar">🧿</div>
 <!-- Category Section (still working) -->
 <div id="categorySection"></div>
-<!-- 🔽 CATEGORY SCRIPT FROM SHEET (Title once; blanks inherit previous) -->
+<!-- 🔽 CATEGORY SCRIPT FROM SHEET (Title once; blanks inherit previous) + robust visibility support -->
 <script>
   const categorySheetURL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
+
+  // Helper: find a column by normalized name
+  function getCell(row, key){
+    // normalize key (remove spaces and lower)
+    const norm = key.replace(/\s+/g, '').toLowerCase();
+    for (const k in row){
+      if (!Object.prototype.hasOwnProperty.call(row, k)) continue;
+      const kn = String(k).replace(/\s+/g, '').toLowerCase();
+      if (kn === norm) return row[k];
+    }
+    return "";
+  }
+  function isHidden(row){
+    // Accept a column named "visibility" (spacing/casing tolerant)
+    const v = String(getCell(row, "visibility") || "").trim().toLowerCase();
+    if (["hide","hidden","yes","1","true"].includes(v)) return true;
+    return false;
+  }
 
   fetch(categorySheetURL)
     .then(res => res.json())
@@ -1264,17 +1282,17 @@ down-toggle {
       let currentSection = ""; // last non-empty Title
 
       rows.forEach(row => {
-        const rawTitle = (row["Title"] || "").trim();
-        if (rawTitle) currentSection = rawTitle;   // carry forward
+        if (isHidden(row)) return; // completely skip this card
 
-        // if still no section (sheet starts with blanks), skip
+        const rawTitle = String(getCell(row, "Title") || "").trim();
+        if (rawTitle) currentSection = rawTitle;
+
         if (!currentSection) return;
 
-        const name = (row["Category Name"] || "").trim();
-        const img  = (row["Category Image"] || "").trim();
-        const link = (row["Link"] || "").trim() || "#";
+        const name = String(getCell(row, "Category Name") || "").trim();
+        const img  = String(getCell(row, "Category Image") || "").trim();
+        const link = String(getCell(row, "Link") || "").trim() || "#";
 
-        // Need at least name + image to show the card
         if (!name || !img) return;
 
         if (!grouped[currentSection]) grouped[currentSection] = [];
