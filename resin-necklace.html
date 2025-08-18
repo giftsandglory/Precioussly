@@ -500,7 +500,7 @@ body.horizontal-mode .product-grid{
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch !important; /* iOS smooth scrolling */
   scroll-behavior: smooth !important;
-  touch-action: pan-x pan-y !important; /* allow both horizontal + vertical scroll */
+  touch-action: auto !important; /* ✅ allow pinch-zoom + normal scroll */
   overscroll-behavior-x: contain !important;
 
   scroll-snap-type: none !important;
@@ -1065,7 +1065,7 @@ body.horizontal-mode.small-cards .product {
 }
 .product .add-btn {
   margin-top: 2px !important;
-  margin-bottom: 0 !important;
+  margin-bottom: 8px !important;
 }
 
 /* Make vertical gaps between rows extremely small */
@@ -1100,6 +1100,20 @@ body.horizontal-mode.small-cards .product {
   margin-top: 12px !important;  /* adjust this value as needed */
 }
 
+</style>
+
+
+<style id="pinch-zoom-fix-aug18">
+/* === Pinch-zoom fix: keep zoom enabled on horizontal modes (2 & 3) === */
+body.horizontal-mode .product-grid{
+  touch-action: auto !important;    /* allow pinch-zoom */
+}
+/* Some browsers require explicit pinch-zoom token; harmless where unsupported */
+@supports (touch-action: pinch-zoom) {
+  body.horizontal-mode .product-grid{
+    touch-action: pinch-zoom pan-x pan-y !important;
+  }
+}
 </style>
 
 </head>
