@@ -1252,7 +1252,7 @@ down-toggle {
 <div id="announcementBar">🧿</div>
 <!-- Category Section (still working) -->
 <div id="categorySection"></div>
-<!-- 🔽 CATEGORY SCRIPT FROM SHEET -->
+<!-- 🔽 CATEGORY SCRIPT FROM SHEET (Title once; blanks inherit previous) -->
 <script>
   const categorySheetURL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
 
@@ -1261,19 +1261,27 @@ down-toggle {
     .then(rows => {
       const container = document.getElementById("categorySection");
       const grouped = {};
+      let currentSection = ""; // last non-empty Title
 
       rows.forEach(row => {
-        const section = row["Title"]?.trim();
-        const name = row["Category Name"]?.trim();
-        const img = row["Category Image"]?.trim();
-        const link = row["Link"]?.trim() || "#";
+        const rawTitle = (row["Title"] || "").trim();
+        if (rawTitle) currentSection = rawTitle;   // carry forward
 
-        if (!section || !name || !img) return;
+        // if still no section (sheet starts with blanks), skip
+        if (!currentSection) return;
 
-        if (!grouped[section]) grouped[section] = [];
-        grouped[section].push({ name, img, link });
+        const name = (row["Category Name"] || "").trim();
+        const img  = (row["Category Image"] || "").trim();
+        const link = (row["Link"] || "").trim() || "#";
+
+        // Need at least name + image to show the card
+        if (!name || !img) return;
+
+        if (!grouped[currentSection]) grouped[currentSection] = [];
+        grouped[currentSection].push({ name, img, link });
       });
 
+      // Render section wise
       Object.entries(grouped).forEach(([section, items]) => {
         const title = document.createElement("h3");
         title.innerText = section;
@@ -1292,10 +1300,9 @@ down-toggle {
 
         items.forEach(item => {
           const box = document.createElement("a");
-          box.href = item.link;
+          box.href = item.link || "#";
           box.style.textDecoration = "none";
           box.style.color = "inherit";
-
           box.innerHTML = `
             <div style="text-align: center;">
               <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 20px; object-fit: cover;">
@@ -1307,7 +1314,8 @@ down-toggle {
 
         container.appendChild(grid);
       });
-    });
+    })
+    .catch(err => console.error("Category load error:", err));
 </script>
 <script>
   // Announcement Bar from Google Sheet
