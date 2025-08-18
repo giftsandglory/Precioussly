@@ -63,7 +63,7 @@
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: none; opacity: 1; }
+  50% { transform: scale(1.05); opacity: 1; }
 }
 
 .empty-cart-img {
@@ -231,7 +231,7 @@ body {
 .qty-btn:hover {
   background: #2874f0;
   color: white;
-  transform: none;
+  transform: scale(1.05);
 }
 
 .qty-count {
@@ -498,7 +498,7 @@ button.remove-btn:hover {
   background-color: #fff;
 }
 /* ===== Coupons strip (same look as index) ===== */
-.coupon-strip{display:flex;overflow-x:auto;gap:10px;padding:10px 12px;background:transparent;scroll-behavior: auto}
+.coupon-strip{display:flex;overflow-x:auto;gap:10px;padding:10px 12px;background:transparent;scroll-behavior:smooth}
 .coupon-card{background:#e9fef1;border:1px solid #c5ecd6;border-radius:10px;padding:8px 10px;width:220px;box-shadow:0 1px 3px rgba(0,0,0,.04);flex-shrink:0;display:flex;flex-direction:column;justify-content:center}
 .coupon-card h3{font-size:15px;font-weight:bold;margin:0;color:#064c2c}
 .coupon-card p{font-size:12px;margin:2px 0 6px;color:#064c2c}
@@ -667,19 +667,6 @@ button.remove-btn:hover {
 #menuContent .menu-link:first-child:hover {
   background-color: #d4f3df !important;       /* thoda dark hover green */
 }
-
-/* ==== Final tight positioning for error messages (just below the input) ==== */
-.floating-input .error-msg{
-  display:none;
-  font-size:12px;
-  line-height:1.2;
-  margin:0;               /* no margin */
-  padding:0;              /* no padding */
-  color:#e53935;
-}
-
-.floating-input.error .error-msg{ display:block; }
-
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
@@ -740,109 +727,6 @@ button.remove-btn:hover {
 
 /* Header sticky (already present; ensure z-index high) */
 .site-header{ position:sticky; top:0; z-index:3500; }
-</style>
-
-
-<style id="disable-animations">
-/* === Global kill switch: remove ALL animations & transitions === */
-*,
-*::before,
-*::after { animation: none !important; transition: none !important; }
-
-html, body { scroll-behavior: auto !important; }
-
-/* Components that previously had motion */
-.menu-overlay,
-.side-menu,
-.site-header,
-.progress-bar .bar,
-.proceed-btn,
-.qty-btn,
-.menu-link,
-.submenu,
-.dropdown-toggle,
-.menu-close,
-.quantity-bar button {
-  transition: none !important;
-}
-
-/* Remove hover transform / shadow jumps */
-.qty-btn:hover,
-.menu-link:hover,
-.menu-link:active,
-.item:hover {
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-/* Stop spinners and any keyframe-based effects */
-.cart-item-animate,
-.empty-cart-img,
-#minimumNotice,
-.btn-spinner,
-.spinner {
-  animation: none !important;
-}
-
-/* Any smooth scrolling */
-.coupon-strip { scroll-behavior: auto !important; }
-</style>
-
-
-<style id="address-validation-css">
-
-/* ==== Precise positioning for warning icon + aligned error text ==== */
-.floating-input{ position:relative; }
-
-/* Red warning icon inside the input container */
-.floating-input.error::after{
-  content:"";
-  position:absolute;
-  right:12px;              /* a bit to the right */
-  top:10px;                /* slightly higher */
-  width:14px;
-  height:14px;
-  pointer-events:none;
-  background-repeat:no-repeat;
-  background-position:center;
-  background-size:contain;
-}
-
-/* Error message sits just below the input, aligned with its left padding */
-.floating-input .error-msg{
-  display:none;
-  font-size:12px;
-  line-height:1.35;
-  margin-top:4px;          /* a touch closer to the box */
-  padding-left:12px;       /* align with input text (matches input left padding) */
-  color:#e53935;
-  transform:translateY(-2px); /* nudge slightly upward */
-}
-
-/* Show message only when error class present */
-.floating-input.error .error-msg{ display:block; }
-
-/* Input/select visuals in error state */
-
-/* ==== Adjusted error message positioning ==== */
-.floating-input .error-msg{
-  display:none;
-  font-size:12px;
-  line-height:1.3;
-  margin-top:2px;          /* even closer to the input */
-  padding-left:12px;       /* align with input text */
-  color:#e53935;
-  transform:translateY(0); /* reset, no downward shift */
-}
-
-.floating-input.error .error-msg{ display:block; }
-
-.floating-input.error input,
-.floating-input.error select{
-  border-color:#e53935 !important;
-  background:#fff;
-}
-
 </style>
 
 </head>
@@ -906,7 +790,7 @@ html, body { scroll-behavior: auto !important; }
       />
       <span
         id="cartCountBadge"
-        style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 19px; height: 19px; display: none; align-items: center; justify-content: center;"
+        style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center;"
       >
         0
       </span>
@@ -995,7 +879,6 @@ html, body { scroll-behavior: auto !important; }
 
   document.addEventListener("DOMContentLoaded", () => {
     // Show saved address if exists
-    const cartData = JSON.parse(localStorage.getItem("cartItems") || "[]");
     if (shippingAddress) {
       document.getElementById("displayAddress").innerHTML = shippingAddress;
     }
@@ -1049,23 +932,18 @@ html, body { scroll-behavior: auto !important; }
 }
   });
 
-
 function updateSummary() {
-  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
-  const fee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee}</span>`;
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
+
+  const fee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+
+  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee
+  try { syncCouponInput(); } catch(e){}
+}</span>`;
 
   document.getElementById("summaryBox").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
-      <span>Order Total</span><span>₹${subtotal + fee}</span>
-    </div>
-  `;
-  try { if (typeof syncCouponInput === "function") syncCouponInput(); } catch(e) {}
-}
-</span></div>
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
     <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
     <div class="summary-row" style="font-weight: bold; font-size: 18px;">
       <span>Order Total</span><span>₹${total + fee}</span>
@@ -1211,15 +1089,6 @@ function closeAddressPopup() {
 }
 
 function confirmAddress() {
-  if (!window.validateAddressFields || !window.validateAddressFields()) {
-    var firstErr = document.querySelector(".floating-input.error");
-    if (firstErr) {
-      var y = firstErr.getBoundingClientRect().top + window.scrollY - 40;
-      window.scrollTo(0, y);
-    }
-    return; // stop if invalid
-  }
-
   const fullName = document.getElementById("fullname").value;
   const state = document.getElementById("state").value;
   const city = document.getElementById("city").value;
@@ -1463,18 +1332,12 @@ function decrease(index) {
   }
 }
 
-
 function removeItem(index) {
-  const cartData = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  cartData.splice(index, 1); // remove selected item
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  cartData.splice(index, 1); // Remove the item from array
   localStorage.setItem("cartItems", JSON.stringify(cartData));
-
-  // Re-render UI instantly without page refresh
-  try { renderCartUI(); } catch(e) {}
-
-  // If you also send any analytics/telemetry, trigger here (optional)
+  location.reload(); // Page reload to re-render all cart items
 }
-
 </script>
 
 <script>
@@ -1786,32 +1649,30 @@ function openAddressAndClosePopup() {
   function payViaRazorpay() {
     // Koi popup khula ho to band
     try {
-      const p = document.getElementById("codPopup");
-      if (p) p.style.display = "none";
+      document.getElementById("codPopup").style.display = "none";
       document.body.style.overflow = "";
     } catch (e) {}
 
     // --- Amounts (coupon ko minus karke) ---
     const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    const subtotal = items.reduce((s, it) => s + (Number(it.price || 0) * Number(it.qty || 1)), 0);
+    const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
     const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
 
     // Applied coupon ka discount (agar min meet ho raha hai)
     let discount = 0;
     try {
-      if (window.appliedCoupon && subtotal >= Number(window.appliedCoupon.min || 0)) {
+      if (window.appliedCoupon && subtotal >= window.appliedCoupon.min) {
         // discountOnSubtotal helper aapke file me upar defined hai
-        discount = Number(discountOnSubtotal(subtotal, window.appliedCoupon) || 0);
+        discount = discountOnSubtotal(subtotal, window.appliedCoupon);
       }
     } catch (e) {}
 
     const finalAmount = Math.max(1, subtotal + deliveryFee - discount); // safeguard
 
     // Prefill details (address/localStorage se)
-    const addressObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
-    const name  = addressObj.fullname || localStorage.getItem("user_name")  || "";
+    const name  = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").fullname) || (localStorage.getItem("user_name") || "");
     const email = localStorage.getItem("user_email") || "";
-    const phone = addressObj.phone     || "";
+    const phone = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone) || "";
 
     const options = {
       key: "rzp_live_S4Dmi0UXQYNAyV",               // ✅ aapka live Key ID
@@ -1827,37 +1688,32 @@ function openAddressAndClosePopup() {
       handler: function (response) {
         // --- Success ke baad order ko localStorage me save + cart clear ---
         const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-        const itemsTotal = items.reduce((s, it) => s + (Number(it.price || 0) * Number(it.qty || 1)), 0);
+        const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
         const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-        const applied = (window.appliedCoupon && window.appliedCoupon.code) ? window.appliedCoupon.code : null;
-        const discountAmt = Number(discount || 0); // upar calculate (closure)
+        const applied = window.appliedCoupon ? window.appliedCoupon.code : null;
+        const discountAmt = discount; // upar calculate
 
         const grandTotal = Math.max(0, itemsTotal + deliveryFee - discountAmt);
 
         const order = {
           id: "RZP-" + (response.razorpay_payment_id || Date.now()),
           method: "Razorpay",
-          items: items, // {name, qty, price, photo} expected by formatter (photo optional)
+          items,
           coupon: applied,
           amounts: { itemsTotal, deliveryFee, codFee: 0, discount: discountAmt, grandTotal },
           address: localStorage.getItem("shippingAddress") || "",
           createdAt: new Date().toISOString()
         };
 
-        // Orders list update
         const orders = JSON.parse(localStorage.getItem("orders") || "[]");
         orders.unshift(order);
         localStorage.setItem("orders", JSON.stringify(orders));
 
-        // Cart clear + badge update
         localStorage.setItem("cartItems", "[]");
         try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
         localStorage.setItem("lastOrderClearedCart", "1");
 
-        // ✅ Telegram (green card format) — requires the helper from previous step
-        try { sendOrderToTelegram(order); } catch(e) { console.warn("TG error", e); }
-
-        // Redirect
+        try{ sendOrderToTelegram(order); }catch(e){}
         window.location.href = "https://precioussly.com/thankyou-razorpay";
       },
 
@@ -1917,83 +1773,29 @@ function openAddressAndClosePopup() {
   </div>
 </div>
 
-
-<script id="address-validation-strict">
-function ensureErrorContainers() {
-  var ids = ["fullname","email","state","city","pincode","address","phone","altphone"];
-  ids.forEach(function(id){
-    var el = document.getElementById(id);
-    if (!el) return;
-    var wrap = el.closest(".floating-input");
-    if (!wrap) return;
-    if (!wrap.querySelector(".error-msg")) {
-      var div = document.createElement("div");
-      div.className = "error-msg";
-      wrap.appendChild(div);
-    }
-  });
-}
-
+<script>
 function validateAddressFields() {
-  ensureErrorContainers();
-  var EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-  var CITY_RE=/^[a-zA-Z][a-zA-Z .'-]{1,}$/;
-  var PIN_RE=/^\d{6}$/;
-  var PHONE_RE=/^\d{10}$/;
+  const fullName = document.getElementById("fullname").value.trim();
+  const state = document.getElementById("state").value;
+  const city = document.getElementById("city").value.trim();
+  const pincode = document.getElementById("pincode").value.trim();
+  const address = document.getElementById("address").value.trim();
+  const phone = document.getElementById("phone").value.trim();
 
-  function setError(id,msg){
-    var el=document.getElementById(id);
-    if(!el) return false;
-    var wrap=el.closest(".floating-input");
-    if(!wrap) return false;
-    var box=wrap.querySelector(".error-msg");
-    if(msg){
-      wrap.classList.add("error");
-      if(box) box.textContent=msg;
-      el.setAttribute("aria-invalid","true");
-      return false;
-    }else{
-      wrap.classList.remove("error");
-      if(box) box.textContent="";
-      el.removeAttribute("aria-invalid");
-      return true;
-    }
+  const isValid = fullName && state && city && pincode && address && phone;
+
+  const btn = document.getElementById("confirmAddressBtn");
+  if (isValid) {
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+    btn.style.cursor = "not-allowed";
   }
-
-  var fullName=(document.getElementById("fullname")||{}).value||"";
-  var email=(document.getElementById("email")||{}).value||"";
-  var state=(document.getElementById("state")||{}).value||"";
-  var city=(document.getElementById("city")||{}).value||"";
-  var pincode=(document.getElementById("pincode")||{}).value||"";
-  var address=(document.getElementById("address")||{}).value||"";
-  var phone=(document.getElementById("phone")||{}).value||"";
-  var altphone=(document.getElementById("altphone")||{}).value||"";
-
-  var okName=fullName.trim().length>=3; setError("fullname", okName?"":"Please enter your full name.");
-  // Email: always OK, no error message
-var okEmail = true;
-setError("email", "");
-
-  var okState=!!state&&state.trim().length>0; setError("state", okState?"":"Please select your state.");
-  var okCity=CITY_RE.test(city.trim()); setError("city", okCity?"":"Enter a valid city name.");
-  var okPin=PIN_RE.test(pincode.trim()); setError("pincode", okPin?"":"Pincode must be 6 digits.");
-  var okAddr=address.trim().length>=10; setError("address", okAddr?"":"Address should be at least 10 characters.");
-  var okPhone=PHONE_RE.test(phone.trim()); setError("phone", okPhone?"":"Phone number must be 10 digits.");
-  var okAlt=true;
-  if(altphone.trim().length){ okAlt=PHONE_RE.test(altphone.trim()); setError("altphone", okAlt?"":"Alternate phone must be 10 digits." ); } else { setError("altphone",""); }
-
-  var allOK = okName && okEmail && okState && okCity && okPin && okAddr && okPhone && okAlt;
-  var btn=document.getElementById("confirmAddressBtn");
-  if(btn){
-    btn.disabled=!allOK;
-    btn.style.opacity=allOK?"1":"0.5";
-    btn.style.cursor=allOK?"pointer":"not-allowed";
-    btn.setAttribute("aria-disabled", String(!allOK));
-  }
-  return allOK;
 }
 </script>
-
 <script>
 let minimumOrderValue = null; // nothing shown until fetched
 
@@ -2649,247 +2451,65 @@ function payCODAdvance95(){
 </script>
 
 <!-- ======= Telegram Order Notifier (auto-inserted) ======= -->
-<!-- ✅ TELEGRAM ORDER MESSAGE — paste ABOVE 
 <script>
-// ---- Safety fallbacks (no-ops) ----
-(function(){
-  window.allCoupons = window.allCoupons || [];
-  if (typeof preNotifyTelegram !== 'function') window.preNotifyTelegram = function(method){ return { id: "PRE-"+Date.now(), method }; };
-  if (typeof discountOnSubtotal !== 'function') window.discountOnSubtotal = function(subtotal, c){ return Number(c && c.amount) || 0; };
-  if (typeof bestCouponFor !== 'function') window.bestCouponFor = function(){ return {coupon:null, amount:0}; };
-  if (typeof showAppliedTag !== 'function') window.showAppliedTag = function(){};
-  if (typeof showProgress !== 'function') window.showProgress = function(){};
-  if (typeof syncCouponInput !== 'function') window.syncCouponInput = function(){};
-  if (typeof sendOrderToTelegram !== 'function') window.sendOrderToTelegram = function(){};
-})();
-
-// ---- Minimum order gate + Proceed button visibility ----
-function checkMinOrderCondition() {
-  var MIN_TOTAL = 299;
-  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  const subtotal = items.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
-  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-  const codFee = (window.selectedPayment === "cod") ? (Number(window.codCharge)||0) : 0;
-  const includeDelivery = (window.selectedPayment !== "cod");
-  const payable = Math.max(0, subtotal + (includeDelivery ? deliveryFee : 0) + codFee);
-
-  const notice = document.getElementById("minimumNotice");
-  const btn = document.getElementById("proceedBtn");
-
-  if (payable < MIN_TOTAL) {
-    notice.style.display = "block";
-    notice.textContent = "Minimum order amount is ₹" + MIN_TOTAL + " to proceed";
-    if (btn) btn.style.display = "none";
-  } else {
-    notice.style.display = "none";
-    if (btn) btn.style.display = "block";
-  }
-}
-
-// Open COD suggestion popup (95/variable charge)
-function openCOD95Popup(){
-  try{
-    const popup = document.getElementById("codPopup");
-    if (popup){ popup.style.display = "flex"; document.body.style.overflow = "hidden"; }
-  } catch(e){}
-}
-
-// Run once on load
-document.addEventListener("DOMContentLoaded", function(){
-  try{ checkMinOrderCondition(); }catch(e){}
-});
-</script>
-
-
-<script>
-// === Live re-render of cart without page refresh ===
-function renderCartUI() {
-  try {
-    const container = document.getElementById("cartItems");
-    if (!container) return;
-
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-
-    // Reset container
-    container.innerHTML = "";
-
-    if (!items.length) {
-      // Empty cart UI
-      container.innerHTML = `
-        <div style="text-align:center; margin-top: 30px;">
-          <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
-          <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
-          <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
-        </div>
-      `;
-      const sb = document.getElementById("summaryBox");
-      if (sb) sb.innerHTML = "";
-      const bb = document.getElementById("bottomBox");
-      if (bb) bb.style.display = "none";
-      const pmb = document.getElementById("paymentMethodBox");
-      if (pmb) pmb.style.display = "none";
-
-      try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
-      try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
-      return;
-    }
-
-    // If we have items, show payment box
-    const pmb = document.getElementById("paymentMethodBox");
-    if (pmb) pmb.style.display = "block";
-    const bb = document.getElementById("bottomBox");
-    if (bb) bb.style.display = "";
-
-    // Build each item row
-    items.forEach((item, index) => {
-      const row = document.createElement("div");
-      row.className = "item";
-      row.innerHTML = `
-        <img src="${item.photo}" />
-        <div class="item-info">
-          <div class="item-name">${item.name}</div>
-          <div class="item-price">₹${item.price}</div>
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
-            <div class="quantity-bar" style="margin:0;">
-              <button onclick="decrease(${index})">
-                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-                  <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </button>
-              <div id="qty-${index}" class="quantity-display">${item.qty}</div>
-              <button onclick="increase(${index})">
-                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-                  <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </button>
-            </div>
-            <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
-          </div>
-        </div>
-      `;
-      container.appendChild(row);
-    });
-
-    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
-    try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
-  } catch (e) {
-    console.error("renderCartUI error", e);
-  }
-}
-
-// Ensure first render happens in case author wants to use it
-document.addEventListener("DOMContentLoaded", function(){
-  try { renderCartUI(); } catch(e){}
-});
-</script>
-
-
-<script id="validation-override-tail">
-window.validateAddressFields = validateAddressFields;
-</script>
-
-</body> -->
-<script>
-/* ===================== 1) CONFIG ===================== */
 const TG_BOT_TOKEN = "8338453495:AAGlEj98SoocsWjT2qa6FRo6qjHInDafqfA";
-const TG_CHAT_ID   = "792731562";   // if multiple people, send once per id in an array
+const TG_CHAT_ID   = "792731562";
 
-/* ===================== 2) HELPERS ===================== */
-function inr(n){ return Number(n||0).toLocaleString("en-IN"); }
-function escapeHTML(s){
-  return String(s ?? "")
-    .replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-}
-function niceTime(ts){
-  const d = new Date(ts || Date.now());
-  // "16 August 2025 at 11:00 am"
-  return d.toLocaleString("en-IN", {
-    day:"2-digit", month:"long", year:"numeric",
-    hour:"numeric", minute:"2-digit", hour12:true
-  }).replace(",", " at");
-}
-/* turns "a<br>b<br>c" → "a\nb\nc" */
-function normalizeAddress(x){ return String(x||"").replace(/<br\s*\/?>/gi, "\n"); }
-
-/* ===================== 3) MESSAGE BUILDER ===================== */
-/*
-  Expected `order` shape (examples):
-  {
-    id: "RZP-PRE-1755322201321",
-    method: "Razorpay" | "COD",
-    displayMethod: "Razorpay",
-    createdAt: Date.now(),
-    items: [{name:"Red Ribbon", qty:33, price:10, photo:"https://..."}, ...],
-    amounts: {
-      itemsTotal: 330,
-      deliveryFee: 0,
-      codFee: 89,        // only for COD
-      discount: 30,
-      grandTotal: 300
-    },
-    coupon: "GET30",
-    address: "Ashu Tyagi<br>Pradhan Enclave buradi,<br>Burari, Delhi - 110084<br><a href='tel:8744841734'>8744841734</a>"
-  }
-*/
+/* Build the exact text we send to Telegram */
 function formatOrderForTelegram(order){
   try{
-    const when   = niceTime(order.createdAt);
-    const a      = order.amounts || {};
-    const method = String(order.displayMethod || order.method || "-");
-    const isCOD  = /cod/i.test(method);
+    const when = new Date(order.createdAt || Date.now())
+      .toLocaleString("en-IN", { day: "2-digit", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
+
+    const a = order.amounts || {};
+    const isCOD = /cod/i.test(String(order.displayMethod || order.method || ""));
 
     const lines = [];
-
-    // Header exactly like the green card
-    lines.push(`🧾 <b>New</b>`);
-    lines.push(`Order  <b>${escapeHTML(order.id || "")}</b>`);
-    lines.push(`🏁 <b>Method:</b> ${escapeHTML(method)} 😎`);
-    lines.push(`⏱ <b>Time:</b> ${when}`);
+    lines.push(`🧾 <b>New Order</b>  <code>${order.id || ""}</code>`);
+    lines.push(`💳 Method: <b>${order.displayMethod || order.method || "-"}</b>`);
+    lines.push(`⏱️ Time: ${when}`);
     lines.push(``);
     lines.push(`<b>Items:</b>`);
 
-    // Items with link line right below each item
     (order.items || []).forEach((it, idx) => {
       const qty   = Number(it.qty)   || 1;
       const price = Number(it.price) || 0;
-      const total = price * qty;
-
-      lines.push(`${idx+1}) ${escapeHTML(it.name || "Item")} × ${qty} — ₹${inr(total)}`);
-      if (it.photo && /^https?:\/\//i.test(it.photo)){
-        const url = String(it.photo).trim();
-        lines.push(`👇`);
-        // clickable link (HTML mode)
-        lines.push(`<a href="${url}">${url}</a>`);
-      }
-      lines.push(""); // blank line between items
+      lines.push(`${idx+1}) ${it.name || "Item"} × ${qty} — ₹${price * qty}`);
     });
 
-    // Totals block
-    if (a.itemsTotal != null) lines.push(`Item Total: ₹${inr(a.itemsTotal)}`);
+    lines.push(``);
+    // Totals section
+    if (a.itemsTotal != null) lines.push(`Item Total: ₹${a.itemsTotal}`);
 
-    // Delivery: show as "Free Delivery" when 0; (hide completely if you prefer for COD)
-    if (a.deliveryFee != null && !isCOD){
-      lines.push(`Delivery: ${Number(a.deliveryFee) === 0 ? "Free Delivery" : `₹${inr(a.deliveryFee)}`}`);
+    // Delivery: hide on COD, otherwise show "Free Delivery" when 0
+    if (!isCOD && a.deliveryFee != null) {
+      lines.push(`Delivery: ${Number(a.deliveryFee) === 0 ? "Free Delivery" : `₹${a.deliveryFee}`}`);
     }
 
-    // COD charges (only when present)
-    const codFee = Number(a.codFee || 0);
-    if (codFee > 0) lines.push(`COD Charges: ₹${inr(codFee)}`);
-
-    // Coupon lines (both name and discounted amount)
-    const discount = Number(a.discount || 0);
-    if (order.coupon) lines.push(`Coupon: ${escapeHTML(order.coupon)}`);
-    if (discount > 0){
-      const tag = order.coupon ? ` (${escapeHTML(order.coupon)})` : "";
-      lines.push(`Coupon${tag}: -₹${inr(discount)}`);
+    // COD charges: show only when present (>0)
+    const codFeeNum = Number(a.codFee || 0);
+    if (codFeeNum > 0) {
+      lines.push(`COD Charges: ₹${codFeeNum}`);
     }
 
-    if (a.grandTotal != null) lines.push(`<b>Order Total: ₹${inr(a.grandTotal)}</b>`);
+    if (Number(a.discount || 0) > 0) {
+      const couponTag = order.coupon ? ` (${order.coupon})` : "";
+      lines.push(`Coupon${couponTag}: -₹${a.discount}`);
+    }
 
-    // Address
+    if (a.grandTotal != null) lines.push(`<b>Order Total: ₹${a.grandTotal}</b>`);
+
+    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
+
     lines.push(``);
     lines.push(`<b>Shipping Address</b>`);
-    lines.push(normalizeAddress(order.address) || "(not provided)");
+    lines.push(order.address ? String(order.address).replace(/<br\s*\/?>(\n)?/gi, "\n") : "(not provided)");
+
+    // Optional product photos
+    const photos = (order.items || [])
+      .map(i => i.photo)
+      .filter(u => typeof u === "string" && /^https?:\/\//i.test(u));
+    if (photos.length){ lines.push(`\nPhotos:\n` + photos.join("\n")); }
 
     return lines.join("\n");
   }catch(e){
@@ -2897,21 +2517,20 @@ function formatOrderForTelegram(order){
   }
 }
 
-/* ===================== 4) SENDER ===================== */
+/* Send the message */
 async function sendOrderToTelegram(order){
   try{
-    const text = formatOrderForTelegram(order);
     const url  = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`;
-    const body = {
-      chat_id: TG_CHAT_ID,
-      text,
-      parse_mode: "HTML",
-      disable_web_page_preview: true
-    };
+    const text = formatOrderForTelegram(order);
     const res = await fetch(url, {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        chat_id: TG_CHAT_ID,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true
+      })
     });
     if (!res.ok){
       const t = await res.text().catch(()=> "");
@@ -3298,217 +2917,5 @@ window.goToProduct = goToProduct;
 window.openHeaderSearch = openHeaderSearch;
 window.closeHeaderSearch = closeHeaderSearch;
 </script>
-<!-- Hidden footer initially -->
-<footer id="delayedFooter" 
-        style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
-  © 2025 Precioussly. All rights reserved.
-</footer>
-
-<script>
-  // Ensure footer sticks at bottom if content is short
-  function adjustFooter() {
-    const footer = document.getElementById("delayedFooter");
-    if (!footer) return;
-    const bodyHeight = document.body.scrollHeight;
-    const winHeight = window.innerHeight;
-    if (bodyHeight < winHeight) {
-      footer.style.position = "fixed";
-      footer.style.bottom = "0";
-      footer.style.width = "100%";
-      footer.style.background = "#fff";  // clean background
-    } else {
-      footer.style.position = "relative";
-      footer.style.width = "100%";
-    }
-  }
-
-  // Show footer 3 seconds after page load with fade-in
-  window.addEventListener("load", function(){
-    setTimeout(function(){
-      const footer = document.getElementById("delayedFooter");
-      footer.style.display = "block";
-      footer.style.opacity = "0";
-      footer.style.transition = "opacity 1s ease";
-      requestAnimationFrame(() => { footer.style.opacity = "1"; });
-      adjustFooter();
-    }, 2000);
-  });
-
-  // Re-check if window is resized
-  window.addEventListener("resize", adjustFooter);
-</script>
-<!-- Hidden footer initially -->
-<footer id="delayedFooter" 
-        style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
-  © 2025 Precioussly. All rights reserved.
-</footer>
-
-<script>
-  // Ensure footer sticks at bottom if content is short
-  function adjustFooter() {
-    const footer = document.getElementById("delayedFooter");
-    if (!footer) return;
-    const bodyHeight = document.body.scrollHeight;
-    const winHeight = window.innerHeight;
-    if (bodyHeight < winHeight) {
-      footer.style.position = "fixed";
-      footer.style.bottom = "0";
-      footer.style.width = "100%";
-      footer.style.background = "#fff";  // clean background
-    } else {
-      footer.style.position = "relative";
-      footer.style.width = "100%";
-    }
-  }
-
-  // Show footer 3 seconds after page load with fade-in
-  window.addEventListener("load", function(){
-    setTimeout(function(){
-      const footer = document.getElementById("delayedFooter");
-      footer.style.display = "block";
-      footer.style.opacity = "0";
-      footer.style.transition = "opacity 1s ease";
-      requestAnimationFrame(() => { footer.style.opacity = "1"; });
-      adjustFooter();
-    }, 200);
-  });
-
-  // Re-check if window is resized
-  window.addEventListener("resize", adjustFooter);
-</script>
-
-<script>
-// ---- Safety fallbacks (no-ops) ----
-(function(){
-  window.allCoupons = window.allCoupons || [];
-  if (typeof preNotifyTelegram !== 'function') window.preNotifyTelegram = function(method){ return { id: "PRE-"+Date.now(), method }; };
-  if (typeof discountOnSubtotal !== 'function') window.discountOnSubtotal = function(subtotal, c){ return Number(c && c.amount) || 0; };
-  if (typeof bestCouponFor !== 'function') window.bestCouponFor = function(){ return {coupon:null, amount:0}; };
-  if (typeof showAppliedTag !== 'function') window.showAppliedTag = function(){};
-  if (typeof showProgress !== 'function') window.showProgress = function(){};
-  if (typeof syncCouponInput !== 'function') window.syncCouponInput = function(){};
-  if (typeof sendOrderToTelegram !== 'function') window.sendOrderToTelegram = function(){};
-})();
-
-// ---- Minimum order gate + Proceed button visibility ----
-function checkMinOrderCondition() {
-  var MIN_TOTAL = 299;
-  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  const subtotal = items.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
-  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-  const codFee = (window.selectedPayment === "cod") ? (Number(window.codCharge)||0) : 0;
-  const includeDelivery = (window.selectedPayment !== "cod");
-  const payable = Math.max(0, subtotal + (includeDelivery ? deliveryFee : 0) + codFee);
-
-  const notice = document.getElementById("minimumNotice");
-  const btn = document.getElementById("proceedBtn");
-
-  if (payable < MIN_TOTAL) {
-    notice.style.display = "block";
-    notice.textContent = "Minimum order amount is ₹" + MIN_TOTAL + " to proceed";
-    if (btn) btn.style.display = "none";
-  } else {
-    notice.style.display = "none";
-    if (btn) btn.style.display = "block";
-  }
-}
-
-// Open COD suggestion popup (95/variable charge)
-function openCOD95Popup(){
-  try{
-    const popup = document.getElementById("codPopup");
-    if (popup){ popup.style.display = "flex"; document.body.style.overflow = "hidden"; }
-  } catch(e){}
-}
-
-// Run once on load
-document.addEventListener("DOMContentLoaded", function(){
-  try{ checkMinOrderCondition(); }catch(e){}
-});
-</script>
-
-
-<script>
-// === Live re-render of cart without page refresh ===
-function renderCartUI() {
-  try {
-    const container = document.getElementById("cartItems");
-    if (!container) return;
-
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-
-    // Reset container
-    container.innerHTML = "";
-
-    if (!items.length) {
-      // Empty cart UI
-      container.innerHTML = `
-        <div style="text-align:center; margin-top: 30px;">
-          <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
-          <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
-          <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
-        </div>
-      `;
-      const sb = document.getElementById("summaryBox");
-      if (sb) sb.innerHTML = "";
-      const bb = document.getElementById("bottomBox");
-      if (bb) bb.style.display = "none";
-      const pmb = document.getElementById("paymentMethodBox");
-      if (pmb) pmb.style.display = "none";
-
-      try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
-      try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
-      return;
-    }
-
-    // If we have items, show payment box
-    const pmb = document.getElementById("paymentMethodBox");
-    if (pmb) pmb.style.display = "block";
-    const bb = document.getElementById("bottomBox");
-    if (bb) bb.style.display = "";
-
-    // Build each item row
-    items.forEach((item, index) => {
-      const row = document.createElement("div");
-      row.className = "item";
-      row.innerHTML = `
-        <img src="${item.photo}" />
-        <div class="item-info">
-          <div class="item-name">${item.name}</div>
-          <div class="item-price">₹${item.price}</div>
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
-            <div class="quantity-bar" style="margin:0;">
-              <button onclick="decrease(${index})">
-                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-                  <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </button>
-              <div id="qty-${index}" class="quantity-display">${item.qty}</div>
-              <button onclick="increase(${index})">
-                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-                  <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </button>
-            </div>
-            <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
-          </div>
-        </div>
-      `;
-      container.appendChild(row);
-    });
-
-    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e) {}
-    try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
-  } catch (e) {
-    console.error("renderCartUI error", e);
-  }
-}
-
-// Ensure first render happens in case author wants to use it
-document.addEventListener("DOMContentLoaded", function(){
-  try { renderCartUI(); } catch(e){}
-});
-</script>
-
 </body>
 </html>
