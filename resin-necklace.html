@@ -1212,6 +1212,22 @@ body.horizontal-mode .product-grid{
 <div id="content"></div>
 <script>
 const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
+// === Visibility control from Google Sheet ===
+// If the "visibility" cell contains the word "hide" (any case), the product is hidden.
+// If the cell is blank (or anything else), the product is shown.
+function isHidden(row){
+  const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
+  for (const k of keys){
+    if (row.hasOwnProperty(k) && row[k] != null){
+      const v = String(row[k]).trim().toLowerCase();
+      if (v.includes("hide")) return true;   // ✅ hide when cell contains "hide"
+      // return false on any other non-empty value – requirement only mentions "hide"
+      if (v.length) return false;
+    }
+  }
+  return false; // blank means show
+}
+
 // Robust: read "Description" even if header has spaces/case variants
 function getSheetDescription(row){
   const keys = [
@@ -1234,12 +1250,17 @@ applyDirectionFromSheet(data);
     const content = document.getElementById('content');
     let currentSection = '';
     let sectionWrapper;
+    let currentSectionHidden = false;
 
     data.forEach(item => {
-      if (item["Section"]) {
-        currentSection = item["Section"];
-        const sectionTitle = document.createElement('div');
-        sectionTitle.className = 'section-title';
+        // --- Section header row handling (section-level hide support) ---
+        if (item["Section"]) {
+          currentSection = item["Section"];
+          const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
+          currentSectionHidden = secVis.includes("hide");
+          if (currentSectionHidden) { sectionWrapper = null; return; }
+          const sectionTitle = document.createElement('div');
+sectionTitle.className = 'section-title';
         sectionTitle.innerText = currentSection;
         content.appendChild(sectionTitle);
 
@@ -1248,6 +1269,8 @@ applyDirectionFromSheet(data);
         content.appendChild(sectionWrapper);
       }
 
+      if (currentSectionHidden) return;
+      if (isHidden(item)) return;
       if (!item["Product Name"]) return;
 
       const product = document.createElement('div');
