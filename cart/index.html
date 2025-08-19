@@ -1249,10 +1249,35 @@ function confirmAddress() {
         <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + fee}</span></div>
       `;
       try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
+
+    // === NEW: read "COD PREPAID" from sheet and update UI ===
+try {
+  if (data[0] && data[0]["COD PREPAID"] != null) {
+    var prepaidRaw = String(data[0]["COD PREPAID"]).trim();
+    var prepaidNum = Number(prepaidRaw.replace(/[^\d.]/g, "")) || 95;
+    window.codPrepaid = prepaidNum;
+  }
+} catch(e){ window.codPrepaid = window.codPrepaid || 95; }
+
+// Update the COD prepaid text in the popup heading and button label
+function updateCODPrepaidUI() {
+  try {
+    var p = Number(window.codPrepaid) || 95;
+    document.querySelectorAll('#cod95Popup .address-popup-box > div:first-child').forEach(function(el){
+      if (el) el.textContent = 'Pay ₹' + p + ' now, rest to Delivery Partner';
     });
+    document.querySelectorAll('#cod95Popup .btn-label').forEach(function(lbl){
+      if (lbl) lbl.textContent = 'Pay ₹' + p + ' now';
+    });
+  } catch(e){}
+}
+updateCODPrepaidUI();
+});
+
 </script>
 <script>
 window.codCharge = 95; // default until sheet loads
+window.codPrepaid = 95; // default COD prepaid until sheet loads
 window.cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -2432,7 +2457,7 @@ if (couponToUse && document.getElementById("couponInput")) {
     const itemsTotal = items.reduce((s,it)=> s + (Number(it.price)||0)*(Number(it.qty)||0), 0);
     const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
     const codFee = Number(window.codCharge) || 0;
-    const remaining = Math.max(0, itemsTotal + deliveryFee + codFee - 95);
+    const remaining = Math.max(0, itemsTotal + deliveryFee + codFee - (Number(window.codPrepaid)||95));
 
     // 1–2 top items to keep the message compact
     const itemLines = items.slice(0,2).map(it => `• ${it.title || "Item"} × ${it.qty || 1}`).join('\n')
@@ -2440,7 +2465,7 @@ if (couponToUse && document.getElementById("couponInput")) {
 
     return {
       text:
-`🟦 <b>COD ₹95 Clicked — Payment Pending</b>
+`🟦 <b>COD ₹${Number(window.codPrepaid)||95} Clicked — Payment Pending</b>
 Name: ${name || "-"}
 Phone: ${phone || "-"}
 Email: ${email || "-"}
@@ -2453,7 +2478,7 @@ Amounts:
 Items: ₹${itemsTotal}
 Delivery: ₹${deliveryFee}
 COD Fee: ₹${codFee}
-To Pay Now: ₹95
+To Pay Now: ₹${Number(window.codPrepaid)||95}
 Remaining on Delivery: ₹${remaining}
 
 Time: ${new Date().toLocaleString()}`,
@@ -2502,6 +2527,7 @@ Time: ${new Date().toLocaleString()}`,
 <!-- Razorpay flow (unchanged logic, small safety tweaks) -->
 <script>
 function payCODAdvance95(){
+  var prepaid = Number(window.codPrepaid)||95;
   // Prefills
   var addrObj = {};
   try{ addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); }catch(e){}
@@ -2515,7 +2541,7 @@ function payCODAdvance95(){
   var itemsTotal = items.reduce(function(s,it){ var p=Number(it.price)||0; var q=Number(it.qty)||0; return s + p*q; }, 0);
   var deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
   var codFee = Number(window.codCharge) || 0;
-  var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - 95);
+  var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - (Number(window.codPrepaid)||95));
 
   var options = {
     key: "rzp_live_S4Dmi0UXQYNAyV",
@@ -2533,13 +2559,13 @@ function payCODAdvance95(){
       var order = {
         id: "COD-" + Date.now(),
         method: "COD",
-        prepaidAmount: 95,
+        prepaidAmount: prepaid,
         remainingAmount: remaining,
         razorpay_payment_id: response.razorpay_payment_id || "",
         items: items,
         amounts: {
           itemsTotal: itemsTotal, deliveryFee: deliveryFee, codFee: codFee,
-          prepaid: 95, remaining: remaining, grandTotal: itemsTotal + deliveryFee + codFee
+          prepaid: prepaid, remaining: remaining, grandTotal: itemsTotal + deliveryFee + codFee
         },
         address: localStorage.getItem("shippingAddress") || "",
         createdAt: new Date().toISOString()
@@ -2573,6 +2599,7 @@ function payCODAdvance95(){
     }
   };
 
+  try { options.amount = prepaid * 100; } catch(e) {}
   var rzp = new Razorpay(options);
   rzp.open();
 }
