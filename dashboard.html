@@ -743,44 +743,82 @@ main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
   }
 </script>
 <script>
-/* ===== Multi-Page Search Setup =====
-   👉 "CATALOGS" me jitne pages/sheets chahen add kijiye.
-   ✅ page ko safest tarike se current page path par set kiya (location.pathname),
-      taaki yahin ka popup ?p= se open ho (aapka maybeOpenFromURL already handle karta hai).
+/* ===== Auto Tabs Search Setup (Single Google Sheet → ALL its tabs) =====
+   CONFIG: Set SHEET_ID below. You DO NOT need to list tab names.
+   The script will auto-detect all sheet tabs (if the sheet is public or "Published to web").
+   Fallback: If auto-detect fails, it will look for a tab named "Tabs" that lists tab names in column A.
+   Final fallback: it will use only the first/default tab "Sheet1".
 */
-const CATALOGS = [
-  {
-    name: "Resin Necklace",
-    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
-    page : location.pathname            // e.g. "/resin-necklace/" or "/Resin Necklace.html"
-  },
-  // { name:"Hello", sheet:"https://opensheet.elk.sh/XXXX/Sheet1", page:"/hello.html" },
-  // { name:"Rings", sheet:"https://opensheet.elk.sh/YYYY/Sheet1", page:"/rings/" },
-];
+const SHEET_ID_FOR_SEARCH = "1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA"; // ✅ Google Sheet ID
+const PAGE_FOR_RESULTS = "/resin-necklace/";  // product detail page that supports ?p=... popup
 
-// Global merged list
-window.allProducts = [];
+// Utility: fetch all tab names using the legacy public worksheet feed (works for public/published sheets)
+async function listSheetTabs(sheetId){
+  const url = `https://spreadsheets.google.com/feeds/worksheets/${sheetId}/public/basic?alt=json`;
+  try{
+    const res = await fetch(url, { cache: "no-store" });
+    if(!res.ok) throw new Error("tab feed not ok");
+    const data = await res.json();
+    const entries = (data && data.feed && data.feed.entry) || [];
+    const names = entries.map(e => (e.title && e.title.$t) || "").filter(Boolean);
+    return Array.from(new Set(names));
+  }catch(e){
+    return []; // will try fallback
+  }
+}
 
-// Load all catalogs from Google Sheets
-Promise.all(
-  CATALOGS.map(cat =>
-    fetch(cat.sheet).then(r => r.json()).then(rows => {
-      const items = rows
-        .filter(row => (row["Product Name"] || "").trim())
+// Fallback: read a "Tabs" sheet (first column) via opensheet if present
+async function listTabsFromConfig(sheetId){
+  try{
+    const url = `https://opensheet.elk.sh/${sheetId}/Tabs`;
+    const rows = await fetch(url).then(r => r.json());
+    const names = (rows || []).map(r => (r["Tab"] || r["tab"] || r["name"] || r["Name"] || Object.values(r)[0] || "")).map(s => String(s).trim()).filter(Boolean);
+    return Array.from(new Set(names));
+  }catch(e){ return []; }
+}
+
+// Load data for one tab via opensheet
+async function loadTabRows(sheetId, tabName){
+  const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
+  const rows = await fetch(url).then(r => r.json());
+  return rows;
+}
+
+// Build the global product list from ALL tabs
+window.allProducts = []; // will be filled below
+
+(async function buildAllProducts(){
+  let tabs = await listSheetTabs(SHEET_ID_FOR_SEARCH);
+  if(!tabs.length){
+    tabs = await listTabsFromConfig(SHEET_ID_FOR_SEARCH);
+  }
+  if(!tabs.length){
+    tabs = ["Sheet1"]; // last fallback
+  }
+
+  // Ignore very obvious non-catalog tabs
+  const ignore = new Set(["Config","Menu","Announcement","Announcements","Buttons","Categories","Tabs","MENU","config","menu","tabs"]);
+  const filteredTabs = tabs.filter(t => !ignore.has(t));
+
+  const all = [];
+  for (const tab of filteredTabs){
+    try{
+      const rows = await loadTabRows(SHEET_ID_FOR_SEARCH, tab);
+      const items = (rows || [])
+        .filter(row => (String(row["Product Name"] || "").trim().length > 0))
         .map(row => ({
           name: String(row["Product Name"]).trim(),
           price: Number(row["Selling Price"] || 0),
           mrp: Number(row["MRP"] || 0),
           image: row["photo 1"] || row["Photo 1"] || "",
-          page: cat.page,
-          from: cat.name
+          page: PAGE_FOR_RESULTS,
+          from: tab
         }));
-      return items;
-    })
-  )
-).then(listOfLists => {
-  window.allProducts = listOfLists.flat();
-}).catch(()=>{ /* ignore */ });
+      all.push(...items);
+    }catch(e){ /* skip tab on error */ }
+  }
+  window.allProducts = all;
+})();
 
 /* ========== UI wiring ========== */
 const inputEl = document.getElementById('headerSearchInput');
