@@ -2,6 +2,19 @@
 
 <html lang="en">
 <head>
+<script>
+// --- HARD STOP: Always remove ?p= on page load/refresh (before anything else) ---
+(function () {
+  try {
+    var url = new URL(window.location.href);
+    if (url.searchParams.has('p')) {
+      // Replace the URL so the default page path is shown, and popup will NOT auto-open.
+      history.replaceState(null, "", url.pathname);
+    }
+  } catch (e) {}
+})();
+</script>
+
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
@@ -1795,21 +1808,25 @@ updateCartBadge(false); // ✅ no bounce on refresh
 </script>
 
 <script>
+
 function closePopup() {
   const popup = document.getElementById("productPopup");
   if (!popup) return;
   const card = popup.querySelector(".popup-card");
-  if (!card) return;
 
-  card.classList.remove("enter");
-  card.classList.add("leave");
+  // Immediately strip ?p= from the URL so a refresh always goes to default page
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+
+  // Close visuals (no dependency on transitionend)
   popup.classList.remove("is-open");
   document.body.classList.remove("noscroll");
-
-  const onDone = (e) => {
-    if (e.target !== card) return;
+  if (card) { card.classList.remove("enter"); card.classList.add("leave"); }
+  // Hide quickly
+  try {
     popup.style.display = "none";
-  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  } catch (e) {}
+}
+catch (e) {}
     card.removeEventListener("transitionend", onDone);
   };
   card.addEventListener("transitionend", onDone);
