@@ -1778,7 +1778,7 @@ function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
   // Pre-notify bheja tha to dubara TG mat bhejo
   if (!order.preNotified) { try{ sendOrderToTelegram(order); }catch(e){} }
 
-  window.location.href = "https://precioussly.com/thankyou-cod";
+  showPaymentPopup("success");
 }
 </script>
 <script>
@@ -1867,7 +1867,7 @@ function openAddressAndClosePopup() {
         localStorage.setItem("lastOrderClearedCart", "1");
 
         try{ sendOrderToTelegram(order); }catch(e){}
-        window.location.href = "https://precioussly.com/thankyou-razorpay";
+        showPaymentPopup("success");
       },
 
       modal: {
@@ -2587,7 +2587,7 @@ function payCODAdvance95(){
       try{ sendOrderToTelegram(order); }catch(e){}
 
       // Redirect
-      window.location.href = "https://precioussly.com/thankyou-cod";
+      showPaymentPopup("success");
     },
 
     modal: {
@@ -2601,7 +2601,8 @@ function payCODAdvance95(){
 
   try { options.amount = prepaid * 100; } catch(e) {}
   var rzp = new Razorpay(options);
-  rzp.open();
+      try{ rzp.on('payment.failed', function(){ showPaymentPopup('failed'); }); }catch(_){}
+      rzp.open();
 }
 </script>
 
@@ -3168,5 +3169,51 @@ window.closeHeaderSearch = closeHeaderSearch;
     }
   });
 })();
-</script></body>
+</script>
+<!-- ===== Payment Result Popups (Success / Failed) ===== -->
+<style>
+  .paypop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:99999;}
+  .paypop{width:min(520px,88vw);background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);padding:22px 20px 18px;text-align:center;font-family:'Roboto Slab',serif;border:1px solid #e5e7eb;}
+  .paypop h3{font-size:22px;line-height:1.35;margin:0 0 8px;font-weight:800;color:#111;}
+  .paypop p{font-size:15px;color:#374151;margin:0 0 18px;line-height:1.55;}
+  .paypop .primary{display:inline-flex;gap:10px;align-items:center;justify-content:center;width:100%;padding:12px 16px;border-radius:12px;border:none;background:#2874f0;color:#fff;font-size:16px;cursor:pointer}
+  .paypop .ghost{margin-top:10px;width:100%;padding:11px 16px;border-radius:12px;background:#fff;border:1.4px solid #000;color:#000;font-size:16px;cursor:pointer}
+  .paypop .icon{font-size:28px;margin-bottom:6px}
+</style>
+<div id="paySuccess" class="paypop-overlay" role="dialog" aria-modal="true">
+  <div class="paypop">
+    <div class="icon">✅</div>
+    <h3>Payment Completed</h3>
+    <p>Your payment was received successfully.</p>
+    <button class="primary" onclick="paypopBack()">Back</button>
+  </div>
+</div>
+<div id="payFailed" class="paypop-overlay" role="dialog" aria-modal="true">
+  <div class="paypop">
+    <div class="icon">❌</div>
+    <h3>Payment Failed</h3>
+    <p>The payment didn’t complete. You can try again or go back.</p>
+    <button class="primary" onclick="paypopBack()">Back</button>
+  </div>
+</div>
+<script>
+  function openPayPopup(id){
+    try{ document.getElementById(id).style.display='flex'; document.body.style.overflow='hidden'; }catch(_){}
+  }
+  function closePayPopups(){
+    try{ document.getElementById('paySuccess').style.display='none'; }catch(_){}
+    try{ document.getElementById('payFailed').style.display='none'; }catch(_){}
+    try{ document.body.style.overflow=''; }catch(_){}
+  }
+  function showPaymentPopup(type){
+    if(type==='success'){ openPayPopup('paySuccess'); }
+    else { openPayPopup('payFailed'); }
+  }
+  function paypopBack(){
+    closePayPopups();
+    try{ history.back(); }catch(_){}
+  }
+</script>
+
+</body>
 </html>
