@@ -669,55 +669,6 @@ button.remove-btn:hover {
 }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script>
-// === Override to non-redirect Razorpay flow (popup only)
-window.payViaRazorpay = function(){
-  try{
-    var items = JSON.parse(localStorage.getItem("cartItems")||"[]");
-    var subtotal = items.reduce((s,it)=> s + (Number(it.price)||0)*(Number(it.qty)||0), 0);
-    var deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-    var amountPaise = Math.max(1, subtotal + deliveryFee) * 100;
-
-    var addrObj = {};
-    try{ addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); }catch(e){}
-    var preName  = addrObj.fullname || (localStorage.getItem("user_name") || "Customer");
-    var preEmail = localStorage.getItem("user_email") || "";
-    var prePhone = addrObj.phone || "";
-
-    var options = {
-      key: (window.RAZORPAY_KEY_ID || "rzp_test_1234567890abcdef"),
-      amount: amountPaise,
-      currency: "INR",
-      name: "Precioussly",
-      description: "Order payment",
-      prefill: { name: preName, email: preEmail, contact: prePhone },
-      theme: { color: "#2874f0" },
-      handler: function (response){
-        // SUCCESS → popup (no redirect)
-        try{ localStorage.setItem("_lastPaymentId", response.razorpay_payment_id || ""); }catch(_){}
-        showResultPopup(true, "Payment Completed", "Order paid successfully. Razorpay ID: " + (response.razorpay_payment_id||""));
-      },
-      modal: {
-        ondismiss: function(){
-          // Closed without paying → popup failed
-          showResultPopup(false, "Payment Failed", "Payment window was closed before completing the transaction.");
-        }
-      }
-    };
-
-    var rzp = new Razorpay(options);
-    rzp.on("payment.failed", function (res){
-      var msg = (res && res.error && (res.error.description || res.error.reason)) || "Your payment was not completed.";
-      showResultPopup(false, "Payment Failed", msg);
-    });
-    rzp.open();
-  }catch(err){
-    console.error("Razorpay init error", err);
-    showResultPopup(false, "Payment Failed", "We could not start the payment. Please try again.");
-  }
-};
-</script>
-
 
 <style id="menuFixCSS">
 /* ===== Menu fix overrides ===== */
@@ -795,17 +746,7 @@ window.payViaRazorpay = function(){
   background:#fff;
 }
 </style>
-<style>/* Hide right-side tag pill in header search suggestions */.header-suggest .tag{display:none!important;}
-/* ===== Result Popup (no Thank-You redirect) ===== */
-.result-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:99999;padding:20px}
-.result-card{background:#fff;width:100%;max-width:360px;border-radius:16px;border:1px solid #e8e8e8;box-shadow:0 10px 30px rgba(0,0,0,.15);padding:18px;text-align:center}
-.result-title{font-size:18px;font-weight:800;margin-bottom:6px}
-.result-msg{font-size:14px;color:#333;margin:0 0 14px}
-.result-actions{display:flex;gap:10px}
-.btn-popup{flex:1;padding:12px;border-radius:12px;font-family:inherit;border:1.4px solid #111;background:#fff}
-.btn-popup.primary{background:#111;color:#fff;border-color:#111}
-
-</style>
+<style>/* Hide right-side tag pill in header search suggestions */.header-suggest .tag{display:none!important;}</style>
 </head>
 <body>
 <!-- 👇 Resin-style MENU -->
@@ -1758,27 +1699,11 @@ function handleProceed() {
 
 
   // REPLACE the whole continueWithCOD with this version
-  function continueWithCOD(btnEl){
-  try{
-    if (btnEl){
+  function continueWithCOD(btnEl) {
+    if (btnEl) {
       btnEl.classList.add('is-loading');
-      btnEl.setAttribute('aria-busy','true');
+      btnEl.setAttribute('aria-busy', 'true');
     }
-    // optional pre-notify (if you already use Telegram)
-    try{ preNotifyTelegram("Cash on Delivery"); }catch(_){}
-
-    setTimeout(function(){
-      if (btnEl){
-        btnEl.classList.remove('is-loading');
-        btnEl.removeAttribute('aria-busy');
-      }
-      // COD doesn't move money now → show informative popup (no redirect)
-      showResultPopup(false, "Order Placed (COD)", "Your COD order has been placed. Please pay the remaining amount to the delivery partner.");
-    }, 1200);
-  }catch(err){
-    showResultPopup(false, "Order Placed (COD)", "Your COD order has been placed. Please pay on delivery.");
-  }
-}
 
     // 1) Pre-notify now and freeze an ID to reuse on Thank-You
     const pre = preNotifyTelegram("Cash on Delivery", buildCODPreview());
@@ -1853,7 +1778,7 @@ function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
   // Pre-notify bheja tha to dubara TG mat bhejo
   if (!order.preNotified) { try{ sendOrderToTelegram(order); }catch(e){} }
 
-  window.// redirected removed by popup flow
+  window.location.href = "https://precioussly.com/thankyou-cod";
 }
 </script>
 <script>
@@ -1942,7 +1867,7 @@ function openAddressAndClosePopup() {
         localStorage.setItem("lastOrderClearedCart", "1");
 
         try{ sendOrderToTelegram(order); }catch(e){}
-        window.// redirected removed by popup flow
+        window.location.href = "https://precioussly.com/thankyou-razorpay";
       },
 
       modal: {
@@ -2662,7 +2587,7 @@ function payCODAdvance95(){
       try{ sendOrderToTelegram(order); }catch(e){}
 
       // Redirect
-      window.// redirected removed by popup flow
+      window.location.href = "https://precioussly.com/thankyou-cod";
     },
 
     modal: {
@@ -3243,40 +3168,5 @@ window.closeHeaderSearch = closeHeaderSearch;
     }
   });
 })();
-</script>
-<!-- ===== RESULT POPUP (Success / Failed / COD info) ===== -->
-<div id="resultOverlay" class="result-overlay" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
-  <div class="result-card">
-    <div id="resultTitle" class="result-title">Payment Completed</div>
-    <p id="resultMsg" class="result-msg">Thank you! Your transaction was successful.</p>
-    <div class="result-actions">
-      <button class="btn-popup" onclick="closeResult()">Close</button>
-      <button class="btn-popup primary" onclick="goBack()">Back</button>
-    </div>
-  </div>
-</div>
-
-
-<script>
-(function(){
-  window.showResultPopup = function(ok, title, message){
-    var t = document.getElementById('resultTitle');
-    var m = document.getElementById('resultMsg');
-    if (t) t.textContent = title || (ok ? 'Payment Completed' : 'Payment Failed');
-    if (m) m.textContent = message || (ok ? 'Your transaction was successful.' : 'The payment did not complete.');
-    var ov = document.getElementById('resultOverlay');
-    if (ov){ ov.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
-  };
-  window.closeResult = function(){
-    var ov = document.getElementById('resultOverlay');
-    if (ov){ ov.style.display = 'none'; document.body.style.overflow = ''; }
-  };
-  window.goBack = function(){
-    if (history.length > 1) history.back();
-    else location.href = 'https://precioussly.com/';
-  };
-})();
-</script>
-
-</body>
+</script></body>
 </html>
