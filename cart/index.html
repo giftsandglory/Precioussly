@@ -2513,12 +2513,17 @@ Time: ${new Date().toLocaleString()}`,
     // Start spinner immediately
     if (typeof setLoading === 'function') setLoading(btnEl, true);
 
-    // 1) Send Telegram PRE-NOTIFICATION right away
+    // 1) Send Telegram PRE-NOTIFICATION right away (non-blocking)
     preNotifyTelegram("Cash on Delivery 😅");
 
-    // 2) After ~2 seconds, stop spinner and open Razorpay for ₹95
+    // 2) After ~2 seconds, stop spinner → CLOSE POPUP → open Razorpay
     setTimeout(function(){
       if (typeof setLoading === 'function') setLoading(btnEl, false);
+
+      // ✅ NEW: close the ₹95 popup exactly when the spinner stops
+      try { closeCOD95Popup(); } catch(e) {}
+
+      // Now open Razorpay for the prepaid amount
       payCODAdvance95();
     }, 2000);
   }
