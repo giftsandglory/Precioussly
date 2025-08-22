@@ -1736,89 +1736,94 @@ fetch(couponSheetURL)
   });
 </script>
 <script>
-/* ===== Categories from Google Sheet with HIDE/UNHIDE =====
-   Sheet columns required (case-insensitive):
-   - section
+/* ===== Categories from Google Sheet (NEW FORMAT with Section HIDE) =====
+   Sheet columns (case-insensitive):
+   - section (may appear only once before a group of rows)
    - category name
    - image
    - link
-   - visibility   ← write "hide" to hide the row; leave blank to show
+   - visibility   ← write "hide" on a section row → hide the whole section
 */
 const categorySheetURL = "https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/Sheet1";
 
-function normalize(val){
-  return (val || "").toString().trim();
+function norm(v){ return (v ?? "").toString().trim(); }
+function isHiddenValue(v){
+  const s = norm(v).toLowerCase();
+  return s === "hide" || s === "hidden" || s === "no" || s === "0";
 }
-function isHidden(row){
-  const v =
-    normalize(row.visibility) ||
-    normalize(row.Visibility) ||
-    normalize(row.VISIBILITY) ||
-    normalize(row.visible) ||
-    normalize(row.Visible);
-  return v.toLowerCase() === "hide" || v.toLowerCase() === "hidden" || v === "0" || v.toLowerCase() === "no";
+
+function preprocessRows(raw){
+  let lastSection = "";
+  let sectionHidden = false;
+  const cleaned = [];
+  for (const r of raw){
+    const section = norm(r.section || r.Section || r.SECTION);
+    const name    = norm(r["category name"] || r["Category Name"] || r["CATEGORY NAME"]);
+    const img     = norm(r.image || r.Image || r.IMAGE);
+    const link    = norm(r.link || r.Link || r.LINK || r.url || r.URL);
+    const vis     = r.visibility || r.Visibility || r.VISIBILITY || r.visible || r.Visible;
+
+    const onlySection = !!section && !name && !img && !link;
+    if (onlySection){
+      lastSection = section;
+      sectionHidden = isHiddenValue(vis);
+      continue;
+    }
+
+    const effectiveSection = section || lastSection;
+    if (!effectiveSection) continue; // skip if we never got a section yet
+
+    // Skip if the current section is marked hidden
+    if (sectionHidden) continue;
+
+    // Skip if this row itself is hidden
+    if (isHiddenValue(vis)) continue;
+
+    cleaned.push({
+      section: effectiveSection,
+      name, img, link
+    });
+  }
+  return cleaned;
 }
 
 function renderCategories(rows){
   const container = document.getElementById("categorySection");
   if (!container) return;
-  container.innerHTML = ""; // clear for re-render
+  container.innerHTML = "";
 
-  // group visible rows by section
-  const grouped = {};
-  rows.forEach(row => {
-    if (isHidden(row)) return; // 🔒 skip hidden categories
+  const data = preprocessRows(rows).filter(r => r.section && r.name && r.img);
 
-    const section = normalize(row.section);
-    const name    = normalize(row["category name"]);
-    const img     = normalize(row.image);
-    const link    = normalize(row.link) || "#";
-    if (!section || !name || !img) return;
+  // Group preserving order
+  const grouped = [];
+  const seen = new Set();
+  for (const r of data){
+    if (!seen.has(r.section)){
+      grouped.push({ title: r.section, items: [] });
+      seen.add(r.section);
+    }
+    grouped[grouped.length - 1].items.push(r);
+  }
 
-    if (!grouped[section]) grouped[section] = [];
-    grouped[section].push({ name, img, link });
-  });
+  for (const group of grouped){
+    if (!group.items.length) continue;
+    const h = document.createElement("h3");
+    h.textContent = group.title;
+    h.style.cssText = "width:100%;font-family:'Roboto Slab',serif;font-size:17px;font-weight:400;margin:0 0 6px;text-align:center";
+    container.appendChild(h);
 
-  // Render each section only if it has at least 1 visible item
-  Object.entries(grouped).forEach(([section, items]) => {
-    if (!items.length) return;
-
-    const sectionTitle = document.createElement("h3");
-    sectionTitle.innerText = section;
-    sectionTitle.style.width = "100%";
-    sectionTitle.style.fontFamily = "'Roboto Slab', serif";
-    sectionTitle.style.fontSize = "17px";
-    sectionTitle.style.fontWeight = "400";
-    sectionTitle.style.margin = "0";
-    sectionTitle.style.padding = "0";
-    sectionTitle.style.textAlign = "center";
-
-    container.appendChild(sectionTitle);
-
-    items.forEach(item => {
-      const card = document.createElement("a");
-      card.href = item.link;
-      card.style.textDecoration = "none";
-      card.style.width = "calc(50% - 6px)";
-      card.style.border = "none";
-      card.style.borderRadius = "18px";
-      card.style.background = "transparent";
-      card.style.boxShadow = "none";
-      card.style.fontFamily = "'Roboto Slab', serif";
-      card.style.webkitTapHighlightColor = "transparent";
-      card.style.outline = "none";
-      card.style.userSelect = "none";
-
-      card.innerHTML = `
-        <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 18px; display: block;" />
-        <div style="text-align: center; padding-top: 6px; font-size: 15px; font-weight: 500; font-family: 'Roboto Slab', serif; color: #000;">
+    for (const item of group.items){
+      const a = document.createElement("a");
+      a.href = item.link || "#";
+      a.style.cssText = "text-decoration:none;width:calc(50% - 6px);border:none;border-radius:18px;background:transparent;box-shadow:none;font-family:'Roboto Slab',serif;-webkit-tap-highlight-color:transparent;outline:none;user-select:none";
+      a.innerHTML = `
+        <img src="${item.img}" alt="${item.name}" style="width:100%;border-radius:18px;display:block;"/>
+        <div style="text-align:center;padding-top:6px;font-size:15px;font-weight:500;font-family:'Roboto Slab',serif;color:#000;">
           ${item.name}
-        </div>
-      `;
-
-      container.appendChild(card);
-    });
-  });
+        </div>`;
+      container.appendChild(a);
+    }
+  }
 }
 
 async function loadCategories(){
@@ -1831,7 +1836,6 @@ async function loadCategories(){
   }
 }
 
-// Initial load + periodic refresh (every 3 minutes)
 loadCategories();
 setInterval(loadCategories, 180000);
 </script>
