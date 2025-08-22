@@ -448,9 +448,9 @@ main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
       <h2 id="userName">Hello</h2>
       <p id="userEmail"></p>
       <a href="https://precioussly.com/track-order" class="track-btn">Track Order</a>
-<button class="track-btn" id="viewOrdersBtn" onclick="openOrdersPopup()" style="margin-top:10px;">
+<a class="track-btn" id="viewOrdersBtn" href="?popup=orders" style="margin-top:10px;">
   View Orders
-</button>
+</a>
     </div>
   </div>
   
@@ -727,79 +727,65 @@ main { animation: fadeIn 0.6s ease forwards; opacity: 0; }
     }).join("");
   }
 
-  // --- Popup open/close ---
-  function openOrdersPopup(){
-    const ov = document.getElementById("ordersOverlay");
-    if (!ov) return;
-    renderOrders();
-    ov.style.display = "flex";
-    document.body.style.overflow = "hidden";
+  // --- URL helpers for deep-linkable popup ---
+function setPopupParam() {
+  const url = new URL(location.href);
+  url.searchParams.set('popup', 'orders');
+  history.pushState({ popup: 'orders' }, '', url);
+}
+function removePopupParam(pushInsteadOfReplace) {
+  const url = new URL(location.href);
+  url.searchParams.delete('popup');
+  if (pushInsteadOfReplace) {
+    history.pushState({}, '', url);
+  } else {
+    history.replaceState({}, '', url);
   }
-  function closeOrdersPopup(){
-    const ov = document.getElementById("ordersOverlay");
-    if (!ov) return;
-    ov.style.display = "none";
-    document.body.style.overflow = "";
+}
+
+// --- Popup open/close ---
+function openOrdersPopup(fromClick){
+  const ov = document.getElementById("ordersOverlay");
+  if (!ov) return;
+  renderOrders();
+  ov.style.display = "flex";
+  document.body.style.overflow = "hidden";
+  if (fromClick) setPopupParam();
+}
+function closeOrdersPopup(){
+  const ov = document.getElementById("ordersOverlay");
+  if (!ov) return;
+  ov.style.display = "none";
+  document.body.style.overflow = "";
+  // If URL has ?popup=orders, remove it.
+  const hasParam = new URL(location.href).searchParams.get('popup') === 'orders';
+  if (hasParam) removePopupParam(true);
+}
+
+// Wire the "View Orders" anchor to open popup and push URL param (no page reload)
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('viewOrdersBtn');
+  if (btn){
+    btn.addEventListener('click', function(e){
+      e.preventDefault();
+      openOrdersPopup(true);
+    });
   }
-</script>
-<script>
-/* ===== Multi-Page Search Setup =====
-   👉 "CATALOGS" me jitne pages/sheets chahen add kijiye.
-   ✅ page ko safest tarike se current page path par set kiya (location.pathname),
-      taaki yahin ka popup ?p= se open ho (aapka maybeOpenFromURL already handle karta hai).
-*/
-const CATALOGS = [
-  {
-    name: "Resin Necklace",
-    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
-    page : location.pathname            // e.g. "/resin-necklace/" or "/Resin Necklace.html"
-  },
-  // { name:"Hello", sheet:"https://opensheet.elk.sh/XXXX/Sheet1", page:"/hello.html" },
-  // { name:"Rings", sheet:"https://opensheet.elk.sh/YYYY/Sheet1", page:"/rings/" },
-];
+  // If user opens the dashboard with the special URL, auto-open the popup
+  const initialPopup = new URL(location.href).searchParams.get('popup');
+  if (initialPopup === 'orders' || location.hash === '#orders'){
+    openOrdersPopup(false);
+  }
+});
 
-// Global merged list
-window.allProducts = [];
-
-// Load all catalogs from Google Sheets
-Promise.all(
-  CATALOGS.map(cat =>
-    fetch(cat.sheet).then(r => r.json()).then(rows => {
-      const items = rows
-        .filter(row => (row["Product Name"] || "").trim())
-        .map(row => ({
-          name: String(row["Product Name"]).trim(),
-          price: Number(row["Selling Price"] || 0),
-          mrp: Number(row["MRP"] || 0),
-          image: row["photo 1"] || row["Photo 1"] || "",
-          page: cat.page,
-          from: cat.name
-        }));
-      return items;
-    })
-  )
-).then(listOfLists => {
-  window.allProducts = listOfLists.flat();
-}).catch(()=>{ /* ignore */ });
-
-/* ========== UI wiring ========== */
-const inputEl = document.getElementById('headerSearchInput');
-const boxEl   = document.getElementById('headerSearchResults');
-
-function openHeaderSearch(){
-  const header = document.querySelector('.site-header');
-  if(header) header.classList.add('searching');
-  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
-  hideSuggest();
-}
-function closeHeaderSearch(){
-  const header = document.querySelector('.site-header');
-  if(header) header.classList.remove('searching');
-  hideSuggest();
-}
-function hideSuggest(){
-  if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
-}
+// Handle Back/Forward buttons gracefully
+window.addEventListener('popstate', function(){
+  const wantsPopup = new URL(location.href).searchParams.get('popup') === 'orders';
+  const ov = document.getElementById('ordersOverlay');
+  const isOpen = ov && ov.style.display === 'flex';
+  if (wantsPopup && !isOpen) openOrdersPopup(false);
+  if (!wantsPopup && isOpen) closeOrdersPopup();
+});
 
 /* Filter + render suggestions below the bar */
 function renderSuggestions(q){
