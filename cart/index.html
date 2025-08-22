@@ -747,6 +747,166 @@ button.remove-btn:hover {
 }
 </style>
 <style>/* Hide right-side tag pill in header search suggestions */.header-suggest .tag{display:none!important;}</style>
+<style>
+/* ====== ULTRA-PREMIUM PAYMENT POPUP (1:1) ====== */
+.paypop-overlay{
+  position: fixed; inset: 0;
+  display: none;                           /* hidden by default */
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,.45);
+  z-index: 999999;
+  padding: 16px;
+}
+.paypop-overlay.open{ display: flex; }
+
+.paypop{
+  width: min(92vw, 420px);
+  aspect-ratio: 1 / 1;                     /* ✅ 1:1 box */
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 14px 50px rgba(0,0,0,.18);
+  border: 1px solid #ececec;
+  display: flex; flex-direction: column;
+  padding: 18px 16px;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-family: 'Roboto Slab', serif;
+}
+
+/* top scrollable content + bottom fixed actions */
+.paypop-body{
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px;
+  padding: 6px 4px 0;
+}
+.paypop-actions{
+  flex: 0 0 auto;
+  margin-top: 8px;
+  display: flex; gap: 10px; width: 100%;
+}
+
+/* headings & text */
+.pay-title{
+  font-size: 18px; font-weight: 800; color:#111; margin: 4px 0 2px;
+  text-align: center;
+}
+.pay-sub{
+  font-size: 14px; color:#444; line-height: 1.45;
+  text-align: center; margin: 0 10px 4px;
+}
+
+/* “Payment” field styled to match the premium look */
+.pay-field{
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 14px;
+  background: #f9f9f9;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 600;
+}
+.pay-badge{
+  font-size: 12px; font-weight: 800;
+  background: #e8f6ee; color:#0a784d;
+  border: 1px solid #bfe6d1;
+  padding: 6px 10px; border-radius: 999px;
+}
+
+/* buttons: Back (outline, left) + View Order (primary, right) */
+.btn{
+  flex: 1; padding: 12px;
+  border-radius: 12px; font-size: 15px; font-weight: 700;
+  cursor: pointer; text-align: center; user-select: none;
+  border: none;
+}
+.btn-outline{
+  background:#fff; color:#000; border:1.4px solid #000;
+}
+.btn-primary{
+  background:#2874f0; color:#fff; border:1.4px solid #2874f0;
+}
+.btn:active{ transform: translateY(0); } /* keep it crisp */
+
+/* ===== Animated premium SVG check & cross ===== */
+.svg-wrap{
+  margin-top: 2px;
+  display:flex; align-items:center; justify-content:center;
+  width: 92px; height: 92px;
+  border-radius: 50%;
+  background: radial-gradient(120px 120px at 50% 45%, #eafaf2, #ffffff 65%);
+  box-shadow: 0 8px 24px rgba(10,120,77,.20), inset 0 0 0 1px #e3f3ea;
+}
+
+.checkmark{ width: 72px; height: 72px; }
+.checkmark__circle{
+  fill: none; stroke: #22c55e; stroke-width: 6;
+  stroke-dasharray: 339; stroke-dashoffset: 339;
+  animation: dash-circ 1s ease forwards;
+  filter: drop-shadow(0 3px 6px rgba(34,197,94,.35));
+}
+.checkmark__check{
+  fill: none; stroke: #22c55e; stroke-width: 6;
+  stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 100; stroke-dashoffset: 100;
+  animation: dash-check .8s ease .6s forwards;
+  filter: drop-shadow(0 3px 6px rgba(34,197,94,.35));
+}
+
+/* cross (for failed) */
+.cross{ width: 72px; height: 72px; }
+.cross__circle{
+  fill:none; stroke:#ef4444; stroke-width:6;
+  stroke-dasharray:339; stroke-dashoffset:339;
+  animation: dash-circ 1s ease forwards;
+  filter: drop-shadow(0 3px 6px rgba(239,68,68,.35));
+}
+.cross__line{
+  fill:none; stroke:#ef4444; stroke-width:6; stroke-linecap:round;
+  stroke-dasharray: 60; stroke-dashoffset: 60;
+}
+.cross__line--a{ animation: dash-x .7s ease .6s forwards; }
+.cross__line--b{ animation: dash-x .7s ease .8s forwards; }
+
+@keyframes dash-circ{ to{ stroke-dashoffset: 0; } }
+@keyframes dash-check{ to{ stroke-dashoffset: 0; } }
+@keyframes dash-x{ to{ stroke-dashoffset: 0; } }
+</style>
+<style>
+/* ==== OVERRIDES: taller popup, no inner scroll, no oval behind tick ==== */
+
+/* Make the popup auto-height (no fixed 1:1 on phone), and keep it within the screen */
+.paypop{
+  aspect-ratio: auto;     /* turn off 1:1 so it can get taller */
+  height: auto;
+  max-height: 92vh;       /* stays inside the viewport */
+}
+
+/* Let body content show fully (no inner scrollbar) */
+.paypop-body{
+  overflow-y: visible;
+}
+
+/* Remove the green/oval gradient panel behind the icon */
+.svg-wrap{
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* (Optional) Give a bit more room on small screens */
+@media (max-width: 480px){
+  .pay-title{ margin-top: 8px; }
+  .pay-sub{ font-size: 13.5px; }
+}
+
+/* (Optional) If you still want perfect 1:1 on laptops/desktops only: */
+@media (min-width: 992px){
+  .paypop{ aspect-ratio: 1 / 1; }  /* desktop keeps square look */
+}
+</style>
+
 </head>
 <body>
 <!-- 👇 Resin-style MENU -->
@@ -3185,22 +3345,65 @@ window.closeHeaderSearch = closeHeaderSearch;
   .paypop .ghost{margin-top:10px;width:100%;padding:11px 16px;border-radius:12px;background:#fff;border:1.4px solid #000;color:#000;font-size:16px;cursor:pointer}
   .paypop .icon{font-size:28px;margin-bottom:6px}
 </style>
-<div id="paySuccess" class="paypop-overlay" role="dialog" aria-modal="true">
-  <div class="paypop">
-    <div class="icon">✅</div>
-    <h3>Thank you! Your payment has been received securely.</h3>
-    <p>Your order is now being processed, and we'll notify you once it's on the way.</p>
-    <button class="primary" onclick="paypopBack()">Back</button>
+<!-- ===== NEW: ULTRA-PREMIUM PAYMENT POPUPS (1:1) ===== -->
+<div id="paySuccess" class="paypop-overlay" role="dialog" aria-modal="true" aria-labelledby="paySuccessTitle">
+  <div class="paypop" role="document">
+    <div class="paypop-body">
+      <!-- Animated green check -->
+      <div class="svg-wrap" aria-hidden="true">
+        <svg class="checkmark" viewBox="0 0 120 120">
+          <circle class="checkmark__circle" cx="60" cy="60" r="54"></circle>
+          <path class="checkmark__check" d="M34 62l18 18 34-38"></path>
+        </svg>
+      </div>
+
+      <h3 class="pay-title" id="paySuccessTitle">Payment Successful</h3>
+      <p class="pay-sub">Thank you! Your payment has been received securely.<br>Your order is now being processed, and we’ll notify you once it’s on the way.</p>
+
+      <!-- “Payment field” styled same premium way -->
+      <div class="pay-field">
+        <span class="pay-badge">Payment</span>
+        <span>Successful</span>
+      </div>
+    </div>
+
+    <!-- Buttons: Back (left) + View Order (right) -->
+    <div class="paypop-actions">
+      <button class="btn btn-outline" type="button" onclick="paypopBack()">Back</button>
+      <a class="btn btn-primary" href="https://precioussly.com/dashboard?popup=orders" rel="nofollow">View Order</a>
+    </div>
   </div>
 </div>
-<div id="payFailed" class="paypop-overlay" role="dialog" aria-modal="true">
-  <div class="paypop">
-    <div class="icon">❌</div>
-    <h3>Payment Failed</h3>
-    <p>The payment didn’t complete. You can try again or go back.</p>
-    <button class="primary" onclick="paypopBack()">Back</button>
+
+<div id="payFailed" class="paypop-overlay" role="dialog" aria-modal="true" aria-labelledby="payFailedTitle">
+  <div class="paypop" role="document">
+    <div class="paypop-body">
+      <!-- Animated red cross -->
+      <div class="svg-wrap" aria-hidden="true">
+
+        <svg class="cross" viewBox="0 0 120 120">
+          <circle class="cross__circle" cx="60" cy="60" r="54"></circle>
+          <path class="cross__line cross__line--a" d="M44 44 L76 76"></path>
+          <path class="cross__line cross__line--b" d="M76 44 L44 76"></path>
+        </svg>
+      </div>
+
+      <h3 class="pay-title" id="payFailedTitle">Payment Failed</h3>
+      <p class="pay-sub">The payment didn’t complete. You can try again or go back.</p>
+
+      <div class="pay-field" style="background:#fff6f6; border-color:#ffe1e1;">
+        <span class="pay-badge" style="background:#fdecec; color:#902626; border-color:#ffd1d1;">Payment</span>
+        <span>Failed</span>
+      </div>
+    </div>
+
+    <div class="paypop-actions">
+      <button class="btn btn-outline" type="button" onclick="paypopBack()">Back</button>
+      <button class="btn btn-primary" type="button" onclick="tryAgainPayment()">Try Again</button>
+    </div>
   </div>
 </div>
+
 <script>
   function openPayPopup(id){
     try{ document.getElementById(id).style.display='flex'; document.body.style.overflow='hidden'; }catch(_){}
@@ -3218,6 +3421,59 @@ window.closeHeaderSearch = closeHeaderSearch;
     closePayPopups();
     try{ history.back(); }catch(_){}
   }
+</script>
+<script>
+/* ===== Popup open/close helpers ===== */
+function openPaySuccess(){
+  const o = document.getElementById('paySuccess');
+  if(!o) return;
+  o.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function openPayFailed(){
+  const o = document.getElementById('payFailed');
+  if(!o) return;
+  o.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function paypopBack(){
+  closeAllPaypops();
+}
+function closeAllPaypops(){
+  document.querySelectorAll('.paypop-overlay.open').forEach(el => el.classList.remove('open'));
+  document.body.style.overflow='';
+}
+
+/* Close when clicking outside the box */
+['paySuccess','payFailed'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('click', (e)=>{
+    if(e.target === el){ closeAllPaypops(); }
+  });
+});
+
+/* Close on ESC */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){ closeAllPaypops(); }
+});
+
+/* Optional: wire “Try Again” to your Razorpay flow */
+function tryAgainPayment(){
+  // If you already have a function that starts Razorpay, call it here.
+  // Example:
+  if (typeof startRazorpayWithSpinner === 'function') {
+    closeAllPaypops();
+    // If you want a spinner button, you can pass null: it will simply call the flow
+    startRazorpayWithSpinner(null);
+  } else if (typeof payViaRazorpay === 'function') {
+    closeAllPaypops();
+    payViaRazorpay();
+  } else {
+    // Fallback: just close
+    closeAllPaypops();
+  }
+}
 </script>
 
 </body>
