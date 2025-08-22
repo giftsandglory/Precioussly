@@ -1,14 +1,15 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <meta name="google-signin-client_id" content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Precioussly</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
+<script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
+<meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Precioussly</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<style>
 
   /* 🔵 Disable blue tap highlight everywhere */
 * {
@@ -733,7 +734,7 @@ down-toggle {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0px;
   padding: 12px 8px;
   background: #fff0f6;
   border: 1px solid #ffd3e5;
@@ -741,8 +742,8 @@ down-toggle {
 }
 
 .certified-item img {
-  width: 56px;
-  height: 56px;
+  width: 95px;
+  height: 95px;
   object-fit: contain;
 }
 
@@ -756,7 +757,7 @@ down-toggle {
 }
 
 @media (max-width: 420px) {
-  .certified-item img { width: 52px; height: 52px; }
+  .certified-item img { width: 78px; height: 78px; }
   .certified-item span { font-size: 14px; }
 }
 
@@ -1105,7 +1106,6 @@ down-toggle {
 /* Keep header from jumping */
 .site-header { position: sticky; top: 0; z-index: 3500; }
 </style>
-
 <style>
 /* ==== Floating action buttons (WhatsApp + Top) ==== */
 
@@ -1294,7 +1294,6 @@ down-toggle {
 .fade-slide { display: block; text-decoration: none; }
 .fade-slide > img, .fade-slide > video { width: 100%; height: 100%; object-fit: cover; }
 </style>
-
 <style>
 /* --- Swipe reliability fixes (added by ChatGPT) --- */
 /* Tell the browser: allow vertical scroll, but don't hijack horizontal swipes. */
@@ -1303,105 +1302,363 @@ down-toggle {
 .fade-dots { pointer-events: none; }
 .fade-dots .fade-dot { pointer-events: auto; }
 </style>
+<!-- >>> ChatGPT: Category compact strip + tiny circle (Box Direction = 1) -->
+<style>
+/* === Category sections & tiny circle style for Box Direction 1 === */
+#categorySection{ display:block !important; padding:16px 12px !important; }
+.cat-sec{ width:100%; margin: 0 0 10px; flex: 0 0 100%; }
+.cat-title{ width:100%; text-align:center; font-family:'Roboto Slab',serif; font-size:17px; font-weight:400; margin:0 0 8px; }
 
-</head>
+/* Default grid (when Box Direction != 1) */
+.cat-grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:12px;
+}
+
+/* Horizontal compact strip (when Box Direction = 1) */
+.cat-strip{
+  display:flex;
+  overflow-x:auto;
+  gap:10px;
+  padding:2px 2px 10px;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+}
+.cat-card{
+  text-decoration:none;
+  color:#000;
+  font-family:'Roboto Slab',serif;
+  scroll-snap-align:start;
+}
+.cat-card .label{
+  text-align:center;
+  padding-top:6px;
+  font-size:14px;
+  font-weight:500;
+}
+
+/* Mini circle with dual ring like your sample (outer beige, inner white) */
+.circle-mini{
+  width:120px; height:120px; border-radius:50%;
+  background:#fff;
+  /* crisp double ring fully visible */
+  box-shadow: 0 0 0 5px #ffffff, 0 0 0 10px #ff79b0;
+
+  display:flex; align-items:center; justify-content:center;
+  margin:8px auto; /* margin so outer ring isn't cut */
+  box-sizing:border-box;
+}
+.circle-mini img{
+  width:100%; height:100%;
+  border-radius:50%;
+  object-fit:cover;
+  display:block;
+}
+
+/* Default rectangle image (grid mode) */
+.rect-img{ width:100%; border-radius:18px; display:block; object-fit:cover; }
+</style>
+<!-- <<< ChatGPT CSS end -->
+<style>
+  /* 🔴 Pink ring for all small circle thumbnails */
+  .circle-mini{
+    /* inner ring = white, outer ring = pink */
+    box-shadow: 0 0 0 5px #ffffff, 0 0 0 10px #ff79b0;
+  }
+</style>
+<style>
+  /* 1) Make the circle ring (box-shadow) visible even at the edges */
+  /* Try these common wrappers—one of them will match your row that holds the circles. */
+  .best-sellers,                 /* if your section has this class */
+  .bestsellers,                  /* common variant */
+  .category-row,                 /* horizontal row of items */
+  .product-row,
+  .grid, .grid-wrap, .row, .items-row,
+  .swiper, .swiper-wrapper, .swiper-container {
+    overflow: visible !important;   /* allow ring outside the circle */
+  }
+
+  /* 2) Give a tiny breathing space on left/right edges so the first and last circle never touch the screen edge */
+  .best-sellers,
+  .bestsellers,
+  .category-row,
+  .product-row,
+  .grid, .grid-wrap, .row, .items-row,
+  .swiper, .swiper-wrapper, .swiper-container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* (optional) If your row uses 'mask-image' or 'clip-path' for fade edges, neutralize it so rings aren’t cut */
+  .best-sellers,
+  .bestsellers,
+  .category-row,
+  .product-row,
+  .grid, .grid-wrap, .row, .items-row,
+  .swiper, .swiper-wrapper, .swiper-container {
+    -webkit-mask-image: none !important;
+            mask-image: none !important;
+    clip-path: none !important;
+  }
+</style>
+<style>
+  /* Replace outside ring (box-shadow) with inside rings (border + inset shadow) */
+  .circle-mini{
+    /* outer pink ring drawn INSIDE the circle */
+    border: 10px solid #ff79b0;             /* outer pink ring */
+    box-shadow: inset 0 0 0 5px #ffffff;    /* inner white ring */
+    border-radius: 50%;
+  }
+</style>
+<style>
+  /* Space between circles so rings don't visually collide */
+  .circle-mini { margin: 10px; }
+</style>
+<!-- === ChatGPT override: thin pink ring + free/natural swipe === -->
+<style id="chatgpt-ring-strip-fixes">
+/* Thin pink ring exactly like a clean circle border (no heavy shadows) */
+.circle-mini{
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2.5px solid #ff79b0;      /* thin ring */
+  box-shadow: none !important;      /* kill previous thick rings */
+  padding: 0 !important;
+  overflow: hidden;                  /* keep image inside circle */
+  background: #fff;                  /* clean backdrop */
+}
+.circle-mini img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/* Ensure the ring is never cut at the edges */
+.cat-strip, .best-sellers, .bestsellers, .category-row, .swiper, .swiper-wrapper{
+  overflow: auto !important;        /* allow horizontal scroll */
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+/* Free & natural swipe – remove snapping/jerk */
+.cat-strip{
+  scroll-snap-type: none !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto !important; /* native drag */
+  gap: 1px !important;
+}
+.cat-card{ flex: 0 0 auto; }
+
+/* In case older styles added inner/outer rings via box-shadow/border */
+.circle-mini::before, .circle-mini::after{ box-shadow: none !important; border: none !important; content: none !important; }
+</style>
+<!-- === ChatGPT fix for cut-off circle borders === -->
+<style id="chatgpt-circle-clip-fix">
+.cat-strip, .bestsellers, .category-row, .swiper, .swiper-wrapper{
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: auto !important;
+}
+.cat-strip{
+  padding-left: 10px !important;   /* add breathing room so left circle not cut */
+  padding-right: 10px !important;  /* same for right side */
+}
+.circle-mini{
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
+<!-- === ChatGPT FINAL fix: full-canvas, never-clipped circles === -->
+<style id="chatgpt-full-canvas-circles">
+/* The circular card itself */
+.circle-mini{
+  width: 120px;
+  height: 120px;
+  box-sizing: border-box !important;  /* include border in size so it never overflows */
+  border: 2.5px solid #ff79b0;
+  border-radius: 50%;
+  overflow: hidden;                   /* keep image inside the circle */
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fff;
+  display: block;
+}
+.circle-mini img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/* Any wrappers around the circle must not crop */
+.circle-wrap, .cat-card, .cat-item, .circle-holder{
+  overflow: visible !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* The horizontal strip behaves like a free-scrolling canvas */
+.cat-strip, .bestsellers, .category-row{
+  display: flex;
+  gap: 14px;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: none !important;
+  padding-inline: 16px !important;    /* show full first/last items */
+  margin: 0 !important;
+}
+
+/* hide scrollbars if they show up (optional) */
+.cat-strip::-webkit-scrollbar{ display:none; }
+
+/* If they used fixed width/height on the parent circle container, let the border fit */
+.cat-card .circle-mini, .cat-item .circle-mini{
+  max-width: 100%;
+  max-height: 100%;
+}
+</style>
+<!-- === ChatGPT EDGE-FLUSH patch (no extra space at ends) === -->
+<style id="chatgpt-edge-flush">
+/* Ensure the scroll row has ZERO side padding and starts at the very left */
+.cat-strip, .bestsellers, .category-row, .swiper, .swiper-wrapper {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  justify-content: flex-start !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: none !important;
+}
+
+/* Kill any generic container side paddings that could push the row inwards */
+.section, .container, .wrap, .row {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Items should not add outside margins; gap controls spacing BETWEEN only */
+.cat-card, .cat-item, .circle-wrap {
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto;
+}
+
+/* Keep thin ring and include border in box size so it isn't clipped */
+.circle-mini{
+  width: 120px;
+  height: 120px;
+  box-sizing: border-box !important;
+  border: 2.5px solid #ff79b0;
+  border-radius: 50%;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+  background: #fff;
+  display: block;
+}
+.circle-mini img{ width:100%; height:100%; object-fit:cover; border-radius:50%; display:block; }
+
+/* Make absolutely sure the very first/last item sit flush to edges */
+.cat-strip > *:first-child,
+.bestsellers > *:first-child,
+.category-row > *:first-child,
+.swiper-wrapper > *:first-child { margin-left: 0 !important; }
+.cat-strip > *:last-child,
+.bestsellers > *:last-child,
+.category-row > *:last-child,
+.swiper-wrapper > *:last-child { margin-right: 0 !important; }
+
+/* Remove any hidden padding added via pseudo elements */
+.cat-strip::before, .cat-strip::after,
+.bestsellers::before, .bestsellers::after,
+.category-row::before, .category-row::after,
+.swiper-wrapper::before, .swiper-wrapper::after {
+  content: none !important;
+  display: none !important;
+}
+</style>
+</meta></head>
 <body>
 <header class="site-header" id="mainHeader">
-  <!-- Left: Menu (unchanged) -->
-  <button class="hamburger-wrapper" onclick="toggleMenu()" aria-label="Menu">
-    <div></div><div></div><div></div>
-  </button>
-
-  <!-- Center: Logo (same image, just wrapped for easy hide/show) -->
-  <div id="logoWrap" style="display:flex; align-items:center; position:absolute; left:70px; top:6px;">
-    <img
-      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
-      alt="Precioussly Logo"
-      onclick="location.href = 'https://precioussly.com';"
-      style="width:110px; height:auto; object-fit:contain; cursor:pointer; transition:opacity .3s ease; -webkit-tap-highlight-color:transparent;"
-    />
-  </div>
-
-  <!-- Right: Icons (search, profile, cart) -->
-  <div id="rightIcons" style="display:flex; align-items:center; gap:12px;">
-    <!-- Search icon → NEW handler -->
-    <img src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
-         alt="Search" class="right-icon"
-         style="cursor:pointer; border-radius:0; width:25px; height:26px; margin-top:2px;"
-         onclick="openHeaderSearch()">
-
-    <!-- Profile icon (unchanged) -->
-    <img id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
-         alt="Profile" class="right-icon icon-size" onclick="handleProfileClick()" style="cursor:pointer;" />
-
-    <!-- Cart icon with badge (unchanged) -->
-    <a href="https://www.precioussly.com/cart" style="position:relative; display:inline-block; margin-top:5px;">
-      <img src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png" alt="Cart" class="right-icon icon-size" />
-      <span id="cartCountBadge" style="position:absolute; top:-6px; right:-6px; background:white; color:black; font-size:12px; border:1px solid grey; border-radius:50%; width:21px; height:21px; display:flex; align-items:center; justify-content:center;">0</span>
-    </a>
-  </div>
-
-  <!-- Inline search bar (hidden until search mode) -->
-  <div id="headerSearchBar" class="header-search">
-    <input type="search" id="headerSearchInput" placeholder="Search products..." autocomplete="off" />
-    <button type="button" id="headerSearchBack" aria-label="Back" onclick="closeHeaderSearch()">Back</button>
-    <!-- 🔎 Live suggestions (multi-page catalog) -->
+<!-- Left: Menu (unchanged) -->
+<button aria-label="Menu" class="hamburger-wrapper" onclick="toggleMenu()">
+<div></div><div></div><div></div>
+</button>
+<!-- Center: Logo (same image, just wrapped for easy hide/show) -->
+<div id="logoWrap" style="display:flex; align-items:center; position:absolute; left:70px; top:6px;">
+<img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width:110px; height:auto; object-fit:contain; cursor:pointer; transition:opacity .3s ease; -webkit-tap-highlight-color:transparent;"/>
+</div>
+<!-- Right: Icons (search, profile, cart) -->
+<div id="rightIcons" style="display:flex; align-items:center; gap:12px;">
+<!-- Search icon → NEW handler -->
+<img alt="Search" class="right-icon" onclick="openHeaderSearch()" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="cursor:pointer; border-radius:0; width:25px; height:26px; margin-top:2px;"/>
+<!-- Profile icon (unchanged) -->
+<img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" style="cursor:pointer;">
+<!-- Cart icon with badge (unchanged) -->
+<a href="https://www.precioussly.com/cart" style="position:relative; display:inline-block; margin-top:5px;">
+<img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
+<span id="cartCountBadge" style="position:absolute; top:-6px; right:-6px; background:white; color:black; font-size:12px; border:1px solid grey; border-radius:50%; width:21px; height:21px; display:flex; align-items:center; justify-content:center;">0</span>
+</a>
+</img></div>
+<!-- Inline search bar (hidden until search mode) -->
+<div class="header-search" id="headerSearchBar">
+<input autocomplete="off" id="headerSearchInput" placeholder="Search products..." type="search"/>
+<button aria-label="Back" id="headerSearchBack" onclick="closeHeaderSearch()" type="button">Back</button>
+<!-- 🔎 Live suggestions (multi-page catalog) -->
 <div id="headerSearchResults" style="display:none;"></div>
-
-  </div>
+</div>
 </header>
-
-
-
-
-  <!-- Announcement Bar -->
-  <div id="announcementBar">🧿</div>
-  <div style="position: relative; overflow: hidden;">
-<div id="fadeSlider" class="fade-slider"></div>
+<!-- Announcement Bar -->
+<div id="announcementBar">🧿</div>
+<div style="position: relative; overflow: hidden;">
+<div class="fade-slider" id="fadeSlider"></div>
 <div class="fade-dots" id="fadeDots"></div>
 </div>
-<div id="couponContainer" class="coupon-strip"></div>
-
+<div class="coupon-strip" id="couponContainer"></div>
 <div id="categorySection" style="padding: 16px 12px; display: flex; flex-wrap: wrap; gap: 12px;"></div>
 <!-- ✅ Certified Strip (Pink Theme) -->
 <div class="certified-strip" id="certifiedStrip">
-  <div class="certified-item">
-    <img src="https://i.postimg.cc/050Tt5sQ/file-0000000064dc61f697002e63e38cb125.png" alt="Secure Payment">
-    <span>Secure Payment</span>
-  </div>
-  <div class="certified-item">
-    <img src="https://i.postimg.cc/hPCHBChR/file-000000008834622fb699f7a7eb4bc3af.png" alt="Assured Quality">
-    <span>Assured Quality</span>
-  </div>
-  <div class="certified-item">
-    <img src="https://i.postimg.cc/B6cVwpRy/file-00000000449061f980b8bbbf0956d223.png" alt="Made in India">
-    <span>Made In India</span>
-  </div>
-  <div class="certified-item">
-    <img src="https://i.postimg.cc/L5x0mX93/file-000000005be061f9bfa70e7d2ef4c797.png" alt="Timely Delivery">
-    <span>Timely Delivery</span>
-  </div>
+<div class="certified-item">
+<img alt="Secure Payment" src="https://i.postimg.cc/050Tt5sQ/file-0000000064dc61f697002e63e38cb125.png"/>
+<span>Secure Payment</span>
 </div>
-
-
-
+<div class="certified-item">
+<img alt="Assured Quality" src="https://i.postimg.cc/hPCHBChR/file-000000008834622fb699f7a7eb4bc3af.png"/>
+<span>Assured Quality</span>
+</div>
+<div class="certified-item">
+<img alt="Made in India" src="https://i.postimg.cc/B6cVwpRy/file-00000000449061f980b8bbbf0956d223.png"/>
+<span>Made In India</span>
+</div>
+<div class="certified-item">
+<img alt="Timely Delivery" src="https://i.postimg.cc/L5x0mX93/file-000000005be061f9bfa70e7d2ef4c797.png"/>
+<span>Timely Delivery</span>
+</div>
+</div>
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-
 <!-- Side Menu -->
 <nav class="side-menu" id="sideMenu">
-  <div class="menu-header">
-    <span class="menu-title">Menu</span>
-    <span class="menu-close" onclick="toggleMenu()">✕</span>
-  </div>
+<div class="menu-header">
+<span class="menu-title">Menu</span>
+<span class="menu-close" onclick="toggleMenu()">✕</span>
+</div>
 <!-- 🔒 Always-visible links -->
-
-
 <!-- scrollable area for the rest of menu items from Google Sheet -->
 <div id="menuContent">
 </div>
-
 </nav>
-
 <script>
   document.addEventListener('click', function (e) {
     const menu = document.getElementById('sideMenu');
@@ -1438,8 +1695,6 @@ down-toggle {
     });
   });
 </script>
-
-
 <!-- 🔽 Final Working Script -->
 <script>
   // Announcement Bar from Google Sheet
@@ -1735,14 +1990,19 @@ fetch(couponSheetURL)
     });
   });
 </script>
+<!-- >>> ChatGPT: Rewritten Categories loader with Box Direction support -->
 <script>
-/* ===== Categories from Google Sheet (NEW FORMAT with Section HIDE) =====
-   Sheet columns (case-insensitive):
-   - section (may appear only once before a group of rows)
+/* ===== Categories from Google Sheet (with Section HIDE + SHAPE + BOX DIRECTION) =====
+   Columns supported (case-insensitive):
+   - section        ← A section row has a value in "section" and blanks for name/image/link.
+   - box direction  ← On a SECTION row set:
+                       "1" → show as horizontal swipe strip + TINY CIRCLES with dual ring border.
+                       any other/blank → normal 2-column grid (rounded rectangles).
+   - shape          ← (optional) legacy: 1/2/3 for circle sizes (grid mode only).
    - category name
    - image
    - link
-   - visibility   ← write "hide" on a section row → hide the whole section
+   - visibility     ← write "hide" on a section row → hide the whole section
 */
 const categorySheetURL = "https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/Sheet1";
 
@@ -1755,6 +2015,9 @@ function isHiddenValue(v){
 function preprocessRows(raw){
   let lastSection = "";
   let sectionHidden = false;
+  let sectionShape = null;      // null | "circle1" | "circle2" | "circle3"
+  let sectionBoxDir = "";       // "" or "1"
+
   const cleaned = [];
   for (const r of raw){
     const section = norm(r.section || r.Section || r.SECTION);
@@ -1762,26 +2025,33 @@ function preprocessRows(raw){
     const img     = norm(r.image || r.Image || r.IMAGE);
     const link    = norm(r.link || r.Link || r.LINK || r.url || r.URL);
     const vis     = r.visibility || r.Visibility || r.VISIBILITY || r.visible || r.Visible;
+    const shape   = r.shape || r.Shape || r.SHAPE; // may exist only on section row
+    const boxDir  = r["Box Direction"] || r["box direction"] || r["BOX DIRECTION"] || r["BoxDirection"] || r["Direction"];
 
     const onlySection = !!section && !name && !img && !link;
     if (onlySection){
-      lastSection = section;
+      lastSection   = section;
       sectionHidden = isHiddenValue(vis);
+      const s = norm(shape);
+      sectionShape =
+        s === "1" ? "circle1" :
+        s === "2" ? "circle2" :
+        s === "3" ? "circle3" : null;
+      sectionBoxDir = norm(boxDir);
       continue;
     }
 
     const effectiveSection = section || lastSection;
-    if (!effectiveSection) continue; // skip if we never got a section yet
+    if (!effectiveSection) continue; // no section yet, skip
 
-    // Skip if the current section is marked hidden
-    if (sectionHidden) continue;
-
-    // Skip if this row itself is hidden
-    if (isHiddenValue(vis)) continue;
+    if (sectionHidden) continue;        // whole section hidden
+    if (isHiddenValue(vis)) continue;   // row hidden
 
     cleaned.push({
       section: effectiveSection,
-      name, img, link
+      name, img, link,
+      shape: sectionShape,   // carry shape of the last declared SECTION
+      boxDir: sectionBoxDir  // carry Box Direction of the last declared SECTION
     });
   }
   return cleaned;
@@ -1796,33 +2066,59 @@ function renderCategories(rows){
 
   // Group preserving order
   const grouped = [];
-  const seen = new Set();
+  const sectionIndex = new Map();
   for (const r of data){
-    if (!seen.has(r.section)){
-      grouped.push({ title: r.section, items: [] });
-      seen.add(r.section);
+    if (!sectionIndex.has(r.section)){
+      grouped.push({ title: r.section, items: [], boxDir: r.boxDir });
+      sectionIndex.set(r.section, grouped.length - 1);
     }
-    grouped[grouped.length - 1].items.push(r);
+    grouped[sectionIndex.get(r.section)].items.push(r);
   }
 
   for (const group of grouped){
     if (!group.items.length) continue;
-    const h = document.createElement("h3");
-    h.textContent = group.title;
-    h.style.cssText = "width:100%;font-family:'Roboto Slab',serif;font-size:17px;font-weight:400;margin:0 0 6px;text-align:center";
-    container.appendChild(h);
+    const sec = document.createElement("section");
+    sec.className = "cat-sec";
+    const title = document.createElement("h3");
+    title.className = "cat-title";
+    title.textContent = group.title;
+    sec.appendChild(title);
+
+    // Wrapper: grid or horizontal swipe strip
+    const wrap = document.createElement("div");
+    const isStrip = (group.boxDir === "1");
+    wrap.className = isStrip ? "cat-strip" : "cat-grid";
 
     for (const item of group.items){
       const a = document.createElement("a");
       a.href = item.link || "#";
-      a.style.cssText = "text-decoration:none;width:calc(50% - 6px);border:none;border-radius:18px;background:transparent;box-shadow:none;font-family:'Roboto Slab',serif;-webkit-tap-highlight-color:transparent;outline:none;user-select:none";
-      a.innerHTML = `
-        <img src="${item.img}" alt="${item.name}" style="width:100%;border-radius:18px;display:block;"/>
-        <div style="text-align:center;padding-top:6px;font-size:15px;font-weight:500;font-family:'Roboto Slab',serif;color:#000;">
-          ${item.name}
-        </div>`;
-      container.appendChild(a);
+      a.className = "cat-card";
+      if (isStrip){
+        a.style.flex = "0 0 auto";
+        a.style.width = "132px"; // compact
+        a.innerHTML = `
+          <div class="circle-mini">
+            <img src="${item.img}" alt="${item.name}">
+          </div>
+          <div class="label">${item.name}</div>`;
+      } else {
+        // Default grid card (rounded rectangle). If shape says circleX, honor that.
+        let imgHTML = "";
+        if (item.shape === "circle1" || item.shape === "circle2" || item.shape === "circle3"){
+          // circle mode (existing behavior)
+          const w = item.shape === "circle1" ? "100%" : (item.shape === "circle2" ? "88%" : "76%");
+          imgHTML = `<img src="${item.img}" alt="${item.name}" style="width:${w};aspect-ratio:1/1;margin:0 auto;display:block;border-radius:50%;object-fit:cover;">`;
+        } else {
+          imgHTML = `<img class="rect-img" src="${item.img}" alt="${item.name}">`;
+        }
+        a.innerHTML = `${imgHTML}<div class="label" style="font-size:15px;">${item.name}</div>`;
+        a.style.width = "100%";
+      }
+      wrap.appendChild(a);
     }
+
+    sec.appendChild(wrap);
+    container.appendChild(sec);
   }
 }
 
@@ -1839,8 +2135,7 @@ async function loadCategories(){
 loadCategories();
 setInterval(loadCategories, 180000);
 </script>
-  
-
+<!-- <<< ChatGPT JS end -->
 <script>
   function handleCredentialResponse(response) {
     const data = jwt_decode(response.credential);
@@ -1907,30 +2202,25 @@ setInterval(loadCategories, 180000);
   // Call once on page load
   updateCartBadge();
 </script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var cs = document.getElementById('certifiedStrip');
   if (cs) { setTimeout(function(){ cs.classList.add('show'); }, 1600); }
 });
 </script>
-
-
 <!-- Floating Buttons: Back to Top + WhatsApp -->
 <div class="fab-stack">
-  <!-- Back to Top button -->
-  <button id="toTopBtn" class="fab-btn" aria-label="Back to top" title="Back to top" style="display:none;">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18 15l-6-6-6 6"></path>
-    </svg>
-  </button>
-
-  <!-- WhatsApp button -->
-  <a id="waBtn" class="fab-btn" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" rel="noopener" target="_blank">
-    <img src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png" alt="WhatsApp">
-  </a>
+<!-- Back to Top button -->
+<button aria-label="Back to top" class="fab-btn" id="toTopBtn" style="display:none;" title="Back to top">
+<svg fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<path d="M18 15l-6-6-6 6"></path>
+</svg>
+</button>
+<!-- WhatsApp button -->
+<a aria-label="Chat on WhatsApp" class="fab-btn" id="waBtn" rel="noopener" target="_blank" title="Chat on WhatsApp">
+<img alt="WhatsApp" src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png"/>
+</a>
 </div>
-
 <script>
   const WA_NUMBER = "918586057887"; // 91 + 8586057887
   const DEFAULT_MSG = "Hi Precioussly! I need help with my order.";
@@ -1972,7 +2262,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }, { passive: true });
 })();
 </script>
-
 <script>
   const toTopBtn = document.getElementById("toTopBtn");
   window.addEventListener("scroll", () => {
@@ -2109,20 +2398,19 @@ window.goToProduct = goToProduct;
 window.openHeaderSearch = openHeaderSearch;
 window.closeHeaderSearch = closeHeaderSearch;
 </script>
-<footer id="siteFooter" aria-label="Site footer">
-  <div class="brand">© <span id="footerYear"></span> Precioussly. All rights reserved.</div>
-
-  <nav class="links" aria-label="Policies">
-    <a href="https://precioussly.com/privacy-policy">Privacy Policy</a>
-    <span class="dot">•</span>
-    <a href="https://precioussly.com/policy/terms&amp;conditions">Terms &amp; Conditions</a>
-    <span class="dot">•</span>
-    <a href="https://precioussly.com/policy/return-policy">Refund Policy</a>
-    <span class="dot">•</span>
-    <a href="https://precioussly.com/policy/shipping-policy/">Shipping Policy</a>
-    <span class="dot">•</span>
-    <a href="https://precioussly.com/policy/about-us">About Us</a>
-  </nav>
+<footer aria-label="Site footer" id="siteFooter">
+<div class="brand">© <span id="footerYear"></span> Precioussly. All rights reserved.</div>
+<nav aria-label="Policies" class="links">
+<a href="https://precioussly.com/privacy-policy">Privacy Policy</a>
+<span class="dot">•</span>
+<a href="https://precioussly.com/policy/terms&amp;conditions">Terms &amp; Conditions</a>
+<span class="dot">•</span>
+<a href="https://precioussly.com/policy/return-policy">Refund Policy</a>
+<span class="dot">•</span>
+<a href="https://precioussly.com/policy/shipping-policy/">Shipping Policy</a>
+<span class="dot">•</span>
+<a href="https://precioussly.com/policy/about-us">About Us</a>
+</nav>
 </footer>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -2137,6 +2425,5 @@ window.closeHeaderSearch = closeHeaderSearch;
     }, 200);
   });
 </script>
-
 </body>
 </html>
