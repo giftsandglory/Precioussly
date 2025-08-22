@@ -1589,7 +1589,33 @@ down-toggle {
   display: none !important;
 }
 </style>
-</meta></head>
+</meta>
+<!-- === FINAL edge‑to‑edge strip override (added by ChatGPT) === -->
+<style id="edge2edge-strip-final">
+/* Keep your nice grid spacing everywhere */
+#categorySection{ --page-pad:12px; }
+/* Only the HORIZONTAL swipe sections (circle rows) go full‑bleed */
+.full-bleed{
+  width: calc(100% + 2 * var(--page-pad));
+  margin-left: calc(-1 * var(--page-pad));
+  margin-right: calc(-1 * var(--page-pad));
+}
+/* Kill side padding on the strip itself so items touch the screen edges */
+.full-bleed .cat-strip{
+  padding-left: 10px !important;
+  padding-right: 0px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: none !important;
+}
+/* Items spacing stays neat while still edge‑to‑edge */
+.full-bleed .cat-card{ margin: 0 12px 0 0 !important; flex: 0 0 auto; }
+.full-bleed .cat-strip > *:first-child{ margin-left: 0 !important; }
+.full-bleed .cat-strip > *:last-child{ margin-right: 0 !important; }
+</style>
+
+</head>
 <body>
 <header class="site-header" id="mainHeader">
 <!-- Left: Menu (unchanged) -->
@@ -2089,6 +2115,11 @@ function renderCategories(rows){
     const isStrip = (group.boxDir === "1");
     wrap.className = isStrip ? "cat-strip" : "cat-grid";
 
+    // If this section is a horizontal swipe strip, make it edge-to-edge
+    const outer = document.createElement(isStrip ? "div" : "fragment");
+    if (isStrip) outer.className = "full-bleed";
+
+    // Build items
     for (const item of group.items){
       const a = document.createElement("a");
       a.href = item.link || "#";
@@ -2117,7 +2148,7 @@ function renderCategories(rows){
       wrap.appendChild(a);
     }
 
-    sec.appendChild(wrap);
+    if (isStrip){ outer.appendChild(wrap); sec.appendChild(outer); } else { sec.appendChild(wrap); }
     container.appendChild(sec);
   }
 }
