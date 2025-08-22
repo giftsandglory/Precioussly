@@ -2717,50 +2717,74 @@ function createSwipeFadeSlider(opts){
 }
 
 /* === Initialize "Happy Customers" from Google Sheet === */
-(function(){
+(function () {
   const SHEET = "https://opensheet.elk.sh/1T3pK9Ya7hm-RXWH4Hq-wV2JUYRbFJJ5qo8rSMbPIcLs/Sheet1";
-  fetch(SHEET).then(r=>r.json()).then(rows=>{
+  fetch(SHEET).then(r => r.json()).then(rows => {
     const items = [];
-    rows.forEach(r=>{
-      const m = (r.photo || r.Photo || r.image || r.Image || r.img || r.Img || r.URL || r.Url || r.url || '').trim();
+    rows.forEach(r => {
+      const media =
+        (r.photo || r.Photo || r.image || r.Image || r.img || r.Img || r.URL || r.Url || r.url || "").trim();
+
+      // Flexible column picker
       const pick = (...names) => {
-          for (const n of names) {
-            if (r[n] && String(r[n]).trim()) return String(r[n]).trim();
-          }
-          const norm = k => String(k).toLowerCase().replace(/\s+|_/g, '');
-          const wanted = names.map(n => norm(n));
-          for (const key in r) {
-            if (wanted.includes(norm(key)) && String(r[key]).trim()) return String(r[key]).trim();
-          }
-          return '';
-        };
-        let link = pick(
-          'insta link','Insta link','Insta Link','insta_link','instagram','Instagram',
-          'insta','Insta','handle','Handle','username','Username','profile','Profile',
-          'link','Link'
-        );
-        if (link && !/^https?:\/\//i.test(link)) {
-          link = 'https://www.instagram.com/' + link.replace(/^@/, '').replace(/\/+$/,'') + '/';
+        for (const n of names) {
+          if (r[n] && String(r[n]).trim()) return String(r[n]).trim();
         }
-        
-      if(m){ items.push({media:m, link}); }
+        const norm = k => String(k).toLowerCase().replace(/\s+|_/g, "");
+        const wanted = names.map(n => norm(n));
+        for (const key in r) {
+          if (wanted.includes(norm(key)) && String(r[key]).trim()) return String(r[key]).trim();
+        }
+        return "";
+      };
+
+      // Accept either a full Instagram URL or a plain username
+      let raw = pick(
+        "insta link", "Insta link", "Insta Link", "insta_link", "instagram", "Instagram",
+        "insta", "Insta", "handle", "Handle", "username", "Username", "profile", "Profile",
+        "link", "Link"
+      );
+
+      let link = "";
+      let handle = "";
+
+      if (raw) {
+        // If it's a full URL, extract username; else treat as username
+        if (/^https?:\/\//i.test(raw)) {
+          link = raw.trim();
+          const m = raw.match(/instagram\.com\/([^\/?#]+)/i);
+          if (m) handle = "@" + m[1];
+        } else {
+          const uname = raw.replace(/^@/, "").replace(/\/+$/, "");
+          handle = "@" + uname;
+          link = "https://www.instagram.com/" + uname + "/";
+        }
+      }
+
+      if (media) items.push({ media, link, handle });
     });
-    if(!items.length) return;
-    const section = document.getElementById('happySection');
-    if(section) section.style.display='block';
-    const btn = document.getElementById('instaBtn');
+
+    if (!items.length) return;
+
+    const btn = document.getElementById("instaBtn");
+
     createSwipeFadeSlider({
-      sliderId:'happySlider',
-      dotsId:'happyDots',
+      sliderId: "happySlider",
+      dotsId: "happyDots",
       items,
-      onIndexChange:(_, it)=>{
-        if(btn){ btn.href = (it && it.link) ? it.link : '#'; }
+      onIndexChange: (_, it) => {
+        if (!btn) return;
+        btn.href = (it && it.link) ? it.link : "#";
+        btn.textContent = (it && it.handle) ? it.handle : "View Instagram Profile";
       }
     });
-    // set initial button link
-    if(btn){ btn.href = items[0].link || '#'; }
+
+    // Set initial button state
+    if (btn) {
+      btn.href = items[0].link || "#";
+      btn.textContent = items[0].handle || "View Instagram Profile";
+    }
   }).catch(console.error);
-})();
-</script>
+})();</script>
 </body>
 </html>
