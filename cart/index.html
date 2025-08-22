@@ -746,109 +746,7 @@ button.remove-btn:hover {
   background:#fff;
 }
 </style>
-<style>/* Hide right-side tag pill in header search suggestions */.header-suggest .tag{display:none!important;}
-/* ==== Payment Success 1:1 Popup ==== */
-.payment-success-overlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.45);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  z-index: 10050;
-}
-.payment-success-overlay.active{ display:flex; }
-
-.payment-success-box{
-  background: #ffffff;
-  width: 100%;
-  max-width: 360px;
-  aspect-ratio: 1 / 1;                /* ✅ perfect square */
-  border-radius: 18px;
-  border: 1px solid #e5e5e5;
-  box-shadow: 0 18px 45px rgba(0,0,0,.15);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 18px 16px;
-  box-sizing: border-box;
-  overflow: hidden;
-  position: relative;
-}
-
-/* animated check icon */
-.animated-check{
-  width: 86px;
-  height: 86px;
-  margin-top: 6px;
-  margin-bottom: 10px;
-}
-.animated-check svg{
-  display:block;
-}
-.check-circle, .check-mark{
-  fill: none;
-  stroke: #16a34a;
-  stroke-width: 4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.check-circle{
-  stroke-dasharray: 300;
-  stroke-dashoffset: 300;
-  animation: drawCircle 1s ease forwards;
-}
-.check-mark{
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
-  animation: drawCheck .7s .7s ease forwards;
-}
-@keyframes drawCircle{ to{ stroke-dashoffset: 0; } }
-@keyframes drawCheck{ to{ stroke-dashoffset: 0; } }
-
-.payment-success-title{
-  font-size: 20px;
-  font-weight: 800;
-  color: #111;
-  margin: 8px 0 6px;
-  font-family: 'Roboto Slab', serif;
-}
-.payment-success-sub{
-  font-size: 14px;
-  color: #333;
-  margin: 0 10px 10px;
-  line-height: 1.45;
-  font-family: 'Roboto Slab', serif;
-}
-
-.payment-success-actions{
-  margin-top: auto;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.ps-button{
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  border-radius: 12px;
-  font-family: 'Roboto Slab', serif;
-  cursor: pointer;
-}
-.ps-button--outline{
-  background: #fff;
-  color: #111;
-  border: 1.5px solid #000;
-}
-.ps-button--primary{
-  background: #2874f0;
-  color: #fff;
-  border: none;
-}
-</style>
+<style>/* Hide right-side tag pill in header search suggestions */.header-suggest .tag{display:none!important;}</style>
 </head>
 <body>
 <!-- 👇 Resin-style MENU -->
@@ -3290,8 +3188,8 @@ window.closeHeaderSearch = closeHeaderSearch;
 <div id="paySuccess" class="paypop-overlay" role="dialog" aria-modal="true">
   <div class="paypop">
     <div class="icon">✅</div>
-    <h3>Payment Completed</h3>
-    <p>Your payment was received successfully.</p>
+    <h3>Thank you! Your payment has been received securely.</h3>
+    <p>Your order is now being processed, and we'll notify you once it's on the way.</p>
     <button class="primary" onclick="paypopBack()">Back</button>
   </div>
 </div>
@@ -3320,48 +3218,6 @@ window.closeHeaderSearch = closeHeaderSearch;
     closePayPopups();
     try{ history.back(); }catch(_){}
   }
-</script>
-
-
-<!-- ✅ Payment Success 1:1 Popup -->
-<div id="paymentSuccessPopup" class="payment-success-overlay" role="dialog" aria-modal="true" aria-labelledby="paySuccessTitle">
-  <div class="payment-success-box">
-    <!-- Ultra-premium animated SVG check -->
-    <div class="animated-check" aria-hidden="true">
-      <svg viewBox="0 0 120 120">
-        <circle class="check-circle" cx="60" cy="60" r="52"></circle>
-        <path class="check-mark" d="M34 62 L54 80 L88 42"></path>
-      </svg>
-    </div>
-
-    <div id="paySuccessTitle" class="payment-success-title">Payment Successful</div>
-    <div class="payment-success-sub">
-      Thank you! Your payment has been received securely.
-      <br><br>
-      Your order is now being processed, and we'll notify you once it's on the way.
-    </div>
-
-    <div class="payment-success-actions">
-      <button type="button" class="ps-button ps-button--outline" onclick="closePaymentSuccess()">Back</button>
-      <a class="ps-button ps-button--primary" href="https://precioussly.com/dashboard?popup=orders">View Order</a>
-    </div>
-  </div>
-</div>
-
-
-<script>
-  // Open the payment success popup
-  function openPaymentSuccess() {
-    var el = document.getElementById('paymentSuccessPopup');
-    if (el) { el.classList.add('active'); document.body.style.overflow='hidden'; }
-  }
-  // Close the payment success popup
-  function closePaymentSuccess() {
-    var el = document.getElementById('paymentSuccessPopup');
-    if (el) { el.classList.remove('active'); document.body.style.overflow=''; }
-  }
-  // Expose a global alias some flows might call
-  window.showPaymentSuccessPopup = openPaymentSuccess;
 </script>
 
 </body>
