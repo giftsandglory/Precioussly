@@ -1680,6 +1680,18 @@ down-toggle {
 }
 </style>
 
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+<style>
+/* Dancing Script for "Happy Customers" title, keep same alignment */
+.happy-customers-title{
+  font-family: 'Dancing Script', cursive !important;
+  font-weight: 700;
+  text-align: center;
+  display: block;
+  margin: 16px 0 12px;
+}
+
+</style>
 </head>
 <body>
 <header class="site-header" id="mainHeader">
@@ -1721,7 +1733,7 @@ down-toggle {
 <div id="categorySection" style="padding: 16px 12px; display: flex; flex-wrap: wrap; gap: 12px;"></div>
 <!-- === Instagram Slider Section (auto from Google Sheet) === -->
 <section class="insta-section" id="happySection">
-<h2 class="insta-title">Happy Customers</h2>
+<h2 class="happy-customers-title">Happy Customers</h2>
 <div style="position: relative; overflow: hidden;">
 <div class="fade-slider" id="happySlider"></div>
 <div class="fade-dots" id="happyDots"></div>
@@ -2711,8 +2723,26 @@ function createSwipeFadeSlider(opts){
     const items = [];
     rows.forEach(r=>{
       const m = (r.photo || r.Photo || r.image || r.Image || r.img || r.Img || r.URL || r.Url || r.url || '').trim();
-      let link = (r.instagram || r.Instagram || r.link || r.Link || r.profile || '').trim();
-        if (link && !/^https?:\/\//i.test(link)) { link = 'https://www.instagram.com/' + link.replace(/^@/, '') + '/'; }
+      const pick = (...names) => {
+          for (const n of names) {
+            if (r[n] && String(r[n]).trim()) return String(r[n]).trim();
+          }
+          const norm = k => String(k).toLowerCase().replace(/\s+|_/g, '');
+          const wanted = names.map(n => norm(n));
+          for (const key in r) {
+            if (wanted.includes(norm(key)) && String(r[key]).trim()) return String(r[key]).trim();
+          }
+          return '';
+        };
+        let link = pick(
+          'insta link','Insta link','Insta Link','insta_link','instagram','Instagram',
+          'insta','Insta','handle','Handle','username','Username','profile','Profile',
+          'link','Link'
+        );
+        if (link && !/^https?:\/\//i.test(link)) {
+          link = 'https://www.instagram.com/' + link.replace(/^@/, '').replace(/\/+$/,'') + '/';
+        }
+        
       if(m){ items.push({media:m, link}); }
     });
     if(!items.length) return;
