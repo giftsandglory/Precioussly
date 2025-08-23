@@ -1756,6 +1756,17 @@ down-toggle {
 }
 </style>
 
+
+<style id="chatgpt-hide-all-dots">
+  /* Completely remove ALL dot indicators everywhere */
+  .ig-dots, .fade-dots, .insta-dots, .fade-dot, .ig-dot, .ig-dot-tiny { display: none !important; visibility: hidden !important; }
+</style>
+
+
+<style id="chatgpt-always-hide-dots">
+  .ig-dots, .fade-dots, .insta-dots { display:none !important; visibility:hidden !important; }
+</style>
+
 </head>
 <body>
 <header class="site-header" id="mainHeader">
@@ -1791,7 +1802,7 @@ down-toggle {
 <div id="announcementBar">🧿</div>
 <div style="position: relative; overflow: hidden;">
 <div class="fade-slider" id="fadeSlider"></div>
-<div class="ig-counter" id="fadeCounter">1/1</div><div class="ig-dots" id="fadeDots"></div>
+<div class="ig-counter" id="fadeCounter"> 1/1 </div><div class="ig-dots" id="fadeDots" style="display:none"></div>
 </div>
 <div class="coupon-strip" id="couponContainer"></div>
 <div id="categorySection" style="padding: 16px 12px; display: flex; flex-wrap: wrap; gap: 12px;"></div>
@@ -1800,7 +1811,7 @@ down-toggle {
 <h2 class="happy-customers-title">Happy Customers</h2>
 <div style="position: relative; overflow: hidden;">
 <div class="fade-slider" id="happySlider"></div>
-<div class="ig-counter" id="happyCounter">1/1</div><div class="ig-dots" id="happyDots"></div>
+<div class="ig-counter" id="happyCounter">1/1</div><div class="ig-dots" id="happyDots" style="display:none"></div>
 </div>
 <a class="btn-outline-black" href="#" id="instaBtn" rel="noopener" target="_blank">View Instagram Profile</a>
 </section>
@@ -2958,39 +2969,142 @@ function createSwipeFadeSlider(opts){
 })();
 </script>
 
-<script>
-// Keep IG-style dot window in sync for any slider
-(function(){
-  function setupIgDots(sliderId, dotsId){
-    const slider = document.getElementById(sliderId);
-    const dotsWrap = document.getElementById(dotsId);
-    if(!slider || !dotsWrap) return;
+<script id="chatgpt-dots-guards">
+  // Safety guards: if any function tries to render dots, neutralize it.
+  try {
+    window.renderIGDots = function(){ /* dots intentionally removed */ };
+  } catch(e) {}
+</script>
 
-    const update = () => {
-      const slides = Array.from(slider.querySelectorAll('.fade-slide'));
-      const total  = slides.length;
-      const current = Math.max(0, slides.findIndex(s => s.classList.contains('active')));
-      if (total) {
-        renderIGDots(dotsWrap, total, current, 5);
+
+<script id="chatgpt-gsheet-hero-loader">
+  (function(){
+    const SHEET_ID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+    const GID = "0"; // first sheet by default
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+    const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
+
+    const heroWrap = document.getElementById("fadeSlider");
+    const counterEl = document.getElementById("fadeCounter");
+    const dotsEl = document.getElementById("fadeDots"); // will stay hidden; just to satisfy any code
+
+    function looksLikeImage(url){
+      if(!url) return false;
+      try { new URL(url); } catch(e) { return false; }
+      return /(\.(png|jpe?g|webp|gif|avif)(\?|#|$))|googleusercontent|blogger|drive\.google|imgur/.test(url);
+    }
+
+    function unique(arr){ return Array.from(new Set(arr)); }
+
+    function csvToRows(csv){
+      return csv.split(/\r?\n/).map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(s => s.replace(/^"|"$|""/g, m=> m==='\"'?'\"':'' )));
+    }
+
+    async function fetchCSV(){
+      const res = await fetch(CSV_URL, {mode:"cors"});
+      if(!res.ok) throw new Error("CSV fetch failed");
+      return await res.text();
+    }
+
+    async function fetchGViz(){
+      const res = await fetch(GVIZ_URL, {mode:"cors"});
+      if(!res.ok) throw new Error("GViz fetch failed");
+      const text = await res.text();
+      // GViz wraps JSON in "google.visualization.Query.setResponse(...)"
+      const json = JSON.parse(text.replace(/^.*setResponse\(/, "").replace(/\);?\s*$/, ""));
+      const rows = json.table.rows || [];
+      const urls = [];
+      rows.forEach(r => {
+        (r.c||[]).forEach(cell => {
+          const v = cell ? (cell.f || cell.v) : null;
+          if(typeof v === "string" && looksLikeImage(v)) urls.push(v.trim());
+        });
+      });
+      return unique(urls);
+    }
+
+    function extractImageUrlsFromCSV(csv){
+      const rows = csvToRows(csv);
+      const urls = [];
+      rows.forEach(r => r.forEach(cell => {
+        const v = (cell||"").trim();
+        if(looksLikeImage(v)) urls.push(v);
+        // also allow multiple space-separated URLs in one cell
+        if(/\shttps?:\/\//.test(v)){
+          v.split(/\s+/).forEach(x => { if(looksLikeImage(x)) urls.push(x); });
+        }
+      }));
+      return unique(urls);
+    }
+
+    function clearSlides(){
+      const slides = heroWrap.querySelector(".slides");
+      if(slides) slides.innerHTML = "";
+      return slides;
+    }
+
+    function addSlides(urls){
+      const slides = heroWrap.querySelector(".slides");
+      urls.forEach((u, idx) => {
+        const div = document.createElement("div");
+        div.className = "slide";
+        const img = document.createElement("img");
+        img.src = u;
+        img.alt = `Hero ${idx+1}`;
+        img.loading = "lazy";
+        div.appendChild(img);
+        slides.appendChild(div);
+      });
+    }
+
+    function initCounter(total){
+      const t = Math.max(1, total||1);
+      counterEl.textContent = `1/${t}`;
+    }
+
+    function initOrReinitSlider(total){
+      // If your site defines createSwipeFadeSlider, use it; otherwise basic swipe is ok
+      initCounter(total);
+      if(typeof window.createSwipeFadeSlider === "function"){
+        window.createSwipeFadeSlider({
+          rootId: "fadeSlider",
+          counterId: "fadeCounter",
+          dotsId: "fadeDots",      // exists but hidden
+          autoplay: true,
+          interval: 3500
+        });
+      } else {
+        // minimal fallback: no-op (image is static)
       }
-    };
+    }
 
-    // When slides change or active class flips, re-render
-    const obs = new MutationObserver(update);
-    obs.observe(slider, {subtree:true, childList:true, attributes:true, attributeFilter:['class']});
-
-    // Initialize (poll until slides exist)
-    let tries = 0;
-    const t = setInterval(()=>{
-      if (slider.querySelectorAll('.fade-slide').length || tries++ > 20){
-        update(); clearInterval(t);
+    async function loadHero(){
+      try{
+        const csv = await fetchCSV().catch(()=>null);
+        let urls = [];
+        if(csv) urls = extractImageUrlsFromCSV(csv);
+        if(urls.length === 0){
+          urls = await fetchGViz();
+        }
+        // take first 2 if more are present
+        if(urls.length > 2) urls = urls.slice(0,2);
+        // If still empty, keep existing image
+        const slidesEl = clearSlides();
+        if(urls.length){
+          addSlides(urls);
+        }
+        const total = (heroWrap.querySelectorAll(".slide").length) || urls.length || 1;
+        initOrReinitSlider(total);
+      }catch(err){
+        console.error("Hero GS fetch error:", err);
+        // Ensure we still have a valid counter
+        const total = heroWrap.querySelectorAll(".slide").length || 1;
+        initOrReinitSlider(total);
       }
-    }, 150);
-  }
-
-  setupIgDots('fadeSlider','fadeDots');
-  setupIgDots('happySlider','happyDots');
-})();
+    }
+    // Start
+    document.addEventListener("DOMContentLoaded", loadHero);
+  })();
 </script>
 
 </body>
