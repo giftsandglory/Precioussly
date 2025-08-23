@@ -658,16 +658,16 @@ down-toggle {
 }
 
 .fade-dot {
-  width: 14px;
-  height: 6px;
-  border-radius: 4px;
-  background-color: rgba(0, 0, 0, 0.15); /* soft black */
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c0c0c0;
+  opacity: .9;
   transition: none !important;
 }
 
-.fade-dot.active {
-  background-color: rgba(0, 0, 0, 0.35); /* slightly darker */
-}
+
+.fade-dot.active { background: #3897f0; opacity: 1; }
   
 
 /* --- sticky links at top of side menu (aligned) --- */
@@ -1105,6 +1105,49 @@ down-toggle {
 
 /* Keep header from jumping */
 .site-header { position: sticky; top: 0; z-index: 3500; }
+
+/* === Instagram-like top counter (1/N) === */
+.ig-counter{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background: rgba(0,0,0,.6);
+  color:#fff;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 999px;
+  z-index: 6;
+  letter-spacing: .2px;
+  pointer-events: none; /* never block taps/swipes */
+}
+
+/* === Instagram-style dots (compact window with tiny overflow dots) === */
+.ig-dots { 
+  position: absolute; 
+  bottom: 12px; 
+  left: 0; 
+  width: 100%; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  gap: 8px; 
+  z-index: 5; 
+  pointer-events: none; /* dots shouldn't block swipes */
+}
+.ig-dot, .ig-dot-tiny {
+  display: inline-block;
+  border-radius: 999px;
+  background: rgba(255,255,255,.55);
+}
+.ig-dot { width: 6px; height: 6px; opacity: .9; }
+.ig-dot.active { width: 7.5px; height: 7.5px; background: #3897f0; opacity: 1; }
+.ig-dot-tiny { width: 3px; height: 3px; opacity: .6; }
+/* old dot containers kept for compatibility but hidden */
+.fade-dots { display: none !important; }
+
 </style>
 <style>
 /* ==== Floating action buttons (WhatsApp + Top) ==== */
@@ -1300,7 +1343,15 @@ down-toggle {
 .fade-slider, #fadeSlider { touch-action: pan-y pinch-zoom; }
 /* Make sure dots don't block swipes except on their tiny area */
 .fade-dots { pointer-events: none; }
-.fade-dots .fade-dot { pointer-events: auto; }
+.fade-dots .fade-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c0c0c0;
+  opacity: .9;
+  transition: none !important;
+}
+
 </style>
 <!-- >>> ChatGPT: Category compact strip + tiny circle (Box Direction = 1) -->
 <style>
@@ -1740,7 +1791,7 @@ down-toggle {
 <div id="announcementBar">🧿</div>
 <div style="position: relative; overflow: hidden;">
 <div class="fade-slider" id="fadeSlider"></div>
-<div class="fade-dots" id="fadeDots"></div>
+<div class="ig-counter" id="fadeCounter">1/1</div><div class="ig-dots" id="fadeDots"></div>
 </div>
 <div class="coupon-strip" id="couponContainer"></div>
 <div id="categorySection" style="padding: 16px 12px; display: flex; flex-wrap: wrap; gap: 12px;"></div>
@@ -1749,7 +1800,7 @@ down-toggle {
 <h2 class="happy-customers-title">Happy Customers</h2>
 <div style="position: relative; overflow: hidden;">
 <div class="fade-slider" id="happySlider"></div>
-<div class="fade-dots" id="happyDots"></div>
+<div class="ig-counter" id="happyCounter">1/1</div><div class="ig-dots" id="happyDots"></div>
 </div>
 <a class="btn-outline-black" href="#" id="instaBtn" rel="noopener" target="_blank">View Instagram Profile</a>
 </section>
@@ -1959,6 +2010,58 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
 }, 300);
     });
   });
+
+// === IG dots utilities ===
+function renderIGDots(container, total, currentIndex, maxVisible = 5){
+  if(!container) return;
+  currentIndex = Math.max(0, Math.min(currentIndex, total-1));
+  container.innerHTML = '';
+  if(total <= 0) return;
+
+  // When total <= maxVisible, show all
+  if(total <= maxVisible){
+    for(let i=0;i<total;i++){
+      const d = document.createElement('span');
+      d.className = 'ig-dot' + (i===currentIndex ? ' active' : '');
+      container.appendChild(d);
+    }
+    return;
+  }
+
+  // Sliding window
+  const half = Math.floor(maxVisible/2);
+  let start = currentIndex - half;
+  let end = currentIndex + (maxVisible - half);
+  if(start < 0){ end += -start; start = 0; }
+  if(end > total){ start -= (end-total); end = total; }
+  start = Math.max(0, start);
+
+  const leftOverflow = start > 0;
+  const rightOverflow = end < total;
+
+  if(leftOverflow){
+    const tiny = document.createElement('span');
+    tiny.className = 'ig-dot-tiny';
+    container.appendChild(tiny);
+  }
+
+  for(let i=start;i<end;i++){
+    const d = document.createElement('span');
+    d.className = 'ig-dot' + (i===currentIndex ? ' active' : '');
+    container.appendChild(d);
+  }
+
+  if(rightOverflow){
+    const tiny = document.createElement('span');
+    tiny.className = 'ig-dot-tiny';
+    container.appendChild(tiny);
+  }
+}
+
+function updateIGCounter(counterEl, current, total){
+  if(counterEl) counterEl.textContent = (current+1) + '/' + total;
+}
+
 let currentIndex = 0;
 let slides = [];
 let dots = [];
@@ -2019,15 +2122,20 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
   });
 
 
-function showSlide(index) {
-  slides[currentIndex]?.classList.remove("active");
+function showSlide(index){
+slides[currentIndex]?.classList.remove("active");
   dots[currentIndex]?.classList.remove("active");
 
   currentIndex = index;
 
   slides[currentIndex]?.classList.add("active");
   dots[currentIndex]?.classList.add("active");
+
+  // Update IG dots & counter
+  renderIGDots(document.getElementById('fadeDots'), slides.length, currentIndex, 5);
+  updateIGCounter(document.getElementById('fadeCounter'), currentIndex, slides.length);
 }
+
 
 function showNextSlide() {
   showSlide((currentIndex + 1) % slides.length);
@@ -2799,5 +2907,110 @@ function createSwipeFadeSlider(opts){
     }
   }).catch(console.error);
 })();</script>
+
+<script>
+(function(){
+  function setupIgCounter(counterId, sliderId, dotsId){
+    const counterEl = document.getElementById(counterId);
+    const sliderEl  = document.getElementById(sliderId);
+    const dotsWrap  = document.getElementById(dotsId);
+    if (!counterEl || !sliderEl || !dotsWrap) return;
+
+    const update = () => {
+      const dots = Array.from(dotsWrap.children || []);
+      let total = dots.length;
+      let activeIndex = dots.findIndex(d => d.classList.contains('active'));
+      // Fallback via slides if dots not ready
+      if (total === 0){
+        const slides = sliderEl.querySelectorAll('.fade-slide');
+        total = slides.length;
+        activeIndex = Array.from(slides).findIndex(s => s.classList.contains('active'));
+      }
+      if (total > 0){
+        const n = activeIndex >= 0 ? (activeIndex + 1) : 1;
+        counterEl.textContent = n + "/" + total;
+      } else {
+        counterEl.textContent = "";
+      }
+    };
+
+    // Observe dot class mutations & child updates
+    const obs1 = new MutationObserver(update);
+    obs1.observe(dotsWrap, { subtree:true, childList:true, attributes:true, attributeFilter:['class'] });
+
+    // Also observe slide ACTIVE changes
+    const obs2 = new MutationObserver(update);
+    obs2.observe(sliderEl, { subtree:true, childList:true, attributes:true, attributeFilter:['class'] });
+
+    // Initial warm-up until content loads
+    const init = setInterval(() => {
+      const slidesReady = sliderEl.querySelectorAll('.fade-slide').length > 0;
+      const dotsReady   = dotsWrap.children.length > 0;
+      if (slidesReady || dotsReady) {
+        update();
+        clearInterval(init);
+      }
+    }, 150);
+  }
+
+  setupIgCounter('fadeCounter','fadeSlider','fadeDots');
+  setupIgCounter('happyCounter','happySlider','happyDots');
+})();
+</script>
+
+<script>
+// Keep IG-style dot window in sync for any slider
+(function(){
+  function setupIgDots(sliderId, dotsId){
+    const slider = document.getElementById(sliderId);
+    const dotsWrap = document.getElementById(dotsId);
+    if(!slider || !dotsWrap) return;
+
+    const update = () => {
+      const slides = Array.from(slider.querySelectorAll('.fade-slide'));
+      const total  = slides.length;
+      const current = Math.max(0, slides.findIndex(s => s.classList.contains('active')));
+      if (total) {
+        renderIGDots(dotsWrap, total, current, 5);
+      }
+    };
+
+    // When slides change or active class flips, re-render
+    const obs = new MutationObserver(update);
+    obs.observe(slider, {subtree:true, childList:true, attributes:true, attributeFilter:['class']});
+
+    // Initialize (poll until slides exist)
+    let tries = 0;
+    const t = setInterval(()=>{
+      if (slider.querySelectorAll('.fade-slide').length || tries++ > 20){
+        update(); clearInterval(t);
+      }
+    }, 150);
+  }
+
+  setupIgDots('fadeSlider','fadeDots');
+  setupIgDots('happySlider','happyDots');
+})();
+</script>
+
 </body>
 </html>
+<script>
+// Safety: ensure the hero counter updates at least once even if the observer misses early paints.
+(function(){
+  const el = document.getElementById('fadeCounter');
+  if (!el) return;
+  const tries = 15;
+  let n = 0;
+  const t = setInterval(() => {
+    const dots = document.querySelectorAll('#fadeDots .fade-dot').length;
+    if (dots > 0 || n++ > tries){ 
+      const sliderEl = document.getElementById('fadeSlider');
+      const active = Array.from(sliderEl.querySelectorAll('.fade-slide')).findIndex(s => s.classList.contains('active'));
+      const total  = sliderEl.querySelectorAll('.fade-slide').length || dots;
+      if (total) el.textContent = ((active >= 0 ? active+1 : 1) + '/' + total);
+      clearInterval(t);
+    }
+  }, 200);
+})();
+</script>
