@@ -1692,6 +1692,19 @@ down-toggle {
 }
 
 </style>
+
+<style id="bestseller-center-fix">
+/* === Fix: Center label exactly under circular photo === */
+.cat-card{ display:block; } /* ensure the card is a block */
+.cat-card .circle-mini{ display:block; margin:0 auto !important; } /* center the circle itself */
+.cat-card .label{
+  text-align:center !important;
+  display:block;
+  width:100%;
+  margin-top:6px; /* keep same spacing */
+}
+</style>
+
 </head>
 <body>
 <header class="site-header" id="mainHeader">
