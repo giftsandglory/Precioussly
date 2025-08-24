@@ -667,6 +667,9 @@ button.remove-btn:hover {
 #menuContent .menu-link:first-child:hover {
   background-color: #d4f3df !important;       /* thoda dark hover green */
 }
+
+/* Free Delivery message styles removed: bar not used */
+
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
@@ -907,6 +910,12 @@ button.remove-btn:hover {
 }
 </style>
 
+
+<style>
+  /* Remove the upper FREE DELIVERY line entirely */
+  #freeDeliverySection{display:none !important;}
+</style>
+
 </head>
 <body>
 <!-- 👇 Resin-style MENU -->
@@ -1016,8 +1025,16 @@ button.remove-btn:hover {
   </div>
 </div>
     <!-- START: Summary and Pay Section -->
+
+<!-- ===== Free Delivery Message (Auto from Google Sheet) ===== -->
+
+<!-- ===== End Free Delivery Message ===== -->
+
 <div id="bottomBox">
-  <div class="summary" id="summaryBox">
+  <div id="freeDeliverySection" style="display:none; margin:8px 0 6px; text-align:center;">
+  <div id="fdText" style="font-size:11px; color:#d6453d; font-weight:600;; max-width:90%; margin:0 auto; line-height:1.35; margin-bottom:4px"></div>
+</div>
+<div class="summary" id="summaryBox">
   <div class="summary-row"><span>Item Total</span><span><span class="spinner"></span></span></div>
   <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
@@ -1408,7 +1425,7 @@ function confirmAddress() {
         <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
         <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + fee}</span></div>
       `;
-      try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
+      try { if (typeof updateSummary === "function") updateSummary(); try{ updateFreeDeliveryLine(); }catch(e){} } catch(e) {}
 
     // === NEW: read "COD PREPAID" from sheet and update UI ===
 try {
@@ -1432,6 +1449,29 @@ function updateCODPrepaidUI() {
   } catch(e){}
 }
 updateCODPrepaidUI();
+
+      // ===== Read Free Delivery Threshold from sheet (several possible column names) =====
+      try {
+        var row0 = data[0] || {};
+        var guessed = 0;
+        var candidates = [
+          'Free Delivery Min', 'Free Delivery minimum', 'Free Delivery Threshold',
+          '(free_delivery_threshold)', 'FREE DELIVERY', 'FreeDeliveryMin', 'Free_Delivery_Min'
+        ];
+        for (var i=0; i<candidates.length; i++){
+          var k = candidates[i];
+          if (row0[k] != null && String(row0[k]).trim() !== ''){
+            guessed = Number(String(row0[k]).replace(/[^\d.]/g, '')) || 0;
+            break;
+          }
+        }
+        if(!guessed){ guessed = 999; } // sensible default
+        window.fdMin = guessed;
+      } catch(e) { window.fdMin = window.fdMin || 999; }
+
+      // Refresh the centered red line once data is available
+      try { updateFreeDeliveryLine(); } catch(e){}
+
 });
 
 </script>
@@ -1519,7 +1559,7 @@ function increase(index) {
   document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
 
   if (typeof updateCartBadge === "function") updateCartBadge();
-  if (typeof updateSummary === "function") updateSummary();
+  if (typeof updateSummary === "function") updateSummary(); try{ updateFreeDeliveryLine(); }catch(e){}
 }
 
 function decrease(index) {
@@ -1531,7 +1571,7 @@ function decrease(index) {
     document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
 
     if (typeof updateCartBadge === "function") updateCartBadge();
-    if (typeof updateSummary === "function") updateSummary();
+    if (typeof updateSummary === "function") updateSummary(); try{ updateFreeDeliveryLine(); }catch(e){}
   }
 }
 
@@ -1560,7 +1600,7 @@ function removeItem(index) {
 
   // Update header badge, summary & any min-order logic
   try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
-  try { if (typeof updateSummary === "function") updateSummary(); } catch(e){}
+  try { if (typeof updateSummary === "function") updateSummary(); try{ updateFreeDeliveryLine(); }catch(e){} } catch(e){}
   try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
 
   // If cart is now empty, show the empty-state and hide pay UI
@@ -1648,7 +1688,7 @@ function renderCart() {
 
   // Update totals & badges
   try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
-  try { if (typeof updateSummary === "function") updateSummary(); } catch(e){}
+  try { if (typeof updateSummary === "function") updateSummary(); try{ updateFreeDeliveryLine(); }catch(e){} } catch(e){}
 }
 
 </script>
@@ -3474,6 +3514,197 @@ function tryAgainPayment(){
     closeAllPaypops();
   }
 }
+</script>
+
+
+<script>
+/* ===== Free Delivery (threshold + red message) ===== */
+(function(){
+  const SHEET_ID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
+
+  // Defaults (used until sheet loads)
+  window.baseDeliveryFee = (typeof window.baseDeliveryFee === "number") ? window.baseDeliveryFee : 49;
+  window.freeDeliveryMin = (typeof window.freeDeliveryMin === "number") ? window.freeDeliveryMin : 249;
+
+  // Fetch config (Delivery Fee + free delivery above)
+  try {
+    fetch(SHEET_URL).then(r=>r.json()).then(rows=>{
+      if (rows && rows.length){
+        const r0 = rows[0];
+        if (r0["Delivery Fee"]!=null) {
+          const val = String(r0["Delivery Fee"]).trim();
+          const fee = Number(val.replace(/[^\d.]/g,"")) || 0;
+          window.baseDeliveryFee = fee;
+        }
+        if (r0["free delivery above"]!=null) {
+          const val2 = String(r0["free delivery above"]).trim();
+          const thr = Number(val2.replace(/[^\d.]/g,"")) || window.freeDeliveryMin;
+          window.freeDeliveryMin = thr;
+        }
+      }
+      // Recalc after sheet load
+      try{ recalcFreeDelivery(); }catch(e){}
+      try{ if (typeof updateSummary === "function") updateSummary(); try{ updateFreeDeliveryLine(); }catch(e){} }catch(e){}
+    });
+  } catch(e){ /* ignore offline */ }
+
+  function getSubtotal(){
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    return items.reduce((sum, it) => sum + (Number(it.price)||0) * (Number(it.qty)||1), 0);
+  }
+
+  function recalcFreeDelivery(){
+    const subtotal = getSubtotal();
+    const threshold = Number(window.freeDeliveryMin) || 249;
+    const baseFee   = Number(window.baseDeliveryFee) || 0;
+
+    // Decide fee (waive when subtotal >= threshold)
+    window.deliveryFee = (subtotal >= threshold) ? 0 : baseFee;
+
+    // Message UI (red, small)
+    const sec  = document.getElementById("freeDeliverySection");
+    const txt  = document.getElementById("fdText");
+    if (!sec || !txt) return;
+    if (subtotal <= 0){ sec.style.display = "none"; return; }
+    sec.style.display = "block";
+    const remain = Math.max(0, threshold - subtotal);
+    if (remain > 0){
+      sec.classList.remove("unlocked");
+      txt.innerHTML = `Add ₹${remain} more to your cart to unlock <b>FREE DELIVERY</b>!`;
+    } else {
+      sec.classList.add("unlocked");
+      txt.innerHTML = `You unlocked <b>FREE DELIVERY</b>! 🎉`;
+    }
+  }
+  window.recalcFreeDelivery = recalcFreeDelivery;
+
+  // Wrap existing updateSummary so every change also updates free-delivery logic
+  const _oldUS = window.updateSummary;
+  window.updateSummary = function(){
+    try { recalcFreeDelivery(); } catch(e){}
+    if (typeof _oldUS === "function") {
+      return _oldUS.apply(this, arguments);
+    } else {
+      // Minimal fallback summary if original isn't defined
+      const subtotal = getSubtotal();
+      const fee = (subtotal >= (window.freeDeliveryMin||249)) ? 0 : (window.baseDeliveryFee||0);
+      const sb = document.getElementById("summaryBox");
+      if (sb){
+        sb.innerHTML = `<div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
+        <div class="summary-row"><span>Delivery Fee</span><span>${fee === 0 ? '<span style="color:green">Free Delivery</span>' : '₹'+fee}</span></div>
+        <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${subtotal + fee}</span></div>`;
+      }
+    }
+  };
+
+  // Recalculate on load and whenever items may change
+  document.addEventListener("DOMContentLoaded", function(){
+    try { recalcFreeDelivery(); } catch(e){}
+    try { if (typeof updateSummary === "function") updateSummary(); try{ updateFreeDeliveryLine(); }catch(e){} } catch(e){}
+  });
+
+  window.addEventListener("storage", function(ev){
+    if (ev.key === "cartItems"){
+      try { recalcFreeDelivery(); } catch(e){}
+      try { if (typeof updateSummary === "function") updateSummary(); try{ updateFreeDeliveryLine(); }catch(e){} } catch(e){}
+    }
+  });
+})();
+</script>
+
+
+<script>
+// ==== Free Delivery (centered line above summary) ====
+window.fdMin = window.fdMin || null;
+
+// Compute cart subtotal
+function cartSubtotal(){
+  try{
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    return items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+  }catch(e){ return 0; }
+}
+
+// Update the red line text; called whenever totals/cart change
+function updateFreeDeliveryLine(forceShow){
+  var sec = document.getElementById('freeDeliverySection');
+  var el  = document.getElementById('fdText');
+  if(!sec || !el) return;
+
+  var min = Number(window.fdMin || 0) || 0;
+  var sub = cartSubtotal();
+
+  // If we don't have a threshold, keep it hidden
+  if(!min){
+    sec.style.display = 'none';
+    return;
+  }
+
+  var remaining = Math.max(0, Math.ceil(min - sub));
+  if(remaining > 0){
+    el.textContent = 'Add ₹' + remaining + ' more to your cart to unlock FREE DELIVERY!';
+    sec.style.display = 'block';
+  } else {
+    // If reached threshold, hide the line
+    sec.style.display = 'none';
+  }
+}
+
+// Patch into existing updateSummary() without breaking the page.
+(function(){
+  var _orig = window.updateSummary;
+  window.updateSummary = function(){
+    try { if (typeof _orig === 'function') _orig.apply(this, arguments); } catch(e){}
+    try { updateFreeDeliveryLine(); } catch(e){}
+  }
+})();
+
+// Also refresh when page loads
+document.addEventListener('DOMContentLoaded', function(){
+  try { updateFreeDeliveryLine(); } catch(e){}
+});
+</script>
+
+
+
+
+
+<script>
+// ===== HARD OVERRIDE (use Sheet 'free delivery above' → window.freeDeliveryMin) =====
+(function(){
+  var MIN_ORDER = null;
+  function getMinOrderValue(){
+    if (MIN_ORDER !== null) return MIN_ORDER;
+    try{ if (typeof minimumOrderValue==='number'){MIN_ORDER=minimumOrderValue;return MIN_ORDER;} }catch(e){}
+    MIN_ORDER=149; return MIN_ORDER;
+  }
+  function cartSubtotal(){
+    try{var items=JSON.parse(localStorage.getItem('cartItems')||'[]');var s=0;
+      items.forEach(it=>{s+=(Number(it.price)||0)*(Number(it.qty)||1)});return s;}catch(e){return 0;}
+  }
+  function currentFDMin(){
+    if (typeof window.freeDeliveryMin === 'number') return window.freeDeliveryMin;
+    if (typeof window.fdMin === 'number') return window.fdMin;
+    return 999;
+  }
+  function swapLine(){
+    var notice=document.getElementById('minimumNotice'); if(!notice) return;
+    var min=getMinOrderValue(); var subtotal=cartSubtotal();
+    if(subtotal<min){
+      notice.textContent='Minimum order amount is ₹'+min+' to proceed';
+      notice.style.display='block'; notice.style.color='#d9534f'; notice.style.fontWeight='400'; notice.style.fontSize='14px';
+    }else{
+      var fdMin=currentFDMin(); var remaining=Math.max(0,fdMin-subtotal);
+      var txt= remaining>0 ? 'Add ₹'+remaining+' more to your cart to unlock FREE DELIVERY!' : 'You’ve unlocked FREE DELIVERY!';
+      notice.textContent=txt; notice.style.display='block'; notice.style.color='green'; notice.style.fontWeight='600'; notice.style.fontSize='12px';
+    }
+  }
+  window.checkMinOrderCondition=swapLine;
+  document.addEventListener('DOMContentLoaded',swapLine);
+  window.addEventListener('storage',function(e){if(e.key==='cartItems')swapLine();});
+  try{var _orig=window.updateSummary;window.updateSummary=function(){try{if(typeof _orig==='function')_orig.apply(this,arguments);}catch(e){}try{swapLine();}catch(e){}};}catch(e){}
+})();
 </script>
 
 </body>
