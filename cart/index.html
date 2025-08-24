@@ -986,6 +986,8 @@ button.remove-btn:hover {
   </span>
 </div>
 
+
+
 <button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display:none; margin-top:0px;">
   <span class="btn-label">Proceed to Pay</span>
   <span class="btn-spinner" aria-hidden="true"></span>
@@ -3364,5 +3366,114 @@ window.closeHeaderSearch = closeHeaderSearch;
   window.showPaymentSuccessPopup = openPaymentSuccess;
 </script>
 
+
+<script>
+// === Free Delivery live system (sheet-driven) ===
+(function(){
+  const SHEET_ID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
+
+  function getMsgEl(){
+    let el = document.getElementById('freeDeliveryLine');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'freeDeliveryLine';
+      el.style.cssText = "display:none;color:#15803d;font-family:'Roboto Slab',serif;font-size:12px;margin:4px 0;text-align:center;";
+      const anchor = document.getElementById('minimumNotice') || document.getElementById('proceedBtn');
+      if(anchor){
+        anchor.insertAdjacentElement('afterend', el);
+      }else{
+        document.body.appendChild(el);
+      }
+    }
+    return el;
+  }
+  const msgEl = getMsgEl();
+
+  window.baseDeliveryFee = typeof window.baseDeliveryFee === 'number' ? window.baseDeliveryFee : 0;
+  window.freeDeliveryThreshold = typeof window.freeDeliveryThreshold === 'number' ? window.freeDeliveryThreshold : null;
+
+  function fetchThreshold() {
+    fetch(SHEET_URL).then(r=>r.json()).then(rows => {
+      const row0 = rows && rows[0] ? rows[0] : {};
+      try {
+        const feeRaw = (row0["Delivery Fee"] ?? "").toString().trim();
+        const feeNum = Number(feeRaw.replace(/[^\d.]/g,'')) || 0;
+        window.baseDeliveryFee = feeNum;
+      } catch(e){ window.baseDeliveryFee = 0; }
+
+      try {
+        const thRaw = (row0["free delivery above"] ?? row0["Free delivery above"] ?? row0["FREE DELIVERY ABOVE"] ?? "").toString().trim();
+        const thNum = Number(thRaw.replace(/[^\d.]/g,'')) || null;
+        window.freeDeliveryThreshold = thNum;
+      } catch(e){ window.freeDeliveryThreshold = null; }
+
+      try { recomputeDeliveryAndMessage(); } catch(e){}
+      try { if (typeof window.updateSummary === "function") window.updateSummary(); } catch(e){}
+    }).catch(()=>{
+      try { recomputeDeliveryAndMessage(); } catch(e){}
+    });
+  }
+
+  function cartSubtotal(){
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    return items.reduce((s,it)=> s + (Number(it.price)||0) * (Number(it.qty)||1), 0);
+  }
+
+  function recomputeDeliveryAndMessage(){
+    const subtotal = cartSubtotal();
+    const threshold = Number(window.freeDeliveryThreshold);
+    const baseFee = Number(window.baseDeliveryFee) || 0;
+
+    let unlocked = false;
+    if (!isNaN(threshold) && threshold > 0) {
+      unlocked = subtotal >= threshold;
+    }
+
+    window.deliveryFee = unlocked ? 0 : baseFee;
+
+    if (msgEl) {
+      if (!isNaN(threshold) && threshold > 0) {
+        if (unlocked) {
+          msgEl.textContent = "You’ve unlocked FREE DELIVERY!";
+          msgEl.style.display = "block";
+        } else {
+          const more = Math.max(0, threshold - subtotal);
+          msgEl.textContent = `Add ₹${more} more to your cart to unlock FREE DELIVERY!`;
+          msgEl.style.display = "block";
+        }
+      } else {
+        msgEl.style.display = "none";
+      }
+    }
+  }
+
+  function patchUpdateSummary(){
+    if (typeof window.updateSummary === "function" && !window.__fdPatched){
+      window.__origUpdateSummary = window.updateSummary;
+      window.updateSummary = function(){
+        try { recomputeDeliveryAndMessage(); } catch(e){}
+        return window.__origUpdateSummary.apply(this, arguments);
+      };
+      window.__fdPatched = true;
+    }
+  }
+
+  window.addEventListener('storage', function(ev){
+    if (ev.key === 'cartItems') {
+      try { recomputeDeliveryAndMessage(); } catch(e){}
+      try { if (typeof window.updateSummary === "function") window.updateSummary(); } catch(e){}
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){ try{ getMsgEl(); }catch(e){};
+    patchUpdateSummary();
+    fetchThreshold();
+    try { recomputeDeliveryAndMessage(); } catch(e){}
+  });
+
+  window.__fd_recompute = recomputeDeliveryAndMessage;
+})();
+</script>
 </body>
 </html>
