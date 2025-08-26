@@ -1152,6 +1152,12 @@ down-toggle {
 
 </style>
 <style>/* Hide right-side tag (Sheet1) in suggestions */.header-suggest .tag{display:none!important;}</style>
+<style>
+/* 🔵 Remove blue tap/click highlight and focus outlines */
+* { -webkit-tap-highlight-color: transparent; }
+a, button, [role="button"], input, textarea, select { outline: none !important; }
+:focus, :focus-visible { outline: none !important; box-shadow: none !important; }
+</style>
 </head>
 <body>
 <!-- 👇 SIDE MENU STRUCTURE NEEDED FOR OVERLAY -->
