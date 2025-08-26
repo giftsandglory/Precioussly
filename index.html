@@ -1808,8 +1808,158 @@ down-toggle {
 .ig-counter:empty::before{ content:"1/1"; opacity:0; }
 /* =============================================== */
 </style>
+
+<!-- === ChatGPT FINAL: Natural-aspect slider (no crop, no 1:1) === -->
+<style id="natural-aspect-slider">
+/* Container should size to the active media's natural height */
+.fade-slider {
+  height: auto !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* Slides stack normally and only the active one is shown */
+.fade-slide {
+  position: static !important;
+  width: 100% !important;
+  height: auto !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transition: none !important;
+  display: none !important;   /* hide by default */
+}
+
+/* Active slide becomes visible */
+.fade-slide.active {
+  display: block !important;
+}
+
+/* Images & videos render at their intrinsic aspect ratio, fully visible */
+.fade-slide > img,
+.fade-slide > video {
+  width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  border-radius: 12px; /* keep your rounded look */
+}
+
+/* Keep the counter and dots positioned over the media */
+.ig-counter, .ig-dots {
+  position: absolute !important;
+  left: 0; right: 0;
+}
+.ig-counter { top: 10px !important; right: 10px !important; }
+.ig-dots { bottom: 12px !important; }
+</style>
+
+<style id="natural-aspect-slider-fixpos">
+/* Restore original counter/dots positions (no centering) */
+.ig-counter{
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  left: auto !important;
+}
+.ig-dots{
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 12px !important;
+}
+</style>
+
+<style id="hero-no-rounded">
+/* Remove rounded corners only for the first slider (hero/banner under announcement bar) */
+.fade-slider.hero-slider .fade-slide > img,
+.fade-slider.hero-slider .fade-slide > video {
+  border-radius: 0 !important;
+}
+</style>
+
+<style id="hero-no-rounded-final">
+/* Ensure hero/banner images have absolutely no rounded corners */
+.fade-slider.hero-slider .fade-slide > img,
+.fade-slider.hero-slider .fade-slide > video {
+  border-radius: 0px !important;
+}
+</style>
+
+<style id="premium-preloader-css">
+html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important; height: 100vh !important; }
+#preloaderOverlay{
+  position: fixed; left: 0; right: 0; top: var(--preloaderTop, 0px); bottom: 0;
+  z-index: 999999;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(255,182,193,.28), transparent 60%),
+              linear-gradient(180deg, #ffffff 0%, #fff5fb 100%);
+  transition: opacity .5s ease, visibility .5s ease;
+  opacity: 1; visibility: visible;
+  -webkit-tap-highlight-color: transparent;
+}
+#preloaderOverlay.hide{ opacity: 0; visibility: hidden; }
+
+.pre-card{
+  position: relative;
+  width: min(90vw, 360px);
+  padding: 22px 20px 18px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.88);
+  border: 1px solid rgba(0,0,0,.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,.10);
+  backdrop-filter: blur(6px);
+  text-align: center;
+  font-family: 'Roboto Slab', serif;
+  color: #111;
+}
+.pre-logo{
+  width: 76px; height: 76px;
+  margin: 2px auto 6px;
+  position: relative;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 45%, #fff 40%, #ffe7f3 100%);
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 8px 18px rgba(255, 121, 176, .35), inset 0 0 0 6px #fff;
+  overflow: hidden;
+}
+.pre-logo img{ width: 54px; height: 54px; object-fit: contain; transform-origin: 50% 60%; }
+.pre-title{ font-size: 18px; font-weight: 600; letter-spacing: .2px; margin: 2px 0 6px; }
+.pre-sub{ font-size: 13px; color: #444; margin-bottom: 12px; }
+.pre-bar{ position: relative; height: 6px; border-radius: 999px; background: #f0f0f0; overflow: hidden; border: 1px solid rgba(0,0,0,.06); }
+.pre-bar::before{ content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #ffd1e6, #ff79b0, #ffd1e6); transform: translateX(-100%); animation: loadSweep 1.2s ease-in-out infinite; }
+@keyframes loadSweep{ 0%{ transform: translateX(-100%); } 50%{ transform: translateX(-10%); } 100%{ transform: translateX(100%); } }
+.sparkles{ pointer-events: none; }
+.sparkles span{ position: absolute; width: 6px; height: 6px; border-radius: 50%; background: radial-gradient(circle, #fff 30%, #ffb6d3 60%, transparent 70%); opacity: .9; animation: floatUp calc(2.4s + var(--d,0s)) ease-in-out infinite; filter: blur(.2px); }
+@keyframes floatUp{ 0%{ transform: translateY(12px) scale(.8); opacity: .0; } 10%{ opacity: .9; } 100%{ transform: translateY(-38px) scale(1.05); opacity: 0; } }
+#skipPreloader{ margin-top: 14px; display: inline-block; padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(0,0,0,.18); background: #fff; font-size: 12px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
+#skipPreloader.show{ opacity: 1; pointer-events: auto; }
+#skipPreloader:active{ transform: scale(.98); }
+</style>
+
 </head>
 <body>
+
+<!-- ===== Premium Preloader Overlay (keeps header + announcement bar visible) ===== -->
+<div id="preloaderOverlay" role="status" aria-live="polite" aria-label="Loading">
+  <div class="pre-card">
+    <div class="pre-logo">
+      <img src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" alt="Precioussly" />
+      <div class="sparkles">
+        <span style="left:16%; top:20%; --d:.1s"></span>
+        <span style="left:76%; top:30%; --d:.3s"></span>
+        <span style="left:50%; top:10%; --d:.5s"></span>
+      </div>
+    </div>
+    <div class="pre-title">Precioussly</div>
+    <div class="pre-sub">Preparing your premium experience…</div>
+    <div class="pre-bar"></div>
+    <button id="skipPreloader" type="button" aria-label="Skip preloader">Continue</button>
+  </div>
+</div>
+
 <header class="site-header" id="mainHeader">
 <!-- Left: Menu (unchanged) -->
 <button aria-label="Menu" class="hamburger-wrapper" onclick="toggleMenu()">
@@ -1842,7 +1992,7 @@ down-toggle {
 <!-- Announcement Bar -->
 <div id="announcementBar">🧿</div>
 <div style="position: relative; overflow: hidden;">
-<div class="fade-slider" id="fadeSlider" style="min-height:clamp(280px,62vw,540px);height:clamp(300px,62vw,560px);"></div>
+<div class="fade-slider hero-slider" id="fadeSlider" style="min-height:clamp(280px,62vw,540px);height:clamp(300px,62vw,560px);"></div>
 <div class="ig-counter" id="fadeCounter"></div><div class="ig-dots" id="fadeDots" style="display:none"></div>
 </div>
 <div class="coupon-strip" id="couponContainer"></div>
@@ -3158,6 +3308,111 @@ try {
     // Start
     document.addEventListener("DOMContentLoaded", loadHero);
   })();
+</script>
+
+
+<script id="premium-preloader-js">
+(function(){
+  document.documentElement.classList.add('no-scroll-preloader');
+  document.body.classList.add('no-scroll-preloader');
+  const overlay = document.getElementById('preloaderOverlay');
+  const skipBtn = document.getElementById('skipPreloader');
+
+  function computeTop(){
+    try{
+      let maxBottom = 0;
+      const midX = Math.floor(window.innerWidth/2);
+      for(let y=0; y<=180; y+=8){
+        const els = document.elementsFromPoint(midX, y);
+        for(const el of els){
+          if(!el || el===overlay) continue;
+          const rect = el.getBoundingClientRect();
+          const style = window.getComputedStyle(el);
+          const coversTop = rect.top <= 2 && rect.bottom > 2;
+          const goodWidth = rect.width >= window.innerWidth * 0.6;
+          const goodHeight = rect.height >= 28 && rect.height <= 160;
+          if(coversTop && goodWidth && goodHeight){
+            if (style.position === 'fixed' || style.position === 'sticky' || y < 80) {
+              if(rect.bottom > maxBottom) maxBottom = rect.bottom;
+            }
+          }
+        }
+      }
+      return Math.round(Math.max(0, Math.min(maxBottom, 260)));
+    }catch(e){ return 0; }
+  }
+  function setTop(){ overlay && overlay.style.setProperty('--preloaderTop', computeTop() + 'px'); }
+  setTop(); window.addEventListener('resize', setTop); setTimeout(setTop,200); setTimeout(setTop,800);
+
+  // Build promises for: window load, fonts, images & videos fully loaded
+  function whenWindowLoaded(){
+    return new Promise((res)=>{
+      if(document.readyState === 'complete') res(); else window.addEventListener('load', ()=>res(), {once:true});
+    });
+  }
+  function whenFontsReady(){
+    try{ return document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve(); }
+    catch(e){ return Promise.resolve(); }
+  }
+  function whenMediaLoaded(){
+    const imgs = Array.from(document.images || []);
+    const vids = Array.from(document.querySelectorAll('video'));
+    const promises = [];
+
+    imgs.forEach(img=>{
+      // If lazy images use data-src, don't force set it; just wait if src exists
+      if(img.complete && img.naturalWidth>0){ return; }
+      promises.append = 0;  // no-op to keep structure (avoid NameError)
+    });
+
+    const imgPromises = imgs.map(img => {
+      if (img.complete && img.naturalWidth>0) return Promise.resolve();
+      return new Promise(res=>{ img.addEventListener('load', res, {once:true}); img.addEventListener('error', res, {once:true}); });
+    });
+    const vidPromises = vids.map(v => {
+      if (v.readyState>=3) return Promise.resolve();
+      return new Promise(res=>{ v.addEventListener('loadeddata', res, {once:true}); v.addEventListener('error', res, {once:true}); });
+    });
+    return Promise.all([...imgPromises, ...vidPromises]);
+  }
+  function networkIdle(delay=400){
+    // Wait until there are no new resource timings for 'delay' ms
+    return new Promise((res)=>{
+      if (!('PerformanceObserver' in window)) return setTimeout(res, delay);
+      let timer = null;
+      const po = new PerformanceObserver(()=>{
+        clearTimeout(timer);
+        timer = setTimeout(()=>{ po.disconnect(); res(); }, delay);
+      });
+      try{
+        po.observe({entryTypes:['resource']});
+        // start the timer in case no resources come in
+        timer = setTimeout(()=>{ po.disconnect(); res(); }, delay);
+      }catch(e){
+        setTimeout(res, delay);
+      }
+    });
+  }
+
+  function hidePreloader(){
+    if(!overlay || overlay.classList.contains('hide')) return;
+    overlay.classList.add('hide');
+    document.documentElement.classList.remove('no-scroll-preloader');
+    document.body.classList.remove('no-scroll-preloader');
+    setTimeout(()=>{ overlay.parentNode && overlay.parentNode.removeChild(overlay); }, 520);
+  }
+
+  setTimeout(()=>{ skipBtn && skipBtn.classList.add('show'); }, 2200);
+  skipBtn && skipBtn.addEventListener('click', hidePreloader);
+
+  Promise.all([ whenWindowLoaded(), whenFontsReady(), whenMediaLoaded() ])
+    .then(()=> networkIdle(450))
+    .then(()=> setTimeout(hidePreloader, 150)) // small paint settle
+    .catch(()=> hidePreloader());
+
+  // Safety net to avoid being stuck forever (e.g., broken CDN)
+  setTimeout(hidePreloader, 30000);
+})();
 </script>
 
 </body>
