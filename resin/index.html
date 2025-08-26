@@ -1253,13 +1253,12 @@ down-toggle {
 <div id="announcementBar">🧿</div>
 <!-- Category Section (still working) -->
 <div id="categorySection"></div>
-<!-- 🔽 CATEGORY SCRIPT FROM SHEET (Title once; blanks inherit previous) + robust visibility support -->
+<!-- 🔽 CATEGORY SCRIPT FROM SHEET (updated: section hide support) -->
 <script>
   const categorySheetURL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
 
-  // Helper: find a column by normalized name
+  // Helper: normalize column access (tolerant to spaces/case)
   function getCell(row, key){
-    // normalize key (remove spaces and lower)
     const norm = key.replace(/\s+/g, '').toLowerCase();
     for (const k in row){
       if (!Object.prototype.hasOwnProperty.call(row, k)) continue;
@@ -1268,11 +1267,12 @@ down-toggle {
     }
     return "";
   }
-  function isHidden(row){
-    // Accept a column named "visibility" (spacing/casing tolerant)
+
+  // Treat both 'Visibility' and putting 'hide' in 'Link' as a hide marker
+  function rowHasHideMarker(row){
     const v = String(getCell(row, "visibility") || "").trim().toLowerCase();
-    if (["hide","hidden","yes","1","true"].includes(v)) return true;
-    return false;
+    const l = String(getCell(row, "link") || "").trim().toLowerCase();
+    return ["hide","hidden","yes","1","true"].includes(v) || ["hide","hidden"].includes(l);
   }
 
   fetch(categorySheetURL)
@@ -1280,28 +1280,43 @@ down-toggle {
     .then(rows => {
       const container = document.getElementById("categorySection");
       const grouped = {};
-      let currentSection = ""; // last non-empty Title
 
-      rows.forEach(row => {
-        if (isHidden(row)) return; // completely skip this card
+      let currentSection = "";           // e.g., "Resin"
+      let sectionHidden = false;         // if Title row says hide => hide all until next Title
 
-        const rawTitle = String(getCell(row, "Title") || "").trim();
-        if (rawTitle) currentSection = rawTitle;
+      rows.forEach((row) => {
+        const titleCell = String(getCell(row, "Title") || "").trim();
 
+        // If a new Title starts, reset section + whether it is hidden
+        if (titleCell){
+          currentSection = titleCell;
+          sectionHidden = rowHasHideMarker(row); // 🟢 if Title row has "hide", hide whole block
+          return; // Title rows themselves don't render any card
+        }
+
+        // If there's no active section yet, skip
         if (!currentSection) return;
+
+        // If the whole section is hidden, skip all its rows
+        if (sectionHidden) return;
+
+        // Per-row hide still respected (e.g., hide a single category)
+        if (rowHasHideMarker(row)) return;
 
         const name = String(getCell(row, "Category Name") || "").trim();
         const img  = String(getCell(row, "Category Image") || "").trim();
-        const link = String(getCell(row, "Link") || "").trim() || "#";
+        let link   = String(getCell(row, "Link") || "").trim();
 
         if (!name || !img) return;
 
         if (!grouped[currentSection]) grouped[currentSection] = [];
-        grouped[currentSection].push({ name, img, link });
+        grouped[currentSection].push({ name, img, link: link || "#" });
       });
 
-      // Render section wise
+      // Render the collected groups
       Object.entries(grouped).forEach(([section, items]) => {
+        if (!items || !items.length) return;
+
         const title = document.createElement("h3");
         title.innerText = section;
         title.style.fontFamily = "'Roboto Slab', serif";
@@ -1323,11 +1338,10 @@ down-toggle {
           box.style.textDecoration = "none";
           box.style.color = "inherit";
           box.innerHTML = `
-            <div style="text-align: center;">
-              <img src="${item.img}" alt="${item.name}" style="width: 100%; border-radius: 20px; object-fit: cover;">
-              <div style="margin-top: 8px; font-family: 'Roboto Slab', serif; font-size: 15px;">${item.name}</div>
-            </div>
-          `;
+            <div style="text-align:center;">
+              <img src="${item.img}" alt="${item.name}" style="width:100%; border-radius:20px; object-fit:cover;">
+              <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
+            </div>`;
           grid.appendChild(box);
         });
 
@@ -1335,6 +1349,7 @@ down-toggle {
       });
     })
     .catch(err => console.error("Category load error:", err));
+
 </script>
 <script>
   // Announcement Bar from Google Sheet
