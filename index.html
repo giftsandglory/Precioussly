@@ -1733,7 +1733,6 @@ down-toggle {
   font-family:'Roboto Slab', serif; font-weight:600;
 }
 </style>
-
 <style>
 #happySlider img, #happySlider video {
   border-radius: 12px;
@@ -1743,8 +1742,6 @@ down-toggle {
   margin-top: 16px;
 }
 </style>
-
-
 <style>
 /* --- Happy Customers visual tweaks --- */
 #happySection .fade-slider{
@@ -1761,8 +1758,7 @@ down-toggle {
   width: 100%;
 }
 </style>
-
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script&amp;display=swap" rel="stylesheet"/>
 <style>
 /* Dancing Script for "Happy Customers" title, keep same alignment */
 .happy-customers-title{
@@ -1774,7 +1770,6 @@ down-toggle {
 }
 
 </style>
-
 <style id="bestseller-center-fix">
 /* === Fix: Center label exactly under circular photo === */
 .cat-card{ display:block; } /* ensure the card is a block */
@@ -1786,18 +1781,13 @@ down-toggle {
   margin-top:6px; /* keep same spacing */
 }
 </style>
-
-
 <style id="chatgpt-hide-all-dots">
   /* Completely remove ALL dot indicators everywhere */
   .ig-dots, .fade-dots, .insta-dots, .fade-dot, .ig-dot, .ig-dot-tiny { display: none !important; visibility: hidden !important; }
 </style>
-
-
 <style id="chatgpt-always-hide-dots">
   .ig-dots, .fade-dots, .insta-dots { display:none !important; visibility:hidden !important; }
 </style>
-
 <style>
 /* === Force counter chip consistent small size === */
 .ig-counter{
@@ -1808,7 +1798,6 @@ down-toggle {
 .ig-counter:empty::before{ content:"1/1"; opacity:0; }
 /* =============================================== */
 </style>
-
 <!-- === ChatGPT FINAL: Natural-aspect slider (no crop, no 1:1) === -->
 <style id="natural-aspect-slider">
 /* Container should size to the active media's natural height */
@@ -1854,7 +1843,6 @@ down-toggle {
 .ig-counter { top: 10px !important; right: 10px !important; }
 .ig-dots { bottom: 12px !important; }
 </style>
-
 <style id="natural-aspect-slider-fixpos">
 /* Restore original counter/dots positions (no centering) */
 .ig-counter{
@@ -1870,7 +1858,6 @@ down-toggle {
   bottom: 12px !important;
 }
 </style>
-
 <style id="hero-no-rounded">
 /* Remove rounded corners only for the first slider (hero/banner under announcement bar) */
 .fade-slider.hero-slider .fade-slide > img,
@@ -1878,7 +1865,6 @@ down-toggle {
   border-radius: 0 !important;
 }
 </style>
-
 <style id="hero-no-rounded-final">
 /* Ensure hero/banner images have absolutely no rounded corners */
 .fade-slider.hero-slider .fade-slide > img,
@@ -1886,7 +1872,6 @@ down-toggle {
   border-radius: 0px !important;
 }
 </style>
-
 <style id="premium-preloader-css">
 html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important; height: 100vh !important; }
 #preloaderOverlay{
@@ -1938,8 +1923,6 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 #skipPreloader.show{ opacity: 1; pointer-events: auto; }
 #skipPreloader:active{ transform: scale(.98); }
 </style>
-
-
 <style id="happy-customers-grid-css">
 /* === Happy Customers: Grid/Row layout (white background) === */
 #happySection{
@@ -1989,8 +1972,6 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
   padding:10px 10px;
 }
 </style>
-
-
 <style id="happy-edge-to-edge">
 /* === Edge-to-edge layout ONLY for the section under "Happy Customers" === */
 #happySection{
@@ -2007,8 +1988,6 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
   padding-right: 7px !important;
 }
 </style>
-
-
 <style id="instagram-banner-css">
 /* === Instagram follow banner (placed right below certified-strip) === */
 .ig-banner-wrap{ padding: 0 12px 18px; background:#fff; }
@@ -2041,7 +2020,6 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 .ig-banner .ig-link:active{ transform:scale(.96); }
 .ig-banner .ig-icon{ width:36px; height:36px; }
 </style>
-
 <style id="cat-title-upgrade">
 /* === Strong, premium section headings for dynamically-created titles === */
 .cat-sec .cat-title{
@@ -2066,27 +2044,49 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
   border-radius: 2px !important;
 }
 </style>
-</head>
+<style id="coupon-spacing-fix">
+/* === Coupon strip spacing fix === */
+.coupon-strip {
+  gap: 10px !important;
+  padding-left: 2px !important;
+  padding-right: 2px !important;
+}
+</style><style id="coupon-spacing-reduce">
+/* === Reduce space below coupon strip === */
+.coupon-strip {
+  margin-bottom: 6px !important;  /* reduce empty space */
+}
+</style><style id="coupon-spacing-tight">
+/* === Force coupon strip to sit tightly === */
+.coupon-strip {
+  margin-top: 4px !important;
+  margin-bottom: 2px !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+/* Also reduce space above "Our Categories" */
+.cat-sec .cat-title {
+  margin-top: 8px !important;
+}
+</style></head>
 <body>
-
 <!-- ===== Premium Preloader Overlay (keeps header + announcement bar visible) ===== -->
-<div id="preloaderOverlay" role="status" aria-live="polite" aria-label="Loading">
-  <div class="pre-card">
-    <div class="pre-logo">
-      <img src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" alt="Precioussly" />
-      <div class="sparkles">
-        <span style="left:16%; top:20%; --d:.1s"></span>
-        <span style="left:76%; top:30%; --d:.3s"></span>
-        <span style="left:50%; top:10%; --d:.5s"></span>
-      </div>
-    </div>
-    <div class="pre-title">Precioussly</div>
-    <div class="pre-sub">Preparing your premium experience…</div>
-    <div class="pre-bar"></div>
-    <button id="skipPreloader" type="button" aria-label="Skip preloader">Continue</button>
-  </div>
+<div aria-label="Loading" aria-live="polite" id="preloaderOverlay" role="status">
+<div class="pre-card">
+<div class="pre-logo">
+<img alt="Precioussly" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"/>
+<div class="sparkles">
+<span style="left:16%; top:20%; --d:.1s"></span>
+<span style="left:76%; top:30%; --d:.3s"></span>
+<span style="left:50%; top:10%; --d:.5s"></span>
 </div>
-
+</div>
+<div class="pre-title">Precioussly</div>
+<div class="pre-sub">Preparing your premium experience…</div>
+<div class="pre-bar"></div>
+<button aria-label="Skip preloader" id="skipPreloader" type="button">Continue</button>
+</div>
+</div>
 <header class="site-header" id="mainHeader">
 <!-- Left: Menu (unchanged) -->
 <button aria-label="Menu" class="hamburger-wrapper" onclick="toggleMenu()">
@@ -2127,9 +2127,9 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 <!-- === Instagram Slider Section (auto from Google Sheet) === -->
 <section class="insta-section" id="happySection">
 <h2 class="happy-customers-title">Happy Customers</h2>
-<div class="happy-row" id="happyRow" aria-live="polite"></div>
+<div aria-live="polite" class="happy-row" id="happyRow"></div>
 <!-- keep a hidden stub so any legacy JS looking for this id doesn't crash -->
-<a id="instaBtn" href="#" style="display:none" aria-hidden="true">Instagram</a>
+<a aria-hidden="true" href="#" id="instaBtn" style="display:none">Instagram</a>
 </section>
 <!-- ✅ Certified Strip (Pink Theme) -->
 <div class="certified-strip" id="certifiedStrip">
@@ -2150,18 +2150,15 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 <span>Timely Delivery</span>
 </div>
 </div>
-
 <!-- 🟣 Instagram banner: EXACTLY below the pink certified-strip -->
 <section class="ig-banner-wrap" id="igFollowBanner">
-  <div class="ig-banner" aria-label="Instagram updates banner">
-    <p>Stay connected with us for updates,<br>offers &amp; behind-the-scenes ✨</p>
-    <a class="ig-link" href="https://www.instagram.com/precioussly_" target="_blank" rel="noopener noreferrer" aria-label="Open our Instagram profile">
-      <img class="ig-icon" alt="Instagram" src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png">
-    </a>
-  </div>
+<div aria-label="Instagram updates banner" class="ig-banner">
+<p>Stay connected with us for updates,<br/>offers &amp; behind-the-scenes ✨</p>
+<a aria-label="Open our Instagram profile" class="ig-link" href="https://www.instagram.com/precioussly_" rel="noopener noreferrer" target="_blank">
+<img alt="Instagram" class="ig-icon" src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"/>
+</a>
+</div>
 </section>
-
-
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 <!-- Side Menu -->
 <nav class="side-menu" id="sideMenu">
@@ -3246,7 +3243,6 @@ function createSwipeFadeSlider(opts){
     }
   }).catch(console.error);
 })();</script>
-
 <script>
 (function(){
   function setupIgCounter(counterId, sliderId, dotsId){
@@ -3296,15 +3292,12 @@ function createSwipeFadeSlider(opts){
   setupIgCounter('happyCounter','happySlider','happyDots');
 })();
 </script>
-
 <script id="chatgpt-dots-guards">
   // Safety guards: if any function tries to render dots, neutralize it.
   try {
     window.renderIGDots = function(){ /* dots intentionally removed */ };
   } catch(e) {}
 </script>
-
-
 <script id="chatgpt-gsheet-hero-loader">
   (function(){
     const SHEET_ID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
@@ -3446,8 +3439,6 @@ try {
     document.addEventListener("DOMContentLoaded", loadHero);
   })();
 </script>
-
-
 <script id="premium-preloader-js">
 (function(){
   document.documentElement.classList.add('no-scroll-preloader');
@@ -3551,10 +3542,6 @@ try {
   setTimeout(hidePreloader, 30000);
 })();
 </script>
-
-
-
-
 <!-- Preloader: keep visible until the whole page is fully loaded (NO SKIP) + hide announcement bar during preload -->
 <style>
   /* Lock scroll while preloader is active */
@@ -3622,8 +3609,6 @@ try {
   }
 })();
 </script>
-
-
 <script id="happy-customers-grid-js">
 (function(){
   try{
@@ -3678,7 +3663,6 @@ try {
   }
 })();
 </script>
-
 </body>
 </html>
 <script>
