@@ -1939,6 +1939,75 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 #skipPreloader:active{ transform: scale(.98); }
 </style>
 
+
+<style id="happy-customers-grid-css">
+/* === Happy Customers: Grid/Row layout (white background) === */
+#happySection{
+  background:#fff;
+}
+#happySection .happy-customers-title{
+  margin: 12px 0 10px !important;
+}
+.happy-row{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:12px;
+  padding: 0 12px 4px;
+}
+@media (max-width: 720px){
+  .happy-row{
+    display:flex;
+    gap:12px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 12px 4px;
+  }
+  .happy-card{ flex: 0 0 72%; max-width: 260px; }
+}
+.happy-card{
+  background:#ffffff;
+  border: 1px solid #eaeaea;
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  text-decoration:none;
+  color:#000;
+  display:flex;
+  flex-direction:column;
+}
+.happy-photo{
+  width:100%;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  display:block;
+}
+.happy-id{
+  font-family:'Roboto Slab', serif;
+  font-weight:600;
+  font-size:15px;
+  text-align:center;
+  padding:10px 10px;
+}
+</style>
+
+
+<style id="happy-edge-to-edge">
+/* === Edge-to-edge layout ONLY for the section under "Happy Customers" === */
+#happySection{
+  /* Make this section span the full viewport width while keeping the rest of the site unchanged */
+  width: 100vw !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+  padding-left: 0px !important;   /* 1px gap on the left */
+  padding-right: 0px !important;  /* 1px gap on the right */
+}
+/* Ensure the media row inside also respects the 1px side gap */
+#happySection .happy-row{
+  padding-left: 7px !important;
+  padding-right: 7px !important;
+}
+</style>
+
 </head>
 <body>
 
@@ -2000,11 +2069,9 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 <!-- === Instagram Slider Section (auto from Google Sheet) === -->
 <section class="insta-section" id="happySection">
 <h2 class="happy-customers-title">Happy Customers</h2>
-<div style="position: relative; overflow: hidden;">
-<div class="fade-slider" id="happySlider"></div>
-<div class="ig-counter" id="happyCounter"></div><div class="ig-dots" id="happyDots" style="display:none"></div>
-</div>
-<a class="btn-outline-black" href="#" id="instaBtn" rel="noopener" target="_blank">View Instagram Profile</a>
+<div class="happy-row" id="happyRow" aria-live="polite"></div>
+<!-- keep a hidden stub so any legacy JS looking for this id doesn't crash -->
+<a id="instaBtn" href="#" style="display:none" aria-hidden="true">Instagram</a>
 </section>
 <!-- ✅ Certified Strip (Pink Theme) -->
 <div class="certified-strip" id="certifiedStrip">
@@ -3482,6 +3549,62 @@ try {
       document.documentElement.classList.remove('no-scroll-preloader');
       document.body.classList.remove('no-scroll-preloader');
     }catch(_){}
+  }
+})();
+</script>
+
+
+<script id="happy-customers-grid-js">
+(function(){
+  try{
+    const rowEl = document.getElementById('happyRow');
+    if(!rowEl) return;
+
+    // Use OpenSheet to read the public sheet
+    const SHEET_ID = '1T3pK9Ya7hm-RXWH4Hq-wV2JUYRbFJJ5qo8rSMbPIcLs';
+    const TAB = 'Sheet1';
+    const endpoint = `https://opensheet.elk.sh/${SHEET_ID}/${TAB}`;
+
+    fetch(endpoint)
+      .then(r => r.json())
+      .then(rows => {
+        // Filter only valid rows with photo url
+        const items = (rows || []).filter(r => (r['photo']||'').trim() !== '');
+        rowEl.innerHTML = '';
+        items.forEach((r) => {
+          const photo = (r['photo']||'').trim();
+          const handleRaw = (r['insta link']||'').trim();
+          const handle = handleRaw.replace(/^@/, ''); // normalize
+          // Card anchor (to instagram if handle present)
+          const a = document.createElement(handle ? 'a' : 'div');
+          a.className = 'happy-card';
+          if (handle) {
+            a.href = `https://instagram.com/${handle}`;
+            a.target = '_blank';
+            a.rel = 'noopener';
+          }
+
+          const img = document.createElement('img');
+          img.className = 'happy-photo';
+          img.loading = 'lazy';
+          img.alt = handle ? '@' + handle : 'Happy customer photo';
+          img.src = photo;
+
+          const cap = document.createElement('div');
+          cap.className = 'happy-id';
+          cap.textContent = handle ? ('@' + handle) : '';
+
+          a.appendChild(img);
+          a.appendChild(cap);
+          rowEl.appendChild(a);
+        });
+      })
+      .catch(err => {
+        // Silently fail without breaking other parts
+        console.error('Happy Customers grid error:', err);
+      });
+  }catch(e){
+    console.error('Happy Customers grid fatal:', e);
   }
 })();
 </script>
