@@ -3417,10 +3417,20 @@ try {
 
 
 
-<!-- Preloader: keep visible until the whole page is fully loaded (NO SKIP BUTTON) -->
+
+<!-- Preloader: keep visible until the whole page is fully loaded (NO SKIP) + hide announcement bar during preload -->
 <style>
-  /* If markup for a skip button exists in the theme, force-hide it */
+  /* Lock scroll while preloader is active */
+  html.no-scroll-preloader, body.no-scroll-preloader { overflow: hidden !important; height: 100% !important; }
+  /* Ensure any existing "skip" control is hidden */
   #skipPreloader{ display:none !important; }
+  /* 🔒 Prevent announcement bar flash while loading */
+  html.no-scroll-preloader #announcementBar,
+  html.no-scroll-preloader .announcement-bar,
+  html.no-scroll-preloader [data-announcement],
+  html.no-scroll-preloader .shopify-section--announcement-bar{
+    display: none !important;
+  }
 </style>
 <script id="preloader-control-v2">
 (function(){
@@ -3435,11 +3445,10 @@ try {
     if(!overlay){ return; }
 
     function computeTop(){
+      // While preloading we deliberately ignore the announcement bar (it's hidden)
       var header = document.getElementById('mainHeader');
-      var bar = document.getElementById('announcementBar');
       var top = 0;
       if (header) top += header.offsetHeight || 0;
-      if (bar) top += bar.offsetHeight || 0;
       overlay.style.setProperty('--preloaderTop', top + 'px');
     }
     computeTop();
