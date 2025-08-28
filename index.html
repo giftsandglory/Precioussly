@@ -3415,6 +3415,68 @@ try {
 })();
 </script>
 
+
+
+<!-- Preloader: keep visible until the whole page is fully loaded (NO SKIP BUTTON) -->
+<style>
+  /* If markup for a skip button exists in the theme, force-hide it */
+  #skipPreloader{ display:none !important; }
+</style>
+<script id="preloader-control-v2">
+(function(){
+  try{
+    var html = document.documentElement;
+    var body = document.body;
+
+    html.classList.add('no-scroll-preloader');
+    body.classList.add('no-scroll-preloader');
+
+    var overlay = document.getElementById('preloaderOverlay');
+    if(!overlay){ return; }
+
+    function computeTop(){
+      var header = document.getElementById('mainHeader');
+      var bar = document.getElementById('announcementBar');
+      var top = 0;
+      if (header) top += header.offsetHeight || 0;
+      if (bar) top += bar.offsetHeight || 0;
+      overlay.style.setProperty('--preloaderTop', top + 'px');
+    }
+    computeTop();
+    window.addEventListener('resize', computeTop);
+
+    var MIN_SHOW_MS = 800;
+    var start = (window.performance && performance.now) ? performance.now() : Date.now();
+
+    function release(){
+      var now = (window.performance && performance.now) ? performance.now() : Date.now();
+      var elapsed = now - start;
+      var wait = Math.max(0, MIN_SHOW_MS - elapsed);
+      window.setTimeout(function(){
+        overlay.classList.add('hide');
+        html.classList.remove('no-scroll-preloader');
+        body.classList.remove('no-scroll-preloader');
+      }, wait);
+    }
+
+    var loadPromise = new Promise(function(res){ window.addEventListener('load', function(){ res(); }, { once: true }); });
+    var fontsPromise = ('fonts' in document && document.fonts && document.fonts.ready) ? document.fonts.ready.catch(function(){}) : Promise.resolve();
+
+    Promise.all([loadPromise, fontsPromise]).then(release);
+
+    // Safety: never trap the user if some third-party never finishes
+    setTimeout(release, 15000);
+  }catch(e){
+    try{
+      var overlay = document.getElementById('preloaderOverlay');
+      if(overlay){ overlay.classList.add('hide'); }
+      document.documentElement.classList.remove('no-scroll-preloader');
+      document.body.classList.remove('no-scroll-preloader');
+    }catch(_){}
+  }
+})();
+</script>
+
 </body>
 </html>
 <script>
