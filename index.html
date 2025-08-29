@@ -2110,69 +2110,40 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 }
 </style>
 
-<!-- === CLASSIC 3D PINK BORDERS (Elegant, White BG Safe) — ChatGPT === -->
-<style id="classic-3d-pink-borders">
-:root{
-  --ring-thickness: 4px;                 /* adjust 3-6px */
-  --pink-deep: #d92b7a;                  /* deep edge */
-  --pink-mid:  #ff7fbc;                  /* mid tone */
-  --pink-lite: #ffd6ea;                  /* highlight */
-  --outer-soft-shadow: 0 6px 16px rgba(0,0,0,.06);
-  --inner-top-highlight: inset 0 1px 0 rgba(255,255,255,.85);
-  --inner-bottom-shade: inset 0 -2px 6px rgba(217,43,122,.18);
+<style id="preloader-top-placement">
+/* === Place preloader card just below the header === */
+#preloaderOverlay{
+  /* Use the CSS var set by JS (header height), and keep a tiny gap */
+  top: var(--preloaderTop, 0px) !important;
+  align-items: flex-start !important;   /* push to the top */
+  justify-content: center !important;   /* centered horizontally */
+  padding-top: 8px !important;          /* small breathing space */
 }
-
-/* Reset old styles and apply a classic metal-like ring */
-.circle-mini{
-  position: relative;
-  border: 0 !important;
-  padding: var(--ring-thickness) !important;
-  border-radius: 50% !important;
-  overflow: hidden !important;
-  background:
-    radial-gradient(farthest-side, #ffffff 99.9%, transparent 100%) content-box, /* keep image clean */
-    conic-gradient(
-      from 0deg,
-      var(--pink-deep),
-      var(--pink-mid),
-      var(--pink-lite),
-      var(--pink-mid),
-      var(--pink-deep)
-    ) border-box !important;
-  box-shadow: var(--outer-soft-shadow), var(--inner-top-highlight), var(--inner-bottom-shade) !important;
+/* The card itself needs no absolute offset now */
+#preloaderOverlay .pre-card{
+  margin-top: 0 !important;
 }
-
-/* Subtle glass highlight arc for realism (no glow) */
-.circle-mini::after{
-  content: "";
-  position: absolute;
-  inset: calc(var(--ring-thickness) - 1px);
-  border-radius: 50%;
-  background:
-    conic-gradient(from 210deg,
-      rgba(255,255,255,.55) 0deg,
-      rgba(255,255,255,.25) 14deg,
-      rgba(255,255,255,0) 40deg
-    );
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-
-/* Image stays crisp */
-.circle-mini img{
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  border-radius: 50% !important;
-  display: block !important;
-}
-
-/* Micro press feel, no animation */
-.circle-mini:active{ transform: translateY(1px) scale(.992); }
-
-/* Upgrade any alternates too */
-.circle, .circle-wrap, .cat-item .circle-mini { border: 0 !important; }
 </style>
+<script id="preloader-top-placement-js">
+(function(){
+  function setPreloaderTop(){
+    try{
+      var header = document.querySelector('.site-header');
+      var bar = document.getElementById('announcementBar');
+      var h = 0;
+      if (bar && bar.offsetParent !== null){ h += bar.offsetHeight || 0; }
+      if (header && header.offsetParent !== null){ h += header.offsetHeight || 0; }
+      document.documentElement.style.setProperty('--preloaderTop', h + 'px');
+      document.body.style.setProperty('--preloaderTop', h + 'px');
+    }catch(e){ /* no-op */ }
+  }
+  // Run early and on resize/scroll just in case header size changes.
+  document.addEventListener('DOMContentLoaded', setPreloaderTop);
+  window.addEventListener('load', setPreloaderTop);
+  window.addEventListener('resize', setPreloaderTop);
+})();
+</script>
+
 </head>
 <body>
 <!-- ===== Premium Preloader Overlay (keeps header + announcement bar visible) ===== -->
