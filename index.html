@@ -2068,7 +2068,48 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 .cat-sec .cat-title {
   margin-top: 8px !important;
 }
-</style></head>
+</style>
+<!-- === Copy Confirmation (Green Theme) — ChatGPT === -->
+<style id="copy-confirmation-css">
+.copy-pop{
+  position: fixed;
+  top: 0; left: 0;
+  transform: translate(-50%,-120%) scale(.96);
+  padding: 8px 12px;
+  background: #e9fef1;                 /* light green */
+  color: #064c2c;                       /* dark green text */
+  border: 1px solid #c5ecd6;            /* green border */
+  border-radius: 12px;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .2px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.16);
+  opacity: 0;
+  z-index: 999999;
+  animation: copyPopFade 1.4s ease forwards;
+  pointer-events: none;
+  user-select: none;
+}
+.copy-pop::before,
+.copy-pop::after{
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 16px;
+  border: 8px solid transparent;
+}
+.copy-pop::before{ border-top-color: #c5ecd6; }  /* border outline */
+.copy-pop::after{ margin-top: -2px; border-top-color: #e9fef1; } /* inner fill */
+
+@keyframes copyPopFade{
+  0%   { opacity: 0; transform: translate(-50%,-10%) scale(.92); }
+  15%  { opacity: 1; transform: translate(-50%,-120%) scale(1.00); }
+  70%  { opacity: 1; transform: translate(-50%,-125%) scale(1.00); }
+  100% { opacity: 0; transform: translate(-50%,-145%) scale(.98); }
+}
+</style>
+</head>
 <body>
 <!-- ===== Premium Preloader Overlay (keeps header + announcement bar visible) ===== -->
 <div aria-label="Loading" aria-live="polite" id="preloaderOverlay" role="status">
@@ -3661,6 +3702,79 @@ try {
   }catch(e){
     console.error('Happy Customers grid fatal:', e);
   }
+})();
+</script>
+
+<!-- === Copy Confirmation Logic — ChatGPT === -->
+<script id="copy-confirmation-js">
+(function(){
+  function textFrom(el){
+    if(!el) return "";
+    // Prefer data-copy attribute
+    const dc = el.getAttribute && el.getAttribute("data-copy");
+    if(dc) return dc.trim();
+    // If it's a coupon card icon, take sibling .code-box
+    const card = el.closest && el.closest(".coupon-card");
+    if(card){
+      const box = card.querySelector(".code-box");
+      if(box && box.textContent) return box.textContent.trim();
+    }
+    // If user tapped directly on the code text
+    if(el.classList && el.classList.contains("code-box")){
+      return (el.textContent || "").trim();
+    }
+    // Fallback to element text
+    return (el.textContent || "").trim();
+  }
+
+  function showCopyPop(clientX, clientY){
+    const pop = document.createElement("div");
+    pop.className = "copy-pop";
+    pop.textContent = "Copied!";
+    document.body.appendChild(pop);
+
+    // Keep within viewport edges
+    const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+    const left = Math.min(Math.max(20, clientX), vw - 20);
+    const top  = Math.max(10, clientY - 16);
+
+    pop.style.left = left + "px";
+    pop.style.top  = top + "px";
+
+    // Haptics (best‑effort)
+    if (navigator.vibrate) { try { navigator.vibrate(12); } catch(e){} }
+
+    setTimeout(function(){ pop.remove(); }, 1600);
+  }
+
+  // Event delegation: copy when clicking .copy-btn, .code-box, or anything with [data-copy]
+  document.addEventListener("click", function(e){
+    const target = e.target.closest && e.target.closest(".copy-btn, .code-box, [data-copy]");
+    if(!target) return;
+
+    const value = textFrom(target);
+    if(!value) return;
+
+    // Use Clipboard API
+    (navigator.clipboard && navigator.clipboard.writeText
+      ? navigator.clipboard.writeText(value)
+      : Promise.reject())
+    .catch(function(){
+      // Fallback for older browsers
+      const ta = document.createElement("textarea");
+      ta.value = value;
+      ta.style.position = "fixed";
+      ta.style.top = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      try { document.execCommand("copy"); } catch(e){}
+      finally { ta.remove(); }
+      return Promise.resolve();
+    })
+    .finally(function(){
+      showCopyPop(e.clientX, e.clientY);
+    });
+  }, true);
 })();
 </script>
 </body>
