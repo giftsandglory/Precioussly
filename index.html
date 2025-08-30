@@ -2208,6 +2208,48 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 })();
 </script>
 
+
+<style id="hc-title-ribbon-upgrade">
+/* === Happy Customers — premium ribbon/pill title === */
+#happySection .title-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding: 10px 12px 6px;
+}
+#happySection .happy-customers-title{
+  font-family: 'Roboto Slab', serif !important;
+  font-weight: 800 !important;
+  font-size: clamp(20px, 5.2vw, 28px) !important;
+  letter-spacing: .3px !important;
+  color: #111 !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #fff5fb 0%, #ffe1ef 50%, #fff5fb 100%) !important;
+  border: 1px solid #ffd3e6 !important;
+  box-shadow: 0 8px 24px rgba(255,121,176,.18), inset 0 0 0 6px #ffffff !important;
+  position: relative;
+  text-align: center;
+}
+#happySection .happy-customers-title .hc-icon{
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffedf6;
+  border: 1px solid #ffcfe4;
+  box-shadow: 0 4px 10px rgba(255,121,176,.25);
+  font-size: 16px;
+}
+/* small animated shimmer underline */
+
+</style>
+
 </head>
 <body>
 <!-- ===== Premium Preloader Overlay (keeps header + announcement bar visible) ===== -->
@@ -2266,7 +2308,7 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 <div id="categorySection" style="padding: 16px 12px; display: flex; flex-wrap: wrap; gap: 12px;"></div>
 <!-- === Instagram Slider Section (auto from Google Sheet) === -->
 <section class="insta-section" id="happySection">
-<h2 class="happy-customers-title">Happy Customers</h2>
+<div class="title-wrap"><h2 class="happy-customers-title"><span class="hc-icon">🦋</span>Happy Customers</h2></div>
 <div aria-live="polite" class="happy-row" id="happyRow"></div>
 <!-- keep a hidden stub so any legacy JS looking for this id doesn't crash -->
 <a aria-hidden="true" href="#" id="instaBtn" style="display:none">Instagram</a>
