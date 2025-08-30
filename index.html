@@ -3438,7 +3438,7 @@ function createSwipeFadeSlider(opts){
     window.renderIGDots = function(){ /* dots intentionally removed */ };
   } catch(e) {}
 </script>
-<script id="chatgpt-gsheet-hero-loader">
+<script id="chatgpt-gsheet-hero-loader">if(false){
   (function(){
     const SHEET_ID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
     const GID = "0"; // first sheet by default
@@ -3578,7 +3578,7 @@ try {
     // Start
     document.addEventListener("DOMContentLoaded", loadHero);
   })();
-</script>
+}</script>
 <script id="premium-preloader-js">
 (function(){
   document.documentElement.classList.add('no-scroll-preloader');
@@ -3876,6 +3876,206 @@ try {
   }, true);
 })();
 </script>
+
+
+<style id="ffollow-css">
+  /* Finger-follow override for the hero slider (FIXED sizing) */
+  #fadeSlider { position: relative; overflow: hidden; touch-action: pan-y pinch-zoom; }
+  #fadeSlider .ff-track { display: flex; width: 100%; height: auto; will-change: transform; transition: none; }
+  #fadeSlider .fade-slide {
+    position: relative !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: auto !important;
+    flex: 0 0 100%;
+    width: 100%;
+    /* no fixed height so content decides height */
+  }
+  #fadeSlider .fade-slide img, #fadeSlider .fade-slide video {
+    width: 100%;
+    height: auto;           /* keep natural aspect ratio */
+    object-fit: contain;    /* don't crop */
+    -webkit-user-drag: none; user-select: none;
+    display: block;
+  }
+
+<style id="hero-track-visibility-fix">
+  /* Ensure hero slides remain visible when upgraded to ff-track slider */
+  #fadeSlider .fade-slide { display: block !important; }
+</style>
+</style>
+
+
+<script id="ffollow-js">
+(function(){
+  if (window.__FF_HERO_INIT__) return;
+  window.__FF_HERO_INIT__ = true;
+
+  const slider = document.getElementById('fadeSlider');
+  if (!slider) return;
+
+  function initWhenReady(){
+    const slides = Array.from(slider.querySelectorAll('.fade-slide'));
+    if (!slides.length) { requestAnimationFrame(initWhenReady); return; }
+
+    // Already upgraded?
+    if (slider.querySelector('.ff-track')) return;
+
+    // Build track and move slides
+    const track = document.createElement('div');
+    track.className = 'ff-track';
+    // Preserve existing children order
+    slides.forEach(s => track.appendChild(s));
+    slider.appendChild(track);
+
+    let index = 0;
+    const total = slides.length;
+
+    const counterEl = document.getElementById('fadeCounter');
+    const dotsWrap  = document.getElementById('fadeDots');
+
+    function setCounter(){
+      if (typeof updateIGCounter === 'function' && counterEl){
+        updateIGCounter(counterEl, index, total);
+      } else if (counterEl){
+        counterEl.textContent = (index+1) + '/' + total;
+      }
+      if (typeof renderIGDots === 'function' && dotsWrap){
+        renderIGDots(dotsWrap, total, index, 5);
+      }
+    }
+    setCounter();
+
+    function w(){ return slider.clientWidth || window.innerWidth || 1; }
+    function go(i, animate){
+      index = Math.max(0, Math.min(total-1, i));
+      const x = -index * w();
+      track.style.transition = animate ? 'transform 280ms ease-out' : 'none';
+      track.style.transform  = 'translate3d(' + x + 'px,0,0)';
+      setCounter();
+    }
+
+    // pointer state
+    let dragging=false, startX=0, startY=0, baseX=0, lastX=0, lastT=0, vel=0;
+    // Helpers to stop the old listeners from firing
+    function swallow(e){ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+
+    slider.addEventListener('touchstart', function(e){
+      if (e.touches.length>1) return; // ignore pinch
+      dragging=false;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      baseX  = -index * w();
+      lastX  = startX;
+      lastT  = Date.now();
+    }, {passive:true, capture:true});
+
+    slider.addEventListener('touchmove', function(e){
+      if (e.touches.length>1) return;
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      const dx = x - startX;
+      const dy = y - startY;
+      if (!dragging && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) + 6){
+        dragging = true;
+      }
+      if (!dragging) return;
+      swallow(e);
+      const minX = -(total-1)*w() - w()*0.25;
+      const maxX = w()*0.25;
+      const next = Math.max(minX, Math.min(maxX, baseX + dx));
+      track.style.transition = 'none';
+      track.style.transform = 'translate3d(' + next + 'px,0,0)';
+
+      const now = Date.now();
+      const dt = Math.max(1, now - lastT);
+      vel = (x - lastX) / dt; // px/ms
+      lastX = x; lastT = now;
+    }, {passive:false, capture:true});
+
+    slider.addEventListener('touchend', function(e){
+      if (!dragging) return;
+      swallow(e);
+      dragging = false;
+      const x = e.changedTouches[0].clientX;
+      const dx = x - startX;
+      const quick = Math.abs(vel) > 0.6;
+      const far   = Math.abs(dx) > w()*0.22;
+      if (quick || far){
+        index += (dx < 0 ? 1 : -1);
+      }
+      go(index, true);
+    }, {passive:false, capture:true});
+
+    // Mouse (desktop)
+    let mDown=false, mStart=0;
+    slider.addEventListener('mousedown', function(e){
+      mDown=true; mStart=e.clientX; baseX=-index*w(); lastX=mStart; lastT=Date.now();
+    }, {capture:true});
+    window.addEventListener('mousemove', function(e){
+      if(!mDown) return;
+      const dx=e.clientX-mStart;
+      const next=Math.max(-(total-1)*w()-w()*0.25, Math.min(w()*0.25, baseX+dx));
+      track.style.transition='none';
+      track.style.transform='translate3d('+next+'px,0,0)';
+      const now=Date.now(), dt=Math.max(1, now-lastT); vel=(e.clientX-lastX)/dt; lastX=e.clientX; lastT=now;
+    }, {capture:true});
+    window.addEventListener('mouseup', function(e){
+      if(!mDown) return; mDown=false;
+      const dx=e.clientX-mStart;
+      const quick=Math.abs(vel)>0.6, far=Math.abs(dx)>w()*0.22;
+      if(quick||far){ index += (dx<0?1:-1); }
+      go(index, true);
+    }, {capture:true});
+
+    window.addEventListener('resize', ()=>go(index,false));
+    go(0,false);
+  }
+
+  // Wait a tick so the original fetch builds slides, then upgrade
+  window.addEventListener('DOMContentLoaded', function(){
+    setTimeout(initWhenReady, 400);
+  });
+})();
+</script>
+
+
+<script id="ffollow-patch">
+(function(){
+  const s = document.getElementById('fadeSlider');
+  if(!s) return;
+  const imgs = s.querySelectorAll('.fade-slide img');
+  imgs.forEach((im, i)=>{
+    // Un-lazy
+    const ds = im.getAttribute('data-src');
+    if(ds && !im.getAttribute('src')) im.setAttribute('src', ds);
+    // If previous CSS left inline opacity 0, clear it
+    const st = (im.getAttribute('style')||'').toLowerCase();
+    if (st.includes('opacity:0')) { im.style.opacity = '1'; }
+  });
+})();
+</script>
+
+
+<style id="hero-ff-track-reset">
+  /* When the hero slider is upgraded to a track-based swiper,
+     ensure every slide is fully visible and participates in layout. */
+  #fadeSlider .ff-track .fade-slide{
+    position: relative !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: auto !important;
+    display: block !important;
+  }
+  /* Images/videos inside should render normally */
+  #fadeSlider .ff-track .fade-slide > img,
+  #fadeSlider .ff-track .fade-slide > video{
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+  }
+</style>
+
 </body>
 </html>
 <script>
