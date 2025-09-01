@@ -2836,5 +2836,236 @@ function applyDirectionFromSheet(rows){
 })();
 </script>
 
+
+<!-- === Photo Nav Buttons (translucent) + Pinch-zoom friendly === -->
+
+
+<style id="photo-nav-buttons-css">
+.popup-media { position: relative !important; touch-action: pinch-zoom !important; }
+#popupSlider { touch-action: pinch-zoom !important; cursor: auto !important; }
+.photo-nav-btn{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:44px; height:44px; border-radius:50%;
+  background:rgba(120,120,120,0.72);
+  border:1px solid rgba(0,0,0,0.18);
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; user-select:none; outline:none;
+}
+.photo-nav-btn svg{ width:20px; height:20px; stroke:#fff; }
+.photo-prev{ left:12px; }
+.photo-next{ right:12px; }
+.photo-nav-btn[disabled]{ opacity:0.45; pointer-events:none; }
+</style>
+
+
+
+
+<!-- === Override: openPopup with button navigation (no swipe) === -->
+<script id="openPopup-left-right-override">
+(function(){
+  // helper to safely set innerText/HTML
+  function $(id){ return document.getElementById(id); }
+
+  // Sanitize array of image URLs
+  function okImages(arr){
+    return (arr || []).map(u => (u||"").trim()).filter(Boolean);
+  }
+
+  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
+    images = okImages(images);
+    try {
+      // Share link
+      var shareUrl = location.origin + location.pathname + "?p=" + encodeURIComponent(name||"");
+      var shareMsg = "Check this on Precioussly: " + (name||"") + " — ₹" + (price||"") + "\\n" + shareUrl;
+      var wh = $("whShare");
+      if(wh){
+        wh.href = "https://wa.me/?text=" + encodeURIComponent(shareMsg);
+      }
+      history.replaceState && history.replaceState(null, "", shareUrl);
+    } catch(e){}
+
+    // Qty reset
+    var qtyEl = $("popupQty"); if(qtyEl) qtyEl.innerText = "1";
+
+    // Name + Price
+    var nameEl = $("popupName"); if(nameEl) nameEl.innerText = name || "";
+    var priceEl = $("popupPrice");
+    if(priceEl){
+      if (mrp && price){
+        var discount = Math.round(((mrp - price)/mrp) * 100);
+        priceEl.innerHTML =
+          '<div style="font-size:14px; display:flex; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' +
+          '<b>₹'+price+'</b>' +
+          '<s style="color:#999;">₹'+mrp+'</s>' +
+          '<span style="color:green; font-size:13px;">'+discount+'% off</span>' +
+          '</div>';
+      } else if (price){
+        priceEl.innerHTML = '<b>₹'+price+'</b>';
+      } else {
+        priceEl.innerHTML = '<span style="color:#999;">Price not available</span>';
+      }
+    }
+
+    // Description from sheet (no auto bullets)
+    var descWrap = $("popupDesc");
+    var descText = $("popupDescText");
+    var fromSheet = (sheetDesc||"").trim();
+    if(descText) descText.textContent = "";
+    if(fromSheet.length > 0){
+      if(descWrap) descWrap.style.display = "block";
+      if(descText) descText.textContent = fromSheet;
+    }else{
+      if(descWrap) descWrap.style.display = "none";
+    }
+
+    // SEO schema (if function exists)
+    try{
+      if (typeof injectProductSchema === "function"){
+        injectProductSchema({ name, price, mrp, image: images[0] || "", description: fromSheet });
+      }
+    }catch(e){}
+
+    // Add to Cart button
+    var addBtn = $("popupAddBtn");
+    if(addBtn){
+      if (+stock === 0){
+        addBtn.disabled = true;
+        addBtn.innerHTML = "Out of Stock";
+        addBtn.onclick = null;
+      }else{
+        addBtn.disabled = false;
+        addBtn.innerHTML = "Add to Cart";
+        addBtn.onclick = function(){
+          var qty = parseInt(($("popupQty")||{}).innerText || "1", 10) || 1;
+          if (typeof addToCartFromGrid === "function"){
+            addToCartFromGrid(addBtn, { photo: images[0], name, mrp, price, qty });
+          }
+        };
+      }
+    }
+
+    // Build slider (no swipe)
+    var slider = $("popupSlider");
+    var dotsContainer = $("popupDots");
+    if (!slider) return;
+
+    // Clear previous content
+    slider.innerHTML = "";
+    if (dotsContainer) dotsContainer.innerHTML = "";
+
+    // Remove any old nav buttons from a previous open
+    var media = slider.parentElement;
+    if (media){
+      Array.from(media.querySelectorAll(".photo-nav-btn")).forEach(n => n.remove());
+    }
+
+    // Track
+    var track = document.createElement("div");
+    track.className = "popup-track";
+    slider.appendChild(track);
+
+    // Slides + dots
+    var slides = [], dots = [];
+    images.forEach(function(url, i){
+      var img = document.createElement("img");
+      img.src = url;
+      img.className = "popup-slide";
+      img.setAttribute("draggable","false");
+      img.style.touchAction = "pinch-zoom";
+      track.appendChild(img);
+      slides.push(img);
+
+      if (dotsContainer){
+        var dot = document.createElement("div");
+        dot.className = "popup-dot" + (i===0 ? " active" : "");
+        dot.addEventListener("click", function(){ goTo(i, true); });
+        dotsContainer.appendChild(dot);
+        dots.push(dot);
+      }
+    });
+
+    // Hide dots if single/none
+    if (dotsContainer){
+      dotsContainer.style.display = (slides.length <= 1) ? "none" : "inline-flex";
+    }
+
+    function setActiveDot(i){
+      dots.forEach(function(d, idx){
+        if (idx === i) d.classList.add("active"); else d.classList.remove("active");
+      });
+    }
+
+    function width(){ return slider.getBoundingClientRect().width; }
+
+    var currentIndex = 0;
+    function goTo(i, animate){
+      if (!slides.length) return;
+      if (i < 0) i = 0;
+      if (i > slides.length-1) i = slides.length-1;
+      currentIndex = i;
+      track.style.transition = (animate!==false) ? "transform 320ms cubic-bezier(.22,1,.36,1)" : "none";
+      track.style.transform = "translateX(" + (-i * width()) + "px)";
+      setActiveDot(i);
+      refreshNavState();
+    }
+
+    // Create nav buttons (prev/next)
+    function mkBtn(cls, label, svgPath){
+      var b = document.createElement("button");
+      b.className = "photo-nav-btn " + cls;
+      b.setAttribute("aria-label", label);
+      b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+svgPath+'"/></svg>';
+      media && media.appendChild(b);
+      return b;
+    }
+    var prevBtn = mkBtn("photo-prev", "Previous photo", "M15 18l-6-6 6-6");
+    var nextBtn = mkBtn("photo-next", "Next photo", "M9 6l6 6-6 6");
+
+    function refreshNavState(){
+      if (!prevBtn || !nextBtn) return;
+      if (slides.length <= 1){
+        prevBtn.style.display = "none";
+        nextBtn.style.display = "none";
+      } else {
+        prevBtn.style.display = "";
+        nextBtn.style.display = "";
+        prevBtn.disabled = (currentIndex === 0);
+        nextBtn.disabled = (currentIndex === slides.length - 1);
+      }
+    }
+
+    prevBtn && prevBtn.addEventListener("click", function(){ goTo(currentIndex - 1, true); });
+    nextBtn && nextBtn.addEventListener("click", function(){ goTo(currentIndex + 1, true); });
+
+    // Arrow key support
+    slider.tabIndex = 0;
+    slider.onkeydown = function(e){
+      if (e.key === "ArrowRight") goTo(currentIndex + 1, true);
+      if (e.key === "ArrowLeft")  goTo(currentIndex - 1, true);
+    };
+
+    // Resize
+    window.addEventListener("resize", function(){ goTo(currentIndex, false); }, { passive: true });
+
+    // Init
+    goTo(0, false);
+
+    // Open popup smoothly (uses existing CSS classes)
+    var popup = $("productPopup");
+    var card = popup ? popup.querySelector(".popup-card") : null;
+    if (popup && card){
+      popup.style.display = "flex";
+      requestAnimationFrame(function(){
+        popup.classList.add("is-open");
+        card.classList.remove("leave");
+        card.classList.add("enter");
+      });
+      document.body.classList.add("noscroll");
+    }
+  };
+})();
+</script>
+
 </body>
 </html>
