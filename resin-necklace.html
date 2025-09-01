@@ -1344,6 +1344,12 @@ body.horizontal-mode .product-grid{
 }
 
 </style>
+
+<style id="alignment-fix-0901b">
+  #popupName { margin: 2px 12px 2px 12px !important; }
+  #popupPrice { margin: 0 12px 10px 12px !important; }
+</style>
+
 </head>
 <body>
 <header class="site-header">
@@ -1621,9 +1627,9 @@ product.appendChild(infoWrapper);
     <img src="https://i.postimg.cc/fLMF5X4j/file-00000000fcd061f8a087874368df7c79.png" alt="Share on WhatsApp">
   </a>
 </div><!-- Product name on left -->
-<div id="popupName" style="font-size:16px; font-weight:600; text-align:left; margin: 10px 6px 4px;"></div>
+<div id="popupName" style="font-size:16px; font-weight:600; text-align:left; margin: 2px 12px 2px 12px;"></div>
 <!-- Price -->
-<div id="popupPrice" style="margin:8px 6px 16px; font-size:14px; text-align:left;"></div>
+<div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:14px; text-align:left;"></div>
 <!-- Quantity Bar -->
 <!-- Auto SEO Description -->
 <div id="popupDesc" class="desc-section">
@@ -1784,14 +1790,21 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 
   document.getElementById("popupPrice").innerHTML = priceHTML;
-// === Build description from Google Sheet (always visible, plain) ===
+// === Build description from Google Sheet (hide section if empty) ===
 const descWrap = document.getElementById("popupDesc");
 const descText = document.getElementById("popupDescText");
 const fromSheet = (sheetDesc || "").trim();
 
-// Always show the section; fill text from Google Sheet (may be blank)
-if (descWrap) descWrap.style.display = "block";
-if (descText) descText.textContent = fromSheet;
+// Reset state (in case previous product had a description)
+if (descText) descText.textContent = "";
+
+// Show only if non-empty
+if (fromSheet.length > 0) {
+  if (descWrap) descWrap.style.display = "block";
+  if (descText) descText.textContent = fromSheet;
+} else {
+  if (descWrap) descWrap.style.display = "none";
+}
 
 // unified scroll handled by CSS on .popup-card
 
