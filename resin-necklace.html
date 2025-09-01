@@ -1135,9 +1135,10 @@ body.horizontal-mode .product-grid{
 #popupSlider .popup-slide{
   position: relative !important;
   inset: auto !important;
-  width: 100% !important;
+  width: calc(100% - 10px) !important;  /* slide width shrinks by 10px */
   max-width: none !important;
-  flex: 0 0 100% !important;
+  flex: 0 0 calc(100% - 10px) !important;
+  margin: 0 5px;   /* 👈 equal left & right spacing */
   aspect-ratio: 1 / 1 !important;
   border-radius: 14px !important;
   object-fit: cover !important;
@@ -1147,6 +1148,7 @@ body.horizontal-mode .product-grid{
   transition: none !important;
   user-select: none !important;
 }
+
 .popup-dots{ display:flex; justify-content:center; gap:8px; margin-top:10px; }
 .popup-dot{ width:12px; height:6px; border-radius:10px; background:rgba(0,0,0,.18); }
 .popup-dot.active{ background:rgba(0,0,0,.6); width:22px; transition: background 200ms ease, width 240ms ease; }
