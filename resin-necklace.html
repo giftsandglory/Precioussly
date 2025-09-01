@@ -2,19 +2,6 @@
 
 <html lang="en">
 <head>
-<script>
-// --- HARD STOP: Always remove ?p= on page load/refresh (before anything else) ---
-(function () {
-  try {
-    var url = new URL(window.location.href);
-    if (url.searchParams.has('p')) {
-      // Replace the URL so the default page path is shown, and popup will NOT auto-open.
-      history.replaceState(null, "", url.pathname);
-    }
-  } catch (e) {}
-})();
-</script>
-
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
@@ -813,7 +800,7 @@ nav.side-menu {
   box-shadow:0 8px 22px rgba(0,0,0,0.08); max-height:62vh; overflow:auto; padding:6px; z-index:4000;
 }
 .header-suggest{
-  display:grid; grid-template-columns:56px 1fr; gap:10px; align-items:center;
+  display:grid; grid-template-columns:56px 1fr auto; gap:10px; align-items:center;
   padding:8px; border-radius:10px;
 }
 .header-suggest:hover{ background:#f9f9f9; }
@@ -1129,6 +1116,38 @@ body.horizontal-mode .product-grid{
 }
 </style>
 
+<style id="instagram-banner-css">
+/* === Instagram follow banner (placed right below certified-strip) === */
+.ig-banner-wrap{ padding: 0 12px 18px; background:#fff; }
+.ig-banner{
+  background:#f6efe8;
+  border:1px solid #f1e7df;
+  border-radius:18px;
+  padding:22px 18px;
+  max-width:960px;
+  margin:12px auto 0;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.05);
+}
+.ig-banner p{
+  margin:0 0 14px;
+  font-size:18px;
+  line-height:1.55;
+  font-weight:600;
+  letter-spacing:.2px;
+  color:#1b1b1b;
+  font-family:'Roboto Slab', serif;
+}
+.ig-banner .ig-link{
+  display:inline-block;
+  line-height:0;
+  border-radius:14px;
+  padding:6px;
+  transition:transform .15s ease;
+}
+.ig-banner .ig-link:active{ transform:scale(.96); }
+.ig-banner .ig-icon{ width:36px; height:36px; }
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -1223,6 +1242,14 @@ body.horizontal-mode .product-grid{
 
 
 <div id="content"></div>
+<section class="ig-banner-wrap" id="igFollowBanner" style="display:none;">
+<div aria-label="Instagram updates banner" class="ig-banner">
+<p>Stay connected with us for updates,<br/>offers &amp; behind-the-scenes ✨</p>
+<a aria-label="Open our Instagram profile" class="ig-link" href="https://www.instagram.com/precioussly_" rel="noopener noreferrer" target="_blank">
+<img alt="Instagram" class="ig-icon" src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"/>
+</a>
+</div>
+</section>
 <script>
 const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
 // === Visibility control from Google Sheet ===
@@ -1808,25 +1835,21 @@ updateCartBadge(false); // ✅ no bounce on refresh
 </script>
 
 <script>
-
 function closePopup() {
   const popup = document.getElementById("productPopup");
   if (!popup) return;
   const card = popup.querySelector(".popup-card");
+  if (!card) return;
 
-  // Immediately strip ?p= from the URL so a refresh always goes to default page
-  try { history.replaceState(null, "", location.pathname); } catch (e) {}
-
-  // Close visuals (no dependency on transitionend)
+  card.classList.remove("enter");
+  card.classList.add("leave");
   popup.classList.remove("is-open");
   document.body.classList.remove("noscroll");
-  if (card) { card.classList.remove("enter"); card.classList.add("leave"); }
-  // Hide quickly
-  try {
+
+  const onDone = (e) => {
+    if (e.target !== card) return;
     popup.style.display = "none";
-  } catch (e) {}
-}
-catch (e) {}
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
     card.removeEventListener("transitionend", onDone);
   };
   card.addEventListener("transitionend", onDone);
@@ -2003,44 +2026,82 @@ if (document.readyState !== "loading") updateCartBadge();
 else document.addEventListener("DOMContentLoaded", updateCartBadge);
 </script>
 <script>
-/* ===== Multi-Page Search Setup =====
-   👉 "CATALOGS" me jitne pages/sheets chahen add kijiye.
-   ✅ page ko safest tarike se current page path par set kiya (location.pathname),
-      taaki yahin ka popup ?p= se open ho (aapka maybeOpenFromURL already handle karta hai).
+/* ===== Auto Tabs Search Setup (Single Google Sheet → ALL its tabs) =====
+   CONFIG: Set SHEET_ID below. You DO NOT need to list tab names.
+   The script will auto-detect all sheet tabs (if the sheet is public or "Published to web").
+   Fallback: If auto-detect fails, it will look for a tab named "Tabs" that lists tab names in column A.
+   Final fallback: it will use only the first/default tab "Sheet1".
 */
-const CATALOGS = [
-  {
-    name: "Resin Necklace",
-    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
-    page : location.pathname            // e.g. "/resin-necklace/" or "/Resin Necklace.html"
-  },
-  // { name:"Hello", sheet:"https://opensheet.elk.sh/XXXX/Sheet1", page:"/hello.html" },
-  // { name:"Rings", sheet:"https://opensheet.elk.sh/YYYY/Sheet1", page:"/rings/" },
-];
+const SHEET_ID_FOR_SEARCH = "1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA"; // ✅ Your Google Sheet ID
+const PAGE_FOR_RESULTS = location.pathname;  // open results on the same page
 
-// Global merged list
-window.allProducts = [];
+// Utility: fetch all tab names using the legacy public worksheet feed (works for public/published sheets)
+async function listSheetTabs(sheetId){
+  const url = `https://spreadsheets.google.com/feeds/worksheets/${sheetId}/public/basic?alt=json`;
+  try{
+    const res = await fetch(url, { cache: "no-store" });
+    if(!res.ok) throw new Error("tab feed not ok");
+    const data = await res.json();
+    const entries = (data && data.feed && data.feed.entry) || [];
+    const names = entries.map(e => (e.title && e.title.$t) || "").filter(Boolean);
+    return Array.from(new Set(names));
+  }catch(e){
+    return []; // will try fallback
+  }
+}
 
-// Load all catalogs from Google Sheets
-Promise.all(
-  CATALOGS.map(cat =>
-    fetch(cat.sheet).then(r => r.json()).then(rows => {
-      const items = rows
-        .filter(row => (row["Product Name"] || "").trim())
+// Fallback: read a "Tabs" sheet (first column) via opensheet if present
+async function listTabsFromConfig(sheetId){
+  try{
+    const url = `https://opensheet.elk.sh/${sheetId}/Tabs`;
+    const rows = await fetch(url).then(r => r.json());
+    const names = (rows || []).map(r => (r["Tab"] || r["tab"] || r["name"] || r["Name"] || Object.values(r)[0] || "")).map(s => String(s).trim()).filter(Boolean);
+    return Array.from(new Set(names));
+  }catch(e){ return []; }
+}
+
+// Load data for one tab via opensheet
+async function loadTabRows(sheetId, tabName){
+  const url = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
+  const rows = await fetch(url).then(r => r.json());
+  return rows;
+}
+
+// Build the global product list from ALL tabs
+window.allProducts = []; // will be filled below
+
+(async function buildAllProducts(){
+  let tabs = await listSheetTabs(SHEET_ID_FOR_SEARCH);
+  if(!tabs.length){
+    tabs = await listTabsFromConfig(SHEET_ID_FOR_SEARCH);
+  }
+  if(!tabs.length){
+    tabs = ["Sheet1"]; // last fallback
+  }
+
+  // Ignore very obvious non-catalog tabs
+  const ignore = new Set(["Config","Menu","Announcement","Announcements","Buttons","Categories","Tabs","MENU","config","menu","tabs"]);
+  const filteredTabs = tabs.filter(t => !ignore.has(t));
+
+  const all = [];
+  for (const tab of filteredTabs){
+    try{
+      const rows = await loadTabRows(SHEET_ID_FOR_SEARCH, tab);
+      const items = (rows || [])
+        .filter(row => (String(row["Product Name"] || "").trim().length > 0))
         .map(row => ({
           name: String(row["Product Name"]).trim(),
           price: Number(row["Selling Price"] || 0),
           mrp: Number(row["MRP"] || 0),
           image: row["photo 1"] || row["Photo 1"] || "",
-          page: cat.page,
-          from: cat.name
+          page: PAGE_FOR_RESULTS,
+          from: tab
         }));
-      return items;
-    })
-  )
-).then(listOfLists => {
-  window.allProducts = listOfLists.flat();
-}).catch(()=>{ /* ignore */ });
+      all.push(...items);
+    }catch(e){ /* skip tab on error */ }
+  }
+  window.allProducts = all;
+})();
 
 /* ========== UI wiring ========== */
 const inputEl = document.getElementById('headerSearchInput');
@@ -2085,7 +2146,9 @@ function renderSuggestions(q){
       <div>
         <div class="name">${p.name}</div>
         <div class="price">₹${p.price || '-'}</div>
-      </div></div>
+      </div>
+      <div class="tag">${p.from}</div>
+    </div>
   `).join('');
 
   boxEl.style.display = 'block';
@@ -2294,6 +2357,16 @@ function applyDirectionFromSheet(rows){
       }
     });
   })();
+</script>
+
+
+<script>
+  window.addEventListener("load", function() {
+    setTimeout(() => {
+      const ig = document.getElementById("igFollowBanner");
+      if (ig) ig.style.display = "block";
+    }, 2000);
+  });
 </script>
 
 </body>
