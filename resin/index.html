@@ -1158,6 +1158,38 @@ down-toggle {
 a, button, [role="button"], input, textarea, select { outline: none !important; }
 :focus, :focus-visible { outline: none !important; box-shadow: none !important; }
 </style>
+<style id="instagram-banner-css">
+/* === Instagram follow banner (placed right below certified-strip) === */
+.ig-banner-wrap{ padding: 0 12px 18px; background:#fff; }
+.ig-banner{
+  background:#f6efe8;
+  border:1px solid #f1e7df;
+  border-radius:18px;
+  padding:22px 18px;
+  max-width:960px;
+  margin:12px auto 0;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.05);
+}
+.ig-banner p{
+  margin:0 0 14px;
+  font-size:18px;
+  line-height:1.55;
+  font-weight:600;
+  letter-spacing:.2px;
+  color:#1b1b1b;
+  font-family:'Roboto Slab', serif;
+}
+.ig-banner .ig-link{
+  display:inline-block;
+  line-height:0;
+  border-radius:14px;
+  padding:6px;
+  transition:transform .15s ease;
+}
+.ig-banner .ig-link:active{ transform:scale(.96); }
+.ig-banner .ig-icon{ width:36px; height:36px; }
+</style>
 </head>
 <body>
 <!-- 👇 SIDE MENU STRUCTURE NEEDED FOR OVERLAY -->
@@ -1259,6 +1291,14 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
 <div id="announcementBar">🧿</div>
 <!-- Category Section (still working) -->
 <div id="categorySection"></div>
+<section class="ig-banner-wrap" id="igFollowBanner" style="display:none;">
+<div aria-label="Instagram updates banner" class="ig-banner">
+<p>Stay connected with us for updates,<br/>offers &amp; behind-the-scenes ✨</p>
+<a aria-label="Open our Instagram profile" class="ig-link" href="https://www.instagram.com/precioussly_" rel="noopener noreferrer" target="_blank">
+<img alt="Instagram" class="ig-icon" src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"/>
+</a>
+</div>
+</section>
 <!-- 🔽 CATEGORY SCRIPT FROM SHEET (updated: section hide support) -->
 <script>
   const categorySheetURL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
@@ -2317,5 +2357,15 @@ function escapeHtml(s=""){ return String(s).replaceAll("&","&amp;").replaceAll("
   // Re-check if window is resized
   window.addEventListener("resize", adjustFooter);
 </script>
+
+<script>
+  window.addEventListener("load", function() {
+    setTimeout(() => {
+      const ig = document.getElementById("igFollowBanner");
+      if (ig) ig.style.display = "block";
+    }, 2000);
+  });
+</script>
+
 </body>
 </html>
