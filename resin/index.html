@@ -5,6 +5,9 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
 #toTopBtn {
@@ -724,13 +727,68 @@ down-toggle {
 #categorySection {
   padding: 0 14px 40px 14px;   /* ✅ upar ka 10px hata diya */
 }
-#categorySection h3 {
-  font-size: 18px;
-  font-weight: 400;
-  text-align: center;
-  margin: 16px 0 10px;
-  font-family: 'Roboto Slab', serif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#categorySection h3 { display:none; } /* legacy */
+
+.section-strip-wrap{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 14px 0;
+  width: 100%;
 }
+
+.section-strip-line{
+  flex: 1;
+  height: 1px;
+  background: #ff99bb;
+  margin: 0 10px;
+  opacity: 0.5;
+}
+
+.section-strip{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 18px;
+  background: #ffe6f0;
+  border: 1.5px solid #ff99bb;
+  border-radius: 999px;
+}
+
+.section-strip .strip-text{
+  font-family: 'Roboto Slab', serif;
+  font-weight: 400; /* lighter */
+  font-size: 21px;
+  color: #111;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #categorySection img {
   border-radius: 16px;
   object-fit: cover;
@@ -1363,20 +1421,36 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
       Object.entries(grouped).forEach(([section, items]) => {
         if (!items || !items.length) return;
 
-        const title = document.createElement("h3");
-        title.innerText = section;
-        title.style.fontFamily = "'Roboto Slab', serif";
-        title.style.fontSize = "18px";
-        title.style.margin = "10px 0";
-        title.style.textAlign = "center";
-        title.style.textTransform = "capitalize";
-        title.style.fontWeight = "400";
-        container.appendChild(title);
+        
+        
+        
+        
+        const wrap = document.createElement("div");
+        wrap.className = "section-strip-wrap";
+
+        const leftLine = document.createElement("div");
+        leftLine.className = "section-strip-line";
+
+        const strip = document.createElement("div");
+        strip.className = "section-strip";
+        strip.innerHTML = `<span class="strip-text">${section}</span>`;
+
+        const rightLine = document.createElement("div");
+        rightLine.className = "section-strip-line";
+
+        wrap.appendChild(leftLine);
+        wrap.appendChild(strip);
+        wrap.appendChild(rightLine);
+        container.appendChild(wrap);
+
+
+
+
 
         const grid = document.createElement("div");
         grid.style.display = "grid";
         grid.style.gridTemplateColumns = "1fr 1fr";
-        grid.style.gap = "14px";
+        grid.style.gap = "18px";
 
         items.forEach(item => {
           const box = document.createElement("a");
@@ -2179,9 +2253,31 @@ function applyCategoriesToPage(){
     grouped[r.Title].push({name:r.name, img:r.img, link:r.link||"#"});
   });
   Object.entries(grouped).forEach(([section, items])=>{
-    const title = document.createElement("h3");
-    title.innerText = section;
-    container.appendChild(title);
+    
+        
+        
+        
+        const wrap = document.createElement("div");
+        wrap.className = "section-strip-wrap";
+
+        const leftLine = document.createElement("div");
+        leftLine.className = "section-strip-line";
+
+        const strip = document.createElement("div");
+        strip.className = "section-strip";
+        strip.innerHTML = `<span class="strip-text">${section}</span>`;
+
+        const rightLine = document.createElement("div");
+        rightLine.className = "section-strip-line";
+
+        wrap.appendChild(leftLine);
+        wrap.appendChild(strip);
+        wrap.appendChild(rightLine);
+        container.appendChild(wrap);
+
+
+
+
 
     const grid = document.createElement("div");
     grid.style.display="grid"; grid.style.gridTemplateColumns="1fr 1fr"; grid.style.gap="14px";
