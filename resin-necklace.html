@@ -1154,6 +1154,48 @@ body.horizontal-mode .product-grid{
 .popup-dot.active{ background:rgba(0,0,0,.6); width:22px; transition: background 200ms ease, width 240ms ease; }
 </style>
 
+
+
+
+
+<style id="premium-title-lines">
+/* ===== Ultra-sleek divider lines for section titles ===== */
+.section-title{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:10px !important;
+  font-family:'Roboto Slab', serif !important;
+  font-size:17px !important;
+  font-weight:500 !important;
+  color:#111 !important;
+  background:#fff !important;
+  margin:16px 8px 12px 8px !important;
+  padding:6px 6px !important;
+  line-height:1.3 !important;
+  letter-spacing:0.2px !important;
+}
+
+.section-title::before,
+.section-title::after{
+  content:"" !important;
+  flex:1 !important;
+  height:1px !important;              /* ✅ thinner line */
+  border-radius:1px !important;
+  background:linear-gradient(to right, rgba(0,0,0,0), #111, rgba(0,0,0,0)) !important;
+}
+
+.section-title::after{
+  background:linear-gradient(to left, rgba(0,0,0,0), #111, rgba(0,0,0,0)) !important;
+}
+
+/* Tighten spacing between a grid and the next title */
+.product-grid + .section-title{ margin-top:10px !important; }
+</style>
+
+
+
+
 </head>
 <body>
 <header class="site-header">
