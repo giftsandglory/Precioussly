@@ -489,6 +489,9 @@ body.noscroll {
   font-weight: 200; /* bold look */
   font-size: 14px;  /* adjust number size */
 }
+
+/* Hide dots container when empty (no dots added) */
+.popup-dots:empty { display: none !important; }
 </style>
 <style>
 /* Horizontal container: ultra-smooth, no jerks, iOS-like momentum */
@@ -814,29 +817,7 @@ nav.side-menu {
 </style>
 
 <!-- === NO-ANIMATION OVERRIDES (injected) === -->
-<style id="no-anim-popup">
-  /* Remove ALL transitions for instant open/close */
-  #productPopup { transition: none !important; }
-  #productPopup.is-open { transition: none !important; }
 
-  .popup-card {
-    transition: none !important;
-    transform: none !important;
-    opacity: 1 !important;
-  }
-  .popup-card.enter,
-  .popup-card.leave {
-    transform: none !important;
-    opacity: 1 !important;
-    transition: none !important;
-  }
-
-  /* Slides change instantly (no fade duration) */
-  .popup-slide { transition: none !important; }
-
-  /* Dots update instantly */
-  .popup-dot { transition: none !important; }
-</style>
 
 
 <style>
@@ -1196,6 +1177,173 @@ body.horizontal-mode .product-grid{
 
 
 
+
+
+<style id="photo-dots-pink">
+/* ===== In-photo premium pink dots (ultra-minimal) ===== */
+.popup-media{ position: relative !important; }
+
+/* Container: sits INSIDE the photo at the bottom */
+.popup-dots{
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.10);       /* subtle glass */
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  border: 1px solid rgba(255,255,255,0.28);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  pointer-events: auto;                         /* allow tap */
+  z-index: 3;
+}
+
+/* Dots: tiny, light pink theme */
+.popup-dot{
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffe3ee 0%, #f7c5d8 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.9),
+    0 1px 2px rgba(0,0,0,0.12);
+  opacity: 0.75;
+  transform: translateZ(0) scale(1);
+  transition:
+    opacity 220ms ease,
+    transform 340ms cubic-bezier(.22,1,.36,1),
+    box-shadow 340ms cubic-bezier(.22,1,.36,1);
+  will-change: transform, opacity;
+}
+
+/* Active state: slightly larger with soft glow */
+.popup-dot.active{
+  opacity: 1;
+  transform: scale(1.35);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,1),
+    0 2px 6px rgba(234, 86, 146, 0.35);
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce){
+  .popup-dot{ transition: none !important; }
+}
+</style>
+
+<style id="dot-circle-override">
+/* ===== FINAL OVERRIDE: perfect circular pink dots (no pills) ===== */
+.popup-media{ position: relative !important; }
+.popup-dots{
+  position: absolute !important;
+  left: 50% !important;
+  bottom: 10px !important;
+  transform: translateX(-50%) !important;
+  display: inline-flex !important;
+  gap: 6px !important;
+  padding: 4px 6px !important;
+  border-radius: 14px !important;
+  background: rgba(255,255,255,0.10) !important;
+  -webkit-backdrop-filter: blur(3px) !important;
+  backdrop-filter: blur(3px) !important;
+  border: 1px solid rgba(255,255,255,0.28) !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08) !important;
+  pointer-events: auto !important;
+  z-index: 3 !important;
+}
+/* Always circles */
+.popup-dot{
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(180deg, #ffe3ee 0%, #f7c5d8 100%) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.9),
+    0 1px 2px rgba(0,0,0,0.12) !important;
+  opacity: 0.9 !important;
+  transform: scale(1) !important;
+  transition:
+    transform 220ms cubic-bezier(.22,1,.36,1),
+    opacity 220ms ease !important;
+}
+/* Active: slightly bigger circle (still circle) */
+.popup-dot.active{
+  opacity: 1 !important;
+  transform: scale(1.25) !important;
+}
+/* Never animate width/shape anywhere */
+.popup-dot, .popup-dot.active{
+  width: 8px !important;
+  height: 8px !important;
+}
+/* Hide when only one image */
+.popup-dots:empty, .popup-dots.hide { display: none !important; }
+@media (prefers-reduced-motion: reduce){
+  .popup-dot{ transition: none !important; }
+}
+</style>
+
+
+
+<style id="dot-blue-override">
+/* ===== DOTS: Blue Theme ===== */
+.popup-dot{
+  background: linear-gradient(180deg, #b3d9ff 0%, #3399ff 100%) !important; /* light to medium blue */
+}
+.popup-dot.active{
+  background: linear-gradient(180deg, #3399ff 0%, #0066cc 100%) !important; /* darker blue active */
+}
+</style>
+
+
+
+<style id="dot-blue-position">
+/* ===== DOTS: Corrected position (not too high) ===== */
+.popup-dots{
+  bottom: 18px !important; /* balanced position */
+}
+</style>
+<style id="plain-desc-css">
+/* ===== Plain Description (refined, no underline) ===== */
+.desc-section{
+  margin: 8px 8px 0;
+  text-align: center;
+  background: transparent;
+}
+.desc-title{
+  font-weight: 700;
+  font-size: 13.5px;
+  line-height: 1.2;
+  margin: 2px 0 4px;
+  letter-spacing: .2px;
+  color: #111;
+}
+/* removed underline */
+.desc-content{font-size: 12.5px;        /* slightly smaller for SEO copy */
+  line-height: 1.55;
+  height:auto; overflow:visible;           /* scroll inside if long */
+  padding: 0 4px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;    /* Firefox hide scrollbar */
+  max-width: 92%;
+  margin: 0 auto;
+  text-align: left;         /* more readable */
+  color: #444;
+  white-space: pre-wrap;}
+
+
+/* Make popup content the single scroll container */
+.popup-card{
+  overflow-y: auto;
+  max-height: 86vh;
+  -webkit-overflow-scrolling: touch;
+}
+
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -1468,21 +1616,20 @@ product.appendChild(infoWrapper);
 <!-- Sliding photos here -->
 <div class="popup-media">
   <div id="popupSlider"></div>
+  <div id="popupDots" class="popup-dots" aria-hidden="true"></div>
   <a id="whShare" class="wh-share" href="#" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
     <img src="https://i.postimg.cc/fLMF5X4j/file-00000000fcd061f8a087874368df7c79.png" alt="Share on WhatsApp">
   </a>
-</div>
-<div id="popupDots" class="popup-dots"></div>
-<!-- Product name on left -->
+</div><!-- Product name on left -->
 <div id="popupName" style="font-size:16px; font-weight:600; text-align:left; margin: 10px 6px 4px;"></div>
 <!-- Price -->
 <div id="popupPrice" style="margin:8px 6px 16px; font-size:14px; text-align:left;"></div>
 <!-- Quantity Bar -->
 <!-- Auto SEO Description -->
-<details id="popupDetails" class="desc-box">
-  <summary>Details</summary>
-  <div id="popupDescText" class="desc-text"></div>
-</details>
+<div id="popupDesc" class="desc-section">
+  <div class="desc-title">Description</div>
+  <div id="popupDescText" class="desc-content"></div>
+</div>
 
 <div class="quantity-bar premium-bar">
   <button onclick="changePopupQty(-1)">
@@ -1637,42 +1784,17 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 
   document.getElementById("popupPrice").innerHTML = priceHTML;
-// === Build description from Google Sheet (and hide if empty)
-const detailsEl = document.getElementById("popupDetails");
-const descBox   = document.getElementById("popupDescText");
+// === Build description from Google Sheet (always visible, plain) ===
+const descWrap = document.getElementById("popupDesc");
+const descText = document.getElementById("popupDescText");
 const fromSheet = (sheetDesc || "").trim();
 
-// Always start collapsed
-if (detailsEl) detailsEl.open = false;
+// Always show the section; fill text from Google Sheet (may be blank)
+if (descWrap) descWrap.style.display = "block";
+if (descText) descText.textContent = fromSheet;
 
-if (fromSheet) {
-  // ✅ Description available → show section and fill text
-  detailsEl.style.display = "block";
-  // Show exactly what you wrote in the sheet (no fake lines)
-  descBox.textContent = fromSheet;
-} else {
-  // ❌ No description → hide the whole section
-  detailsEl.style.display = "none";
-  descBox.textContent = "";
-}
+// unified scroll handled by CSS on .popup-card
 
-
-// === Adjust popup height based on description presence ===
-try {
-  const card = document.querySelector(".popup-card");
-  if (card) {
-    if (fromSheet) {
-      // Description available → lock height so inner scroll handles overflow
-      card.style.height = "min(86vh, 620px)";
-      card.style.maxHeight = "86vh";
-    } else {
-      // No description → let card size shrink naturally
-      card.style.height = "auto";
-      card.style.maxHeight = "88vh";
-    }
-  }
-} catch(e) { /* no-op */ }
-// === end adjust height ===
 
 // ✅ SEO schema: use sheet description if present, else empty
 injectProductSchema({
@@ -1682,15 +1804,7 @@ injectProductSchema({
   image: images[0],
   description: fromSheet
 });
-// Always start with Details collapsed
-  try {
-    const detailsEl = document.getElementById("popupDetails");
-    if (detailsEl) detailsEl.open = false;
-  } catch(_) {}
-
-
-
-  // Add to cart button
+// Add to cart button
   const popupBtn = document.getElementById("popupAddBtn");
   if (+stock === 0) {
     popupBtn.disabled = true;
@@ -1713,7 +1827,7 @@ injectProductSchema({
   const slider = document.getElementById("popupSlider");
   const dotsContainer = document.getElementById("popupDots");
   slider.innerHTML = "";
-  dotsContainer.innerHTML = "";
+  if (dotsContainer) dotsContainer.innerHTML = "";
 
   // Build track + slides
   const track = document.createElement("div");
@@ -1735,9 +1849,14 @@ injectProductSchema({
     const dot = document.createElement("div");
     dot.className = "popup-dot" + (i === 0 ? " active" : "");
     dot.addEventListener("click", () => goTo(i));
-    dotsContainer.appendChild(dot);
+    if (dotsContainer) dotsContainer.appendChild(dot);
     dots.push(dot);
   });
+
+  // Hide dots if single or zero images; show otherwise
+  if (dotsContainer){
+    dotsContainer.style.display = (slides.length <= 1) ? "none" : "inline-flex";
+  }
 
   function setActiveDot(i){
     dots.forEach((d, idx) => {
@@ -2469,5 +2588,46 @@ function applyDirectionFromSheet(rows){
   })();
 </script>
 
+
+
+
+
+<style id="dot-hide-single-v2">
+/* Only hide when flagged 'single'. Otherwise show inline-flex */
+.popup-dots.single { display: none !important; }
+</style>
+<script id="dot-hide-script-v2">
+(function(){
+  function updateDotsVisibility(dots){
+    if(!dots) return;
+    var count = dots.querySelectorAll('.popup-dot').length;
+    if(count <= 1){
+      dots.classList.add('single');
+    }else{
+      dots.classList.remove('single');
+    }
+  }
+  function bindObserver(dots){
+    if(!dots || dots.__observerBound) return;
+    var obs = new MutationObserver(function(){ updateDotsVisibility(dots); });
+    obs.observe(dots, {childList: true, subtree: true});
+    dots.__observerBound = true;
+    // run a couple times to catch late DOM work
+    updateDotsVisibility(dots);
+    setTimeout(function(){ updateDotsVisibility(dots); }, 200);
+    setTimeout(function(){ updateDotsVisibility(dots); }, 600);
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.popup-dots').forEach(function(dots){
+      bindObserver(dots);
+    });
+  });
+  // If popup content is dynamic, re-check when body receives clicks (cheap global hook)
+  document.addEventListener('click', function(e){
+    var dots = document.querySelector('.popup-dots');
+    if(dots){ updateDotsVisibility(dots); }
+  }, true);
+})();
+</script>
 </body>
 </html>
