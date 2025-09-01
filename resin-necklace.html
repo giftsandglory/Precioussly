@@ -2642,5 +2642,199 @@ function applyDirectionFromSheet(rows){
   }, true);
 })();
 </script>
+
+<!-- ===== Full Photo Viewer (fixed rounded corners + working swipe) ===== -->
+<style id="full-photo-viewer-css">
+  #photoViewerOverlay{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.12);
+    display: none;
+    z-index: 999999;
+    align-items: center; justify-content: center;
+  }
+  #photoViewerCard{ width:92vw; max-width:560px; display:flex; flex-direction:column; gap:12px; align-items:center; margin-top:12vh; margin-bottom:auto; }
+  #photoViewerSlider{ position:relative; overflow:hidden; border-radius:18px; }
+  #photoViewerSlider .viewer-track{ display:flex; transition: transform 320ms cubic-bezier(.22,1,.36,1); will-change: transform; }
+  #photoViewerSlider .viewer-slide{ flex: 0 0 100%; max-width:100%; }
+  #photoViewerSlider .viewer-slide img{ width:100%; height:auto; display:block; user-select:none; -webkit-user-drag:none; }
+  /* Dots sit over the image bottom area */
+  #photoViewerSlider .popup-dots{ position:absolute; left:50%; bottom:12px; transform:translateX(-50%); }
+  #photoViewerBack{ width:100%; max-width:560px; background:#f1f1f1; color:#222; border:1px solid #cfcfcf; border-radius:10px; padding:12px 16px; font-size:15px; font-family:'Roboto Slab', serif; }
+  body.noscroll{ overflow:hidden; touch-action:none; }
+</style>
+
+<div id="photoViewerOverlay" role="dialog" aria-modal="true">
+  <div id="photoViewerCard" onclick="event.stopPropagation()">
+    <div id="photoViewerSlider">
+      <div class="viewer-track"></div>
+      <div class="popup-dots" id="photoViewerDots"></div>
+    </div>
+    <button id="photoViewerBack" type="button">Back</button>
+  </div>
+</div>
+
+<script id="full-photo-viewer-js">
+(function(){
+  const overlay = document.getElementById('photoViewerOverlay');
+  const track   = document.querySelector('#photoViewerSlider .viewer-track');
+  const dotsBox = document.getElementById('photoViewerDots');
+  const backBtn = document.getElementById('photoViewerBack');
+  const slider  = document.getElementById('photoViewerSlider');
+
+  let images = [];
+  let current = 0;
+
+  function slideWidth(){ return slider.clientWidth || slider.getBoundingClientRect().width || 1; }
+  function goTo(i, animate=true){
+    if (!images.length) return;
+    i = Math.max(0, Math.min(images.length-1, i));
+    current = i;
+    track.style.transition = animate ? "transform 320ms cubic-bezier(.22,1,.36,1)" : "none";
+    track.style.transform = 'translateX(' + (-i * slideWidth()) + 'px)';
+    Array.from(dotsBox.children).forEach((d, idx)=> d.classList.toggle('active', idx === i));
+  }
+
+  // swipe/drag support
+  let isDrag=false, startX=0, startTx=0, lastX=0, lastT=0;
+  slider.addEventListener('pointerdown', e=>{
+    isDrag=true; startX=e.clientX; startTx=-current*slideWidth();
+    lastX=e.clientX; lastT=Date.now();
+    track.style.transition='none';
+    slider.setPointerCapture?.(e.pointerId);
+  }, {passive:true});
+  function onMove(e){
+    if(!isDrag) return;
+    const dx=e.clientX-startX;
+    const atFirst=current===0 && dx>0;
+    const atLast =current===images.length-1 && dx<0;
+    const damp=(atFirst||atLast)?0.4:1;
+    track.style.transform='translateX('+(startTx+dx*damp)+'px)';
+    lastX=e.clientX; lastT=Date.now();
+  }
+  function onUp(e){
+    if(!isDrag) return; isDrag=false;
+    const dx=e.clientX-startX;
+    const dt=Math.max(1, Date.now()-lastT);
+    const velocity=(e.clientX-lastX)/dt;
+    const threshold=Math.min(140, slideWidth()*0.18);
+    let target=current;
+    if (dx<-threshold || (Math.abs(velocity)>0.5 && dx<0)) target++;
+    else if (dx>threshold || (Math.abs(velocity)>0.5 && dx>0)) target--;
+    goTo(target,true);
+    slider.releasePointerCapture?.(e.pointerId);
+  }
+  slider.addEventListener('pointermove', onMove, {passive:true});
+  slider.addEventListener('pointerup', onUp, {passive:true});
+  slider.addEventListener('pointerleave', onUp, {passive:true});
+  slider.addEventListener('pointercancel', onUp, {passive:true});
+  window.addEventListener('resize', ()=>goTo(current,false), {passive:true});
+
+  function buildDots(n){
+    dotsBox.innerHTML='';
+    for(let i=0;i<n;i++){
+      const d=document.createElement('div');
+      d.className='popup-dot'+(i===0?' active':'');
+      d.addEventListener('click', ()=>goTo(i,true));
+      dotsBox.appendChild(d);
+    }
+    dotsBox.style.display = n<=1 ? 'none' : 'inline-flex';
+  }
+
+  function show(arr, startIndex){
+    images = (arr||[]).filter(Boolean);
+    track.innerHTML='';
+    images.forEach(src=>{
+      const slide=document.createElement('div');
+      slide.className='viewer-slide';
+      const img=document.createElement('img');
+      img.src=src;
+      slide.appendChild(img);
+      track.appendChild(slide);
+    });
+    buildDots(images.length);
+    overlay.style.display='flex';
+    document.body.classList.add('noscroll');
+    requestAnimationFrame(()=>goTo(startIndex||0,false));
+  }
+
+  function hide(){
+    overlay.style.display='none';
+    document.body.classList.remove('noscroll');
+  }
+
+  window.__openPhotoViewer = show;
+  window.__closePhotoViewer = hide;
+  overlay.addEventListener('click', hide);
+  backBtn.addEventListener('click', hide);
+
+  // Open when clicking photo area inside your existing popup
+  document.addEventListener('click', (e)=>{
+    const media = e.target.closest('#popupSlider, .popup-photo, .product-photos');
+    if (!media) return;
+    const imgs = Array.from(document.querySelectorAll('#popupSlider img, .popup-photo img, .product-photos img')).map(x=>x.src).filter(Boolean);
+    if (!imgs.length) return;
+    // Try to detect current index from any active dot/track in existing popup
+    let idx = 0;
+    const activeDot = document.querySelector('#popupSlider .popup-dot.active, .popup-photo .popup-dot.active');
+    if (activeDot){
+      const dots = Array.from(activeDot.parentElement.children);
+      idx = Math.max(0, dots.indexOf(activeDot));
+    }
+    show(imgs, idx);
+  }, {capture:true});
+})();
+</script>
+
+
+<!-- === Back Button Integration: close popup & photo-viewer on Android back === -->
+<script id="popup-history-back">
+(function(){
+  // Wrap openPopup to push a history state whenever the product popup opens
+  const origOpen = window.openPopup;
+  if (typeof origOpen === "function"){
+    window.openPopup = function(){
+      const result = origOpen.apply(this, arguments);
+      try {
+        if (!window.__popupHistoryPushed){
+          history.pushState({popup:1}, "");
+          window.__popupHistoryPushed = true;
+        }
+      } catch(e){}
+      return result;
+    };
+  }
+
+  // Wrap closePopup to "consume" the history state so device back doesn't navigate away
+  const origClose = window.closePopup;
+  window.closePopup = function(){
+    if (typeof origClose === "function") origClose.apply(this, arguments);
+    if (!window.__closingFromPop && window.__popupHistoryPushed){
+      window.__closingFromPop = true;
+      try { history.back(); } catch(e){}
+      setTimeout(function(){ window.__closingFromPop = false; }, 0);
+    }
+    window.__popupHistoryPushed = false;
+  };
+
+  // On Android/iOS back gesture or browser back, close overlays first
+  window.addEventListener("popstate", function(){
+    // 1) Close full photo viewer if open
+    const pv = document.getElementById("photoViewerOverlay");
+    if (pv && getComputedStyle(pv).display !== "none"){
+      if (typeof window.__closePhotoViewer === "function") window.__closePhotoViewer();
+      return; // consume this back press
+    }
+    // 2) Close product popup if open
+    const popup = document.getElementById("productPopup");
+    if (popup && popup.classList.contains("is-open") && popup.style.display !== "none"){
+      window.__closingFromPop = true;
+      if (typeof window.closePopup === "function") window.closePopup();
+      window.__closingFromPop = false;
+      return;
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
