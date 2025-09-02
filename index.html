@@ -2250,6 +2250,27 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 
 </style>
 
+
+<style id="chatgpt-title-underline">
+/* === Title underline: black center fade (matches provided photo) === */
+.cat-sec .cat-title::after,
+.cat-title::after{
+  content: "" !important;
+  display: block !important;
+  width: 70% !important;
+  max-width: 280px !important;
+  height: 2px !important;
+  margin: 10px auto 0 !important;
+  /* Strong black center, soft edges */
+  background: radial-gradient(ellipse at center,
+              rgba(0,0,0,.9) 0%,
+              rgba(0,0,0,.55) 40%,
+              rgba(0,0,0,.22) 70%,
+              rgba(0,0,0,0) 100%) !important;
+  border-radius: 999px !important;
+}
+</style>
+
 </head>
 <body>
 <!-- ===== Premium Preloader Overlay (keeps header + announcement bar visible) ===== -->
@@ -3796,9 +3817,9 @@ try {
   try{
     const secEl = document.getElementById('happySection');
     const rowEl = document.getElementById('happyRow');
-    if(!secEl || !rowEl) return;
+    if(!secEl){ return; } // if section missing, nothing to do
 
-    // Use OpenSheet to read the public sheet (same sheet & tab as before)
+    // Read Google Sheet via OpenSheet (same ID+tab you shared)
     const SHEET_ID = '1T3pK9Ya7hm-RXWH4Hq-wV2JUYRbFJJ5qo8rSMbPIcLs';
     const TAB = 'Sheet1';
     const endpoint = `https://opensheet.elk.sh/${SHEET_ID}/${TAB}`;
@@ -3806,27 +3827,26 @@ try {
     fetch(endpoint)
       .then(r => r.json())
       .then(rows => {
-        // ✅ C2 logic: if the cell just below the "visibility" header has "hide", hide the whole section
+        // C2 logic: value directly below "visibility" header
         const visVal = (rows && rows[0] && rows[0]['visibility'])
           ? String(rows[0]['visibility']).trim().toLowerCase()
           : '';
 
         if (visVal === 'hide') {
-          // Hide the entire "Happy Customers" section (including its title)
-          secEl.style.display = 'none';
-          return; // stop here
+          secEl.style.display = 'none'; // hide whole section incl. title
+          return;
         } else {
-          // Make sure the section is visible when not set to "hide"
-          secEl.style.removeProperty('display');
+          secEl.style.removeProperty('display'); // show normally
         }
 
-        // ▶ Build the cards normally
+        // If there is a row container, continue building cards as usual (non-breaking safeguard)
+        if(!rowEl) return;
         const items = (rows || []).filter(r => (r['photo']||'').trim() !== '');
         rowEl.innerHTML = '';
         items.forEach((r) => {
           const photo = (r['photo']||'').trim();
           const handleRaw = (r['insta link']||'').trim();
-          const handle = handleRaw.replace(/^@/, ''); // normalize
+          const handle = handleRaw.replace(/^@/, '');
 
           const a = document.createElement(handle ? 'a' : 'div');
           a.className = 'happy-card';
@@ -3851,10 +3871,7 @@ try {
           rowEl.appendChild(a);
         });
       })
-      .catch(err => {
-        // Silently fail without breaking other parts
-        console.error('Happy Customers grid error:', err);
-      });
+      .catch(err => console.error('Happy Customers grid error:', err));
   }catch(e){
     console.error('Happy Customers grid fatal:', e);
   }
