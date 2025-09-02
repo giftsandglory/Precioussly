@@ -1359,117 +1359,138 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
 </section>
 <!-- 🔽 CATEGORY SCRIPT FROM SHEET (updated: section hide support) -->
 <script>
-  const categorySheetURL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
+  // === Router-driven Categories ===
+  // Read "google sheet" + "tab name" from a small router sheet (first non-empty row).
+  // If you change those cells, the grid updates automatically—no code edits.
+  const ROUTER_URL = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1"; // router (has 'google sheet' + 'tab name')
 
-  // Helper: normalize column access (tolerant to spaces/case)
+  function normKey(k){ return String(k||"").replace(/\s+/g,"").toLowerCase(); }
   function getCell(row, key){
-    const norm = key.replace(/\s+/g, '').toLowerCase();
+    const want = normKey(key);
     for (const k in row){
       if (!Object.prototype.hasOwnProperty.call(row, k)) continue;
-      const kn = String(k).replace(/\s+/g, '').toLowerCase();
-      if (kn === norm) return row[k];
+      if (normKey(k) === want) return row[k];
     }
     return "";
   }
-
-  // Treat both 'Visibility' and putting 'hide' in 'Link' as a hide marker
   function rowHasHideMarker(row){
     const v = String(getCell(row, "visibility") || "").trim().toLowerCase();
     const l = String(getCell(row, "link") || "").trim().toLowerCase();
     return ["hide","hidden","yes","1","true"].includes(v) || ["hide","hidden"].includes(l);
   }
+  function extractSheetId(input){
+    if (!input) return "";
+    const s = String(input).trim();
+    const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    if (m) return m[1];
+    // maybe it's already a bare ID
+    if (/^[a-zA-Z0-9-_]{20,}$/.test(s)) return s;
+    return "";
+  }
 
-  fetch(categorySheetURL)
-    .then(res => res.json())
-    .then(rows => {
-      const container = document.getElementById("categorySection");
-      const grouped = {};
-
-      let currentSection = "";           // e.g., "Resin"
-      let sectionHidden = false;         // if Title row says hide => hide all until next Title
-
-      rows.forEach((row) => {
-        const titleCell = String(getCell(row, "Title") || "").trim();
-
-        // If a new Title starts, reset section + whether it is hidden
-        if (titleCell){
-          currentSection = titleCell;
-          sectionHidden = rowHasHideMarker(row); // 🟢 if Title row has "hide", hide whole block
-          return; // Title rows themselves don't render any card
+  async function resolveDatasetURL(){
+    try{
+      const res = await fetch(ROUTER_URL);
+      const rows = await res.json();
+      // find first row containing google sheet / tab name
+      let gs = "", tab = "";
+      for (const r of rows){
+        const g = getCell(r, "google sheet") || getCell(r, "google_sheet") || getCell(r, "sheet") || "";
+        const t = getCell(r, "tab name") || getCell(r, "sheet name") || getCell(r, "tab") || "";
+        if (String(g).trim()){
+          gs = String(g).trim();
+          tab = String(t || "Sheet1").trim() || "Sheet1";
+          break;
         }
+      }
+      const id = extractSheetId(gs);
+      if (!id) throw new Error("Router sheet missing/invalid Google Sheet link/ID.");
+      const url = `https://opensheet.elk.sh/${id}/${encodeURIComponent(tab)}`;
+      // expose for debug
+      window.__activeSheet = { id, tab, url, fromRouter: ROUTER_URL };
+      return url;
+    }catch(e){
+      console.error("Router error:", e);
+      // Fallback to the previous fixed sheet if router fails
+      return "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
+    }
+  }
 
-        // If there's no active section yet, skip
-        if (!currentSection) return;
+  (async function(){
+    const categorySheetURL = await resolveDatasetURL();
 
-        // If the whole section is hidden, skip all its rows
-        if (sectionHidden) return;
+    fetch(categorySheetURL)
+      .then(res => res.json())
+      .then(rows => {
+        const container = document.getElementById("categorySection");
+        const grouped = {};
+        let currentSection = "";
+        let sectionHidden = false;
 
-        // Per-row hide still respected (e.g., hide a single category)
-        if (rowHasHideMarker(row)) return;
+        rows.forEach((row) => {
+          const titleCell = String(getCell(row, "Title") || "").trim();
+          if (titleCell){
+            currentSection = titleCell;
+            sectionHidden = rowHasHideMarker(row);
+            return;
+          }
+          if (!currentSection) return;
+          if (sectionHidden) return;
+          if (rowHasHideMarker(row)) return;
 
-        const name = String(getCell(row, "Category Name") || "").trim();
-        const img  = String(getCell(row, "Category Image") || "").trim();
-        let link   = String(getCell(row, "Link") || "").trim();
+          const name = String(getCell(row, "Category Name") || "").trim();
+          const img  = String(getCell(row, "Category Image") || "").trim();
+          let link   = String(getCell(row, "Link") || "").trim();
+          if (!name || !img) return;
 
-        if (!name || !img) return;
-
-        if (!grouped[currentSection]) grouped[currentSection] = [];
-        grouped[currentSection].push({ name, img, link: link || "#" });
-      });
-
-      // Render the collected groups
-      Object.entries(grouped).forEach(([section, items]) => {
-        if (!items || !items.length) return;
-
-        
-        
-        
-        
-        const wrap = document.createElement("div");
-        wrap.className = "section-strip-wrap";
-
-        const leftLine = document.createElement("div");
-        leftLine.className = "section-strip-line";
-
-        const strip = document.createElement("div");
-        strip.className = "section-strip";
-        strip.innerHTML = `<span class="strip-text">${section}</span>`;
-
-        const rightLine = document.createElement("div");
-        rightLine.className = "section-strip-line";
-
-        wrap.appendChild(leftLine);
-        wrap.appendChild(strip);
-        wrap.appendChild(rightLine);
-        container.appendChild(wrap);
-
-
-
-
-
-        const grid = document.createElement("div");
-        grid.style.display = "grid";
-        grid.style.gridTemplateColumns = "1fr 1fr";
-        grid.style.gap = "18px";
-
-        items.forEach(item => {
-          const box = document.createElement("a");
-          box.href = item.link || "#";
-          box.style.textDecoration = "none";
-          box.style.color = "inherit";
-          box.innerHTML = `
-            <div style="text-align:center;">
-              <img src="${item.img}" alt="${item.name}" style="width:100%; border-radius:20px; object-fit:cover;">
-              <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
-            </div>`;
-          grid.appendChild(box);
+          if (!grouped[currentSection]) grouped[currentSection] = [];
+          grouped[currentSection].push({ name, img, link: link || "#" });
         });
 
-        container.appendChild(grid);
-      });
-    })
-    .catch(err => console.error("Category load error:", err));
+        Object.entries(grouped).forEach(([section, items]) => {
+          if (!items || !items.length) return;
 
+          const wrap = document.createElement("div");
+          wrap.className = "section-strip-wrap";
+
+          const leftLine = document.createElement("div");
+          leftLine.className = "section-strip-line";
+
+          const strip = document.createElement("div");
+          strip.className = "section-strip";
+          strip.innerHTML = `<span class="strip-text">${section}</span>`;
+
+          const rightLine = document.createElement("div");
+          rightLine.className = "section-strip-line";
+
+          wrap.appendChild(leftLine);
+          wrap.appendChild(strip);
+          wrap.appendChild(rightLine);
+          container.appendChild(wrap);
+
+          const grid = document.createElement("div");
+          grid.style.display = "grid";
+          grid.style.gridTemplateColumns = "1fr 1fr";
+          grid.style.gap = "18px";
+
+          items.forEach(item => {
+            const box = document.createElement("a");
+            box.href = item.link || "#";
+            box.style.textDecoration = "none";
+            box.style.color = "inherit";
+            box.innerHTML = `
+              <div style="text-align:center;">
+                <img src="${item.img}" alt="${item.name}" style="width:100%; border-radius:20px; object-fit:cover;">
+                <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
+              </div>`;
+            grid.appendChild(box);
+          });
+
+          container.appendChild(grid);
+        });
+      })
+      .catch(err => console.error("Category load error:", err));
+  })();
 </script>
 <script>
   // Announcement Bar from Google Sheet
