@@ -543,15 +543,15 @@ down-toggle {
     menuContent.innerHTML += `<a href="${info.link}" class="menu-link" target="_blank">${menu}</a>`;
   } else {
     const menuId = menu.replace(/\s+/g, '-') + '-submenu';
-    menuContent.innerHTML += `
-      <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
-        <span>${menu}</span>
+    menuContent.innerHTML += \`
+      <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('\${menuId}')">
+        <span>\${menu}</span>
         <span class="dropdown-icon">›</span>
       </div>
-      <div class="submenu-container" id="${menuId}" style="display: none;">
-        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link" target="_blank">› ${s.name}</a>`).join("")}
+      <div class="submenu-container" id="\${menuId}" style="display: none;">
+        \${info.subs.map(s => \`<a href="\${s.link}" class="submenu-link" target="_blank">› \${s.name}</a>\`).join("")}
       </div>
-    `;
+    \`;
   }
 });
     });
@@ -560,24 +560,47 @@ down-toggle {
   submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
 }
 </script>
+
 <section style="padding: 24px 16px; max-width: 720px; margin: 0 auto; font-family: 'Roboto Slab', serif;">
-  <h2 style="font-size: 28px; font-weight: 600; color: #000; margin-bottom: 18px;">Return Policy</h2>
+  <h2 style="font-size: 28px; font-weight: 600; color: #000; margin-bottom: 18px;">Return &amp; Refund Policy</h2>
 
   <p style="font-size: 16px; line-height: 1.7; color: #222; margin-bottom: 14px;">
-    Refunds and returns are accepted only in the following cases:
+    Please read the policy carefully before raising a request. By placing an order with Precioussly, you agree to the terms below.
   </p>
 
+  <ol style="font-size: 16px; line-height: 1.8; color: #222; margin-left: 18px; margin-bottom: 16px;">
+    <li style="margin-bottom: 10px;">
+      <strong>2‑Day Window:</strong> Returns and refunds are eligible within <strong>2 days</strong> from the date of delivery.
+      If you request a return or refund within this 2‑day period, it will be processed. Requests raised after this window will not be accepted.
+    </li>
+    <li style="margin-bottom: 10px;">
+      <strong>Mandatory Unboxing Video:</strong> Before opening the box, you must record a <strong>clear, continuous unboxing video</strong>
+      showing the sealed package, shipping label, and the condition of the product as you open it. This video is <strong>mandatory</strong>.
+      Without it, we will not be able to proceed with the return or refund request.
+    </li>
+  </ol>
+
+  <h3 style="font-size: 18px; font-weight: 600; color: #000; margin: 14px 0 8px;">Eligible Cases</h3>
   <ul style="font-size: 16px; line-height: 1.7; color: #222; margin-left: 16px; margin-bottom: 14px;">
     <li>If the product delivered is incorrect (different from what you ordered).</li>
-    <li>If the product is received in a damaged condition.</li>
+    <li>If the product is received in a damaged or defective condition.</li>
   </ul>
 
+  <p style="font-size: 16px; line-height: 1.7; color: #222; margin-bottom: 14px;">
+    <strong>Not Eligible:</strong> Returns or refunds for any other reasons (e.g., change of mind, size/fit, color preference, etc.) are not accepted.
+  </p>
+
+  <h3 style="font-size: 18px; font-weight: 600; color: #000; margin: 14px 0 8px;">How to Raise a Request</h3>
+  <p style="font-size: 16px; line-height: 1.7; color: #222; margin-bottom: 8px;">
+    Within 2 days of delivery, email or WhatsApp us with your Order ID, a brief description of the issue, and the unboxing video (or a shareable link to it).
+  </p>
   <p style="font-size: 16px; line-height: 1.7; color: #222;">
-    No returns or refunds will be accepted for any other reason. Please inspect your order upon delivery and contact us immediately if you believe there's an issue. 
-    For assistance, email us at 
-    <a href="mailto:ask.precioussly@gmail.com" style="color: #1473E6;">ask.precioussly@gmail.com</a> 
-    or call/WhatsApp 
-    <a href="tel:8586057887" style="color: #1473E6;">8586058887</a>.
+    Email: <a href="mailto:ask.precioussly@gmail.com" style="color: #1473E6;">ask.precioussly@gmail.com</a><br/>
+    Call/WhatsApp: <a href="tel:8586058887" style="color: #1473E6;">8586058887</a>
+  </p>
+
+  <p style="font-size: 14px; line-height: 1.7; color: #444; margin-top: 16px;">
+    After reviewing your request and video evidence, our team will guide you on the next steps. If your request is approved, we will proceed with the return or refund as applicable.
   </p>
 </section>
 
