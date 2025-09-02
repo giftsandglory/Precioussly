@@ -335,8 +335,8 @@ body.noscroll {
   transform-origin: center;
   will-change: transform, opacity;
   transition:
-    transform 520ms cubic-bezier(.22,1,.36,1),
-    opacity 360ms ease;
+    transform 1400ms cubic-bezier(.22,1,.36,1),
+    opacity 420ms ease;
   contain: layout paint style;
 }
 
@@ -404,7 +404,7 @@ body.noscroll {
   backface-visibility: hidden;
 }
 .bounce-badge{
-  animation: badge-pop 420ms cubic-bezier(.22,1,.36,1);
+  animation: badge-pop 1400ms cubic-bezier(.22,1,.36,1);
 }
 @keyframes badge-pop{
   0%   { transform: scale(0.92); }
@@ -1110,7 +1110,7 @@ body.horizontal-mode .product-grid{
   display: flex;
   width: 100%;
   height: 100%;
-  transition: transform 320ms cubic-bezier(.22,1,.36,1);
+  transition: transform 1400ms cubic-bezier(.22,1,.36,1);
   will-change: transform;
 }
 #popupSlider .popup-slide{
@@ -1215,8 +1215,8 @@ body.horizontal-mode .product-grid{
   transform: translateZ(0) scale(1);
   transition:
     opacity 220ms ease,
-    transform 340ms cubic-bezier(.22,1,.36,1),
-    box-shadow 340ms cubic-bezier(.22,1,.36,1);
+    transform 1400ms cubic-bezier(.22,1,.36,1),
+    box-shadow 1400ms cubic-bezier(.22,1,.36,1);
   will-change: transform, opacity;
 }
 
@@ -1267,7 +1267,7 @@ body.horizontal-mode .product-grid{
   opacity: 0.9 !important;
   transform: scale(1) !important;
   transition:
-    transform 220ms cubic-bezier(.22,1,.36,1),
+    transform 1400ms cubic-bezier(.22,1,.36,1),
     opacity 220ms ease !important;
 }
 /* Active: slightly bigger circle (still circle) */
@@ -1880,12 +1880,20 @@ injectProductSchema({
 
   function width(){ return slider.getBoundingClientRect().width; }
 
-  function goTo(i, animate=true){
+  function goTo(i, animate=true) {
     if (!slides.length) return;
     if (i < 0) i = 0;
     if (i > slides.length - 1) i = slides.length - 1;
-    currentIndex = i;
-    track.style.transition = animate ? "transform 320ms cubic-bezier(.22,1,.36,1)" : "none";
+    
+    const prevIndex = currentIndex;
+currentIndex = i;
+const dist = Math.max(1, Math.abs(prevIndex - currentIndex));
+const base = 1400; // base ms (slower than before)
+const extra = 200 * (dist - 1); // if jumping more than 1 slide
+let dur = base + extra;
+// Trim duration a bit for very fast swipes
+if (window.__fastSwipe) dur = Math.max(420, base - 120);
+track.style.transition = animate ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
     track.style.transform = `translateX(${-i * width()}px)`;
     setActiveDot(i);
   }
@@ -1929,15 +1937,17 @@ injectProductSchema({
     const dx = e.clientX - startX;
     const dt = Math.max(1, Date.now() - lastMoveTime);
     const velocity = (e.clientX - lastMoveX) / dt;
-    const threshold = Math.min(140, width() * 0.18);
-    const fast = Math.abs(velocity) > 0.5;
+    const threshold = Math.min(160, width() * 0.25);
+    const fast = Math.abs(velocity) > 0.6;
 
     let target = currentIndex;
     if (dx < -threshold || (fast && dx < 0)) target = currentIndex + 1;
     else if (dx > threshold || (fast && dx > 0)) target = currentIndex - 1;
 
-    goTo(target, true);
-    slider.releasePointerCapture?.(e.pointerId);
+    window.__fastSwipe = fast;
+goTo(target, true);
+    setTimeout(() => { window.__fastSwipe = false; }, 50);
+slider.releasePointerCapture?.(e.pointerId);
   };
 
   slider.addEventListener("pointerdown", onPointerDown, { passive: true });
@@ -2654,7 +2664,7 @@ function applyDirectionFromSheet(rows){
   }
   #photoViewerCard{ width:92vw; max-width:560px; display:flex; flex-direction:column; gap:12px; align-items:center; margin-top:12vh; margin-bottom:auto; }
   #photoViewerSlider{ position:relative; overflow:hidden; border-radius:18px; }
-  #photoViewerSlider .viewer-track{ display:flex; transition: transform 320ms cubic-bezier(.22,1,.36,1); will-change: transform; }
+  #photoViewerSlider .viewer-track{ display:flex; transition: transform 1400ms cubic-bezier(.22,1,.36,1); will-change: transform; }
   #photoViewerSlider .viewer-slide{ flex: 0 0 100%; max-width:100%; }
   #photoViewerSlider .viewer-slide img{ width:100%; height:auto; display:block; user-select:none; -webkit-user-drag:none; }
   /* Dots sit over the image bottom area */
@@ -2685,11 +2695,10 @@ function applyDirectionFromSheet(rows){
   let current = 0;
 
   function slideWidth(){ return slider.clientWidth || slider.getBoundingClientRect().width || 1; }
-  function goTo(i, animate=true){
-    if (!images.length) return;
+  function goTo(i, animate=true) { if (!images.length) return;
     i = Math.max(0, Math.min(images.length-1, i));
     current = i;
-    track.style.transition = animate ? "transform 320ms cubic-bezier(.22,1,.36,1)" : "none";
+    track.style.transition = animate ? "transform 1400ms cubic-bezier(.22,1,.36,1)" : "none";
     track.style.transform = 'translateX(' + (-i * slideWidth()) + 'px)';
     Array.from(dotsBox.children).forEach((d, idx)=> d.classList.toggle('active', idx === i));
   }
@@ -2999,12 +3008,16 @@ function applyDirectionFromSheet(rows){
     function width(){ return slider.getBoundingClientRect().width; }
 
     var currentIndex = 0;
-    function goTo(i, animate){
+    function goTo(i, animate) {
       if (!slides.length) return;
       if (i < 0) i = 0;
       if (i > slides.length-1) i = slides.length-1;
-      currentIndex = i;
-      track.style.transition = (animate!==false) ? "transform 320ms cubic-bezier(.22,1,.36,1)" : "none";
+      const prev = currentIndex;
+currentIndex = i;
+const dist = Math.max(1, Math.abs(prev - currentIndex));
+const base = 1400; const extra = 220 * (dist - 1);
+let dur = base + extra;
+track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
       track.style.transform = "translateX(" + (-i * width()) + "px)";
       setActiveDot(i);
       refreshNavState();
