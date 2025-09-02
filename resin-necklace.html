@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <!-- Open Graph (fallback) -->
-<meta property="og:title" content="Precioussly — Handmade Jewelry & Gifts">
+<meta property="og:title" content="Precioussly - Handmade Jewelry & Gifts">
 <meta property="og:description" content="Discover beautiful handmade pieces. Tap a shared product link to open its popup instantly.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://i.postimg.cc/HnRbjRbh/Best-Logo.png">
@@ -101,7 +101,7 @@ body.noscroll {
   z-index: 1;
 }
 
-/* Dots – no width animation */
+/* Dots - no width animation */
 .popup-dots{
   display: flex;
   justify-content: center;
@@ -1462,7 +1462,7 @@ function isHidden(row){
     if (row.hasOwnProperty(k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
       if (v.includes("hide")) return true;   // ✅ hide when cell contains "hide"
-      // return false on any other non-empty value – requirement only mentions "hide"
+      // return false on any other non-empty value - requirement only mentions "hide"
       if (v.length) return false;
     }
   }
@@ -1722,7 +1722,7 @@ function generateSeoDescription(name) {
   }
   const niceName = name || "Beautiful Piece";
   const colorTxt = colorFound ? `${colorFound} ` : "";
-  const line1 = `Premium ${colorTxt}${cat.label} — crafted for comfort and long-lasting shine.`;
+  const line1 = `Premium ${colorTxt}${cat.label} - crafted for comfort and long-lasting shine.`;
   const line2 = `Perfect for ${cat.use}.`;
   const line3 = `Want a custom version? Message us on WhatsApp: ${WHATSAPP_NUMBER}.`;
   const line4 = BRAND_NAME;
@@ -1775,7 +1775,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const canonicalPath = '/resin-necklace';
     const pageUrl = `${location.origin}${canonicalPath}?p=${encodeURIComponent(name)}`;
     const prettyPrice = (price ? `₹${price}` : ``).trim();
-    const firstLine = `Check this on Precioussly: ${name} – ${prettyPrice}`.trim();
+    const firstLine = `Check this on Precioussly: ${name} - ${prettyPrice}`.trim();
     const shareText = `${firstLine}\n\n${pageUrl}`;
     whEl.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
     whEl.setAttribute("rel", "noopener");
@@ -1786,12 +1786,12 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   const whEl = document.getElementById('whShare');
   if (whEl) {
     // Build exact two-line WhatsApp message:
-    // Line 1: "Check this on Precioussly: <name> – ₹<price>"
+    // Line 1: "Check this on Precioussly: <name> - ₹<price>"
     // Line 2: "<URL that reopens same popup>"
     const pagePath = location.pathname.replace(/\.html?$/i, ''); // canonicalize to /resin-necklace
     const pageUrl = `${location.origin}${pagePath}?p=${encodeURIComponent(name)}`;
     const prettyPrice = (price ? `₹${price}` : ``).trim();
-    const firstLine = `Check this on Precioussly: ${name} – ${prettyPrice}`.trim();
+    const firstLine = `Check this on Precioussly: ${name} - ${prettyPrice}`.trim();
     const shareText = `${firstLine}\n\n${pageUrl}`;
 
     whEl.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
@@ -1825,8 +1825,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 
   // Build a shareable link that re-opens this popup
-  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
-  const shareMsg = `Check this on Precioussly: ${name} — ₹${price}\n${shareUrl}`;
+  const shareUrl = `${location.origin}/resin-necklace?p=${encodeURIComponent(name)}`;
+  const shareMsg = `Check this on Precioussly: ${name} - ₹${price}\n\n${shareUrl}`;
 
   const whEl = document.getElementById('whShare');
   if (whEl) {
@@ -2762,7 +2762,7 @@ function applyDirectionFromSheet(rows){
     try {
       // Share link
       var shareUrl = location.origin + location.pathname + "?p=" + encodeURIComponent(name||"");
-      var shareMsg = "Check this on Precioussly: " + (name||"") + " — ₹" + (price||"") + "\\n" + shareUrl;
+      var shareMsg = "Check this on Precioussly: " + (name||"") + " - ₹" + (price||"") + "\\n" + shareUrl;
       var wh = $("whShare");
       if(wh){
         wh.href = "https://wa.me/?text=" + encodeURIComponent(shareMsg);
