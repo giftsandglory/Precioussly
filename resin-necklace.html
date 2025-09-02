@@ -2,12 +2,6 @@
 
 <html lang="en">
 <head>
-<!-- Added by ChatGPT: Default OG tags for WhatsApp preview -->
-<meta property="og:title" content="Precioussly – Handmade & Resin Jewelry">
-<meta property="og:description" content="Open to view product photos, price and details.">
-<meta property="og:image" content="https://i.postimg.cc/HnRbjRbh/Best-Logo.png">
-<meta property="og:type" content="website">
-
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
@@ -1764,28 +1758,9 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
   const shareMsg = `Check this on Precioussly: ${name} — ₹${price}\n${shareUrl}`;
 
-  // BEGIN ChatGPT patch: WhatsApp share with previewable first link
-function toPostimgPage(u){
-  try {
-    const m = String(u || "").match(/https?:\/\/i\.postimg\.cc\/([^\/]+)/i);
-    return m ? `https://postimg.cc/${m[1]}` : u;
-  } catch (e) { return u; }
-}
-const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
-const previewableLink = toPostimgPage((images && images[0]) || "");
-const shareMsg = `${name} — ₹${price}
-${previewableLink}
-
-More photos: ${shareUrl}`;
-const whEl = document.getElementById('whShare');
-if (whEl) {
-  whEl.href = `https://wa.me/?text=${encodeURIComponent(shareMsg)}`;
-  whEl.onclick = function () {
-    const d = document.getElementById('popupDetails');
-    if (d && 'open' in d) d.open = false;
-  };
-}
-// END ChatGPT patch`;
+  const whEl = document.getElementById('whShare');
+  if (whEl) {
+    whEl.href = `https://wa.me/?text=${encodeURIComponent(shareMsg)}`;
     whEl.onclick = function() {
       const d = document.getElementById('popupDetails');
       if (d) d.open = false;
