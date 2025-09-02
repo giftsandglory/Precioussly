@@ -1771,6 +1771,37 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
 
   const whEl = document.getElementById('whShare');
   if (whEl) {
+    // Canonical path for share:
+    const canonicalPath = '/resin-necklace';
+    const pageUrl = `${location.origin}${canonicalPath}?p=${encodeURIComponent(name)}`;
+    const prettyPrice = (price ? `₹${price}` : ``).trim();
+    const firstLine = `Check this on Precioussly: ${name} – ${prettyPrice}`.trim();
+    const shareText = `${firstLine}\n\n${pageUrl}`;
+    whEl.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    whEl.setAttribute("rel", "noopener");
+    whEl.setAttribute("target", "_blank");
+  }
+
+
+  const whEl = document.getElementById('whShare');
+  if (whEl) {
+    // Build exact two-line WhatsApp message:
+    // Line 1: "Check this on Precioussly: <name> – ₹<price>"
+    // Line 2: "<URL that reopens same popup>"
+    const pagePath = location.pathname.replace(/\.html?$/i, ''); // canonicalize to /resin-necklace
+    const pageUrl = `${location.origin}${pagePath}?p=${encodeURIComponent(name)}`;
+    const prettyPrice = (price ? `₹${price}` : ``).trim();
+    const firstLine = `Check this on Precioussly: ${name} – ${prettyPrice}`.trim();
+    const shareText = `${firstLine}\n\n${pageUrl}`;
+
+    whEl.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    whEl.setAttribute("rel", "noopener");
+    whEl.setAttribute("target", "_blank");
+  }
+
+
+  const whEl = document.getElementById('whShare');
+  if (whEl) {
     // Build robust WhatsApp share text.
     // We include the page link that auto-opens the same popup (?p=...),
     // and we place the main image URL LAST so WhatsApp shows a proper image preview.
@@ -2925,5 +2956,58 @@ track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.2
 })();
 </script>
 
+<script>
+(function(){
+  function getParam(name){
+    const u = new URLSearchParams(location.search);
+    return u.get(name) || u.get(name.toLowerCase());
+  }
+  function normalizeName(s){
+    return (s||'').toString().trim().toLowerCase().replace(/\s+/g,' ');
+  }
+  function slugify(s){
+    return (s||'').toString().trim().toLowerCase().replace(/\s+/g,'-');
+  }
+  function tryOpenByName(wantedRaw){
+    if (!wantedRaw || !Array.isArray(window.catalogData)) return false;
+    const wanted = decodeURIComponent(wantedRaw);
+    const wantedNorm = normalizeName(wanted);
+    const wantedSlug = slugify(wanted);
+    let row = window.catalogData.find(r => normalizeName(r["Product Name"]) === wantedNorm);
+    if (!row) {
+      row = window.catalogData.find(r => slugify(r["Product Name"]) === wantedSlug);
+    }
+    if (!row) return false;
+    const imgs = [row["photo 1"], row["photo 2"], row["photo 3"], row["photo 4"]].filter(Boolean);
+    const mrp = Number(row["MRP"]||0);
+    const price = Number(row["Selling Price"]||0);
+    const stock = Number(row["in stock"]||0);
+    const desc = row["Description"] || "";
+    if (typeof window.openPopup === "function") {
+      openPopup(imgs, row["Product Name"], mrp, price, stock, desc);
+      return true;
+    }
+    return false;
+  }
+  // Poll until data & openPopup available (max ~6s)
+  function openFromParam(){
+    const p = getParam('p') || getParam('product');
+    if (!p) return;
+    const started = Date.now();
+    (function waitLoop(){
+      if (tryOpenByName(p) || (Date.now() - started) > 6000) return;
+      setTimeout(waitLoop, 120);
+    })();
+  }
+  // Run on DOM ready
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', openFromParam);
+  } else {
+    openFromParam();
+  }
+  // Also expose for manual trigger after fetch if needed
+  window.maybeOpenFromURL = openFromParam;
+})();
+</script>
 </body>
 </html>
