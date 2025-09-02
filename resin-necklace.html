@@ -2,16 +2,16 @@
 
 <html lang="en">
 <head>
-<!-- Open Graph (fallback) -->
-<meta property="og:title" content="Precioussly - Handmade Jewelry & Gifts">
-<meta property="og:description" content="Discover beautiful handmade pieces. Tap a shared product link to open its popup instantly.">
-<meta property="og:type" content="website">
-<meta property="og:image" content="https://i.postimg.cc/HnRbjRbh/Best-Logo.png">
-<meta property="og:url" content="https://www.precioussly.com/">
-
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Precioussly — Handmade Jewellery" />
+<meta property="og:description" content="Tap to view the product and buy." />
+<meta property="og:image" content="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" />
+<meta property="og:url" content="https://precioussly.com/resin-necklace" />
+<meta name="twitter:card" content="summary_large_image" />
+
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
 .quantity-bar {
@@ -101,7 +101,7 @@ body.noscroll {
   z-index: 1;
 }
 
-/* Dots - no width animation */
+/* Dots – no width animation */
 .popup-dots{
   display: flex;
   justify-content: center;
@@ -1462,7 +1462,7 @@ function isHidden(row){
     if (row.hasOwnProperty(k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
       if (v.includes("hide")) return true;   // ✅ hide when cell contains "hide"
-      // return false on any other non-empty value - requirement only mentions "hide"
+      // return false on any other non-empty value – requirement only mentions "hide"
       if (v.length) return false;
     }
   }
@@ -1722,7 +1722,7 @@ function generateSeoDescription(name) {
   }
   const niceName = name || "Beautiful Piece";
   const colorTxt = colorFound ? `${colorFound} ` : "";
-  const line1 = `Premium ${colorTxt}${cat.label} - crafted for comfort and long-lasting shine.`;
+  const line1 = `Premium ${colorTxt}${cat.label} — crafted for comfort and long-lasting shine.`;
   const line2 = `Perfect for ${cat.use}.`;
   const line3 = `Want a custom version? Message us on WhatsApp: ${WHATSAPP_NUMBER}.`;
   const line4 = BRAND_NAME;
@@ -1768,69 +1768,13 @@ let selectedProduct = null;
 // Open popup with product details
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
   selectedProduct = { image: images[0], name, mrp, price };
-
-  const whEl = document.getElementById('whShare');
-  if (whEl) {
-    // Canonical path for share:
-    const canonicalPath = '/resin-necklace';
-    const pageUrl = `${location.origin}${canonicalPath}?p=${encodeURIComponent(name)}`;
-    const prettyPrice = (price ? `₹${price}` : ``).trim();
-    const firstLine = `Check this on Precioussly: ${name} - ${prettyPrice}`.trim();
-    const shareText = `${firstLine}\n\n${pageUrl}`;
-    whEl.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-    whEl.setAttribute("rel", "noopener");
-    whEl.setAttribute("target", "_blank");
-  }
-
-
-  const whEl = document.getElementById('whShare');
-  if (whEl) {
-    // Build exact two-line WhatsApp message:
-    // Line 1: "Check this on Precioussly: <name> - ₹<price>"
-    // Line 2: "<URL that reopens same popup>"
-    const pagePath = location.pathname.replace(/\.html?$/i, ''); // canonicalize to /resin-necklace
-    const pageUrl = `${location.origin}${pagePath}?p=${encodeURIComponent(name)}`;
-    const prettyPrice = (price ? `₹${price}` : ``).trim();
-    const firstLine = `Check this on Precioussly: ${name} - ${prettyPrice}`.trim();
-    const shareText = `${firstLine}\n\n${pageUrl}`;
-
-    whEl.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-    whEl.setAttribute("rel", "noopener");
-    whEl.setAttribute("target", "_blank");
-  }
-
-
-  const whEl = document.getElementById('whShare');
-  if (whEl) {
-    // Build robust WhatsApp share text.
-    // We include the page link that auto-opens the same popup (?p=...),
-    // and we place the main image URL LAST so WhatsApp shows a proper image preview.
-    const pageUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
-    const imgUrl  = (images && images.length ? images[0] : "");
-    const prettyPrice = (price ? `₹${price}` : "").trim();
-    // Short, clean one-box preview + details
-    const lines = [
-      `⭐ ${name}`,
-      prettyPrice ? `Price: ${prettyPrice}` : ``,
-      `Open details & add to cart:`,
-      pageUrl,
-      imgUrl // keep LAST for image preview
-    ].filter(Boolean);
-    const shareText = lines.join("\n");
-
-    // wa.me supports full text encoding
-    whEl.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-    whEl.setAttribute("rel", "noopener");
-    whEl.setAttribute("target", "_blank");
-  }
-
   // Build a shareable link that re-opens this popup
-  const shareUrl = `${location.origin}/resin-necklace?p=${encodeURIComponent(name)}`;
-  const shareMsg = `Check this on Precioussly: ${name} - ₹${price}\n\n${shareUrl}`;
+  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
+  
 
   const whEl = document.getElementById('whShare');
   if (whEl) {
-    whEl.href = `https://wa.me/?text=${encodeURIComponent(shareMsg)}`;
+    whEl.href = `https://wa.me/?text=${encodeURIComponent(imageUrl)}%0A${encodeURIComponent(line1)}%0A${encodeURIComponent(shareUrl)}`;
     whEl.onclick = function() {
       const d = document.getElementById('popupDetails');
       if (d) d.open = false;
@@ -2722,6 +2666,200 @@ function applyDirectionFromSheet(rows){
   }, true);
 })();
 </script>
+
+<!-- ===== Full Photo Viewer (fixed rounded corners + working swipe) ===== -->
+<style id="full-photo-viewer-css">
+  #photoViewerOverlay{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.12);
+    display: none;
+    z-index: 999999;
+    align-items: center; justify-content: center;
+  }
+  #photoViewerCard{ width:92vw; max-width:560px; display:flex; flex-direction:column; gap:12px; align-items:center; margin-top:12vh; margin-bottom:auto; }
+  #photoViewerSlider{ position:relative; overflow:hidden; border-radius:18px; }
+  #photoViewerSlider .viewer-track{ display:flex; transition: transform 1400ms cubic-bezier(.22,1,.36,1); will-change: transform; }
+  #photoViewerSlider .viewer-slide{ flex: 0 0 100%; max-width:100%; }
+  #photoViewerSlider .viewer-slide img{ width:100%; height:auto; display:block; user-select:none; -webkit-user-drag:none; }
+  /* Dots sit over the image bottom area */
+  #photoViewerSlider .popup-dots{ position:absolute; left:50%; bottom:12px; transform:translateX(-50%); }
+  #photoViewerBack{ width:100%; max-width:560px; background:#f1f1f1; color:#222; border:1px solid #cfcfcf; border-radius:10px; padding:12px 16px; font-size:15px; font-family:'Roboto Slab', serif; }
+  body.noscroll{ overflow:hidden; touch-action:none; }
+</style>
+
+<div id="photoViewerOverlay" role="dialog" aria-modal="true">
+  <div id="photoViewerCard" onclick="event.stopPropagation()">
+    <div id="photoViewerSlider">
+      <div class="viewer-track"></div>
+      <div class="popup-dots" id="photoViewerDots"></div>
+    </div>
+    <button id="photoViewerBack" type="button">Back</button>
+  </div>
+</div>
+
+<script id="full-photo-viewer-js">
+(function(){
+  const overlay = document.getElementById('photoViewerOverlay');
+  const track   = document.querySelector('#photoViewerSlider .viewer-track');
+  const dotsBox = document.getElementById('photoViewerDots');
+  const backBtn = document.getElementById('photoViewerBack');
+  const slider  = document.getElementById('photoViewerSlider');
+
+  let images = [];
+  let current = 0;
+
+  function slideWidth(){ return slider.clientWidth || slider.getBoundingClientRect().width || 1; }
+  function goTo(i, animate=true) { if (!images.length) return;
+    i = Math.max(0, Math.min(images.length-1, i));
+    current = i;
+    track.style.transition = animate ? "transform 1400ms cubic-bezier(.22,1,.36,1)" : "none";
+    track.style.transform = 'translateX(' + (-i * slideWidth()) + 'px)';
+    Array.from(dotsBox.children).forEach((d, idx)=> d.classList.toggle('active', idx === i));
+  }
+
+  // swipe/drag support
+  let isDrag=false, startX=0, startTx=0, lastX=0, lastT=0;
+  slider.addEventListener('pointerdown', e=>{
+    isDrag=true; startX=e.clientX; startTx=-current*slideWidth();
+    lastX=e.clientX; lastT=Date.now();
+    track.style.transition='none';
+    slider.setPointerCapture?.(e.pointerId);
+  }, {passive:true});
+  function onMove(e){
+    if(!isDrag) return;
+    const dx=e.clientX-startX;
+    const atFirst=current===0 && dx>0;
+    const atLast =current===images.length-1 && dx<0;
+    const damp=(atFirst||atLast)?0.4:1;
+    track.style.transform='translateX('+(startTx+dx*damp)+'px)';
+    lastX=e.clientX; lastT=Date.now();
+  }
+  function onUp(e){
+    if(!isDrag) return; isDrag=false;
+    const dx=e.clientX-startX;
+    const dt=Math.max(1, Date.now()-lastT);
+    const velocity=(e.clientX-lastX)/dt;
+    const threshold=Math.min(140, slideWidth()*0.18);
+    let target=current;
+    if (dx<-threshold || (Math.abs(velocity)>0.5 && dx<0)) target++;
+    else if (dx>threshold || (Math.abs(velocity)>0.5 && dx>0)) target--;
+    goTo(target,true);
+    slider.releasePointerCapture?.(e.pointerId);
+  }
+  slider.addEventListener('pointermove', onMove, {passive:true});
+  slider.addEventListener('pointerup', onUp, {passive:true});
+  slider.addEventListener('pointerleave', onUp, {passive:true});
+  slider.addEventListener('pointercancel', onUp, {passive:true});
+  window.addEventListener('resize', ()=>goTo(current,false), {passive:true});
+
+  function buildDots(n){
+    dotsBox.innerHTML='';
+    for(let i=0;i<n;i++){
+      const d=document.createElement('div');
+      d.className='popup-dot'+(i===0?' active':'');
+      d.addEventListener('click', ()=>goTo(i,true));
+      dotsBox.appendChild(d);
+    }
+    dotsBox.style.display = n<=1 ? 'none' : 'inline-flex';
+  }
+
+  function show(arr, startIndex){
+    images = (arr||[]).filter(Boolean);
+    track.innerHTML='';
+    images.forEach(src=>{
+      const slide=document.createElement('div');
+      slide.className='viewer-slide';
+      const img=document.createElement('img');
+      img.src=src;
+      slide.appendChild(img);
+      track.appendChild(slide);
+    });
+    buildDots(images.length);
+    overlay.style.display='flex';
+    document.body.classList.add('noscroll');
+    requestAnimationFrame(()=>goTo(startIndex||0,false));
+  }
+
+  function hide(){
+    overlay.style.display='none';
+    document.body.classList.remove('noscroll');
+  }
+
+  window.__openPhotoViewer = show;
+  window.__closePhotoViewer = hide;
+  overlay.addEventListener('click', hide);
+  backBtn.addEventListener('click', hide);
+
+  // Open when clicking photo area inside your existing popup
+  document.addEventListener('click', (e)=>{
+    const media = e.target.closest('#popupSlider, .popup-photo, .product-photos');
+    if (!media) return;
+    const imgs = Array.from(document.querySelectorAll('#popupSlider img, .popup-photo img, .product-photos img')).map(x=>x.src).filter(Boolean);
+    if (!imgs.length) return;
+    // Try to detect current index from any active dot/track in existing popup
+    let idx = 0;
+    const activeDot = document.querySelector('#popupSlider .popup-dot.active, .popup-photo .popup-dot.active');
+    if (activeDot){
+      const dots = Array.from(activeDot.parentElement.children);
+      idx = Math.max(0, dots.indexOf(activeDot));
+    }
+    show(imgs, idx);
+  }, {capture:true});
+})();
+</script>
+
+
+<!-- === Back Button Integration: close popup & photo-viewer on Android back === -->
+<script id="popup-history-back">
+(function(){
+  // Wrap openPopup to push a history state whenever the product popup opens
+  const origOpen = window.openPopup;
+  if (typeof origOpen === "function"){
+    window.openPopup = function(){
+      const result = origOpen.apply(this, arguments);
+      try {
+        if (!window.__popupHistoryPushed){
+          history.pushState({popup:1}, "");
+          window.__popupHistoryPushed = true;
+        }
+      } catch(e){}
+      return result;
+    };
+  }
+
+  // Wrap closePopup to "consume" the history state so device back doesn't navigate away
+  const origClose = window.closePopup;
+  window.closePopup = function(){
+    if (typeof origClose === "function") origClose.apply(this, arguments);
+    if (!window.__closingFromPop && window.__popupHistoryPushed){
+      window.__closingFromPop = true;
+      try { history.back(); } catch(e){}
+      setTimeout(function(){ window.__closingFromPop = false; }, 0);
+    }
+    window.__popupHistoryPushed = false;
+  };
+
+  // On Android/iOS back gesture or browser back, close overlays first
+  window.addEventListener("popstate", function(){
+    // 1) Close full photo viewer if open
+    const pv = document.getElementById("photoViewerOverlay");
+    if (pv && getComputedStyle(pv).display !== "none"){
+      if (typeof window.__closePhotoViewer === "function") window.__closePhotoViewer();
+      return; // consume this back press
+    }
+    // 2) Close product popup if open
+    const popup = document.getElementById("productPopup");
+    if (popup && popup.classList.contains("is-open") && popup.style.display !== "none"){
+      window.__closingFromPop = true;
+      if (typeof window.closePopup === "function") window.closePopup();
+      window.__closingFromPop = false;
+      return;
+    }
+  });
+})();
+</script>
+
+
 <!-- === Photo Nav Buttons (translucent) + Pinch-zoom friendly === -->
 
 
@@ -2761,13 +2899,15 @@ function applyDirectionFromSheet(rows){
     images = okImages(images);
     try {
       // Share link
-      var shareUrl = location.origin + location.pathname + "?p=" + encodeURIComponent(name||"");
-      var shareMsg = "Check this on Precioussly: " + (name||"") + " - ₹" + (price||"") + "\\n" + shareUrl;
-      var wh = $("whShare");
-      if(wh){
-        wh.href = "https://wa.me/?text=" + encodeURIComponent(shareMsg);
-      }
-      history.replaceState && history.replaceState(null, "", shareUrl);
+      var shareUrl = location.origin + location.pathname + "?p=" + encodeURIComponent(name || "");
+var imageUrl = (images && images[0]) ? String(images[0]) : "";
+var line1 = "Check this on Precioussly: " + (name || "") + " — ₹" + (price || "");
+var wh = $("whShare");
+if (wh) {
+  // WhatsApp preview hack: put product image URL first, then text line, then page link
+  wh.href = "https://wa.me/?text=" + encodeURIComponent(imageUrl) + "%0A" + encodeURIComponent(line1) + "%0A" + encodeURIComponent(shareUrl);
+}
+history.replaceState && history.replaceState(null, "", shareUrl);
     } catch(e){}
 
     // Qty reset
@@ -2956,58 +3096,5 @@ track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.2
 })();
 </script>
 
-<script>
-(function(){
-  function getParam(name){
-    const u = new URLSearchParams(location.search);
-    return u.get(name) || u.get(name.toLowerCase());
-  }
-  function normalizeName(s){
-    return (s||'').toString().trim().toLowerCase().replace(/\s+/g,' ');
-  }
-  function slugify(s){
-    return (s||'').toString().trim().toLowerCase().replace(/\s+/g,'-');
-  }
-  function tryOpenByName(wantedRaw){
-    if (!wantedRaw || !Array.isArray(window.catalogData)) return false;
-    const wanted = decodeURIComponent(wantedRaw);
-    const wantedNorm = normalizeName(wanted);
-    const wantedSlug = slugify(wanted);
-    let row = window.catalogData.find(r => normalizeName(r["Product Name"]) === wantedNorm);
-    if (!row) {
-      row = window.catalogData.find(r => slugify(r["Product Name"]) === wantedSlug);
-    }
-    if (!row) return false;
-    const imgs = [row["photo 1"], row["photo 2"], row["photo 3"], row["photo 4"]].filter(Boolean);
-    const mrp = Number(row["MRP"]||0);
-    const price = Number(row["Selling Price"]||0);
-    const stock = Number(row["in stock"]||0);
-    const desc = row["Description"] || "";
-    if (typeof window.openPopup === "function") {
-      openPopup(imgs, row["Product Name"], mrp, price, stock, desc);
-      return true;
-    }
-    return false;
-  }
-  // Poll until data & openPopup available (max ~6s)
-  function openFromParam(){
-    const p = getParam('p') || getParam('product');
-    if (!p) return;
-    const started = Date.now();
-    (function waitLoop(){
-      if (tryOpenByName(p) || (Date.now() - started) > 6000) return;
-      setTimeout(waitLoop, 120);
-    })();
-  }
-  // Run on DOM ready
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', openFromParam);
-  } else {
-    openFromParam();
-  }
-  // Also expose for manual trigger after fetch if needed
-  window.maybeOpenFromURL = openFromParam;
-})();
-</script>
 </body>
 </html>
