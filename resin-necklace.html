@@ -2,6 +2,13 @@
 
 <html lang="en">
 <head>
+<!-- Open Graph (fallback) -->
+<meta property="og:title" content="Precioussly — Handmade Jewelry & Gifts">
+<meta property="og:description" content="Discover beautiful handmade pieces. Tap a shared product link to open its popup instantly.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://i.postimg.cc/HnRbjRbh/Best-Logo.png">
+<meta property="og:url" content="https://www.precioussly.com/">
+
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
@@ -1761,6 +1768,31 @@ let selectedProduct = null;
 // Open popup with product details
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
   selectedProduct = { image: images[0], name, mrp, price };
+
+  const whEl = document.getElementById('whShare');
+  if (whEl) {
+    // Build robust WhatsApp share text.
+    // We include the page link that auto-opens the same popup (?p=...),
+    // and we place the main image URL LAST so WhatsApp shows a proper image preview.
+    const pageUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
+    const imgUrl  = (images && images.length ? images[0] : "");
+    const prettyPrice = (price ? `₹${price}` : "").trim();
+    // Short, clean one-box preview + details
+    const lines = [
+      `⭐ ${name}`,
+      prettyPrice ? `Price: ${prettyPrice}` : ``,
+      `Open details & add to cart:`,
+      pageUrl,
+      imgUrl // keep LAST for image preview
+    ].filter(Boolean);
+    const shareText = lines.join("\n");
+
+    // wa.me supports full text encoding
+    whEl.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    whEl.setAttribute("rel", "noopener");
+    whEl.setAttribute("target", "_blank");
+  }
+
   // Build a shareable link that re-opens this popup
   const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
   const shareMsg = `Check this on Precioussly: ${name} — ₹${price}\n${shareUrl}`;
