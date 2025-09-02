@@ -1482,9 +1482,61 @@ function getSheetDescription(row){
 }
 
 
-fetch(SHEET_URL)
-  .then(res => res.json())
-  .then(data => {
+
+(async function() {
+  const ROUTER_SHEET_ID = "1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA";
+  const ROUTER_TAB = "Sheet1";
+  const buildOpenSheet = (sheetId, tab) => `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab || 'Sheet1')}`;
+  const extractSheetId = (txt) => {
+    if (!txt) return null;
+    const s = String(txt).trim();
+    const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    return m ? m[1] : s; // allow plain id
+  };
+  async function fetchJSON(url) {
+    const r = await fetch(url);
+    return r.json();
+  }
+
+  // 1) fetch the router sheet to read "Google Sheet" and "Tab Name"
+  let routerRows = [];
+  try {
+    routerRows = await fetchJSON(buildOpenSheet(ROUTER_SHEET_ID, ROUTER_TAB));
+  } catch(e) {
+    console.warn('Router sheet fetch failed, falling back to default dataset', e);
+  }
+
+  // 2) locate config in any row; headers case-insensitive
+  const get = (row, keys) => {
+    for (const k of keys) {
+      if (row.hasOwnProperty(k)) {
+        const v = row[k];
+        if (v != null && String(v).trim().length) return String(v).trim();
+      }
+    }
+    return null;
+  };
+
+  let gsLink = null, tabName = null;
+  const gsKeys = ["google sheet","Google Sheet","google_sheet","Sheet link","sheet link","sheet","Sheet","google sheet link","google_sheet_link","Google sheet"];
+  const tabKeys = ["tab name","Tab Name","tab","Tab","sheet name","Sheet Name"];
+
+  for (const row of routerRows) {
+    gsLink = gsLink || get(row, gsKeys);
+    tabName = tabName || get(row, tabKeys);
+    if (gsLink && tabName) break;
+  }
+
+  const finalSheetId = extractSheetId(gsLink) || ROUTER_SHEET_ID;
+  const finalTabName = (tabName && tabName.length ? tabName : ROUTER_TAB);
+
+  // 3) fetch the actual product dataset
+  const DATA_URL = buildOpenSheet(finalSheetId, finalTabName);
+  const data = await fetchJSON(DATA_URL);
+
+  // Preserve on window for popup deep-links
+  window.__activeSheet = { sheetId: finalSheetId, tab: finalTabName, url: DATA_URL };
+
     // A2_DIRECTION_TOGGLE :: call
 applyDirectionFromSheet(data);
     window.catalogData = data;
@@ -1601,8 +1653,9 @@ if (item["MRP"] && item["Selling Price"]) {
 product.appendChild(infoWrapper);
       sectionWrapper.appendChild(product);
     });
+    
     maybeOpenFromURL();
-  });
+})();
 </script>
 
 
