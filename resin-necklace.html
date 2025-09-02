@@ -1356,7 +1356,22 @@ body.horizontal-mode .product-grid{
   #popupName { margin: 2px 12px 2px 12px !important; }
   #popupPrice { margin: 0 12px 10px 12px !important; }
 </style>
-
+<style>
+  /* Instagram follow banner */
+  .ig-banner-wrap{ padding: 0 12px 18px; background:#fff; }
+  .ig-banner{
+    background:#f6efe8; border:1px solid #f1e7df; border-radius:18px;
+    padding:22px 18px; max-width:960px; margin:12px auto 0;
+    text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.05);
+  }
+  .ig-banner p{
+    margin:0 0 14px; font-size:18px; line-height:1.55; font-weight:600;
+    letter-spacing:.2px; color:#1b1b1b; font-family:'Roboto Slab', serif;
+  }
+  .ig-banner .ig-link{ display:inline-block; line-height:0; border-radius:14px; padding:6px; transition:transform .15s ease; }
+  .ig-banner .ig-link:active{ transform:scale(.96); }
+  .ig-banner .ig-icon{ width:36px; height:36px; }
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -2538,8 +2553,17 @@ function applyDirectionFromSheet(rows){
     } // value === 1 -> normal grid (no extra class)
   }catch(e){}
 }
-</script>
 
+</script>
+<!-- 🟣 Instagram banner: EXACTLY below the pink certified-strip -->
+<section class="ig-banner-wrap" id="igFollowBanner">
+<div aria-label="Instagram updates banner" class="ig-banner">
+<p>Stay connected with us for updates,<br/>offers &amp; behind-the-scenes ✨</p>
+<a aria-label="Open our Instagram profile" class="ig-link" href="https://www.instagram.com/precioussly_" rel="noopener noreferrer" target="_blank">
+<img alt="Instagram" class="ig-icon" src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"/>
+</a>
+</div>
+</section>
 <!-- Hidden footer initially -->
 <footer id="delayedFooter" 
         style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
