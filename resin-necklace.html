@@ -1467,7 +1467,6 @@ body.horizontal-mode .product-grid{
 
 <div id="content"></div>
 <script>
-const SHEET_URL = "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1";
 // === Visibility control from Google Sheet ===
 // If the "visibility" cell contains the word "hide" (any case), the product is hidden.
 // If the cell is blank (or anything else), the product is shown.
@@ -1498,9 +1497,11 @@ function getSheetDescription(row){
 
 
 
+
 (async function() {
   const ROUTER_SHEET_ID = "1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA";
-  const ROUTER_TAB = "Sheet1";
+  const ROUTER_TAB = "Sheet1";  // router tab itself (where you typed Google Sheet + Tab Name)
+
   const buildOpenSheet = (sheetId, tab) => `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tab || 'Sheet1')}`;
   const extractSheetId = (txt) => {
     if (!txt) return null;
@@ -1508,20 +1509,14 @@ function getSheetDescription(row){
     const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
     return m ? m[1] : s; // allow plain id
   };
-  async function fetchJSON(url) {
-    const r = await fetch(url);
-    return r.json();
-  }
+  async function fetchJSON(url) { const r = await fetch(url); return r.json(); }
 
-  // 1) fetch the router sheet to read "Google Sheet" and "Tab Name"
+  // 1) fetch the router sheet (where columns are "google sheet" and "tab name")
   let routerRows = [];
-  try {
-    routerRows = await fetchJSON(buildOpenSheet(ROUTER_SHEET_ID, ROUTER_TAB));
-  } catch(e) {
-    console.warn('Router sheet fetch failed, falling back to default dataset', e);
-  }
+  try { routerRows = await fetchJSON(buildOpenSheet(ROUTER_SHEET_ID, ROUTER_TAB)); }
+  catch(e) { console.warn('Router sheet fetch failed, falling back to default dataset', e); }
 
-  // 2) locate config in any row; headers case-insensitive
+  // 2) robustly read values from any case variant of headers
   const get = (row, keys) => {
     for (const k of keys) {
       if (row.hasOwnProperty(k)) {
@@ -1545,11 +1540,13 @@ function getSheetDescription(row){
   const finalSheetId = extractSheetId(gsLink) || ROUTER_SHEET_ID;
   const finalTabName = (tabName && tabName.length ? tabName : ROUTER_TAB);
 
-  // 3) fetch the actual product dataset
+  // 3) fetch the actual product dataset from the selected sheet + tab
   const DATA_URL = buildOpenSheet(finalSheetId, finalTabName);
   const data = await fetchJSON(DATA_URL);
 
-  // Preserve on window for popup deep-links
+  // Preserve for debugging / deep-linking
+  window.__activeSheet = { sheetId: finalSheetId, tab: finalTabName, url: DATA_URL };
+// Preserve on window for popup deep-links
   window.__activeSheet = { sheetId: finalSheetId, tab: finalTabName, url: DATA_URL };
 
     // A2_DIRECTION_TOGGLE :: call
