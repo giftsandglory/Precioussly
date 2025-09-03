@@ -457,37 +457,46 @@ async function ensureSignedIn(){
     state.tokenClient.requestAccessToken({ prompt: "consent" });
   });
 }
+// Converts column count -> A1 letters (e.g. 1->A, 26->Z, 27->AA)
+function colToA1(n){
+  let col = "", x = n;
+  while (x > 0) { x--; col = String.fromCharCode(65 + (x % 26)) + col; x = Math.floor(x / 26); }
+  return col;
+}
   async function writeRowToSheet(index){
-    const range = `${state.activeTab}!A${index+2}:${String.fromCharCode(65+state.headers.length-1)}${index+2}`;
-    const values = [ state.headers.map(h => state.rows[index][h] ?? "") ];
-    await gapi.client.sheets.spreadsheets.values.update({
-      spreadsheetId: state.sheetId,
-      range,
-      valueInputOption: "RAW",
-      resource: { values }
-    });
-  }
+  const endCol = colToA1(state.headers.length);
+  const range = `${state.activeTab}!A${index+2}:${endCol}${index+2}`;
+  const values = [ state.headers.map(h => state.rows[index][h] ?? "") ];
+  await gapi.client.sheets.spreadsheets.values.update({
+    spreadsheetId: state.sheetId,
+    range,
+    valueInputOption: "RAW",
+    resource: { values }
+  });
+}
   async function appendRowToSheet(rowObj){
-    const range = `${state.activeTab}!A2:${String.fromCharCode(65+state.headers.length-1)}`;
-    const values = [ state.headers.map(h => rowObj[h] ?? "") ];
-    await gapi.client.sheets.spreadsheets.values.append({
-      spreadsheetId: state.sheetId,
-      range,
-      valueInputOption: "RAW",
-      insertDataOption: "INSERT_ROWS",
-      resource: { values }
-    });
-  }
-  async function writeAllRowsToSheet(){
-    const arr = state.rows.map(row => state.headers.map(h => row[h] ?? ""));
-    const range = `${state.activeTab}!A2:${String.fromCharCode(65+state.headers.length-1)}`;
-    await gapi.client.sheets.spreadsheets.values.update({
-      spreadsheetId: state.sheetId,
-      range,
-      valueInputOption: "RAW",
-      resource: { values: arr }
-    });
-  }
+  const endCol = colToA1(state.headers.length);
+  const range = `${state.activeTab}!A2:${endCol}`;
+  const values = [ state.headers.map(h => rowObj[h] ?? "") ];
+  await gapi.client.sheets.spreadsheets.values.append({
+    spreadsheetId: state.sheetId,
+    range,
+    valueInputOption: "RAW",
+    insertDataOption: "INSERT_ROWS",
+    resource: { values }
+  });
+}
+async function writeAllRowsToSheet(){
+  const arr = state.rows.map(row => state.headers.map(h => row[h] ?? ""));
+  const endCol = colToA1(state.headers.length);
+  const range = `${state.activeTab}!A2:${endCol}`;
+  await gapi.client.sheets.spreadsheets.values.update({
+    spreadsheetId: state.sheetId,
+    range,
+    valueInputOption: "RAW",
+    resource: { values: arr }
+  });
+}
 
   /* ---------- Render ---------- */
   function renderTabs(){
@@ -724,6 +733,11 @@ async function ensureSignedIn(){
     $("#editModal").classList.add("show");
 
     $("#saveItemBtn").onclick = async () => {
+      if(!state.sheetId || !state.activeTab){
+    openSettings();
+    toast("Connect a Google Sheet and select a tab");
+    return;
+  }
   // Collect standard inputs
   Array.from(fieldsWrap.querySelectorAll("input[data-key]"))
     .forEach(i => row[i.dataset.key] = i.value);
@@ -748,7 +762,7 @@ async function ensureSignedIn(){
       toast("Added to Sheet");
     } catch (e) {
   console.error(e);
-  toast("Reorder failed: " + errorText(e));
+  toast("Add failed: " + errorText(e));
 }
   }else{
     state.rows[index] = row;
@@ -1003,246 +1017,7 @@ $("#quickSignInBtn").onclick = async () => {
   loadLocal();
   renderList();
   markAuthUI();
-
-  /* ===== Persistent Sign‑in + Silent Re‑auth on refresh ===== */
-  const rememberAuth = () => localStorage.setItem('prec.authed','1');
-  const forgetAuth   = () => localStorage.removeItem('prec.authed');
-
-  function patchAuthCallbacks(){
-    // Ensure any future token requests will set gapi token + remember flag
-    if(state.tokenClient){
-      const prevCb = state.tokenClient.callback;
-      state.tokenClient.callback = (resp) => {
-        try{
-          if(resp && resp.access_token){
-            try{ gapi.client.setToken({ access_token: resp.access_token }); }catch(_){}
-            state.authEnabled = true;
-            rememberAuth();
-            markAuthUI();
-          }
-        }finally{
-          if (typeof prevCb === "function") { try{ prevCb(resp) }catch(_){ } }
-        }
-      };
-    }
-  }
-
-  async function attemptSilentAuthOnLoad(){
-    // Wait a bit for Google libs to be ready
-    let tries = 0;
-    while(tries < 120 && (!window.gapi || !window.google || !google.accounts)){
-      await new Promise(r=>setTimeout(r,100));
-      tries++;
-    }
-    if(!window.gapi || !window.google || !google.accounts) return;
-
-    await initGapi();
-    initGis();
-    patchAuthCallbacks();
-
-    // If user was signed in previously, try a silent token fetch (no prompt)
-    if(localStorage.getItem('prec.authed') === '1' && state.clientId && state.apiKey){
-      await new Promise((resolve)=>{
-        state.tokenClient.callback = (resp)=>{
-          if(resp && resp.access_token){
-            try{ gapi.client.setToken({ access_token: resp.access_token }); }catch(_){}
-            state.authEnabled = true;
-            markAuthUI();
-          }else{
-            // Silent failed – they'll need to tap Sign in
-            forgetAuth();
-          }
-          resolve(True:=True)
-        };
-        try{ state.tokenClient.requestAccessToken({ prompt: '' }); }catch(_){ resolve(True:=True) }
-      });
-      // Auto-fetch current sheet if configured
-      if(state.authEnabled && state.sheetId && state.activeTab){ try{ fetchCurrent(); }catch(_){} }
-    }
-  }
-
-  // Override ensureSignedIn to (1) request token and (2) remember auth
-  async function ensureSignedIn(){
-    if(state.authEnabled){ markAuthUI(); return true; }
-    if(!state.clientId || !state.apiKey){
-      openSettings(); toast("Enter API Key & Client ID first");
-      return false;
-    }
-    await initGapi();
-    initGis();
-    patchAuthCallbacks();
-    if(!state.tokenClient){ toast("Google sign-in init failed"); return false; }
-
-    return await new Promise((resolve) => {
-      state.tokenClient.callback = (resp) => {
-        if(resp && resp.access_token){
-          try{ gapi.client.setToken({ access_token: resp.access_token }); }catch(_){}
-          state.authEnabled = true;
-          rememberAuth();
-          markAuthUI();
-          toast("Editing enabled");
-          resolve(true);
-        }else{
-          toast("Sign in failed");
-          resolve(false);
-        }
-      };
-      state.tokenClient.requestAccessToken({ prompt: "consent" });
-    });
-  }
-
-  // Override signOut to forget the remembered state too
-  function signOut(){
-    try{
-      const tok = (gapi && gapi.client && gapi.client.getToken) ? gapi.client.getToken() : null;
-      if(tok && google && google.accounts && google.accounts.oauth2){
-        google.accounts.oauth2.revoke(tok.access_token);
-      }
-      if(gapi && gapi.client && gapi.client.setToken) gapi.client.setToken('');
-    }catch(_){}
-    state.authEnabled = false;
-    forgetAuth();
-    markAuthUI();
-    toast("Signed out");
-  }
-
-  // Kick off silent auth attempt on load
-  attemptSilentAuthOnLoad();
-  /* ===== End persistent sign‑in block ===== */
-
 })();
 </script>
-
-<script>
-// === Persistent Google Sign-in (silent reauth) — safe append ===
-(function(){
-  const LS_KEY = 'prec.authed';
-
-  function rememberAuth(){ try{ localStorage.setItem(LS_KEY,'1'); }catch(_){} }
-  function forgetAuth(){ try{ localStorage.removeItem(LS_KEY); }catch(_){} }
-
-  function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
-  async function waitForGoogle(maxMs=12000){
-    const step = 100; let waited = 0;
-    while(waited < maxMs){
-      if (window.gapi && window.google && google.accounts) return true;
-      await wait(step); waited += step;
-    }
-    return false;
-  }
-
-  // Defensive helpers
-  function safeToast(msg){ try{ (window.toast||console.log)(msg); }catch(_){ console.log(msg); } }
-  function markAuthUI(){
-    try{ if(window.markAuthUI) return window.markAuthUI(); }catch(_){}
-    // fallback: toggle any [data-auth-status] element
-    const el = document.querySelector('[data-auth-status]');
-    if(el){ el.textContent = (window.state && state.authEnabled) ? 'Signed in' : 'Sign in'; }
-  }
-
-  async function initGapiIfNeeded(){
-    try{
-      if(window.initGapi){ await window.initGapi(); }
-      if(window.initGis){ window.initGis(); }
-    }catch(_){}
-  }
-
-  function patchTokenCallback(){
-    try{
-      if(!window.state || !state.tokenClient) return;
-      const prev = state.tokenClient.callback;
-      state.tokenClient.callback = (resp)=>{
-        try{
-          if(resp && resp.access_token){
-            try{ gapi.client.setToken({access_token: resp.access_token}); }catch(_){}
-            if(window.state) state.authEnabled = true;
-            rememberAuth();
-            markAuthUI();
-          }else{
-            forgetAuth();
-          }
-        }finally{
-          try{ if(typeof prev === 'function') prev(resp); }catch(_){}
-        }
-      };
-    }catch(_){}
-  }
-
-  // Ensure we have a public ensureSignedIn function that remembers auth
-  window.ensureSignedIn = window.ensureSignedIn || (async function(){
-    if(window.state && state.authEnabled){ markAuthUI(); return true; }
-    await initGapiIfNeeded();
-    patchTokenCallback();
-    if(!(window.state && state.tokenClient)){
-      safeToast('Google sign-in not ready'); return false;
-    }
-    return await new Promise((resolve)=>{
-      state.tokenClient.callback = (resp)=>{
-        if(resp && resp.access_token){
-          try{ gapi.client.setToken({access_token: resp.access_token}); }catch(_){}
-          if(window.state) state.authEnabled = true;
-          rememberAuth();
-          markAuthUI();
-          safeToast('Editing enabled');
-          resolve(true);
-        }else{
-          safeToast('Sign in failed');
-          resolve(false);
-        }
-      };
-      try{ state.tokenClient.requestAccessToken({ prompt: 'consent' }); }catch(e){ resolve(false); }
-    });
-  });
-
-  // Wrap signOut to also forget local storage
-  (function wrapSignOut(){
-    const prev = window.signOut;
-    window.signOut = function(){
-      try{
-        const tok = (gapi && gapi.client && gapi.client.getToken) ? gapi.client.getToken() : null;
-        if(tok && google && google.accounts && google.accounts.oauth2){
-          google.accounts.oauth2.revoke(tok.access_token);
-        }
-        if(gapi && gapi.client && gapi.client.setToken) gapi.client.setToken('');
-      }catch(_){}
-      if(window.state) state.authEnabled = false;
-      forgetAuth();
-      markAuthUI();
-      safeToast('Signed out');
-      try{ if(typeof prev === 'function') prev(); }catch(_){}
-    };
-  })();
-
-  async function silentOnLoad(){
-    const ok = await waitForGoogle();
-    if(!ok) return;
-    await initGapiIfNeeded();
-    patchTokenCallback();
-    if(localStorage.getItem(LS_KEY) === '1' && window.state && state.clientId && state.apiKey && state.tokenClient){
-      await new Promise((resolve)=>{
-        state.tokenClient.callback = (resp)=>{
-          if(resp && resp.access_token){
-            try{ gapi.client.setToken({access_token: resp.access_token}); }catch(_){}
-            state.authEnabled = true;
-            markAuthUI();
-          }else{
-            forgetAuth();
-          }
-          resolve(true);
-        };
-        try{ state.tokenClient.requestAccessToken({ prompt: '' }); }catch(_){ resolve(true); }
-      });
-      // Auto-fetch when app defines fetchCurrent
-      try{ if(state.authEnabled && typeof fetchCurrent==='function'){ fetchCurrent(); } }catch(_){}
-    }
-  }
-
-  // Kick it off after page load
-  if(document.readyState === 'complete'){ silentOnLoad(); }
-  else window.addEventListener('load', silentOnLoad);
-})();
-// === End persistent sign-in block ===
-</script>
-
 </body>
 </html>
