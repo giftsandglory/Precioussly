@@ -770,7 +770,7 @@ async function writeAllRowsToSheet(){
       await writeRowToSheet(index);
       toast("Saved to Sheet");
     }catch(e){
-      toast("Save failed (check API/permission)");
+      toast("Save failed: " + errorText(e));
     }
   }
 
@@ -788,7 +788,7 @@ async function writeAllRowsToSheet(){
     await writeAllRowsToSheet();
     toast("Deleted in Sheet");
   }catch(e){
-    toast("Delete failed (check API/permission)");
+    toast("Delete failed: " + errorText(e));
   }
   renderList();
   closeEditor();
@@ -811,7 +811,7 @@ async function writeAllRowsToSheet(){
     await writeAllRowsToSheet();
     toast("Reordered");
   }catch(e){
-    toast("Reorder failed (check API/permission)");
+    toast("Reorder failed: " + errorText(e));
   }
 }
 
