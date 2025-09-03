@@ -1875,9 +1875,6 @@ function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
   const orders = JSON.parse(localStorage.getItem("orders") || "[]");
   orders.unshift(order);
   localStorage.setItem("orders", JSON.stringify(orders));
-  try {
-    sendOrderToNtfy(order);
-  } catch(e){ console.warn('ntfy notify skipped COD', e); }
   localStorage.setItem("cartItems", "[]");
   try{ if(typeof updateCartBadge==='function') updateCartBadge(); }catch(e){}
   localStorage.setItem("lastOrderClearedCart","1");
@@ -2688,12 +2685,6 @@ function payCODAdvance95(){
         var orders = JSON.parse(localStorage.getItem("orders") || "[]");
         orders.unshift(order);
         localStorage.setItem("orders", JSON.stringify(orders));
-      
-      try {
-        order.displayMethod = order.displayMethod || order.method || "COD";
-        sendOrderToNtfy(order);
-      } catch (e) { console.warn('ntfy notify (COD advance) skipped', e); }
-    
       }catch(e){}
 
       // Clear cart + UI badge
@@ -3484,66 +3475,5 @@ window.closeHeaderSearch = closeHeaderSearch;
   window.__fd_recompute = recomputeDeliveryAndMessage;
 })();
 </script>
-
-<!-- ✅ NTFY: Send instant order notification on successful Razorpay -->
-<script>
-function formatOrderForNtfy(order){
-  try{
-    const when = new Date().toLocaleString();
-    const a = order.amounts || {};
-    const lines = [];
-    lines.push(`🧾 New Order — ${order.displayMethod || order.method || "-"}`);
-    if (order.id) lines.push(`ID: ${order.id}`);
-    if (order.razorpay_payment_id) lines.push(`Razorpay: ${order.razorpay_payment_id}`);
-    lines.push(`Time: ${when}`);
-    lines.push("");
-    lines.push("<b>Items:</b>");
-    (order.items || []).forEach((it, idx) => {
-      const qty = Number(it.qty) || 1;
-      const price = Number(it.price) || 0;
-      lines.push(`${idx+1}) ${it.name || it.title || "Item"} × ${qty} — ₹${price * qty}`);
-    });
-    lines.push("");
-    if (a.itemsTotal != null) lines.push(`Item Total: ₹${a.itemsTotal}`);
-    if (a.deliveryFee != null) lines.push(`Delivery: ${Number(a.deliveryFee) === 0 ? "Free Delivery" : `₹${a.deliveryFee}`}`);
-    if (Number(a.codFee || 0) > 0) lines.push(`COD Charges: ₹${a.codFee}`);
-    if (Number(a.discount || 0) > 0) lines.push(`Discount: -₹${a.discount}`);
-    if (a.grandTotal != null) lines.push(`Order Total: ₹${a.grandTotal}`);
-    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
-    lines.push("");
-    lines.push(`<b>Shipping Address</b>`);
-    lines.push(String(order.address || "(not provided)").replace(/<br\s*\/?>(\n)?/gi, "\n"));
-    // Photos (links only)
-    const photos = (order.items || [])
-      .map(i => i.photo || i.image || i.img || i.imageUrl || i.thumbnail)
-      .filter(u => typeof u === "string" && /^https?:\/\//i.test(u));
-    if (photos.length){
-      lines.push("");
-      lines.push("Photos:");
-      photos.forEach(u => lines.push(u));
-    }
-    return lines.join("\n");
-  }catch(e){
-    try{ return JSON.stringify(order, null, 2); }catch(_){ return "New order"; }
-  }
-}
-
-/** Fire-and-forget NTFY sender (POSTs plain text/markdown). */
-async function sendOrderToNtfy(order){
-  try{
-    const topic = "https://ntfy.sh/precioussly-orders-9yTg2P1vK";
-    const body  = formatOrderForNtfy(order);
-    await fetch(topic, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-      body,
-      keepalive: true
-    });
-  }catch(err){
-    console.warn("ntfy send error", err);
-  }
-}
-</script>
-
 </body>
 </html>
