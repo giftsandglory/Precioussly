@@ -212,6 +212,7 @@
 </style>
 </head>
 <body>
+  
   <div class="topbar">
   <!-- NEW: quick sign-in button (left corner) -->
   <button class="signin-btn" id="quickSignInBtn" title="Sign in">Sign in</button>
@@ -318,7 +319,12 @@
     t.classList.add("show");
     setTimeout(()=>t.classList.remove("show"), 1800);
   };
-
+// 👇 Helper to extract readable API errors
+const errorText = (e) => {
+  try {
+    return (e && (e.result?.error?.message || e.message || e.statusText)) || "Unknown error";
+  } catch (_) { return "Unknown error"; }
+};
   const parseSheetId = (link) => {
     try {
       const m = link.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
@@ -742,9 +748,10 @@ async function ensureSignedIn(){
     try{
       await appendRowToSheet(row);
       toast("Added to Sheet");
-    }catch(e){
-      toast("Add failed (check API/permission)");
-    }
+    } catch (e) {
+  console.error(e);
+  toast("Reorder failed: " + errorText(e));
+}
   }else{
     state.rows[index] = row;
     try{
