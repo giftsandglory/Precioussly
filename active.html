@@ -57,6 +57,23 @@
     transform: translateZ(0);
   }
   .emoji-btn:active{ transform:scale(.98) }
+  /* Quick Sign-in button (top-left) */
+.signin-btn{
+  position:absolute; left:12px; top:8px;
+  font-size:13px; font-weight:800;
+  background:#0e1423;
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:8px 12px;
+  box-shadow:var(--shadow);
+  color:#cfe1ff;
+  cursor:pointer; user-select:none;
+}
+.signin-btn.authed{
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  color:#0b0e13; border:none;
+}
+.signin-btn:active{ transform:scale(.98) }
 
   /* Tabs bar (sheet tabs) */
   .tabs{
@@ -196,9 +213,12 @@
 </head>
 <body>
   <div class="topbar">
-    <div class="title">Precioussly</div>
-    <button class="emoji-btn" id="settingsBtn" title="Settings">😎</button>
-  </div>
+  <!-- NEW: quick sign-in button (left corner) -->
+  <button class="signin-btn" id="quickSignInBtn" title="Sign in">Sign in</button>
+
+  <div class="title">Precioussly</div>
+  <button class="emoji-btn" id="settingsBtn" title="Settings">😎</button>
+</div>
 
   <div id="tabs" class="tabs" style="display:none;"></div>
 
@@ -277,56 +297,71 @@
 
 <script>
 (() => {
-  /* ========= You do NOT hardcode any sheet links here ========= */
-  /* The app asks you ONCE to choose an "Index Sheet" from Drive.  */
-  /* That sheet has rows: Name | SheetURL | Tab                    */
-  /* ============================================================= */
-
-  const $  = s => document.querySelector(s);
-  const $$ = s => Array.from(document.querySelectorAll(s));
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
 
   const state = {
-    // Saved in localStorage after first pick:
-    indexSheetId: localStorage.getItem("preci.indexSheetId") || "",
-    indexTabGuessList: ["Sheet1", "Index", "Sheets"],
-
-    // Current dataset (the sheet you selected from menu)
     sheetId: "",
-    activeTab: "Sheet1",
+    tabs: [],
+    activeTab: "",
     headers: [],
     rows: [],
-    sectionFilter: "All",
-
-    // Google credentials (already used in your old file)
     apiKey: "AIzaSyCnzxctSVV_-bKRGox0tgGo2M_ajPONzbE",
     clientId: "746848628668-30i7srbj2o3ft2duikoeno9a6b98aadi.apps.googleusercontent.com",
     authEnabled: false,
-    tokenClient: null,
-
-    // Auto refresh
-    refreshSeconds: 30,
-    _refreshTimer: null,
-
-    // Memory of all available datasets (from Index)
-    datasets: [] // [{name, sheetId, tab}]
+    tokenClient: null
   };
 
-  /* ------------------ Tiny helpers ------------------ */
   const toast = (msg) => {
-    const t = $("#toast"); if(!t) return;
-    t.textContent = msg; t.classList.add("show");
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("show");
     setTimeout(()=>t.classList.remove("show"), 1800);
   };
+
   const parseSheetId = (link) => {
     try {
-      const m = String(link).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      const m = link.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
       return m ? m[1] : "";
     } catch(e){ return ""; }
   };
-  const escapeHtml = (s) => String(s==null?"":s)
-    .replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;" }[m]));
 
-  /* ------------------ Google APIs ------------------ */
+  const saveLocal = () => {
+    localStorage.setItem("prec.sheet", JSON.stringify({
+      sheetId: state.sheetId,
+      tabs: state.tabs,
+      activeTab: state.activeTab,
+      apiKey: state.apiKey,
+      clientId: state.clientId
+    }));
+  };
+  const loadLocal = () => {
+    try{
+      const o = JSON.parse(localStorage.getItem("prec.sheet")||"{}");
+      if(o.sheetId) state.sheetId = o.sheetId;
+      if(o.tabs) state.tabs = o.tabs;
+      if(o.activeTab) state.activeTab = o.activeTab;
+      if(o.apiKey) state.apiKey = o.apiKey;
+      if(o.clientId) state.clientId = o.clientId;
+      renderSettingsFromState();
+    }catch(e){}
+  };
+
+  /* ---------- Public fetch via GViz ---------- */
+  async function fetchGViz(sheetId, tab){
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error("Fetch failed");
+    const txt = await res.text();
+    const jsonStr = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}")+1);
+    const obj = JSON.parse(jsonStr);
+    const cols = (obj.table.cols||[]).map(c => (c.label||"").trim() || (c.id||""));
+    const headers = cols.length ? cols : [];
+    const rows = (obj.table.rows||[]).map(r => (r.c||[]).map(cell => cell ? cell.v : ""));
+    return { headers, rows };
+  }
+
+  /* ---------- Google API auth & read/write ---------- */
   async function initGapi(){
     if(!window.gapi) return;
     await new Promise(resolve => gapi.load('client', resolve));
@@ -339,170 +374,140 @@
     if(!window.google || !google.accounts) return;
     state.tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: state.clientId,
-      scope: "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly",
+      scope: "https://www.googleapis.com/auth/spreadsheets",
       callback: (resp) => {
-        if(resp.error){ toast("Sign in failed"); }
-        else { state.authEnabled = true; toast("Google connected"); }
+        if(resp.error){
+          toast("Sign in failed");
+        }else{
+          state.authEnabled = true; toast("Editing enabled");
+        }
       }
     });
   }
-  async function signIn(){
-    await initGapi(); initGis();
-    if(state.tokenClient){
-      state.tokenClient.requestAccessToken({ prompt: "consent" });
-    }
-  }
-
-  /* ------------------ GViz read (no auth if public) ------------------ */
-  async function fetchGVizByTab(sheetId, tab){
-    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error("fetch failed");
-    const txt = await res.text();
-    const json = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}")+1);
-    const obj = JSON.parse(json);
-    const headers = (obj.table.cols||[]).map(c => (c.label||"").trim() || (c.id||""));
-    const rows = (obj.table.rows||[]).map(r => (r.c||[]).map(cell => cell ? cell.v : ""));
-    return { headers, rows };
-  }
-
-  async function fetchIndexSheet(){
-    // Try common tab names to avoid you hardcoding anything
-    for(const tab of state.indexTabGuessList){
-      try{
-        const { headers, rows } = await fetchGVizByTab(state.indexSheetId, tab);
-        if(headers.length){
-          const idxName  = headers.findIndex(h => /^name$/i.test(h));
-          const idxUrl   = headers.findIndex(h => /^sheet\s*url$/i.test(h));
-          const idxTab   = headers.findIndex(h => /^tab$/i.test(h));
-          if(idxName===-1 || idxUrl===-1){ continue; }
-
-          const ds = [];
-          rows.forEach(r=>{
-            const name = r[idxName] || "Untitled";
-            const url  = r[idxUrl]  || "";
-            const tabv = idxTab>-1 ? (r[idxTab] || "Sheet1") : "Sheet1";
-            const sid  = parseSheetId(url);
-            if(sid) ds.push({ name, sheetId: sid, tab: tabv });
-          });
-          if(ds.length){ return ds; }
-        }
-      }catch(e){ /* try next */ }
-    }
-    throw new Error("Index tab not found. Use tab name: Sheet1 / Index / Sheets");
-  }
-
-  /* ------------------ Drive Picker (choose Index once) ------------------ */
-  function openPickerForIndex(){
-    // Load Picker library:
-    gapi.load('picker', () => {
-      const view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)
-        .setIncludeFolders(true)
-        .setSelectFolderEnabled(false);
-      const picker = new google.picker.PickerBuilder()
-        .setDeveloperKey(state.apiKey)
-        .setAppId("") // optional
-        .setOAuthToken(gapi.client.getToken()?.access_token || "")
-        .addView(view)
-        .setTitle("Choose your INDEX SHEET (contains Name | SheetURL | Tab)")
-        .setCallback(async data => {
-          if(data.action === google.picker.Action.PICKED){
-            const doc = data.docs && data.docs[0];
-            if(doc && doc.id){
-              state.indexSheetId = doc.id;
-              localStorage.setItem("preci.indexSheetId", state.indexSheetId);
-              toast("Index selected");
-              await loadIndexAndRender();
-            }
-          }
-        })
-        .build();
-      picker.setVisible(true);
+  function signIn(){
+    if(!state.clientId || !state.apiKey){ toast("Enter API Key & Client ID first"); return; }
+    initGapi().then(()=>{
+      initGis();
+      if(state.tokenClient){
+        state.tokenClient.requestAccessToken({ prompt: "consent" });
+      }else{
+        toast("GIS init failed");
+      }
     });
   }
+  function signOut(){
+    const tok = gapi.client.getToken();
+    if(tok){
+      google.accounts.oauth2.revoke(tok.access_token);
+      gapi.client.setToken('');
+    }
+    state.authEnabled = false;
+    toast("Signed out");
+  }
+  // --- NEW: update button UI when auth state changes ---
+function markAuthUI(){
+  const b = $("#quickSignInBtn");
+  if(!b) return;
+  if(state.authEnabled){
+    b.textContent = "Signed in";
+    b.classList.add("authed");
+  }else{
+    b.textContent = "Sign in";
+    b.classList.remove("authed");
+  }
+}
 
-  /* ------------------ UI: Menu of datasets + Sections ------------------ */
-  function renderDatasetsMenu(){
-    const wrap = $("#tabs");
-    wrap.innerHTML = "";
-    const left = document.createElement("div");
-    left.style.display="flex"; left.style.flexWrap="wrap"; left.style.gap="8px";
+// --- NEW: make sure we are signed in before any write ---
+async function ensureSignedIn(){
+  // If already authorized, we're good
+  if(state.authEnabled){ markAuthUI(); return true; }
 
-    // Dataset chips
-    state.datasets.forEach(ds => {
-      const chip = document.createElement("div");
-      chip.className = "tab-chip" + (ds.sheetId===state.sheetId && ds.tab===state.activeTab ? " active":"");
-      chip.textContent = ds.name;
-      chip.onclick = async () => {
-        state.sheetId = ds.sheetId;
-        state.activeTab = ds.tab || "Sheet1";
-        await fetchCurrentDataset();
-      };
-      left.appendChild(chip);
-    });
+  // Ask user to enter keys if missing
+  if(!state.clientId || !state.apiKey){
+    openSettings();
+    toast("Enter API Key & Client ID first");
+    return false;
+  }
 
-    // Right controls
-    const right = document.createElement("div");
-    right.style.marginLeft="auto"; right.style.display="flex"; right.style.gap="8px";
+  // Initialize gapi + GIS
+  await initGapi();
+  initGis();
+  if(!state.tokenClient){ toast("Google sign-in init failed"); return false; }
 
-    const btnSwitch = document.createElement("button");
-    btnSwitch.className = "btn ghost";
-    btnSwitch.textContent = "Switch Index";
-    btnSwitch.onclick = async ()=>{
-      if(!state.authEnabled) await signIn();
-      openPickerForIndex();
+  // Wrap the token request in a Promise so callers can await it
+  return new Promise((resolve, reject) => {
+    state.tokenClient.callback = (resp) => {
+      if(resp && resp.access_token){
+        // IMPORTANT: set token into gapi so Sheets writes are authorized
+        gapi.client.setToken({ access_token: resp.access_token });
+        state.authEnabled = true;
+        markAuthUI();
+        toast("Editing enabled");
+        resolve(true);
+      }else{
+        toast("Sign in failed");
+        reject(resp);
+      }
     };
+    state.tokenClient.requestAccessToken({ prompt: "consent" });
+  });
+}
 
-    const btnReload = document.createElement("button");
-    btnReload.className = "btn ghost";
-    btnReload.textContent = "Reload";
-    btnReload.onclick = fetchCurrentDataset;
-
-    right.appendChild(btnSwitch);
-    right.appendChild(btnReload);
-
-    wrap.appendChild(left);
-    wrap.appendChild(right);
-  }
-
-  function renderSectionsMenu(){
-    // Appends below dataset chips
-    const wrap = $("#tabs");
-    const hr = document.createElement("div");
-    hr.style.flexBasis="100%"; hr.style.height="0";
-    wrap.appendChild(hr);
-
-    const sectionsBar = document.createElement("div");
-    sectionsBar.style.display="flex"; sectionsBar.style.flexWrap="wrap"; sectionsBar.style.gap="8px";
-
-    const sectionKey = state.headers.find(h => /section/i.test(h));
-    const sections = new Set(["All"]);
-    if(sectionKey){
-      state.rows.forEach(r => {
-        const v = (r[sectionKey]||"").toString().trim();
-        if(v) sections.add(v);
-      });
-    }
-    sections.forEach(sec=>{
-      const chip = document.createElement("div");
-      chip.className = "tab-chip" + (sec===state.sectionFilter? " active":"");
-      chip.textContent = sec;
-      chip.onclick = ()=>{ state.sectionFilter = sec; renderList(); };
-      sectionsBar.appendChild(chip);
+  async function writeRowToSheet(index){
+    const range = `${state.activeTab}!A${index+2}:${String.fromCharCode(65+state.headers.length-1)}${index+2}`;
+    const values = [ state.headers.map(h => state.rows[index][h] ?? "") ];
+    await gapi.client.sheets.spreadsheets.values.update({
+      spreadsheetId: state.sheetId,
+      range,
+      valueInputOption: "RAW",
+      resource: { values }
     });
-
-    wrap.appendChild(sectionsBar);
+  }
+  async function appendRowToSheet(rowObj){
+    const range = `${state.activeTab}!A2:${String.fromCharCode(65+state.headers.length-1)}`;
+    const values = [ state.headers.map(h => rowObj[h] ?? "") ];
+    await gapi.client.sheets.spreadsheets.values.append({
+      spreadsheetId: state.sheetId,
+      range,
+      valueInputOption: "RAW",
+      insertDataOption: "INSERT_ROWS",
+      resource: { values }
+    });
+  }
+  async function writeAllRowsToSheet(){
+    const arr = state.rows.map(row => state.headers.map(h => row[h] ?? ""));
+    const range = `${state.activeTab}!A2:${String.fromCharCode(65+state.headers.length-1)}`;
+    await gapi.client.sheets.spreadsheets.values.update({
+      spreadsheetId: state.sheetId,
+      range,
+      valueInputOption: "RAW",
+      resource: { values: arr }
+    });
   }
 
-  /* ------------------ Cards / Editor (same UX) ------------------ */
+  /* ---------- Render ---------- */
+  function renderTabs(){
+    const tabsWrap = $("#tabs");
+    tabsWrap.innerHTML = "";
+    if(!state.tabs.length){ tabsWrap.style.display="none"; return; }
+    tabsWrap.style.display = "flex";
+    state.tabs.forEach(tab => {
+      const el = document.createElement("div");
+      el.className = "tab-chip" + (tab===state.activeTab? " active": "");
+      el.textContent = tab;
+      el.onclick = () => { state.activeTab = tab; saveLocal(); if(state.sheetId) fetchCurrent(); };
+      tabsWrap.appendChild(el);
+    });
+  }
+
   function getThumb(row){
-    const photoKeys = Object.keys(row)
-      .filter(k => /photo\s*\d+/i.test(k))
-      .sort((a,b)=> (parseInt(a.replace(/\D+/g,''))||0) - (parseInt(b.replace(/\D+/g,''))||0));
-    for(const k of photoKeys){ if(row[k]) return row[k]; }
-    const single = Object.keys(row).find(k => /image/i.test(k));
-    if(single){
-      const parts = String(row[single]||"").split(/[, \n]+/).filter(Boolean);
+    const p = Object.keys(row).filter(k => /photo\s*\d+/i.test(k)).sort((a,b)=>{
+      const na = parseInt(a.replace(/\D+/g,''))||0, nb = parseInt(b.replace(/\D+/g,''))||0; return na-nb;
+    });
+    for(const k of p){ if(row[k]) return row[k]; }
+    const ci = Object.keys(row).find(k => /image/i.test(k));
+    if(ci){
+      const parts = String(row[ci]||"").split(/[, \n]+/).filter(Boolean);
       if(parts[0]) return parts[0];
     }
     return "";
@@ -511,35 +516,34 @@
   function renderList(){
     const list = $("#list");
     list.innerHTML = "";
-
     if(!state.rows.length){
       const empty = document.createElement("div");
       empty.style.cssText="text-align:center;color:var(--muted);padding:24px";
-      empty.textContent = state.sheetId ? "No rows in this sheet." : "Choose your Index Sheet to begin.";
+      empty.textContent = "No items yet. Tap ＋ to add or use 😎 to connect a sheet.";
       list.appendChild(empty);
       return;
     }
-
-    const titleKey   = state.headers.find(h => /product\s*name/i.test(h)) || state.headers[0];
+    const titleKey = state.headers.find(h => /product\s*name/i.test(h)) || state.headers[0];
     const sectionKey = state.headers.find(h => /section/i.test(h)) || state.headers[1];
-    const badgeKey   = state.headers.find(h => /badge/i.test(h));
-    const visKey     = state.headers.find(h => /visibil/i.test(h));
-    const mrpKey     = state.headers.find(h => /mrp/i.test(h));
-    const spKey      = state.headers.find(h => /selling\s*price/i.test(h));
+    const badgeKey = state.headers.find(h => /badge/i.test(h));
+    const visKey = state.headers.find(h => /visibil/i.test(h));
+    const mrpKey = state.headers.find(h => /mrp/i.test(h));
+    const spKey = state.headers.find(h => /selling\s*price/i.test(h));
 
-    const filtered = state.sectionFilter==="All" || !sectionKey
-      ? state.rows
-      : state.rows.filter(r => (r[sectionKey]||"") === state.sectionFilter);
+    state.rows.forEach((row, idx) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.dataset.index = idx;
 
-    filtered.forEach((row) => {
-      const idx = state.rows.indexOf(row);
-      const card = document.createElement("div"); card.className = "card"; card.dataset.index = idx;
+      const thumb = document.createElement("div");
+      thumb.className = "thumb-mini";
+      const timg = document.createElement("img");
+      const tsrc = getThumb(row);
+      if(tsrc){ timg.src = tsrc; } else { timg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><rect fill='%23131a2a' x='0' y='0' width='100%' height='100%'/></svg>"; }
+      thumb.appendChild(timg);
 
-      const thumb = document.createElement("div"); thumb.className = "thumb-mini";
-      const img = document.createElement("img"); img.src = getThumb(row) || "data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><rect fill='%23131a2a' width='100%' height='100%'/></svg>";
-      thumb.appendChild(img);
-
-      const mid = document.createElement("div"); mid.style.flex="1";
+      const mid = document.createElement("div");
+      mid.style.flex="1";
       mid.innerHTML = `<h4>${escapeHtml(row[titleKey]||"Untitled")}</h4>
                        <div class="sub">${escapeHtml(row[sectionKey]||"")}</div>`;
       const chips = document.createElement("div"); chips.className = "chips";
@@ -553,118 +557,160 @@
       }
       mid.appendChild(chips);
 
-      const right = document.createElement("div"); right.className = "rightbox";
+      const right = document.createElement("div"); right.className="rightbox";
       const price = document.createElement("div"); price.className="price";
       if(spKey && row[spKey]){
         price.innerHTML = `<span class="sell">₹${escapeHtml(row[spKey])}</span>`;
-        if(mrpKey && row[mrpKey]) price.innerHTML += `<span class="mrp">MRP ₹${escapeHtml(row[mrpKey])}</span>`;
+        if(mrpKey && row[mrpKey]){
+          price.innerHTML += `<span class="mrp">MRP ₹${escapeHtml(row[mrpKey])}</span>`;
+        }
       }
-      const openBtn = document.createElement("button"); openBtn.className="open-btn"; openBtn.textContent="Open";
+      const openBtn = document.createElement("button");
+      openBtn.className = "open-btn"; openBtn.textContent = "Open";
       openBtn.onclick = (e)=>{ e.stopPropagation(); openEditor(idx); };
 
-      right.appendChild(price); right.appendChild(openBtn);
+      const reorderWrap = document.createElement("div");
+      reorderWrap.className="reorder";
+      const up = document.createElement("button"); up.className="rbtn"; up.textContent="▲";
+      const down = document.createElement("button"); down.className="rbtn"; down.textContent="▼";
+      up.onclick = (e)=>{ e.stopPropagation(); moveItem(idx, -1); };
+      down.onclick = (e)=>{ e.stopPropagation(); moveItem(idx, 1); };
+      reorderWrap.appendChild(up); reorderWrap.appendChild(down);
+
+      right.appendChild(price);
+      right.appendChild(reorderWrap);
+      right.appendChild(openBtn);
+
+      let pressTimer;
+      const start = () => { pressTimer = setTimeout(()=>{ card.classList.add("reorder-mode"); }, 400); };
+      const cancel = () => { clearTimeout(pressTimer); };
+      card.addEventListener("touchstart", start, {passive:true});
+      card.addEventListener("touchend", cancel);
+      card.addEventListener("touchmove", cancel);
+      card.addEventListener("mousedown", start);
+      card.addEventListener("mouseup", cancel);
+      card.addEventListener("mouseleave", cancel);
 
       card.onclick = ()=> openEditor(idx);
-      card.appendChild(thumb); card.appendChild(mid); card.appendChild(right);
+
+      card.appendChild(thumb);
+      card.appendChild(mid);
+      card.appendChild(right);
       list.appendChild(card);
     });
   }
 
-  /* ---------- Editor + Writeback (per-row) ---------- */
-  function parseImages(str){ return !str ? [] : String(str).split(/[\n,]+/).map(s=>s.trim()).filter(Boolean); }
-  function imagesToString(arr){ return arr.join(", "); }
+  function renderSettingsFromState(){
+    $("#sheetLink").value = state.sheetId ? `https://docs.google.com/spreadsheets/d/${state.sheetId}/edit` : "";
+    $("#apiKey").value = state.apiKey || "";
+    $("#clientId").value = state.clientId || "";
+    const select = $("#activeTabSelect");
+    select.innerHTML = "";
+    state.tabs.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t; opt.textContent = t;
+      if(t===state.activeTab) opt.selected = true;
+      select.appendChild(opt);
+    });
+    renderTabs();
+  }
 
+  function openSettings(){ $("#settingsModal").classList.add("show"); }
+  function closeSettings(){ $("#settingsModal").classList.remove("show"); }
+
+  /* -------- Image Manager helpers (supports 'photo 1..4' group or individual 'image' fields) -------- */
+  function parseImages(str){
+    if(!str) return [];
+    return String(str).split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
+  }
+  function imagesToString(arr){ return arr.join(", "); }
   function buildImageManager(initial, onChange){
-    const wrap = document.createElement("div"); wrap.className = "imgmgr";
+    const wrap = document.createElement("div");
+    wrap.className = "imgmgr";
     let imgs = [...initial];
-    const rowline = document.createElement("div"); rowline.className="rowline";
-    const urlInput = document.createElement("input"); urlInput.className="url"; urlInput.placeholder="Paste image URL and press Add";
-    const addBtn = document.createElement("button"); addBtn.className="btn"; addBtn.textContent="Add";
+
+    const rowline = document.createElement("div");
+    rowline.className = "rowline";
+    const urlInput = document.createElement("input");
+    urlInput.className = "url";
+    urlInput.placeholder = "Paste image URL and press Add";
+    const addBtn = document.createElement("button");
+    addBtn.className = "btn";
+    addBtn.textContent = "Add";
     rowline.appendChild(urlInput); rowline.appendChild(addBtn);
 
-    const thumbs = document.createElement("div"); thumbs.className="thumbs";
-    const renderThumbs = () => {
-      thumbs.innerHTML=""; imgs.forEach((u,i)=>{
-        const th = document.createElement("div"); th.className="thumb";
-        const img = document.createElement("img"); img.src=u;
-        const ctrls = document.createElement("div"); ctrls.className="ctrls";
-        const up=document.createElement("button"); up.textContent="▲";
-        const down=document.createElement("button"); down.textContent="▼";
-        const del=document.createElement("button"); del.textContent="✕";
-        up.onclick=()=>{ if(i>0){ const t=imgs[i-1]; imgs[i-1]=imgs[i]; imgs[i]=t; changed(); } };
-        down.onclick=()=>{ if(i<imgs.length-1){ const t=imgs[i+1]; imgs[i+1]=imgs[i]; imgs[i]=t; changed(); } };
-        del.onclick=()=>{ imgs.splice(i,1); changed(); };
+    const thumbs = document.createElement("div");
+    thumbs.className = "thumbs";
+
+    function renderThumbs(){
+      thumbs.innerHTML = "";
+      imgs.forEach((u, i) => {
+        const th = document.createElement("div");
+        th.className = "thumb";
+        const img = document.createElement("img");
+        img.src = u; img.alt = "img";
+        const ctrls = document.createElement("div");
+        ctrls.className = "ctrls";
+        const up = document.createElement("button"); up.textContent = "▲";
+        const down = document.createElement("button"); down.textContent = "▼";
+        const del = document.createElement("button"); del.textContent = "✕";
+        up.onclick = () => { if(i>0){ const t=imgs[i-1]; imgs[i-1]=imgs[i]; imgs[i]=t; changed(); } };
+        down.onclick = () => { if(i<imgs.length-1){ const t=imgs[i+1]; imgs[i+1]=imgs[i]; imgs[i]=t; changed(); } };
+        del.onclick = () => { imgs.splice(i,1); changed(); };
         ctrls.appendChild(up); ctrls.appendChild(down); ctrls.appendChild(del);
-        th.appendChild(img); th.appendChild(ctrls); thumbs.appendChild(th);
+        th.appendChild(img); th.appendChild(ctrls);
+        thumbs.appendChild(th);
       });
+    }
+    function changed(){ renderThumbs(); onChange(imgs); }
+
+    addBtn.onclick = () => {
+      const v = urlInput.value.trim();
+      if(!v) return;
+      imgs.push(v); urlInput.value=""; changed();
     };
-    const changed=()=>{ renderThumbs(); onChange(imgs); };
-    addBtn.onclick=()=>{ const v=urlInput.value.trim(); if(!v) return; imgs.push(v); urlInput.value=""; changed(); };
-    wrap.appendChild(rowline); wrap.appendChild(thumbs); renderThumbs();
-    return { el: wrap, get: ()=>imgs.slice() };
-  }
 
-  async function ensureWriteAuth(){
-    if(!state.authEnabled){ await signIn(); }
-    if(!gapi.client.getToken()) await signIn();
-  }
-
-  async function writeRowToSheet(index){
-    await ensureWriteAuth();
-    const range = `${state.activeTab}!A${index+2}:${String.fromCharCode(65+state.headers.length-1)}${index+2}`;
-    const values = [ state.headers.map(h => state.rows[index][h] ?? "") ];
-    await gapi.client.sheets.spreadsheets.values.update({
-      spreadsheetId: state.sheetId, range, valueInputOption: "RAW",
-      resource: { values }
-    });
-  }
-  async function appendRowToSheet(rowObj){
-    await ensureWriteAuth();
-    const range = `${state.activeTab}!A2:${String.fromCharCode(65+state.headers.length-1)}`;
-    const values = [ state.headers.map(h => rowObj[h] ?? "") ];
-    await gapi.client.sheets.spreadsheets.values.append({
-      spreadsheetId: state.sheetId, range, valueInputOption: "RAW",
-      insertDataOption: "INSERT_ROWS", resource: { values }
-    });
-  }
-  async function writeAllRowsToSheet(){
-    await ensureWriteAuth();
-    const arr = state.rows.map(row => state.headers.map(h => row[h] ?? ""));
-    const range = `${state.activeTab}!A2:${String.fromCharCode(65+state.headers.length-1)}`;
-    await gapi.client.sheets.spreadsheets.values.update({
-      spreadsheetId: state.sheetId, range, valueInputOption: "RAW",
-      resource: { values: arr }
-    });
+    wrap.appendChild(rowline);
+    wrap.appendChild(thumbs);
+    renderThumbs();
+    return {el: wrap, get: ()=>imgs.slice(), set: (arr)=>{ imgs = arr.slice(); renderThumbs(); } };
   }
 
   function openEditor(index){
     const isNew = (index === -1);
     $("#editTitleText").textContent = isNew ? "Add Item" : "Edit Item";
-    const fieldsWrap = $("#editFields"); fieldsWrap.innerHTML = "";
+    const fieldsWrap = $("#editFields");
+    fieldsWrap.innerHTML = "";
     const row = isNew ? Object.fromEntries(state.headers.map(h=>[h,""])) : {...state.rows[index]};
 
-    // Build fields
-    const photoFields = state.headers.filter(h => /photo\s*\d+/i.test(h))
-      .sort((a,b)=> (parseInt(a.replace(/\D+/g,''))||0) - (parseInt(b.replace(/\D+/g,''))||0));
-
+    // Group photo fields
+    const photoFields = state.headers.filter(h => /photo\s*\d+/i.test(h)).sort((a,b)=>{
+      const na = parseInt(a.replace(/\D+/g,''))||0, nb = parseInt(b.replace(/\D+/g,''))||0; return na-nb;
+    });
     const handled = new Set();
+
     if(photoFields.length){
-      const lbl = document.createElement("label"); lbl.textContent = "Photos (multiple URLs)";
-      const mgr = buildImageManager(photoFields.map(h=>row[h]).filter(Boolean), ()=>{});
+      const lbl = document.createElement("label"); lbl.textContent = "Photos (supports multiple URLs)";
+      const initial = photoFields.map(h => row[h]).filter(Boolean);
+      const mgr = buildImageManager(initial, (arr)=>{ /* live preview only; apply on save */ });
       const box = document.createElement("div"); box.appendChild(lbl); box.appendChild(mgr.el);
       fieldsWrap.appendChild(box);
-      fieldsWrap._photoMgrGet = mgr.get; fieldsWrap._photoFields = photoFields;
-      handled.add("photos-block");
+      // Store manager for saving
+      fieldsWrap.dataset.photoManager = "1";
+      fieldsWrap._photoMgrGet = mgr.get;
+      fieldsWrap._photoFields = photoFields;
+      photoFields.forEach(h => handled.add(h));
     }
 
+    // Build remaining fields
     state.headers.forEach(h => {
-      if(photoFields.includes(h)) return;
+      if(handled.has(h)) return;
       if(/image/i.test(h) && !/photo/i.test(h)){
-        const lbl = document.createElement("label"); lbl.textContent = h + " (multiple URLs)";
-        const mgr = buildImageManager(parseImages(row[h]||""), arr => { row[h] = arr.join(", "); });
+        const lbl = document.createElement("label"); lbl.textContent = h + " (supports multiple URLs)";
+        const mgr = buildImageManager(parseImages(row[h]||""), (arr)=>{ row[h] = imagesToString(arr); });
         const box = document.createElement("div"); box.appendChild(lbl); box.appendChild(mgr.el);
         fieldsWrap.appendChild(box);
-      } else {
+      }else{
         const f = document.createElement("div");
         f.innerHTML = `<label>${escapeHtml(h)}</label><input data-key="${escapeHtml(h)}" value="${escapeHtml(row[h] ?? "")}">`;
         fieldsWrap.appendChild(f);
@@ -672,110 +718,286 @@
     });
 
     $("#editModal").classList.add("show");
+
     $("#saveItemBtn").onclick = async () => {
-      Array.from(fieldsWrap.querySelectorAll("input[data-key]")).forEach(i => row[i.dataset.key] = i.value);
-      if(fieldsWrap._photoMgrGet){
-        const arr = fieldsWrap._photoMgrGet();
-        const pfields = fieldsWrap._photoFields;
-        for(let i=0;i<pfields.length;i++) row[pfields[i]] = arr[i] || "";
-      }
-      if(isNew){
-        state.rows.push(row);
-        try{ await appendRowToSheet(row); toast("Added to Sheet"); } catch(e){ toast("Add failed"); }
-      }else{
-        state.rows[index] = row;
-        try{ await writeRowToSheet(index); toast("Saved to Sheet"); } catch(e){ toast("Save failed"); }
-      }
-      renderList(); $("#editModal").classList.remove("show");
-    };
-    $("#deleteItemBtn").onclick = async () => {
-      if(!confirm("Delete this item?")) return;
-      state.rows.splice(index,1);
-      try{ await writeAllRowsToSheet(); toast("Deleted in Sheet"); } catch(e){ toast("Delete failed"); }
-      renderList(); $("#editModal").classList.remove("show");
-    };
-    $("#cancelEditBtn").onclick = () => $("#editModal").classList.remove("show");
+  // Collect standard inputs
+  Array.from(fieldsWrap.querySelectorAll("input[data-key]"))
+    .forEach(i => row[i.dataset.key] = i.value);
+
+  // Collect photos back into individual "photo n" columns
+  if(fieldsWrap.dataset.photoManager === "1"){
+    const arr = fieldsWrap._photoMgrGet();
+    const pfields = fieldsWrap._photoFields;
+    for(let i=0;i<pfields.length;i++){
+      row[pfields[i]] = arr[i] || "";
+    }
   }
 
-  /* ------------------ Loaders ------------------ */
-  async function fetchCurrentDataset(){
-    if(!state.sheetId || !state.activeTab) return;
+  // Ensure we are signed in (will open Google prompt if needed)
+  const ok = await ensureSignedIn();
+  if(!ok) return; // user cancelled sign-in
+
+  if(isNew){
+    state.rows.push(row);
     try{
-      const { headers, rows } = await fetchGVizByTab(state.sheetId, state.activeTab);
+      await appendRowToSheet(row);
+      toast("Added to Sheet");
+    }catch(e){
+      toast("Add failed (check API/permission)");
+    }
+  }else{
+    state.rows[index] = row;
+    try{
+      await writeRowToSheet(index);
+      toast("Saved to Sheet");
+    }catch(e){
+      toast("Save failed (check API/permission)");
+    }
+  }
+
+  renderList();
+  closeEditor();
+};
+    $("#deleteItemBtn").onclick = async () => {
+  if(!confirm("Delete this item?")) return;
+
+  const ok = await ensureSignedIn();
+  if(!ok) return;
+
+  state.rows.splice(index,1);
+  try{
+    await writeAllRowsToSheet();
+    toast("Deleted in Sheet");
+  }catch(e){
+    toast("Delete failed (check API/permission)");
+  }
+  renderList();
+  closeEditor();
+};
+    $("#cancelEditBtn").onclick = closeEditor;
+  }
+  function closeEditor(){ $("#editModal").classList.remove("show"); }
+
+  async function moveItem(index, dir){
+  const newIdx = index + dir;
+  if(newIdx<0 || newIdx>=state.rows.length) return;
+  const item = state.rows.splice(index,1)[0];
+  state.rows.splice(newIdx,0,item);
+  renderList();
+
+  const ok = await ensureSignedIn();
+  if(!ok){ toast("Reordered locally (sign in to save)"); return; }
+
+  try{
+    await writeAllRowsToSheet();
+    toast("Reordered");
+  }catch(e){
+    toast("Reorder failed (check API/permission)");
+  }
+}
+
+  function escapeHtml(s){
+    return String(s==null?"":s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;" }[m]));
+  }
+
+  async function fetchCurrent(){
+    if(!state.sheetId || !state.activeTab){ toast("Add sheet link & tab first"); return; }
+    try{
+      const { headers, rows } = await fetchGViz(state.sheetId, state.activeTab);
+      if(!headers.length){
+        toast("No headings found (maybe private). Try Sign in.");
+        return;
+      }
       state.headers = headers;
       state.rows = rows.map(r => {
-        const obj = {}; headers.forEach((h,i)=> obj[h] = r[i] ?? ""); return obj;
+        const obj = {};
+        headers.forEach((h,i)=> obj[h] = r[i] ?? "");
+        return obj;
       });
-      $("#tabs").innerHTML = "";
-      renderDatasetsMenu();
-      renderSectionsMenu();
       renderList();
+      toast(`Loaded ${state.rows.length} rows from ${state.activeTab}`);
     }catch(e){
-      toast("Read failed (private?). Sign in and try again.");
+      toast("Fetch failed. If sheet is private, enable editing and Sign in.");
     }
   }
 
-  async function loadIndexAndRender(){
-    try{
-      state.datasets = await fetchIndexSheet();
-      if(!state.datasets.length){ toast("Index empty"); renderList(); return; }
-      // Default: first dataset selected
-      state.sheetId  = state.datasets[0].sheetId;
-      state.activeTab = state.datasets[0].tab || "Sheet1";
-      renderDatasetsMenu();
-      await fetchCurrentDataset();
-      startAutoRefresh();
-    }catch(e){
-      toast("Index not readable. Use Switch Index and pick the right sheet.");
-      renderList();
+  /* ---------- Event bindings ---------- */
+  $("#settingsBtn").onclick = () => { openSettings(); };
+  $("#fetchBtn").onclick = async () => {
+    const id = parseSheetId($("#sheetLink").value.trim());
+    if(!id) return toast("Invalid sheet link");
+    state.sheetId = id;
+    const activeSel = $("#activeTabSelect");
+    state.activeTab = activeSel.value || state.tabs[0] || "";
+    saveLocal(); renderTabs(); closeSettings();
+    fetchCurrent();
+  };
+  $("#addTabBtn").onclick = () => {
+    const name = $("#tabName").value.trim();
+    if(!name) return;
+    if(!state.tabs.includes(name)) state.tabs.push(name);
+    if(!state.activeTab) state.activeTab = name;
+    $("#tabName").value = "";
+    saveLocal(); renderSettingsFromState(); renderTabs();
+  };
+  $("#activeTabSelect").onchange = (e)=>{ state.activeTab = e.target.value; saveLocal(); };
+  $("#demoBtn").onclick = ()=>{
+    // HEADERS based on your screenshots
+    state.headers = ["Box Direction","Section","Product Name","visibility","Description","Badge","photo 1","photo 2","photo 3","photo 4","MRP","Selling Price","in stock","google sheet","tab name"];
+    // DEMO ROWS resembling your sheet
+    state.rows = [
+      {
+        "Box Direction":"",
+        "Section":"Car Keychains",
+        "Product Name":"car Keychain",
+        "visibility":"",
+        "Description":"",
+        "Badge":"Bestseller",
+        "photo 1":"https://i.postimg.cc/fk4627NT/IMG-20250629-004309.jpg",
+        "photo 2":"",
+        "photo 3":"",
+        "photo 4":"",
+        "MRP":"80",
+        "Selling Price":"75",
+        "in stock":"10",
+        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
+        "tab name":"Sheet1"
+      },
+      {
+        "Box Direction":"",
+        "Section":"",
+        "Product Name":"Red",
+        "visibility":"hide",
+        "Description":"",
+        "Badge":"",
+        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
+        "photo 2":"",
+        "photo 3":"",
+        "photo 4":"",
+        "MRP":"15",
+        "Selling Price":"10",
+        "in stock":"10",
+        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
+        "tab name":"Sheet1"
+      },
+      {
+        "Box Direction":"",
+        "Section":"",
+        "Product Name":"blue",
+        "visibility":"hide",
+        "Description":"",
+        "Badge":"",
+        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
+        "photo 2":"",
+        "photo 3":"",
+        "photo 4":"",
+        "MRP":"18",
+        "Selling Price":"10",
+        "in stock":"10",
+        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
+        "tab name":"Sheet1"
+      },
+      {
+        "Box Direction":"",
+        "Section":"",
+        "Product Name":"green",
+        "visibility":"hide",
+        "Description":"",
+        "Badge":"",
+        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
+        "photo 2":"",
+        "photo 3":"",
+        "photo 4":"",
+        "MRP":"15",
+        "Selling Price":"10",
+        "in stock":"10",
+        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
+        "tab name":"Sheet1"
+      },
+      {
+        "Box Direction":"",
+        "Section":"Ribbon",
+        "Product Name":"white",
+        "visibility":"",
+        "Description":"",
+        "Badge":"",
+        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
+        "photo 2":"",
+        "photo 3":"",
+        "photo 4":"",
+        "MRP":"100",
+        "Selling Price":"10",
+        "in stock":"10",
+        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
+        "tab name":"Sheet1"
+      },
+      {
+        "Box Direction":"",
+        "Section":"",
+        "Product Name":"yellow",
+        "visibility":"",
+        "Description":"",
+        "Badge":"Bestseller",
+        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
+        "photo 2":"",
+        "photo 3":"",
+        "photo 4":"",
+        "MRP":"100",
+        "Selling Price":"50",
+        "in stock":"10",
+        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
+        "tab name":"Sheet1"
+      },
+      {
+        "Box Direction":"",
+        "Section":"",
+        "Product Name":"gray",
+        "visibility":"",
+        "Description":"",
+        "Badge":"",
+        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
+        "photo 2":"",
+        "photo 3":"",
+        "photo 4":"",
+        "MRP":"100",
+        "Selling Price":"50",
+        "in stock":"10",
+        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
+        "tab name":"Sheet1"
+      }
+    ];
+    renderList();
+    closeSettings();
+    toast("Premium demo loaded");
+  };
+
+  $("#addBtn").onclick = ()=>{
+    if(!state.headers.length){
+      state.headers = ["Box Direction","Section","Product Name","visibility","Description","Badge","photo 1","photo 2","photo 3","photo 4","MRP","Selling Price","in stock","google sheet","tab name"];
     }
-  }
+    openEditor(-1);
+  };
 
-  function startAutoRefresh(){
-    if(state._refreshTimer) clearInterval(state._refreshTimer);
-    if(state.refreshSeconds>0){
-      state._refreshTimer = setInterval(fetchCurrentDataset, state.refreshSeconds*1000);
-    }
-  }
+  $("#signinBtn").onclick = async () => {
+  state.apiKey = $("#apiKey").value.trim();
+  state.clientId = $("#clientId").value.trim();
+  saveLocal();
+  await ensureSignedIn();
+};
+$("#quickSignInBtn").onclick = async () => {
+  const ok = await ensureSignedIn();
+  // After sign-in, if a sheet & tab are set, load it immediately
+  if(ok && state.sheetId && state.activeTab) fetchCurrent();
+};
+  $("#signoutBtn").onclick = () => { signOut(); markAuthUI(); };
 
-  /* ------------------ Boot ------------------ */
-  function askForIndexIfNeeded(){
-    if(state.indexSheetId) return false;
-    // Show minimal banner in the list area:
-    const list = $("#list"); list.innerHTML = "";
-    const box = document.createElement("div");
-    box.style.cssText="text-align:center;color:var(--muted);padding:24px";
-    box.innerHTML = `
-      <div style="font-size:16px;margin-bottom:10px;">Choose your <b>Index Sheet</b> (contains <i>Name | SheetURL | Tab</i>)</div>
-      <button class="btn primary" id="chooseIndexBtn">Pick from Google Drive</button>
-    `;
-    list.appendChild(box);
-    $("#chooseIndexBtn").onclick = async ()=>{
-      if(!state.authEnabled) await signIn();
-      openPickerForIndex();
-    };
-    return true;
-  }
+  $$(".modal").forEach(m => m.addEventListener("click",(e)=>{
+    if(e.target.classList.contains("modal")) e.target.classList.remove("show");
+  }));
 
-  async function boot(){
-    renderList(); // initial state
-    if(!askForIndexIfNeeded()){
-      // We already have index sheet stored
-      await loadIndexAndRender();
-    }
-    // Plus “Add” button behaviour stays the same:
-    $("#addBtn")?.addEventListener("click", () => {
-      if(!state.headers.length){ toast("Open a dataset first."); return; }
-      openEditor(-1);
-    });
-
-    // Close modals by tapping outside
-    $$(".modal").forEach(m => m.addEventListener("click",(e)=>{
-      if(e.target.classList.contains("modal")) e.target.classList.remove("show");
-    }));
-  }
-
-  boot();
+  loadLocal();
+  renderList();
+  markAuthUI();
 })();
 </script>
 </body>
