@@ -1112,5 +1112,137 @@ $("#quickSignInBtn").onclick = async () => {
 
 })();
 </script>
+
+<script>
+// === Persistent Google Sign-in (silent reauth) — safe append ===
+(function(){
+  const LS_KEY = 'prec.authed';
+
+  function rememberAuth(){ try{ localStorage.setItem(LS_KEY,'1'); }catch(_){} }
+  function forgetAuth(){ try{ localStorage.removeItem(LS_KEY); }catch(_){} }
+
+  function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
+  async function waitForGoogle(maxMs=12000){
+    const step = 100; let waited = 0;
+    while(waited < maxMs){
+      if (window.gapi && window.google && google.accounts) return true;
+      await wait(step); waited += step;
+    }
+    return false;
+  }
+
+  // Defensive helpers
+  function safeToast(msg){ try{ (window.toast||console.log)(msg); }catch(_){ console.log(msg); } }
+  function markAuthUI(){
+    try{ if(window.markAuthUI) return window.markAuthUI(); }catch(_){}
+    // fallback: toggle any [data-auth-status] element
+    const el = document.querySelector('[data-auth-status]');
+    if(el){ el.textContent = (window.state && state.authEnabled) ? 'Signed in' : 'Sign in'; }
+  }
+
+  async function initGapiIfNeeded(){
+    try{
+      if(window.initGapi){ await window.initGapi(); }
+      if(window.initGis){ window.initGis(); }
+    }catch(_){}
+  }
+
+  function patchTokenCallback(){
+    try{
+      if(!window.state || !state.tokenClient) return;
+      const prev = state.tokenClient.callback;
+      state.tokenClient.callback = (resp)=>{
+        try{
+          if(resp && resp.access_token){
+            try{ gapi.client.setToken({access_token: resp.access_token}); }catch(_){}
+            if(window.state) state.authEnabled = true;
+            rememberAuth();
+            markAuthUI();
+          }else{
+            forgetAuth();
+          }
+        }finally{
+          try{ if(typeof prev === 'function') prev(resp); }catch(_){}
+        }
+      };
+    }catch(_){}
+  }
+
+  // Ensure we have a public ensureSignedIn function that remembers auth
+  window.ensureSignedIn = window.ensureSignedIn || (async function(){
+    if(window.state && state.authEnabled){ markAuthUI(); return true; }
+    await initGapiIfNeeded();
+    patchTokenCallback();
+    if(!(window.state && state.tokenClient)){
+      safeToast('Google sign-in not ready'); return false;
+    }
+    return await new Promise((resolve)=>{
+      state.tokenClient.callback = (resp)=>{
+        if(resp && resp.access_token){
+          try{ gapi.client.setToken({access_token: resp.access_token}); }catch(_){}
+          if(window.state) state.authEnabled = true;
+          rememberAuth();
+          markAuthUI();
+          safeToast('Editing enabled');
+          resolve(true);
+        }else{
+          safeToast('Sign in failed');
+          resolve(false);
+        }
+      };
+      try{ state.tokenClient.requestAccessToken({ prompt: 'consent' }); }catch(e){ resolve(false); }
+    });
+  });
+
+  // Wrap signOut to also forget local storage
+  (function wrapSignOut(){
+    const prev = window.signOut;
+    window.signOut = function(){
+      try{
+        const tok = (gapi && gapi.client && gapi.client.getToken) ? gapi.client.getToken() : null;
+        if(tok && google && google.accounts && google.accounts.oauth2){
+          google.accounts.oauth2.revoke(tok.access_token);
+        }
+        if(gapi && gapi.client && gapi.client.setToken) gapi.client.setToken('');
+      }catch(_){}
+      if(window.state) state.authEnabled = false;
+      forgetAuth();
+      markAuthUI();
+      safeToast('Signed out');
+      try{ if(typeof prev === 'function') prev(); }catch(_){}
+    };
+  })();
+
+  async function silentOnLoad(){
+    const ok = await waitForGoogle();
+    if(!ok) return;
+    await initGapiIfNeeded();
+    patchTokenCallback();
+    if(localStorage.getItem(LS_KEY) === '1' && window.state && state.clientId && state.apiKey && state.tokenClient){
+      await new Promise((resolve)=>{
+        state.tokenClient.callback = (resp)=>{
+          if(resp && resp.access_token){
+            try{ gapi.client.setToken({access_token: resp.access_token}); }catch(_){}
+            state.authEnabled = true;
+            markAuthUI();
+          }else{
+            forgetAuth();
+          }
+          resolve(true);
+        };
+        try{ state.tokenClient.requestAccessToken({ prompt: '' }); }catch(_){ resolve(true); }
+      });
+      // Auto-fetch when app defines fetchCurrent
+      try{ if(state.authEnabled && typeof fetchCurrent==='function'){ fetchCurrent(); } }catch(_){}
+    }
+  }
+
+  // Kick it off after page load
+  if(document.readyState === 'complete'){ silentOnLoad(); }
+  else window.addEventListener('load', silentOnLoad);
+})();
+// === End persistent sign-in block ===
+</script>
+
 </body>
 </html>
