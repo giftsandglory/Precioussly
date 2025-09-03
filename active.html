@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Precioussly</title>
+<title>Precioussly — Fixed</title>
 <style>
   :root{
     --bg:#0b0e13;
@@ -84,7 +84,7 @@
     padding:10px 12px;
     margin:10px auto;
     max-width:820px;
-    display:flex; gap:12px; align-items:center; justify-content:space-between;
+    display:flex; gap:12px; align-items:center;
     box-shadow: 0 6px 18px rgba(0,0,0,.35);
     transition:transform .12s ease, background .2s ease;
     touch-action: manipulation;
@@ -95,19 +95,23 @@
   .thumb-mini img{ width:100%; height:100%; object-fit:cover; display:block; }
   .card:hover{ transform: translateY(-1px); }
   .card h4{ margin:0 0 2px 0; font-size:16px; font-weight:800; color:#d7e6ff; }
-  .sub{ color:var(--muted); font-size:12px; }
+  .sub{ color:var(--muted); font-size:12px; word-break:break-all; }
   .chips{ display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
   .chip{ padding:4px 8px; border-radius:999px; font-size:11px; border:1px solid var(--border); background:#0e1525; color:#cfe1ff; }
   .chip.badge{ background:linear-gradient(135deg,#fceabb,#f8b500); color:#231b00; border:none; font-weight:800; }
   .chip.hide{ background:#26131a; color:#ffd7de; border-color:#5a1f2c; }
-  .price{ text-align:right; margin-left:auto; }
+  .price{ text-align:right; margin-left:auto; flex:0 0 auto; }
   .price .sell{ font-weight:900; font-size:18px; color:#b4ffcb; }
   .price .mrp{ color:#97a1b3; text-decoration:line-through; font-size:12px; display:block; }
-  .rightbox{ display:flex; align-items:center; gap:8px; margin-left:auto; }
+  .rightbox{
+    display:flex; align-items:center; gap:10px;
+    margin-left:auto; flex:0 0 auto;
+  }
   .open-btn{
-    padding:8px 12px; border-radius:10px;
+    padding:8px 14px; border-radius:10px;
     border:1px solid var(--border);
     background:#111827; color:#bcd0ff; font-weight:700; cursor:pointer;
+    flex:0 0 auto;
   }
 
   /* Reorder controls (shown on long press) */
@@ -167,7 +171,6 @@
   .btn.ghost{ background:#0e1423 }
   .actions{ display:flex; gap:10px; flex-wrap:wrap; }
 
-  /* Hide blue highlight on Android */
   a, button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 
   /* Toast */
@@ -191,6 +194,13 @@
   .thumb .ctrls{ position:absolute; inset:auto 4px 4px 4px; display:flex; gap:4px; justify-content:space-between; }
   .thumb button{
     border:none; background:rgba(10,15,25,.7); color:#cfe1ff; padding:4px 6px; border-radius:8px; font-size:12px; cursor:pointer;
+  }
+
+  /* Small screens: keep button aligned to the right neatly */
+  @media (max-width: 480px){
+    .card{ gap:10px; }
+    .rightbox{ gap:8px; }
+    .open-btn{ padding:8px 12px; }
   }
 </style>
 </head>
@@ -300,10 +310,10 @@
   };
 
   const parseSheetId = (link) => {
-    try {
-      const m = link.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      return m ? m[1] : "";
-    } catch(e){ return ""; }
+    if(!link) return "";
+    // Accept full link or bare ID
+    const idMatch = String(link).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    return idMatch ? idMatch[1] : String(link).trim();
   };
 
   const saveLocal = () => {
@@ -432,15 +442,33 @@
     });
   }
 
+  function looksLikeImageUrl(v){
+    if(!v) return "";
+    let s = String(v).trim();
+    // If Google Drive share link, convert to direct
+    const drive = s.match(/drive\.google\.com\/file\/d\/([^/]+)/i);
+    if(drive){ s = `https://drive.google.com/uc?export=view&id=${drive[1]}`; }
+    // Accept direct image extensions or postimg CDN
+    const m = s.match(/https?:\/\/[^\s)'"<]+?\.(?:png|jpe?g|webp|gif)(\?.*)?$/i) || s.match(/https?:\/\/i\.postimg\.cc\/[^\s)'"<]+/i);
+    return m ? (drive ? s : m[0]) : "";
+  }
+
   function getThumb(row){
+    // 1) Explicit photo 1..N
     const p = Object.keys(row).filter(k => /photo\s*\d+/i.test(k)).sort((a,b)=>{
       const na = parseInt(a.replace(/\D+/g,''))||0, nb = parseInt(b.replace(/\D+/g,''))||0; return na-nb;
     });
-    for(const k of p){ if(row[k]) return row[k]; }
+    for(const k of p){ const u = looksLikeImageUrl(row[k]); if(u) return u; }
+    // 2) Any header containing 'image'
     const ci = Object.keys(row).find(k => /image/i.test(k));
     if(ci){
       const parts = String(row[ci]||"").split(/[, \n]+/).filter(Boolean);
-      if(parts[0]) return parts[0];
+      for(const part of parts){ const u = looksLikeImageUrl(part); if(u) return u; }
+    }
+    // 3) Fallback: scan all cell values for first image-like URL
+    for(const val of Object.values(row)){
+      const u = looksLikeImageUrl(val);
+      if(u) return u;
     }
     return "";
   }
@@ -456,11 +484,11 @@
       return;
     }
     const titleKey = state.headers.find(h => /product\s*name/i.test(h)) || state.headers[0];
-    const sectionKey = state.headers.find(h => /section/i.test(h)) || state.headers[1];
+    const sectionKey = state.headers.find(h => /section|category/i.test(h)) || state.headers[1];
     const badgeKey = state.headers.find(h => /badge/i.test(h));
     const visKey = state.headers.find(h => /visibil/i.test(h));
     const mrpKey = state.headers.find(h => /mrp/i.test(h));
-    const spKey = state.headers.find(h => /selling\s*price/i.test(h));
+    const spKey = state.headers.find(h => /selling\s*price|sell(ing)?\s*price/i.test(h));
 
     state.rows.forEach((row, idx) => {
       const card = document.createElement("div");
@@ -471,7 +499,8 @@
       thumb.className = "thumb-mini";
       const timg = document.createElement("img");
       const tsrc = getThumb(row);
-      if(tsrc){ timg.src = tsrc; } else { timg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><rect fill='%23131a2a' x='0' y='0' width='100%' height='100%'/></svg>"; }
+      if(tsrc){ timg.src = tsrc; } else { timg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><rect fill='%23131a2a' x='0' y='0' width='100%' height='100%'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='10' fill='%23476'>No Image</text></svg>"; }
+      timg.loading = "lazy";
       thumb.appendChild(timg);
 
       const mid = document.createElement("div");
@@ -496,10 +525,8 @@
         if(mrpKey && row[mrpKey]){
           price.innerHTML += `<span class="mrp">MRP ₹${escapeHtml(row[mrpKey])}</span>`;
         }
+        right.appendChild(price);
       }
-      const openBtn = document.createElement("button");
-      openBtn.className = "open-btn"; openBtn.textContent = "Open";
-      openBtn.onclick = (e)=>{ e.stopPropagation(); openEditor(idx); };
 
       const reorderWrap = document.createElement("div");
       reorderWrap.className="reorder";
@@ -509,7 +536,10 @@
       down.onclick = (e)=>{ e.stopPropagation(); moveItem(idx, 1); };
       reorderWrap.appendChild(up); reorderWrap.appendChild(down);
 
-      right.appendChild(price);
+      const openBtn = document.createElement("button");
+      openBtn.className = "open-btn"; openBtn.textContent = "Open";
+      openBtn.onclick = (e)=>{ e.stopPropagation(); openEditor(idx); };
+
       right.appendChild(reorderWrap);
       right.appendChild(openBtn);
 
@@ -550,7 +580,7 @@
   function openSettings(){ $("#settingsModal").classList.add("show"); }
   function closeSettings(){ $("#settingsModal").classList.remove("show"); }
 
-  /* -------- Image Manager helpers (supports 'photo 1..4' group or individual 'image' fields) -------- */
+  /* -------- Image Manager helpers -------- */
   function parseImages(str){
     if(!str) return [];
     return String(str).split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
@@ -580,7 +610,7 @@
         const th = document.createElement("div");
         th.className = "thumb";
         const img = document.createElement("img");
-        img.src = u; img.alt = "img";
+        img.src = u; img.alt = "img"; img.loading="lazy";
         const ctrls = document.createElement("div");
         ctrls.className = "ctrls";
         const up = document.createElement("button"); up.textContent = "▲";
@@ -627,7 +657,6 @@
       const mgr = buildImageManager(initial, (arr)=>{ /* live preview only; apply on save */ });
       const box = document.createElement("div"); box.appendChild(lbl); box.appendChild(mgr.el);
       fieldsWrap.appendChild(box);
-      // Store manager for saving
       fieldsWrap.dataset.photoManager = "1";
       fieldsWrap._photoMgrGet = mgr.get;
       fieldsWrap._photoFields = photoFields;
@@ -644,7 +673,7 @@
         fieldsWrap.appendChild(box);
       }else{
         const f = document.createElement("div");
-        f.innerHTML = `<label>${escapeHtml(h)}</label><input data-key="${escapeHtml(h)}" value="${escapeHtml(row[h] ?? "")}">`;
+        f.innerHTML = `<label>${escapeHtml(h)}</label><input data-key="${escapeHtml(h)}" value="${escapeHtml(row[h] ?? "")}">";
         fieldsWrap.appendChild(f);
       }
     });
@@ -652,9 +681,7 @@
     $("#editModal").classList.add("show");
 
     $("#saveItemBtn").onclick = async () => {
-      // Collect standard inputs
       Array.from(fieldsWrap.querySelectorAll("input[data-key]")).forEach(i => row[i.dataset.key] = i.value);
-      // Collect photo manager into discrete photo fields
       if(fieldsWrap.dataset.photoManager === "1"){
         const arr = fieldsWrap._photoMgrGet();
         const pfields = fieldsWrap._photoFields;
@@ -742,7 +769,7 @@
     if(!id) return toast("Invalid sheet link");
     state.sheetId = id;
     const activeSel = $("#activeTabSelect");
-    state.activeTab = activeSel.value || state.tabs[0] || "";
+    state.activeTab = activeSel.value || state.tabs[0] || "Sheet1";
     saveLocal(); renderTabs(); closeSettings();
     fetchCurrent();
   };
@@ -756,133 +783,12 @@
   };
   $("#activeTabSelect").onchange = (e)=>{ state.activeTab = e.target.value; saveLocal(); };
   $("#demoBtn").onclick = ()=>{
-    // HEADERS based on your screenshots
-    state.headers = ["Box Direction","Section","Product Name","visibility","Description","Badge","photo 1","photo 2","photo 3","photo 4","MRP","Selling Price","in stock","google sheet","tab name"];
-    // DEMO ROWS resembling your sheet
+    state.headers = ["Box Direction","Section","Product Name","visibility","Description","Badge","Category Image","photo 1","photo 2","photo 3","MRP","Selling Price","in stock"];
     state.rows = [
-      {
-        "Box Direction":"",
-        "Section":"Car Keychains",
-        "Product Name":"car Keychain",
-        "visibility":"",
-        "Description":"",
-        "Badge":"Bestseller",
-        "photo 1":"https://i.postimg.cc/fk4627NT/IMG-20250629-004309.jpg",
-        "photo 2":"",
-        "photo 3":"",
-        "photo 4":"",
-        "MRP":"80",
-        "Selling Price":"75",
-        "in stock":"10",
-        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
-        "tab name":"Sheet1"
-      },
-      {
-        "Box Direction":"",
-        "Section":"",
-        "Product Name":"Red",
-        "visibility":"hide",
-        "Description":"",
-        "Badge":"",
-        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
-        "photo 2":"",
-        "photo 3":"",
-        "photo 4":"",
-        "MRP":"15",
-        "Selling Price":"10",
-        "in stock":"10",
-        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
-        "tab name":"Sheet1"
-      },
-      {
-        "Box Direction":"",
-        "Section":"",
-        "Product Name":"blue",
-        "visibility":"hide",
-        "Description":"",
-        "Badge":"",
-        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
-        "photo 2":"",
-        "photo 3":"",
-        "photo 4":"",
-        "MRP":"18",
-        "Selling Price":"10",
-        "in stock":"10",
-        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
-        "tab name":"Sheet1"
-      },
-      {
-        "Box Direction":"",
-        "Section":"",
-        "Product Name":"green",
-        "visibility":"hide",
-        "Description":"",
-        "Badge":"",
-        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
-        "photo 2":"",
-        "photo 3":"",
-        "photo 4":"",
-        "MRP":"15",
-        "Selling Price":"10",
-        "in stock":"10",
-        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
-        "tab name":"Sheet1"
-      },
-      {
-        "Box Direction":"",
-        "Section":"Ribbon",
-        "Product Name":"white",
-        "visibility":"",
-        "Description":"",
-        "Badge":"",
-        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
-        "photo 2":"",
-        "photo 3":"",
-        "photo 4":"",
-        "MRP":"100",
-        "Selling Price":"10",
-        "in stock":"10",
-        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
-        "tab name":"Sheet1"
-      },
-      {
-        "Box Direction":"",
-        "Section":"",
-        "Product Name":"yellow",
-        "visibility":"",
-        "Description":"",
-        "Badge":"Bestseller",
-        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
-        "photo 2":"",
-        "photo 3":"",
-        "photo 4":"",
-        "MRP":"100",
-        "Selling Price":"50",
-        "in stock":"10",
-        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
-        "tab name":"Sheet1"
-      },
-      {
-        "Box Direction":"",
-        "Section":"",
-        "Product Name":"gray",
-        "visibility":"",
-        "Description":"",
-        "Badge":"",
-        "photo 1":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg",
-        "photo 2":"",
-        "photo 3":"",
-        "photo 4":"",
-        "MRP":"100",
-        "Selling Price":"50",
-        "in stock":"10",
-        "google sheet":"https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk",
-        "tab name":"Sheet1"
-      }
+      {"Section":"Car Keychains","Product Name":"car Keychain","Badge":"Bestseller","Category Image":"https://i.postimg.cc/fk4627NT/IMG-20250629-004309.jpg","MRP":"80","Selling Price":"75"},
+      {"Section":"Colors","Product Name":"Red","visibility":"hide","Category Image":"https://i.postimg.cc/zGjDws8k/IMG-20250817-WA0028.jpg","MRP":"15","Selling Price":"10"}
     ];
-    renderList();
-    closeSettings();
-    toast("Premium demo loaded");
+    renderList(); closeSettings(); toast("Premium demo loaded");
   };
 
   $("#addBtn").onclick = ()=>{
@@ -904,8 +810,28 @@
     if(e.target.classList.contains("modal")) e.target.classList.remove("show");
   }));
 
+  // ---------- AUTO-LOAD: no manual paste needed ----------
+  // 1) Restore saved config
   loadLocal();
-  renderList();
+
+  // 2) Allow ?sheet=<link or id>&tab=Sheet1
+  const params = new URLSearchParams(location.search);
+  const qSheet = params.get("sheet") || params.get("id");
+  const qTab = params.get("tab");
+  if(qSheet){
+    state.sheetId = parseSheetId(qSheet);
+    if(qTab) state.activeTab = qTab;
+    saveLocal();
+  }
+  // If still not set, choose a safe default tab
+  if(!state.activeTab) state.activeTab = "Sheet1";
+
+  // 3) Auto-fetch if we have a sheet id
+  if(state.sheetId){
+    fetchCurrent();
+  } else {
+    renderList(); // keep UI ready
+  }
 })();
 </script>
 </body>
