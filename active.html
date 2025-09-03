@@ -369,13 +369,12 @@ const errorText = (e) => {
 
   /* ---------- Google API auth & read/write ---------- */
   async function initGapi(){
-    if(!window.gapi) return;
-    await new Promise(resolve => gapi.load('client', resolve));
-    await gapi.client.init({
-      apiKey: state.apiKey,
-      discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-    });
-  }
+  if(!window.gapi) return;
+  await new Promise(resolve => gapi.load('client', resolve));
+  await gapi.client.init({
+    discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"]
+  });
+}
   function initGis(){
     if(!window.google || !google.accounts) return;
     state.tokenClient = google.accounts.oauth2.initTokenClient({
@@ -391,16 +390,16 @@ const errorText = (e) => {
     });
   }
   function signIn(){
-    if(!state.clientId || !state.apiKey){ toast("Enter API Key & Client ID first"); return; }
-    initGapi().then(()=>{
-      initGis();
-      if(state.tokenClient){
-        state.tokenClient.requestAccessToken({ prompt: "consent" });
-      }else{
-        toast("GIS init failed");
-      }
-    });
-  }
+  if(!state.clientId){ toast("Enter OAuth Client ID first"); return; }
+  initGapi().then(()=>{
+    initGis();
+    if(state.tokenClient){
+      state.tokenClient.requestAccessToken({ prompt: "consent" });
+    }else{
+      toast("GIS init failed");
+    }
+  });
+}
   function signOut(){
     const tok = gapi.client.getToken();
     if(tok){
@@ -429,12 +428,11 @@ async function ensureSignedIn(){
   if(state.authEnabled){ markAuthUI(); return true; }
 
   // Ask user to enter keys if missing
-  if(!state.clientId || !state.apiKey){
-    openSettings();
-    toast("Enter API Key & Client ID first");
-    return false;
-  }
-
+  if(!state.clientId){
+  openSettings();
+  toast("Enter OAuth Client ID first");
+  return false;
+}
   // Initialize gapi + GIS
   await initGapi();
   initGis();
