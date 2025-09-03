@@ -1932,7 +1932,7 @@ function openAddressAndClosePopup() {
     const phone = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone) || "";
 
     const options = {
-      key: "rzp_live_S4Dmi0UXQYNAyV",               // ✅ aapka live Key ID
+      key: "rzp_live_RD9Vpf0c38C3vD",               // ✅ aapka live Key ID
       amount: Math.round(finalAmount * 100),        // paise
       currency: "INR",
       name: "Precioussly",
@@ -2653,7 +2653,7 @@ function payCODAdvance95(){
   var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - (Number(window.codPrepaid)||95));
 
   var options = {
-    key: "rzp_live_S4Dmi0UXQYNAyV",
+    key: "rzp_live_RD9Vpf0c38C3vD",
     amount: 95 * 100,
     currency: "INR",
     name: "Precioussly",
