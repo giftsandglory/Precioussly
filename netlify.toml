@@ -1,0 +1,14 @@
+# netlify.toml
+# Minimal config to enable functions from /netlify/functions
+[build]
+  command = ""
+  publish = "."
+  functions = "netlify/functions"
+
+[[headers]]
+  for = "/.netlify/functions/env"
+  [headers.values]
+    Cache-Control = "no-store"
+    Access-Control-Allow-Origin = "*"
+
+# Agar repo me already index.html hai to redirect ki zaroorat nahi.
