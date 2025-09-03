@@ -423,7 +423,7 @@ function markAuthUI(){
   }
 }
 
-// --- NEW: make sure we are signed in before any write ---
+// --- REQUIRED: ensure we have a Sheets write token set into gapi ---
 async function ensureSignedIn(){
   // If already authorized, we're good
   if(state.authEnabled){ markAuthUI(); return true; }
@@ -440,25 +440,23 @@ async function ensureSignedIn(){
   initGis();
   if(!state.tokenClient){ toast("Google sign-in init failed"); return false; }
 
-  // Wrap the token request in a Promise so callers can await it
-  return new Promise((resolve, reject) => {
+  // Request an access token and install it into gapi
+  return new Promise((resolve) => {
     state.tokenClient.callback = (resp) => {
       if(resp && resp.access_token){
-        // IMPORTANT: set token into gapi so Sheets writes are authorized
-        gapi.client.setToken({ access_token: resp.access_token });
+        gapi.client.setToken({ access_token: resp.access_token }); // <— critical
         state.authEnabled = true;
         markAuthUI();
         toast("Editing enabled");
         resolve(true);
       }else{
         toast("Sign in failed");
-        reject(resp);
+        resolve(false);
       }
     };
     state.tokenClient.requestAccessToken({ prompt: "consent" });
   });
 }
-
   async function writeRowToSheet(index){
     const range = `${state.activeTab}!A${index+2}:${String.fromCharCode(65+state.headers.length-1)}${index+2}`;
     const values = [ state.headers.map(h => state.rows[index][h] ?? "") ];
