@@ -680,6 +680,7 @@ async function ensureSignedIn(){
     return {el: wrap, get: ()=>imgs.slice(), set: (arr)=>{ imgs = arr.slice(); renderThumbs(); } };
   }
 
+  
   function openEditor(index){
     const isNew = (index === -1);
     $("#editTitleText").textContent = isNew ? "Add Item" : "Edit Item";
@@ -687,22 +688,37 @@ async function ensureSignedIn(){
     fieldsWrap.innerHTML = "";
     const row = isNew ? Object.fromEntries(state.headers.map(h=>[h,""])) : {...state.rows[index]};
 
+    // Status badge
+    const titleEl = $("#editTitleText");
+    let badge = document.getElementById("autoSaveBadge");
+    if(badge) badge.remove();
+    badge = document.createElement("span");
+    badge.id = "autoSaveBadge";
+    badge.className = "sub";
+    badge.style.marginLeft = "10px";
+    badge.style.fontSize = "12px";
+    badge.textContent = isNew ? "Auto-save: off for new item" : (state.authEnabled ? "Auto-save: ON" : "Auto-save: Sign in");
+    titleEl.appendChild(badge);
+
     // Group photo fields
     const photoFields = state.headers.filter(h => /photo\s*\d+/i.test(h)).sort((a,b)=>{
       const na = parseInt(a.replace(/\D+/g,''))||0, nb = parseInt(b.replace(/\D+/g,''))||0; return na-nb;
     });
     const handled = new Set();
+    let photoMgr = null, photoMgrFields = [];
 
     if(photoFields.length){
       const lbl = document.createElement("label"); lbl.textContent = "Photos (supports multiple URLs)";
       const initial = photoFields.map(h => row[h]).filter(Boolean);
-      const mgr = buildImageManager(initial, (arr)=>{ /* live preview only; apply on save */ });
+      const mgr = buildImageManager(initial, (arr)=>{
+        // write back to row & auto-save
+        for(let i=0;i<photoFields.length;i++){ row[photoFields[i]] = arr[i] || ""; }
+        autoSave();
+      });
+      photoMgr = mgr;
+      photoMgrFields = photoFields.slice();
       const box = document.createElement("div"); box.appendChild(lbl); box.appendChild(mgr.el);
       fieldsWrap.appendChild(box);
-      // Store manager for saving
-      fieldsWrap.dataset.photoManager = "1";
-      fieldsWrap._photoMgrGet = mgr.get;
-      fieldsWrap._photoFields = photoFields;
       photoFields.forEach(h => handled.add(h));
     }
 
@@ -711,76 +727,97 @@ async function ensureSignedIn(){
       if(handled.has(h)) return;
       if(/image/i.test(h) && !/photo/i.test(h)){
         const lbl = document.createElement("label"); lbl.textContent = h + " (supports multiple URLs)";
-        const mgr = buildImageManager(parseImages(row[h]||""), (arr)=>{ row[h] = imagesToString(arr); });
+        const mgr = buildImageManager(parseImages(row[h]||""), (arr)=>{ row[h] = arr.join(", "); autoSave(); });
         const box = document.createElement("div"); box.appendChild(lbl); box.appendChild(mgr.el);
         fieldsWrap.appendChild(box);
       }else{
         const f = document.createElement("div");
-        f.innerHTML = `<label>${escapeHtml(h)}</label><input data-key="${escapeHtml(h)}" value="${escapeHtml(row[h] ?? "")}">`;
+        f.innerHTML = `<label>${escapeHtml(h)}</label><input data-key="${escapeHtml(h)}" value="${escapeHtml(row[h] ?? "")}">`
         fieldsWrap.appendChild(f);
       }
     });
 
+    const autoSave = debounce(async () => {
+      if(isNew) return; // avoid creating phantom rows
+      if(!state.authEnabled){ badge.textContent = "Auto-save: Sign in"; return; }
+      try{
+        badge.textContent = "Saving...";
+        state.rows[index] = row;
+        await writeRowToSheet(index);
+        badge.textContent = "Saved ✓";
+      }catch(e){
+        badge.textContent = "Save failed";
+      }
+    }, 700);
+
+    // Wire change listeners
+    Array.from(fieldsWrap.querySelectorAll("input[data-key]"))
+      .forEach(i => i.addEventListener("input", () => { row[i.dataset.key] = i.value; autoSave(); }));
+
     $("#editModal").classList.add("show");
 
+    // Proactively sign-in so auto-save works without extra clicks
+    if(!state.authEnabled){
+      ensureSignedIn().then(ok => { if(ok && !isNew) badge.textContent = "Auto-save: ON"; });
+    }
+
+    // Save / Delete / Cancel
     $("#saveItemBtn").onclick = async () => {
-  // Collect standard inputs
-  Array.from(fieldsWrap.querySelectorAll("input[data-key]"))
-    .forEach(i => row[i.dataset.key] = i.value);
+      // Collect text inputs again
+      Array.from(fieldsWrap.querySelectorAll("input[data-key]"))
+        .forEach(i => row[i.dataset.key] = i.value);
 
-  // Collect photos back into individual "photo n" columns
-  if(fieldsWrap.dataset.photoManager === "1"){
-    const arr = fieldsWrap._photoMgrGet();
-    const pfields = fieldsWrap._photoFields;
-    for(let i=0;i<pfields.length;i++){
-      row[pfields[i]] = arr[i] || "";
-    }
-  }
+      // Sync photo manager back into "photo n" columns (if present)
+      if(photoMgr && photoMgrFields.length){
+        const arr = photoMgr.get();
+        for(let i=0;i<photoMgrFields.length;i++){ row[photoMgrFields[i]] = arr[i] || ""; }
+      }
 
-  // Ensure we are signed in (will open Google prompt if needed)
-  const ok = await ensureSignedIn();
-  if(!ok) return; // user cancelled sign-in
+      if(isNew){
+        // For new items, append once on Save
+        const ok = state.authEnabled || await ensureSignedIn();
+        if(!ok) return;
+        state.rows.push(row);
+        try{
+          await appendRowToSheet(row);
+          toast("Added to Sheet");
+        }catch(e){
+          toast("Add failed: " + errorText(e));
+        }
+      }else{
+        // Final explicit save (in case user turned off auto or was offline)
+        try{
+          state.rows[index] = row;
+          await writeRowToSheet(index);
+          toast("Saved to Sheet");
+        }catch(e){
+          toast("Save failed (check API/permission)");
+        }
+      }
+      renderList();
+      closeEditor();
+    };
 
-  if(isNew){
-    state.rows.push(row);
-    try{
-      await appendRowToSheet(row);
-      toast("Added to Sheet");
-    } catch (e) {
-  console.error(e);
-  toast("Reorder failed: " + errorText(e));
-}
-  }else{
-    state.rows[index] = row;
-    try{
-      await writeRowToSheet(index);
-      toast("Saved to Sheet");
-    }catch(e){
-      toast("Save failed (check API/permission)");
-    }
-  }
-
-  renderList();
-  closeEditor();
-};
     $("#deleteItemBtn").onclick = async () => {
-  if(!confirm("Delete this item?")) return;
+      if(!confirm("Delete this item?")) return;
+      const ok = state.authEnabled || await ensureSignedIn();
+      if(!ok) return;
+      if(index >= 0 && index < state.rows.length){
+        state.rows.splice(index,1);
+      }
+      try{
+        await writeAllRowsToSheet();
+        toast("Deleted in Sheet");
+      }catch(e){
+        toast("Delete failed (check API/permission)");
+      }
+      renderList();
+      closeEditor();
+    };
 
-  const ok = await ensureSignedIn();
-  if(!ok) return;
-
-  state.rows.splice(index,1);
-  try{
-    await writeAllRowsToSheet();
-    toast("Deleted in Sheet");
-  }catch(e){
-    toast("Delete failed (check API/permission)");
-  }
-  renderList();
-  closeEditor();
-};
     $("#cancelEditBtn").onclick = closeEditor;
   }
+
   function closeEditor(){ $("#editModal").classList.remove("show"); }
 
   async function moveItem(index, dir){
