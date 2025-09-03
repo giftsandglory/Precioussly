@@ -1971,6 +1971,8 @@ function openAddressAndClosePopup() {
         localStorage.setItem("lastOrderClearedCart", "1");
 
         try{ sendOrderToTelegram(order); }catch(e){}
+        
+        try{ notifyNtfy(order, response); }catch(e){}
         showPaymentPopup("success");
       },
 
@@ -3475,5 +3477,60 @@ window.closeHeaderSearch = closeHeaderSearch;
   window.__fd_recompute = recomputeDeliveryAndMessage;
 })();
 </script>
+
+<!-- ======= NTFY Paid Order Notifier (auto-inserted) ======= -->
+<script>
+  // Sends a one-shot push to ntfy.sh only after successful Razorpay payment
+  function notifyNtfy(order, rzpResponse){
+    try{
+      var addrObj = {};
+      try{ addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); }catch(e){}
+      var email = localStorage.getItem("user_email") || "";
+      var phone = addrObj.phone || "";
+      var name  = addrObj.fullname || (localStorage.getItem("user_name") || "");
+      var itemsLines = (order.items||[]).map(function(it, i){
+        var qty   = Number(it.qty)||1;
+        var price = Number(it.price)||0;
+        var title = it.name || it.title || "Item";
+        return (i+1) + ") " + title + " × " + qty + " — ₹" + (price*qty);
+      }).join("
+");
+      var a = order.amounts || {};
+      var paymentId = (rzpResponse && rzpResponse.razorpay_payment_id) ? rzpResponse.razorpay_payment_id : "";
+      var text = 
+"✅ PAID ORDER RECEIVED
+
+"+"Order ID: " + (order.id || "-") + "
+"+"Payment ID: " + paymentId + "
+
+"+"Customer:
+"+ (name || "-") + " | " + (phone || "-") + " | " + (email || "-") + "
+"+"Address: " + (order.address || localStorage.getItem("shippingAddress") || "-") + "
+
+"+"Items:
+" + (itemsLines || "(no items)") + "
+
+"+"Totals:
+"+"Items: ₹" + (a.itemsTotal != null ? a.itemsTotal : "-") + "
+"+"Delivery: " + (a.deliveryFee != null ? ("₹"+a.deliveryFee) : "-") + "
+"+"Discount: -₹" + (a.discount != null ? a.discount : 0) + "
+"+"Grand Total: ₹" + (a.grandTotal != null ? a.grandTotal : "-") + "
+
+"+"Time: " + new Date(order.createdAt || Date.now()).toLocaleString('en-IN');
+      fetch("https://ntfy.sh/precioussly-orders-9yTg2P1vK", {
+        method: "POST",
+        headers: {
+          "Title": "New Paid Order – Precioussly",
+          "Priority": "5",
+          "Content-Type": "text/plain"
+        },
+        body: text,
+        mode: "no-cors",
+        keepalive: true
+      }).catch(function(){});
+    }catch(e){}
+  }
+</script>
+
 </body>
 </html>
