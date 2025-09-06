@@ -1875,6 +1875,9 @@ function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
   const orders = JSON.parse(localStorage.getItem("orders") || "[]");
   orders.unshift(order);
   localStorage.setItem("orders", JSON.stringify(orders));
+       try{ sendOrderToGoogleSheet(order); }catch(e){}
+  try{ sendOrderToGoogleSheet(order); }catch(e){}
+      try{ sendOrderToGoogleSheet(order); }catch(e){}
   localStorage.setItem("cartItems", "[]");
   try{ if(typeof updateCartBadge==='function') updateCartBadge(); }catch(e){}
   localStorage.setItem("lastOrderClearedCart","1");
@@ -3656,6 +3659,51 @@ window.closeHeaderSearch = closeHeaderSearch;
     rzp.open();
   };
 })();
+</script>
+
+
+<!-- ======= Google Sheets Order Save (Apps Script Web App) ======= -->
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzx-ri3Ajgj9TbgPNxXfqs843_QdO45I3PHfM8xoLKu3kNqu30_jMrvXdak0jNy8Weo/exec";
+
+async function sendOrderToGoogleSheet(order){
+  try{
+    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("http") !== 0){
+      console.warn("Apps Script URL not set. Skipping Google Sheet save.");
+      return;
+    }
+    const payload = {
+      id: order.id || "",
+      method: order.displayMethod || order.method || "",
+      address_html: order.address || "",
+      address_obj: localStorage.getItem("shippingAddressObj") || "{}",
+      customer_name: (function(){
+        try{ return JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").fullname || (localStorage.getItem("user_name") || ""); }catch(e){ return localStorage.getItem("user_name") || ""; }
+      })(),
+      customer_email: localStorage.getItem("user_email") || "",
+      customer_phone: (function(){
+        try{ return JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone || ""; }catch(e){ return ""; }
+      })(),
+      items: (order.items || []).map(function(it){ return {name: it.name, price: Number(it.price)||0, qty: Number(it.qty)||1}; }),
+      coupon: order.coupon || null,
+      amounts: order.amounts || {},
+      createdAt: order.createdAt || new Date().toISOString(),
+      razorpay_payment_id: order.razorpay_payment_id || "",
+      prepaidAmount: order.prepaidAmount || 0,
+      remainingAmount: order.remainingAmount || 0
+    };
+
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    console.log("Order sent to Google Sheet.");
+  }catch(err){
+    console.error("Failed to send order to Google Sheet:", err);
+  }
+}
 </script>
 
 </body>
