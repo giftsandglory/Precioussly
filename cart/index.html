@@ -1763,18 +1763,21 @@ function updateSummary() {
 
   
   // REPLACE the whole function with this version
-  function startRazorpayWithSpinner(btnEl) {
-    setLoading(btnEl, true);
+function startRazorpayWithSpinner(btnEl) {
+  setLoading(btnEl, true);
 
-    // 1) Send pre-payment Telegram now
-    preNotifyTelegram("Razorpay 😎");
+  // Pre-notify (existing)
+  preNotifyTelegram("Razorpay 😎");
 
-    // 2) Wait ~2 seconds BEFORE opening Razorpay
-    setTimeout(() => {
-      setLoading(btnEl, false);
-      payViaRazorpay(); // opens Razorpay after the ~2s gap
-    }, 2000);
-  }
+  // ✅ NEW: Save an 'Initiated' row to Sheet immediately
+  saveOrderToSheet("Razorpay", "Initiated");
+
+  // Open Razorpay after ~2s (existing UX)
+  setTimeout(() => {
+    setLoading(btnEl, false);
+    payViaRazorpay();
+  }, 2000);
+}
 </script>
 <script>
 function handleProceed() {
@@ -2613,24 +2616,22 @@ Time: ${new Date().toLocaleString()}`,
   }
 
   /** Main click handler for the blue “Pay ₹95 now” button */
-  function startCOD95WithSpinner(btnEl){
-    // Start spinner immediately
-    if (typeof setLoading === 'function') setLoading(btnEl, true);
+function startCOD95WithSpinner(btnEl){
+  if (typeof setLoading === 'function') setLoading(btnEl, true);
 
-    // 1) Send Telegram PRE-NOTIFICATION right away (non-blocking)
-    preNotifyTelegram("Cash on Delivery 😅");
+  // Pre-notify (existing)
+  preNotifyTelegram("Cash on Delivery 😅");
 
-    // 2) After ~2 seconds, stop spinner → CLOSE POPUP → open Razorpay
-    setTimeout(function(){
-      if (typeof setLoading === 'function') setLoading(btnEl, false);
+  // ✅ NEW: Save an 'Initiated' row with prepaid amount from Sheet (window.codPrepaid)
+  saveOrderToSheet("COD Prepaid", "Initiated", { prepaidNow: Number(window.codPrepaid) || 95 });
 
-      // ✅ NEW: close the ₹95 popup exactly when the spinner stops
-      try { closeCOD95Popup(); } catch(e) {}
-
-      // Now open Razorpay for the prepaid amount
-      payCODAdvance95();
-    }, 2000);
-  }
+  // After ~2s, stop spinner → close popup → open Razorpay for prepaid
+  setTimeout(function(){
+    if (typeof setLoading === 'function') setLoading(btnEl, false);
+    try { closeCOD95Popup(); } catch(e) {}
+    payCODAdvance95(); // opens Razorpay for the ₹ value read from Sheet
+  }, 2000);
+}
 </script>
 
 <!-- Razorpay flow (unchanged logic, small safety tweaks) -->
@@ -3659,109 +3660,163 @@ window.closeHeaderSearch = closeHeaderSearch;
 </script>
 
 
-<!-- === Orders → Google Sheets (auto) === -->
+<!-- ==== Patch: Remove server fetch and use direct Razorpay Checkout ====/ -->
 <script>
-/**
- * 1) PASTE your deployed Apps Script Web App URL below.
- *    Example: https://script.google.com/macros/s/AKfycbxxxxxxxx/exec
- */
-const GS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxUR3jxiCdWLOh9RjANKrNi9ldcVaF5JEzmEPyd8u6-Pdpfuw4wtkuF09mfCqnjyLDz/exec";
+(function(){
+  // Hard override to ensure our version wins
+  window.payViaRazorpay = function(){
+    try{ document.getElementById("codPopup").style.display = "none"; document.body.style.overflow = ""; }catch(e){}
+    // Amounts
+    var items = []; try{ items = JSON.parse(localStorage.getItem("cartItems")||"[]"); }catch(e){}
+    var subtotal = items.reduce(function(s,it){ return s + (Number(it.price)||0) * (Number(it.qty)||0); }, 0);
+    var deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    var discount = 0;
+    try{
+      if (window.appliedCoupon && subtotal >= (window.appliedCoupon.min||0)) {
+        if (typeof discountOnSubtotal === "function") discount = Number(discountOnSubtotal(subtotal, window.appliedCoupon))||0;
+      }
+    }catch(_){}
+    var finalAmount = Math.max(1, Math.round((subtotal + deliveryFee - discount) * 100)); // paise
 
-/**
- * Build a compact payload for Google Sheets.
- * - Address is kept in a single cell (formatted multi-line string)
- * - Product image URLs are included (pipe-separated)
- * - Only important fields are sent
- */
-function __buildSheetPayload(order) {
-  try {
-    // Fallbacks
-    const items = Array.isArray(order?.items) ? order.items : (JSON.parse(localStorage.getItem("cartItems")||"[]"));
-    const addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
-    const addressHtml = (order?.address) || (localStorage.getItem("shippingAddress") || "");
-
-    // Strip HTML to single-line text while preserving key separators
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = addressHtml;
-    const addressSingleLine = tempDiv.innerText.replace(/\s*\n\s*/g, ", ").replace(/\s{2,}/g, " ").trim();
-
-    // Important pieces
-    const itemsTxt = items.map(i => (i?.name ? (i.name + " x" + (Number(i.qty)||1)) : "")).filter(Boolean).join(" | ");
-    const itemImages = items.map(i => i?.photo || "").filter(Boolean).join(" | ");
-
-    const amounts = order?.amounts || {};
-    const payload = {
-      orderId: order?.id || ("ORDER-" + Date.now()),
-      paymentMethod: order?.method || "Razorpay",
-      customerName: addrObj.fullname || (localStorage.getItem("user_name") || ""),
-      phone: addrObj.phone || "",
+    // Prefill
+    var addrObj = {}; try{ addrObj = JSON.parse(localStorage.getItem("shippingAddressObj")||"{}"); }catch(e){}
+    var prefill = {
+      name: addrObj.fullname || (localStorage.getItem("user_name") || ""),
       email: localStorage.getItem("user_email") || "",
-      address: addressSingleLine,
-      city: addrObj.city || "",
-      state: addrObj.state || "",
-      pincode: addrObj.pincode || "",
-      items: itemsTxt,
-      itemImages: itemImages,
-      subtotal: Number(amounts.itemsTotal || 0),
-      deliveryFee: Number(amounts.deliveryFee || 0),
-      codCharges: Number(amounts.codFee || 0),
-      discount: Number(amounts.discount || 0),
-      coupon: order?.coupon || "",
-      total: Number(amounts.grandTotal || 0),
-      // Razorpay specifics (best-effort)
-      razorpayPaymentId: (order?.razorpay_payment_id) || (String(order?.id||"").startsWith("RZP-") ? String(order.id).slice(4) : ""),
-      razorpayOrderId: order?.razorpay_order_id || "",
-      notes: ""
+      contact: addrObj.phone || ""
     };
-    return payload;
-  } catch (e) {
-    console.error("Sheet payload build error:", e);
-    return null;
-  }
-}
 
-/**
- * Send to Google Sheets via Apps Script Web App.
- * Called automatically on successful payments (Razorpay + COD advance).
- */
-async function saveOrderToGoogleSheet(order) {
-  try {
-    if (!GS_WEBAPP_URL || GS_WEBAPP_URL === "PASTE_WEB_APP_URL_HERE") {
-      console.warn("GS_WEBAPP_URL is not set. Please paste your Apps Script Web App URL.");
-      return;
-    }
-    const data = __buildSheetPayload(order);
-    if (!data) return;
+    var options = {
+      key: "rzp_live_RD9Vpf0c38C3vD",
+      amount: finalAmount,
+      currency: "INR",
+      name: "Precioussly",
+      description: "Secure Payment",
+      image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+      prefill: prefill,
+      notes: { address: localStorage.getItem("shippingAddress") || "" },
+      theme: { color: "#2874f0" },
+      handler: function (response) {
+        try{
+          // Build and save order
+          var items = []; try{ items = JSON.parse(localStorage.getItem("cartItems")||"[]"); }catch(e){}
+          var itemsTotal = items.reduce(function(s,it){ return s + (Number(it.price)||0) * (Number(it.qty)||0); }, 0);
+          var deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+          var applied = (window.appliedCoupon && window.appliedCoupon.code) ? window.appliedCoupon.code : null;
+          var discountAmt = discount;
+          var grandTotal = Math.max(0, itemsTotal + deliveryFee - discountAmt);
 
-    const res = await fetch(GS_WEBAPP_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-      // The Apps Script below sends proper CORS headers, so 'cors' is fine
-      mode: "cors",
-      redirect: "follow",
-    });
-    // We don't block UX on this — but you can check response if you want
-    try { const js = await res.json(); console.log("Sheet save:", js); } catch(_) {}
-  } catch (err) {
-    console.error("Failed to save order to Google Sheet:", err);
-  }
-}
+          var order = {
+            id: "RZP-" + (response.razorpay_payment_id || Date.now()),
+            method: "Razorpay",
+            items: items,
+            coupon: applied,
+            amounts: { itemsTotal: itemsTotal, deliveryFee: deliveryFee, codFee: 0, discount: discountAmt, grandTotal: grandTotal },
+            address: localStorage.getItem("shippingAddress") || "",
+            createdAt: new Date().toISOString()
+          };
 
-/**
- * Hook into existing flow:
- * - Your file already calls `sendOrderToTelegram(order)` on success (both Razorpay & COD).
- * - We wrap that function to ALSO call saveOrderToGoogleSheet(order) automatically.
- */
-(function wrapSendOrderToTelegram(){
-  const original = window.sendOrderToTelegram;
-  window.sendOrderToTelegram = async function(order){
-    try { await saveOrderToGoogleSheet(order); } catch(_){}
-    if (typeof original === "function") return original(order);
+          var orders = []; try{ orders = JSON.parse(localStorage.getItem("orders")||"[]"); }catch(e){}
+          orders.unshift(order);
+          localStorage.setItem("orders", JSON.stringify(orders));
+          localStorage.setItem("cartItems","[]");
+          localStorage.setItem("lastOrderClearedCart","1");
+          try{ if (typeof updateCartBadge === "function") updateCartBadge(); }catch(_){}
+          try{ if (typeof sendOrderToTelegram === "function") sendOrderToTelegram(order); }catch(_){}
+          try{ if (typeof showPaymentPopup === "function") showPaymentPopup("success"); }catch(_){}
+        }catch(err){
+          console.warn("Post-payment save failed", err);
+        }
+      },
+      modal: {
+        ondismiss: function(){
+          try{
+            var btn = document.getElementById("proceedBtn");
+            if (btn){ btn.classList.remove("is-loading"); btn.removeAttribute("aria-busy"); }
+            document.querySelectorAll(".popup-razorpay-btn.is-loading").forEach(function(b){
+              b.classList.remove("is-loading"); b.removeAttribute("aria-busy");
+            });
+          }catch(_){}
+        }
+      }
+    };
+
+    var rzp = new Razorpay(options);
+    try{ rzp.on('payment.failed', function(){ try{ showPaymentPopup && showPaymentPopup('failed'); }catch(_){} }); }catch(_){}
+    rzp.open();
   };
 })();
 </script>
-<!-- === /Orders → Google Sheets (auto) === -->
+<script>
+/* === Google Sheet Orders: PASTE your Apps Script Web App URL below === */
+const ORDER_SHEET_WEBAPP = "https://script.google.com/macros/s/AKfycbxBRJxcDbEO_pwXz6XRHUIg5aVVoahsleP6yHylt3hIImEWkV-xHDwYpQr5nw2cVfsskA/exec";
 
+/* Build the minimal payload we want to store */
+function buildOrderPayload(method, status, opts) {
+  // Address
+  let addr = {};
+  try { addr = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); } catch(e) {}
+
+  // Items
+  let items = [];
+  try { items = JSON.parse(localStorage.getItem("cartItems") || "[]"); } catch(e) {}
+
+  const itemsText = items.map(it => `${it.name || it.title || "Item"} × ${Number(it.qty)||1}`).join(", ");
+  const imageUrls = items.map(it => it.photo || it.image || it.img || "").filter(Boolean).join(", ");
+
+  // Amounts (delivery is 0 for COD, else from window)
+  const itemsTotal = items.reduce((s, it) => s + (Number(it.price)||0) * (Number(it.qty)||1), 0);
+  const isCOD = /cod/i.test(method);
+  const deliveryFee = isCOD ? 0 : (typeof window.deliveryFee === "number" ? window.deliveryFee : 0);
+  const codFee = Number(window.codCharge || 0);
+  let discount = 0;
+  try {
+    if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0) && typeof discountOnSubtotal === "function") {
+      discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
+    }
+  } catch(e) {}
+  const grandTotal = Math.max(0, itemsTotal + deliveryFee + (isCOD ? codFee : 0) - discount);
+
+  const prepaidNow = opts && opts.prepaidNow ? Number(opts.prepaidNow) : "";
+  const remainingOnDelivery = (isCOD && prepaidNow)
+    ? Math.max(0, itemsTotal + deliveryFee + codFee - prepaidNow)
+    : "";
+
+  return {
+    orderId: (opts && opts.orderId) || ("INIT-" + Date.now()),
+    status: status || "Initiated",
+    method,
+    prepaidNow,
+    remainingOnDelivery,
+    name: addr.fullname || (localStorage.getItem("user_name") || ""),
+    phone: addr.phone || "",
+    email: localStorage.getItem("user_email") || "",
+    address: addr.address || "",
+    city: addr.city || "",
+    state: addr.state || "",
+    pincode: addr.pincode || "",
+    itemsText,
+    imageUrls,
+    grandTotal
+  };
+}
+
+/* Fire-and-forget save to the Sheet web app */
+async function saveOrderToSheet(method, status, opts) {
+  if (!ORDER_SHEET_WEBAPP) return;
+  const body = buildOrderPayload(method, status, opts || {});
+  try {
+    // no-cors => avoids CORS issues; we don't need the response
+    await fetch(ORDER_SHEET_WEBAPP, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+  } catch(e) {
+    // swallow — saving should never block checkout
+  }
+}
+</script>
 </body>
 </html>
