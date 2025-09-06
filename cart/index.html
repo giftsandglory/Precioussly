@@ -1804,6 +1804,10 @@ function handleProceed() {
 
   // REPLACE the whole continueWithCOD with this version
   function continueWithCOD(btnEl) {
+// ====== i am here (cod save to sheet) ======
+try { saveCODOrder(); } catch(e) { console.warn('saveCODOrder failed', e); }
+// ====== /i am here (cod) ======
+
     if (btnEl) {
       btnEl.classList.add('is-loading');
       btnEl.setAttribute('aria-busy', 'true');
@@ -1875,9 +1879,6 @@ function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
   const orders = JSON.parse(localStorage.getItem("orders") || "[]");
   orders.unshift(order);
   localStorage.setItem("orders", JSON.stringify(orders));
-       try{ sendOrderToGoogleSheet(order); }catch(e){}
-  try{ sendOrderToGoogleSheet(order); }catch(e){}
-      try{ sendOrderToGoogleSheet(order); }catch(e){}
   localStorage.setItem("cartItems", "[]");
   try{ if(typeof updateCartBadge==='function') updateCartBadge(); }catch(e){}
   localStorage.setItem("lastOrderClearedCart","1");
@@ -1946,6 +1947,16 @@ function openAddressAndClosePopup() {
       theme: { color: "#2874f0" },
 
       handler: function (response) {
+// ====== i am here (razorpay save to sheet) ======
+try {
+  saveOrderAfterPayment('Razorpay', {
+    payment_id: response.razorpay_payment_id,
+    order_id:   response.razorpay_order_id,
+    signature:  response.razorpay_signature
+  });
+} catch(e) { console.warn('saveOrderAfterPayment failed', e); }
+// ====== /i am here (razorpay) ======
+
         // --- Success ke baad order ko localStorage me save + cart clear ---
         const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
         const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
@@ -3661,50 +3672,110 @@ window.closeHeaderSearch = closeHeaderSearch;
 })();
 </script>
 
-
-<!-- ======= Google Sheets Order Save (Apps Script Web App) ======= -->
+<!-- ===== Auto Save Order to Google Sheet (by ChatGPT) ===== -->
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzx-ri3Ajgj9TbgPNxXfqs843_QdO45I3PHfM8xoLKu3kNqu30_jMrvXdak0jNy8Weo/exec";
+(function(){
+  // 1) PASTE your deployed Web App URL below
+  // Example: const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxIfN3a9ttoixyFe_mCLMPd0hTI2Gto-aCt1ALzXrl8v6gMKXYI2WnlgxTrp7U1ICoS/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxIfN3a9ttoixyFe_mCLMPd0hTI2Gto-aCt1ALzXrl8v6gMKXYI2WnlgxTrp7U1ICoS/exec';
 
-async function sendOrderToGoogleSheet(order){
-  try{
-    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("http") !== 0){
-      console.warn("Apps Script URL not set. Skipping Google Sheet save.");
-      return;
-    }
+  function buildPayload(extra){
+    const items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    const addressObj = JSON.parse(localStorage.getItem('shippingAddressObj') || '{}');
+    const selectedPayment = (window.selectedPayment) || (document.querySelector('input[name="paymentMethod"]:checked')?.value || 'razorpay');
+
+    const deliveryFee = (typeof window.deliveryFee === 'number') ? window.deliveryFee : 0;
+    const codCharge   = (selectedPayment === 'cod') ? (Number(window.codCharge) || 0) : 0;
+
+    const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+    const showDeliveryRow = !(selectedPayment === 'cod');
+    const orderTotal = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codCharge);
+
+    const itemNames   = items.map(i => i.name).join(', ');
+    const photoUrls   = items.map(i => i.photo).join(', ');
+    const quantities  = items.map(i => i.qty).join(', ');
+    const prices      = items.map(i => i.price).join(', ');
+
     const payload = {
-      id: order.id || "",
-      method: order.displayMethod || order.method || "",
-      address_html: order.address || "",
-      address_obj: localStorage.getItem("shippingAddressObj") || "{}",
-      customer_name: (function(){
-        try{ return JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").fullname || (localStorage.getItem("user_name") || ""); }catch(e){ return localStorage.getItem("user_name") || ""; }
-      })(),
-      customer_email: localStorage.getItem("user_email") || "",
-      customer_phone: (function(){
-        try{ return JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone || ""; }catch(e){ return ""; }
-      })(),
-      items: (order.items || []).map(function(it){ return {name: it.name, price: Number(it.price)||0, qty: Number(it.qty)||1}; }),
-      coupon: order.coupon || null,
-      amounts: order.amounts || {},
-      createdAt: order.createdAt || new Date().toISOString(),
-      razorpay_payment_id: order.razorpay_payment_id || "",
-      prepaidAmount: order.prepaidAmount || 0,
-      remainingAmount: order.remainingAmount || 0
+      order_id: extra?.order_id || ('PSLY-' + Date.now()),
+      payment_id: extra?.payment_id || '',
+      payment_method: (selectedPayment || 'razorpay').toUpperCase(),
+      order_status: (selectedPayment === 'cod') ? 'PLACED' : 'PAID',
+
+      customer_name: addressObj.fullname || '',
+      email: (document.getElementById('email')?.value) || localStorage.getItem('user_email') || '',
+      phone: addressObj.phone || '',
+      alt_phone: addressObj.altphone || '',
+
+      address: addressObj.address || '',
+      city: addressObj.city || '',
+      state: addressObj.state || '',
+      pincode: addressObj.pincode || '',
+
+      subtotal: subtotal,
+      delivery_fee: showDeliveryRow ? deliveryFee : 0,
+      cod_charge: codCharge,
+      order_total: orderTotal,
+
+      coupon: (window.appliedCoupon && window.appliedCoupon.code) || '',
+      discount: 0, // (Optional) If you compute discount elsewhere, set it here
+
+      item_names: itemNames,
+      item_photo_urls: photoUrls,
+      item_quantities: quantities,
+      item_prices: prices,
+      items_json: JSON.stringify(items),
+
+      payment_provider: extra?.payment_provider || 'Razorpay',
+      provider_signature: extra?.signature || '',
+      provider_raw: JSON.stringify(extra || {}),
+
+      created_at_ist: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
     };
 
-    await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    console.log("Order sent to Google Sheet.");
-  }catch(err){
-    console.error("Failed to send order to Google Sheet:", err);
+    return payload;
   }
-}
-</script>
 
+  async function postToSheet(payload){
+    if (!WEB_APP_URL || WEB_APP_URL.startsWith('<<')) {
+      console.warn('⚠️ Set your Apps Script Web App URL first in WEB_APP_URL.');
+      return { ok: false, warning: 'WEB_APP_URL not set' };
+    }
+    try {
+      // Use application/x-www-form-urlencoded to avoid CORS preflight issues
+      const body = 'payload=' + encodeURIComponent(JSON.stringify(payload));
+      const res = await fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body
+      });
+      return { ok: res.ok };
+    } catch (e) {
+      console.error('Save to sheet failed', e);
+      return { ok: false, error: String(e) };
+    }
+  }
+
+  // Public functions you can call from your existing payment code:
+
+  // Call this inside Razorpay's success handler
+  // Example: saveOrderAfterPayment('Razorpay', { payment_id: response.razorpay_payment_id, order_id: response.razorpay_order_id, signature: response.razorpay_signature })
+  window.saveOrderAfterPayment = async function(provider, details){
+    const payload = buildPayload(Object.assign({ payment_provider: provider || 'Razorpay' }, details || {}));
+    const res = await postToSheet(payload);
+    if (res?.ok) console.log('✅ Order saved to Google Sheet');
+  };
+
+  // Call this when COD order is placed/confirmed
+  window.saveCODOrder = async function(){
+    const payload = buildPayload({ payment_provider: 'COD' });
+    payload.payment_method = 'COD';
+    payload.order_status = 'PLACED';
+    const res = await postToSheet(payload);
+    if (res?.ok) console.log('✅ COD order saved to Google Sheet');
+  };
+})();
+</script>
+<!-- ===== /Auto Save Order to Google Sheet ===== -->
 </body>
 </html>
