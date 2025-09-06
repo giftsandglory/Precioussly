@@ -1804,10 +1804,6 @@ function handleProceed() {
 
   // REPLACE the whole continueWithCOD with this version
   function continueWithCOD(btnEl) {
-// ====== i am here (cod save to sheet) ======
-try { saveCODOrder(); } catch(e) { console.warn('saveCODOrder failed', e); }
-// ====== /i am here (cod) ======
-
     if (btnEl) {
       btnEl.classList.add('is-loading');
       btnEl.setAttribute('aria-busy', 'true');
@@ -1947,16 +1943,6 @@ function openAddressAndClosePopup() {
       theme: { color: "#2874f0" },
 
       handler: function (response) {
-// ====== i am here (razorpay save to sheet) ======
-try {
-  saveOrderAfterPayment('Razorpay', {
-    payment_id: response.razorpay_payment_id,
-    order_id:   response.razorpay_order_id,
-    signature:  response.razorpay_signature
-  });
-} catch(e) { console.warn('saveOrderAfterPayment failed', e); }
-// ====== /i am here (razorpay) ======
-
         // --- Success ke baad order ko localStorage me save + cart clear ---
         const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
         const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
@@ -3672,110 +3658,110 @@ window.closeHeaderSearch = closeHeaderSearch;
 })();
 </script>
 
-<!-- ===== Auto Save Order to Google Sheet (by ChatGPT) ===== -->
+
+<!-- === Orders → Google Sheets (auto) === -->
 <script>
-(function(){
-  // 1) PASTE your deployed Web App URL below
-  // Example: const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxIfN3a9ttoixyFe_mCLMPd0hTI2Gto-aCt1ALzXrl8v6gMKXYI2WnlgxTrp7U1ICoS/exec';
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxIfN3a9ttoixyFe_mCLMPd0hTI2Gto-aCt1ALzXrl8v6gMKXYI2WnlgxTrp7U1ICoS/exec';
+/**
+ * 1) PASTE your deployed Apps Script Web App URL below.
+ *    Example: https://script.google.com/macros/s/AKfycbxxxxxxxx/exec
+ */
+const GS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxUR3jxiCdWLOh9RjANKrNi9ldcVaF5JEzmEPyd8u6-Pdpfuw4wtkuF09mfCqnjyLDz/exec";
 
-  function buildPayload(extra){
-    const items = JSON.parse(localStorage.getItem('cartItems') || '[]');
-    const addressObj = JSON.parse(localStorage.getItem('shippingAddressObj') || '{}');
-    const selectedPayment = (window.selectedPayment) || (document.querySelector('input[name="paymentMethod"]:checked')?.value || 'razorpay');
+/**
+ * Build a compact payload for Google Sheets.
+ * - Address is kept in a single cell (formatted multi-line string)
+ * - Product image URLs are included (pipe-separated)
+ * - Only important fields are sent
+ */
+function __buildSheetPayload(order) {
+  try {
+    // Fallbacks
+    const items = Array.isArray(order?.items) ? order.items : (JSON.parse(localStorage.getItem("cartItems")||"[]"));
+    const addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
+    const addressHtml = (order?.address) || (localStorage.getItem("shippingAddress") || "");
 
-    const deliveryFee = (typeof window.deliveryFee === 'number') ? window.deliveryFee : 0;
-    const codCharge   = (selectedPayment === 'cod') ? (Number(window.codCharge) || 0) : 0;
+    // Strip HTML to single-line text while preserving key separators
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = addressHtml;
+    const addressSingleLine = tempDiv.innerText.replace(/\s*\n\s*/g, ", ").replace(/\s{2,}/g, " ").trim();
 
-    const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
-    const showDeliveryRow = !(selectedPayment === 'cod');
-    const orderTotal = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codCharge);
+    // Important pieces
+    const itemsTxt = items.map(i => (i?.name ? (i.name + " x" + (Number(i.qty)||1)) : "")).filter(Boolean).join(" | ");
+    const itemImages = items.map(i => i?.photo || "").filter(Boolean).join(" | ");
 
-    const itemNames   = items.map(i => i.name).join(', ');
-    const photoUrls   = items.map(i => i.photo).join(', ');
-    const quantities  = items.map(i => i.qty).join(', ');
-    const prices      = items.map(i => i.price).join(', ');
-
+    const amounts = order?.amounts || {};
     const payload = {
-      order_id: extra?.order_id || ('PSLY-' + Date.now()),
-      payment_id: extra?.payment_id || '',
-      payment_method: (selectedPayment || 'razorpay').toUpperCase(),
-      order_status: (selectedPayment === 'cod') ? 'PLACED' : 'PAID',
-
-      customer_name: addressObj.fullname || '',
-      email: (document.getElementById('email')?.value) || localStorage.getItem('user_email') || '',
-      phone: addressObj.phone || '',
-      alt_phone: addressObj.altphone || '',
-
-      address: addressObj.address || '',
-      city: addressObj.city || '',
-      state: addressObj.state || '',
-      pincode: addressObj.pincode || '',
-
-      subtotal: subtotal,
-      delivery_fee: showDeliveryRow ? deliveryFee : 0,
-      cod_charge: codCharge,
-      order_total: orderTotal,
-
-      coupon: (window.appliedCoupon && window.appliedCoupon.code) || '',
-      discount: 0, // (Optional) If you compute discount elsewhere, set it here
-
-      item_names: itemNames,
-      item_photo_urls: photoUrls,
-      item_quantities: quantities,
-      item_prices: prices,
-      items_json: JSON.stringify(items),
-
-      payment_provider: extra?.payment_provider || 'Razorpay',
-      provider_signature: extra?.signature || '',
-      provider_raw: JSON.stringify(extra || {}),
-
-      created_at_ist: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+      orderId: order?.id || ("ORDER-" + Date.now()),
+      paymentMethod: order?.method || "Razorpay",
+      customerName: addrObj.fullname || (localStorage.getItem("user_name") || ""),
+      phone: addrObj.phone || "",
+      email: localStorage.getItem("user_email") || "",
+      address: addressSingleLine,
+      city: addrObj.city || "",
+      state: addrObj.state || "",
+      pincode: addrObj.pincode || "",
+      items: itemsTxt,
+      itemImages: itemImages,
+      subtotal: Number(amounts.itemsTotal || 0),
+      deliveryFee: Number(amounts.deliveryFee || 0),
+      codCharges: Number(amounts.codFee || 0),
+      discount: Number(amounts.discount || 0),
+      coupon: order?.coupon || "",
+      total: Number(amounts.grandTotal || 0),
+      // Razorpay specifics (best-effort)
+      razorpayPaymentId: (order?.razorpay_payment_id) || (String(order?.id||"").startsWith("RZP-") ? String(order.id).slice(4) : ""),
+      razorpayOrderId: order?.razorpay_order_id || "",
+      notes: ""
     };
-
     return payload;
+  } catch (e) {
+    console.error("Sheet payload build error:", e);
+    return null;
   }
+}
 
-  async function postToSheet(payload){
-    if (!WEB_APP_URL || WEB_APP_URL.startsWith('<<')) {
-      console.warn('⚠️ Set your Apps Script Web App URL first in WEB_APP_URL.');
-      return { ok: false, warning: 'WEB_APP_URL not set' };
+/**
+ * Send to Google Sheets via Apps Script Web App.
+ * Called automatically on successful payments (Razorpay + COD advance).
+ */
+async function saveOrderToGoogleSheet(order) {
+  try {
+    if (!GS_WEBAPP_URL || GS_WEBAPP_URL === "PASTE_WEB_APP_URL_HERE") {
+      console.warn("GS_WEBAPP_URL is not set. Please paste your Apps Script Web App URL.");
+      return;
     }
-    try {
-      // Use application/x-www-form-urlencoded to avoid CORS preflight issues
-      const body = 'payload=' + encodeURIComponent(JSON.stringify(payload));
-      const res = await fetch(WEB_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body
-      });
-      return { ok: res.ok };
-    } catch (e) {
-      console.error('Save to sheet failed', e);
-      return { ok: false, error: String(e) };
-    }
+    const data = __buildSheetPayload(order);
+    if (!data) return;
+
+    const res = await fetch(GS_WEBAPP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      // The Apps Script below sends proper CORS headers, so 'cors' is fine
+      mode: "cors",
+      redirect: "follow",
+    });
+    // We don't block UX on this — but you can check response if you want
+    try { const js = await res.json(); console.log("Sheet save:", js); } catch(_) {}
+  } catch (err) {
+    console.error("Failed to save order to Google Sheet:", err);
   }
+}
 
-  // Public functions you can call from your existing payment code:
-
-  // Call this inside Razorpay's success handler
-  // Example: saveOrderAfterPayment('Razorpay', { payment_id: response.razorpay_payment_id, order_id: response.razorpay_order_id, signature: response.razorpay_signature })
-  window.saveOrderAfterPayment = async function(provider, details){
-    const payload = buildPayload(Object.assign({ payment_provider: provider || 'Razorpay' }, details || {}));
-    const res = await postToSheet(payload);
-    if (res?.ok) console.log('✅ Order saved to Google Sheet');
-  };
-
-  // Call this when COD order is placed/confirmed
-  window.saveCODOrder = async function(){
-    const payload = buildPayload({ payment_provider: 'COD' });
-    payload.payment_method = 'COD';
-    payload.order_status = 'PLACED';
-    const res = await postToSheet(payload);
-    if (res?.ok) console.log('✅ COD order saved to Google Sheet');
+/**
+ * Hook into existing flow:
+ * - Your file already calls `sendOrderToTelegram(order)` on success (both Razorpay & COD).
+ * - We wrap that function to ALSO call saveOrderToGoogleSheet(order) automatically.
+ */
+(function wrapSendOrderToTelegram(){
+  const original = window.sendOrderToTelegram;
+  window.sendOrderToTelegram = async function(order){
+    try { await saveOrderToGoogleSheet(order); } catch(_){}
+    if (typeof original === "function") return original(order);
   };
 })();
 </script>
-<!-- ===== /Auto Save Order to Google Sheet ===== -->
+<!-- === /Orders → Google Sheets (auto) === -->
+
 </body>
 </html>
