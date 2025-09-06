@@ -3475,5 +3475,188 @@ window.closeHeaderSearch = closeHeaderSearch;
   window.__fd_recompute = recomputeDeliveryAndMessage;
 })();
 </script>
+
+<!-- ✅ Payment Processing Overlay (non-blocking) -->
+<style>
+.payment-processing-overlay{
+  position: fixed; inset: 0; display:none; align-items:center; justify-content:center;
+  background: rgba(0,0,0,.45); z-index: 10060; padding:16px;
+}
+.payment-processing-box{
+  background:#ffffff; width:100%; max-width:360px; border-radius:18px; border:1px solid #e5e5e5;
+  box-shadow:0 18px 45px rgba(0,0,0,.15); padding:18px 16px; text-align:center; font-family:'Roboto Slab', serif;
+}
+.processing-title{ font-size:20px; font-weight:800; color:#111; margin:8px 0 6px; }
+.processing-sub{ font-size:14px; color:#333; margin:0 10px 10px; line-height:1.45; }
+</style>
+<div class="payment-processing-overlay" id="paymentProcessingOverlay">
+  <div class="payment-processing-box">
+    <div class="processing-title">Verifying Payment…</div>
+    <div class="processing-sub">We’re confirming your payment with Razorpay. Please don’t refresh this page.</div>
+  </div>
+</div>
+
+<script>
+// ===== Razorpay (safe) with server-created order + webhook verification =====
+(function(){
+  // Small helper: show/hide "processing" overlay
+  function showProcessing(on){
+    var el = document.getElementById("paymentProcessingOverlay");
+    if(!el) return;
+    el.style.display = on ? "flex" : "none";
+  }
+
+  // Poll server for status after webhook processes the payment
+  async function pollOrderStatus(orderId, maxTries=15, delayMs=3000){
+    for (let i=0;i<maxTries;i++){
+      try{
+        const res = await fetch(`/api/razorpay/order-status?order_id=${encodeURIComponent(orderId)}`, {cache:"no-store"});
+        if (res.ok){
+          const data = await res.json();
+          const status = String(data.status||"").toLowerCase(); // expected: "paid" | "failed" | "created" | "processing"
+          if (status === "paid" || status === "captured" ){
+            try { finalizeSuccessfulOrder(data, orderId); } catch(e){}
+            showProcessing(false);
+            try { showPaymentPopup && showPaymentPopup("success"); } catch(e){}
+            return;
+          }
+          if (status === "failed"){
+            showProcessing(false);
+            try { showPaymentPopup && showPaymentPopup("failed"); } catch(e){}
+            return;
+          }
+        }
+      }catch(e){ /* ignore and keep polling */ }
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+    // timeout → leave a gentle message
+    showProcessing(false);
+    alert("Payment received. We couldn't auto-confirm yet. You'll see your order in Dashboard once confirmed.");
+  }
+
+  // Save order locally (for Dashboard) after server confirms via webhook
+  function finalizeSuccessfulOrder(serverData, orderId){
+    try{
+      const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+      const itemsTotal = items.reduce((s,it)=> s + (Number(it.price)||0) * (Number(it.qty)||1), 0);
+      const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+
+      // Try to preserve coupon info if present
+      let discount = 0, coupon = null;
+      try {
+        if (window.appliedCoupon){
+          coupon = window.appliedCoupon.code || null;
+          if (typeof discountOnSubtotal === "function"){
+            discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
+          }
+        }
+      } catch(e){}
+
+      const grandTotal = Math.max(0, itemsTotal + deliveryFee - discount);
+
+      const order = {
+        id: serverData?.order_id || orderId || ("RZP-" + Date.now()),
+        method: "Razorpay",
+        items,
+        coupon,
+        amounts: { itemsTotal, deliveryFee, codFee: 0, discount, grandTotal },
+        address: localStorage.getItem("shippingAddress") || "",
+        createdAt: new Date().toISOString()
+      };
+      const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+      orders.unshift(order);
+      localStorage.setItem("orders", JSON.stringify(orders));
+      localStorage.setItem("cartItems","[]");
+      localStorage.setItem("lastOrderClearedCart","1");
+      try { updateCartBadge && updateCartBadge(); } catch(e){}
+      try { sendOrderToTelegram && sendOrderToTelegram(order); } catch(e){}
+    }catch(e){ /* non-fatal */ }
+  }
+
+  // Create Razorpay order on server and open Checkout
+  window.payViaRazorpay = async function(){
+    // Get address before proceeding
+    const shippingAddress = localStorage.getItem("shippingAddress");
+    if (!shippingAddress || !shippingAddress.trim()){
+      try {
+        document.getElementById("addressRequiredPopup").style.display = "flex";
+        document.body.style.overflow = "hidden";
+      } catch(e){}
+      return;
+    }
+
+    // Build payload for server
+    let items = [];
+    try{ items = JSON.parse(localStorage.getItem("cartItems")||"[]"); }catch(e){}
+    const addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
+    const customer = {
+      name: addrObj.fullname || (localStorage.getItem("user_name") || ""),
+      email: localStorage.getItem("user_email") || "",
+      contact: addrObj.phone || ""
+    };
+
+    const meta = {
+      coupon: (window.appliedCoupon && window.appliedCoupon.code) ? window.appliedCoupon.code : null,
+      notes: { address: shippingAddress || "" }
+    };
+
+    // Call your server to create an order
+    let orderResp;
+    try{
+      orderResp = await fetch("/api/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items, customer, meta })
+      });
+    }catch(e){
+      alert("Network error while creating order. Please try again.");
+      return;
+    }
+    if (!orderResp.ok){
+      alert("Unable to create order. Please try again.");
+      return;
+    }
+    const { order, key } = await orderResp.json(); // expected: { order:{id, amount, currency}, key: "rzp_live_xxx" }
+
+    // Prepare Razorpay options using server-created order
+    const options = {
+      key: key,
+      order_id: order.id,
+      amount: order.amount,
+      currency: order.currency || "INR",
+      name: "Precioussly",
+      description: "Online Payment",
+      image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+      prefill: customer,
+      notes: meta.notes || {},
+      theme: { color: "#2874f0" },
+
+      // DO NOT trust client 'handler' for fulfillment; webhook will verify.
+      handler: function (response) {
+        // Show processing UI and poll server until webhook marks it paid
+        showProcessing(true);
+        pollOrderStatus(order.id);
+      },
+      modal: {
+        ondismiss: function(){
+          // reset any spinners on close
+          try{
+            const proceedBtn = document.getElementById("proceedBtn");
+            if (proceedBtn){ proceedBtn.classList.remove("is-loading"); proceedBtn.removeAttribute("aria-busy"); }
+            document.querySelectorAll(".popup-razorpay-btn.is-loading").forEach(b=>{
+              b.classList.remove("is-loading"); b.removeAttribute("aria-busy");
+            });
+          }catch(e){}
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    try { rzp.on("payment.failed", function(){ showProcessing(false); try{ showPaymentPopup && showPaymentPopup("failed"); }catch(e){} }); } catch(_){}
+    rzp.open();
+  };
+})();
+</script>
+
 </body>
 </html>
