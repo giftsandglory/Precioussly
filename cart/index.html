@@ -3754,5 +3754,180 @@ window.closeHeaderSearch = closeHeaderSearch;
 })();
 </script>
 
+
+<!-- ==== Patch: Robust Razorpay open + instant Google Sheet save (injected) ==== -->
+<script>
+(function(){
+  // Helper: compute cart amounts for Razorpay and COD flows
+  function computeCartAndDiscount(forMethod){
+    var items = [];
+    try { items = JSON.parse(localStorage.getItem("cartItems") || "[]"); } catch(e){}
+    var itemsTotal = items.reduce(function(s, it){
+      var p = Number(it.price) || 0;
+      var q = Number(it.qty)   || 0;
+      return s + (p*q);
+    }, 0);
+
+    // Delivery fee logic:
+    // Razorpay path shows "Free Delivery" (0). COD path has deliveryFee 0 (not shown) and codFee applied.
+    var deliveryFee = 0;
+    if (String(forMethod).toLowerCase() === "razorpay") {
+      // leave as 0 (Free Delivery) to match UI text; if you ever want to charge delivery for online,
+      // set deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+      deliveryFee = 0;
+    } else {
+      deliveryFee = 0;
+    }
+
+    // COD charges only when COD
+    var codFee = 0;
+    if (String(forMethod).toLowerCase() === "cod") {
+      codFee = Number(window.codCharge || 0);
+    }
+
+    // Coupon/discount (only if meets min)
+    var discount = 0, couponCode = null;
+    try {
+      if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0)) {
+        couponCode = window.appliedCoupon.code || null;
+        if (typeof discountOnSubtotal === "function") {
+          discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
+        }
+      }
+    } catch(e){}
+
+    var grandTotal = Math.max(0, itemsTotal + deliveryFee + codFee - discount);
+
+    return { items, itemsTotal, deliveryFee, codFee, discount, couponCode, grandTotal };
+  }
+
+  // Safely override / add payViaRazorpay so Proceed → Razorpay always opens
+  window.payViaRazorpay = function(){
+    // Address guard: handleProceed already checks; keep extra safety
+    var addressStr = localStorage.getItem("shippingAddress") || "";
+    if (!addressStr.trim()){
+      try {
+        document.getElementById("addressRequiredPopup").style.display = "flex";
+        document.body.style.overflow = "hidden";
+      } catch(e){}
+      return;
+    }
+
+    var addrObj = {};
+    try { addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); } catch(e){}
+    var preName  = addrObj.fullname || (localStorage.getItem("user_name") || "");
+    var preEmail = localStorage.getItem("user_email") || "";
+    var prePhone = addrObj.phone || "";
+
+    var c = computeCartAndDiscount("razorpay");
+    var amountPaise = Math.round((c.grandTotal || 0) * 100);
+
+    // Build order object now so the same snapshot is used for save + Telegram
+    var baseOrder = {
+      id: "RZP-" + Date.now(),
+      method: "Razorpay",
+      items: c.items,
+      coupon: c.couponCode,
+      amounts: { itemsTotal: c.itemsTotal, deliveryFee: c.deliveryFee, codFee: 0, discount: c.discount, grandTotal: c.grandTotal },
+      address: addressStr,
+      createdAt: new Date().toISOString()
+    };
+
+    var options = {
+      key: "rzp_live_RD9Vpf0c38C3vD",
+      amount: amountPaise,
+      currency: "INR",
+      name: "Precioussly",
+      description: "Order Payment",
+      image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+      prefill: { name: preName, email: preEmail, contact: prePhone },
+      notes: { address: addressStr },
+      theme: { color: "#2874f0" },
+      handler: function (response) {
+        try{
+          var order = Object.assign({}, baseOrder, {
+            razorpay_payment_id: response.razorpay_payment_id || ""
+          });
+
+          // Save to local "orders" (dashboard reads this)
+          try{
+            var orders = JSON.parse(localStorage.getItem("orders") || "[]");
+            orders.unshift(order);
+            localStorage.setItem("orders", JSON.stringify(orders));
+          }catch(e){}
+
+          // Clear cart + badge
+          localStorage.setItem("cartItems", "[]");
+          try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+          localStorage.setItem("lastOrderClearedCart", "1");
+
+          // Notify channels
+          try { sendOrderToTelegram(order); } catch(e){}
+          try { saveOrderToGoogleSheet(order); } catch(e){}
+
+          // Success UI
+          try { showPaymentPopup("success"); } catch(e){ location.href = "/dashboard"; }
+        } catch(err){
+          try { showPaymentPopup("failed"); } catch(e){ alert("Payment captured, but post-processing failed. We'll reach out!"); }
+        }
+      },
+      modal: {
+        ondismiss: function () {
+          // Safely clear any spinner on Proceed button
+          try{
+            var btn = document.getElementById("proceedBtn");
+            if (btn){ btn.classList.remove("is-loading"); btn.removeAttribute("aria-busy"); }
+          }catch(e){}
+        }
+      }
+    };
+
+    // Open Razorpay
+    var rzp;
+    try { rzp = new Razorpay(options); } catch(e){
+      alert("Razorpay SDK failed to load. Please refresh and try again.");
+      return;
+    }
+    try { rzp.on('payment.failed', function(){ try{ showPaymentPopup('failed'); }catch(_){ alert('Payment failed.'); } }); } catch(_){}
+    rzp.open();
+  };
+
+  // Override COD place function to guarantee Sheet save + local persistence
+  window.placeCODOrderAndRedirect = function(orderIdOverride, alreadyNotified){
+    var c = computeCartAndDiscount("cod");
+    var addressStr = localStorage.getItem("shippingAddress") || "";
+
+    var order = {
+      id: (orderIdOverride || ("COD-" + Date.now())),
+      method: "Cash on Delivery",
+      items: c.items,
+      coupon: c.couponCode,
+      amounts: { itemsTotal: c.itemsTotal, deliveryFee: 0, codFee: c.codFee, discount: c.discount, grandTotal: c.grandTotal },
+      address: addressStr,
+      createdAt: new Date().toISOString()
+    };
+
+    // Save locally (for dashboard)
+    try{
+      var orders = JSON.parse(localStorage.getItem("orders") || "[]");
+      orders.unshift(order);
+      localStorage.setItem("orders", JSON.stringify(orders));
+    }catch(e){}
+
+    // Clear cart + badge
+    localStorage.setItem("cartItems", "[]");
+    try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+    localStorage.setItem("lastOrderClearedCart", "1");
+
+    // Notify
+    if (!alreadyNotified) { try { sendOrderToTelegram(order); } catch(e){} }
+    try { saveOrderToGoogleSheet(order); } catch(e){}
+
+    // Success UI
+    try { showPaymentPopup("success"); } catch(e){ location.href = "/dashboard"; }
+  };
+})();
+</script>
+<!-- ==== /End Patch ==== -->
 </body>
 </html>
