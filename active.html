@@ -3,13 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Orders from Google Sheet → Full-Height Popup</title>
+<title>Orders from Google Sheet → Full-Height Popup (FIXED)</title>
 <style>
   :root{
-    --bg:#f6f7fb; --surface:#fff; --muted:#8a8f98; --ink:#121417; --accent:#2b6df6;
+    --bg:#f1f3f8; --surface:#fff; --muted:#6c7280; --ink:#101318; --accent:#2563eb;
     --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.12); --pad:clamp(10px,2.2vh,16px);
+    --green-ink:#0f6a2a; --green-bg:#eafaf0; --green-bg-hover:#def7e7; --green-border:#d9f3df;
   }
-  *{ -webkit-tap-highlight-color:transparent; user-select:none; box-sizing:border-box; }
+  *{ -webkit-tap-highlight-color:transparent; box-sizing:border-box; }
+button, .btn-copy { user-select:none; }
   html,body{ margin:0; background:var(--bg);
     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
     color:var(--ink);
@@ -17,8 +19,9 @@
 
   .wrap{ min-height:100dvh; padding:20px 16px 40px; display:flex; justify-content:center; }
   .list{ width:clamp(320px, 92vw, 720px); display:grid; gap:16px; }
+  .center{ display:grid; place-items:center; color:#6b7280; padding:40px 0; }
 
-  .order-card{
+  .order-card{ user-select:text; -webkit-user-select:text;
     background:var(--surface); border-radius:var(--radius); box-shadow:0 6px 20px rgba(0,0,0,.08);
     padding:18px 20px; cursor:pointer; transition:.25s ease;
   }
@@ -57,106 +60,129 @@
   .details .k{ font-size:12px; color:var(--muted); letter-spacing:.03em; font-weight:700; display:block; margin-bottom:4px; }
   .details .v{ font-size:14.5px; }
 
+  .field-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px; }
+  .btn-copy{
+    appearance:none; border:1px solid var(--green-border); background:var(--green-bg);
+    color:var(--green-ink); padding:10px 14px; border-radius:10px; font-weight:800; font-size:13px;
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+  }
+  .btn-copy:hover{ background:var(--green-bg-hover); }
+  .btn-copy:active{ transform:translateY(1px) }
+
   .no-scroll{ height:100vh; overflow:hidden; }
-  .empty{ opacity:.5; }
+  .empty{ opacity:.7; }
+  .spinner{ width:28px; height:28px; border-radius:999px; border:3px solid #e5e7eb; border-top-color:#9aa0a6; animation:spin 1s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg) } }
+
+  /* Toast for copy feedback */
+  .toast{
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    background:#0f172a; color:#fff; border-radius:14px; padding:10px 14px;
+    font-weight:700; font-size:13px; opacity:0; pointer-events:none; transition:.25s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  }
+  .toast.show{ opacity:1 }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div id="orderList" class="list" aria-live="polite"></div>
+    <div id="orderList" class="list" aria-live="polite">
+      <div class="center"><div class="spinner" aria-label="Loading"></div></div>
+    </div>
   </div>
 
   <div id="modalRoot"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
-const SHEET_ID   = "1wfMl8tSlmfVgoSvnFI6gHEDpmvJsF5wdOQdhFowmngo";
+// ====== CONFIG ======
+/* IMPORTANT:
+   1) Make sure the Google Sheet is shared as "Anyone with the link → Viewer".
+   2) Update SHEET_ID and SHEET_NAME below, if different. */
+const SHEET_ID   = "1wfMl8tSlmfVgoSvnFI6gHEDpmvJsF5wdOQdhFowmngo";  // change if needed
 const SHEET_NAME = "Sheet1";
+// Optional fallback: if you know the GID of the sheet tab, put it here to try CSV if GViz fails.
+const SHEET_GID  = "";
 
-async function getSheetRows(){
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
-  const cols = json.table.cols.map(c => (c.label || "").trim());
-
-  const rows = (json.table.rows || []).map(r => {
-    const obj = {};
-    cols.forEach((h, i) => obj[h] = (r.c[i] && r.c[i].v != null) ? r.c[i].v : "");
-    return obj;
-  });
-  if(rows.length && rows[0]["Order ID"] === "Order ID"){ rows.shift(); }
-  return rows.filter(r => r["Order ID"]);
-}
-
+// ====== UTIL ======
 const fmtINR = n => isFinite(n) ? new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR"}).format(n) : "";
-const safe = s => (s!==null && s!==undefined && String(s).trim()!=="") ? String(s).trim() : "—";
+const safe = s => (s!==null && s!==undefined && String(s).trim()!=="") ? String(s).trim() : "";
+const firstOr = (s, alt="") => s ? String(s).split("|")[0].trim() : alt;
 
 function normalizeToDate(val){
   if(val===null || val===undefined || val==="") return null;
-
   if(typeof val === "number"){
-    // Google Sheets serial (days since 1899-12-30)
     const ms = Math.round((val - 25569) * 86400) * 1000;
     return new Date(ms);
   }
   const s = String(val).trim();
-
-  // GViz style Date(YYYY,MM,DD,hh,mm,ss)
   const m = s.match(/^Date\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+),\s*(\d+),\s*(\d+))?\)$/);
-  if(m){
-    const y = +m[1], mo = +m[2], d = +m[3], hh = +(m[4]||0), mi = +(m[5]||0), ss = +(m[6]||0);
-    return new Date(y, mo, d, hh, mi, ss);
-  }
-
-  // ISO-like "YYYY-MM-DD HH:mm:ss"
-  if(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}/.test(s)){
-    return new Date(s.replace(" ","T")+("+05:30"));
-  }
-
-  // Fallback: native parse
+  if(m){ return new Date(+m[1], +m[2], +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0)); }
+  if(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}/.test(s)){ return new Date(s.replace(" ","T")+("+05:30")); }
   const t = Date.parse(s);
   return isNaN(t) ? null : new Date(t);
 }
-
 function timeFromIST(val){
-  const raw = (val===null || val===undefined) ? "" : String(val).trim();
-
-  const d = normalizeToDate(raw);
-  if(!d) return raw || "—";
+  const d = normalizeToDate(val);
+  if(!d) return safe(val) || "—";
   try{
     return d.toLocaleString("en-IN",{
       timeZone: "Asia/Kolkata",
       year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit"
     }).replace(","," –");
-  }catch(e){
-    return "—";
+  }catch(e){ return "—"; }
+}
+const getField = (o, keys) => { for(const k of keys){ const v=o[k]; if(v!==undefined && v!==null && String(v).trim()!="") return v; } return ""; };
+
+// ====== COPY HELPERS ======
+function buildCopyText(o){
+  // WhatsApp-friendly; blank lines between blocks
+  const name = safe(o["Customer Name"]);
+  const address = safe(o["Full Address"]).replace(/[\s\n\r]+/g, " ").trim();
+  const phone = safe(o["Phone Number"]);
+  const alt = safe(o["Alternate Phone Number"]);
+  const blocks = [name, address, phone, alt].filter(Boolean);
+  return blocks.join("\n\n");
+}
+async function copyToClipboard(str){
+  try{
+    await navigator.clipboard.writeText(str);
+    return true;
+  }catch(err){
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = str;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try{
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    }catch(e){ document.body.removeChild(ta); return false; }
   }
 }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1400);
+}
 
-const firstOr = (s, alt="") => s ? String(s).split("|")[0].trim() : alt;
-
-// Helper to fetch first non-empty value by trying multiple header names
-const getField = (o, keys) => {
-  for(const k of keys){
-    const v = o[k];
-    if(v !== undefined && v !== null && String(v).trim() !== "") return v;
-  }
-  return "";
-};
-
+// ====== TEMPLATES ======
 function cardHTML(o, idx){
   const orderTime = timeFromIST(o["Order Timestamp (IST)"]);
   const firstItem = safe(firstOr(o['Items (Name × Quantity; pipe-separated)'], ""));
   const totalLabel = safe(o["Order Total (₹)"]);
   const total = isFinite(+totalLabel) ? fmtINR(+totalLabel) : totalLabel;
-
   return `
   <article class="order-card" data-idx="${idx}" aria-label="Order ${o["Order ID"]}">
     <div class="row">
       <span>ORDER#${o["Order ID"]}</span>
       <span>${orderTime}</span>
     </div>
-    <h2 class="name">${safe(o["Customer Name"])}</h2>
+    <h2 class="name">${safe(o["Customer Name"]) || "—"}</h2>
     <p class="item">${firstItem || ""}</p>
     <div class="amt">${total}</div>
   </article>`;
@@ -166,41 +192,46 @@ function modalHTML(o, idx){
   const images = (o["Item Image URLs"] || "").split("|").map(s => s.trim()).filter(Boolean);
   const thumbs = images.map(src => `<a href="${src}" target="_blank" rel="noopener"><img src="${src}" alt=""></a>`).join("");
 
-  const phone = String(o["Phone Number"]||"").replace(/\D/g,"");
-  const waLink = phone ? `https://wa.me/91${phone}` : "";
-
   const field = (label, value, wide=false) => `
     <div class="field" ${wide ? 'style="grid-column:1/-1"' : ""}>
       <div class="label">${label}</div>
-      <div class="value">${safe(value)}</div>
+      <div class="value">${safe(value) || "—"}</div>
     </div>`;
 
   const detailsBox = `
   <div class="field" style="grid-column:1/-1">
-    <div class="label">Customer Details</div>
+    <div class="field-head">
+      <div class="label" style="margin:0">Customer Details</div>
+      <button type="button" class="btn-copy" data-copy="${idx}" aria-label="Copy and Use">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        Copy and Use
+      </button>
+    </div>
     <div class="value">
       <div class="details">
         <div class="row">
           <span class="k">Customer Name</span>
-          <span class="v">${safe(o["Customer Name"])}</span>
+          <span class="v">${safe(o["Customer Name"]) || "—"}</span>
         </div>
         <div class="row">
           <span class="k">Full Address</span>
-          <span class="v">${safe(o["Full Address"])}</span>
+          <span class="v">${safe(o["Full Address"]) || "—"}</span>
         </div>
         <div class="row">
           <span class="k">Phone Number</span>
-          <span class="v">${safe(o["Phone Number"])}</span>
+          <span class="v">${safe(o["Phone Number"]) || "—"}</span>
         </div>
         <div class="row">
           <span class="k">Alternate Phone Number</span>
-          <span class="v">${safe(o["Alternate Phone Number"])}</span>
+          <span class="v">${safe(o["Alternate Phone Number"]) || "—"}</span>
         </div>
       </div>
     </div>
   </div>`;
 
-  // Try multiple header names for Pincode to match your sheet (e.g., "Pincode")
   const pincode = getField(o, ["Postal Code (Pincode)", "Pincode", "Postal Code", "Pin code", "Pin Code"]);
 
   return `
@@ -218,114 +249,174 @@ function modalHTML(o, idx){
         <div class="grid">
           ${field("Order ID", o["Order ID"])}
           ${field("Order Timestamp (IST)", timeFromIST(o["Order Timestamp (IST)"]))}
-
           ${detailsBox}
-
-          ${field("Customer Email", o["Customer Email"])}
-
+          ${field("Customer Email", o["Customer Email"] || o["Email"])}
           ${field("City", o["City"])}
           ${field("State", o["State"])}
-
           ${field("Postal Code (Pincode)", pincode)}
           ${field("Payment Method (Razorpay / Cash on Delivery)", o["Payment Method (Razorpay / Cash on Delivery)"])}
-
           ${field("Payment Status (Paid / Unpaid / Prepaid-COD)", o["Payment Status (Paid / Unpaid / Prepaid-COD)"])}
           ${field("Payment Reference (Razorpay Payment ID / COD Reference)", o["Payment Reference (Razorpay Payment ID / COD Reference)"], true)}
-
           ${field("COD Prepaid Amount (₹)", o["COD Prepaid Amount (₹)"])}
           ${field("COD Charges (₹)", o["COD Charges (₹)"])}
-
           ${field("Coupon Code", o["Coupon Code"])}
           ${field("Discount Amount (₹)", o["Discount Amount (₹)"])}
-
           ${field('Delivery Fee (₹ or "Free Delivery")', o['Delivery Fee (₹ or "Free Delivery")'])}
           ${field("Item Count", o["Item Count"])}
-
           ${field("Items (Name × Quantity; pipe-separated)", o["Items (Name × Quantity; pipe-separated)"], true)}
-
           <div class="field" style="grid-column:1/-1">
             <div class="label">Item Image URLs</div>
             <div class="value ${images.length? "" : "empty"}">
               ${images.length ? `<div class="thumbs">${thumbs}</div>` : "—"}
             </div>
           </div>
-
           ${field("Subtotal (₹)", o["Subtotal (₹)"])}
           ${field("Order Total (₹)", o["Order Total (₹)"])}
         </div>
-
-        ${waLink ? `
-          <div style="margin-top:16px">
-            <a href="${waLink}" target="_blank" rel="noopener" style="text-decoration:none">
-              <span class="value" style="display:inline-flex;align-items:center;gap:8px">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M20.52 3.48A11.9 11.9 0 0 0 12.06 0C5.46 0 .1 5.36.1 11.96c0 2.11.56 4.17 1.62 5.99L0 24l6.2-1.64a11.92 11.92 0 0 0 5.86 1.51h.01c6.6 0 11.96-5.36 11.96-11.96 0-3.2-1.25-6.2-3.47-8.43zM12.06 21.9h-.01a9.93 9.93 0 0 1-5.06-1.39l-.36-.21-3.68.97.98-3.59-.24-.37A9.95 9.95 0 0 1 2.13 11.96C2.13 6.48 6.58 2.03 12.06 2.03c2.66 0 5.16 1.04 7.04 2.93a9.89 9.89 0 0 1 2.92 7.01c0 5.48-4.45 9.93-9.96 9.93zm5.74-7.44c-.31-.16-1.83-.9-2.11-1.01-.28-.1-.49-.16-.7.16-.21.31-.8 1-.98 1.2-.18.2-.36.22-.67.06-.31-.16-1.31-.48-2.49-1.53a9.26 9.26 0 0 1-1.72-2.13c-.18-.31 0-.48.14-.64.14-.15.31-.39.47-.59.16-.2.21-.35.31-.59.1-.24.05-.44-.02-.61-.06-.16-.7-1.7-.96-2.32-.25-.6-.5-.52-.7-.53l-.6-.01c-.2 0-.52.07-.8.39-.28.31-1.06 1.04-1.06 2.54 0 1.49 1.09 2.94 1.25 3.15.16.2 2.14 3.28 5.19 4.6.73.32 1.3.51 1.75.66.74.24 1.42.21 1.95.13.59-.09 1.83-.75 2.09-1.48.26-.73.26-1.35.18-1.48-.08-.13-.28-.21-.59-.37z"/></svg>
-                Message on WhatsApp
-              </span>
-            </a>
-          </div>` : ``}
       </div>
     </section>
   </div>`;
 }
 
-function attachCardHandlers(){
+// ====== FETCH SHEET (robust with fallback) ======
+async function getSheetRows(){
+  // Try GViz first (works for "Anyone with link → Viewer")
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(SHEET_NAME)}`;
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 9000);
+    const res = await fetch(url, {signal: ctrl.signal, cache: "no-store"});
+    clearTimeout(t);
+    const text = await res.text();
+    const jsonStart = text.indexOf("{");
+    const jsonEnd = text.lastIndexOf("}");
+    if(jsonStart === -1 || jsonEnd === -1) throw new Error("Unexpected GViz response");
+    const json = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+
+    const cols = (json.table.cols || []).map(c => (c.label || "").trim());
+    const rows = (json.table.rows || []).map(r => {
+      const obj = {};
+      cols.forEach((h, i) => obj[h] = (r.c[i] && r.c[i].v != null) ? r.c[i].v : "");
+      return obj;
+    });
+    if(rows.length && rows[0]["Order ID"] === "Order ID"){ rows.shift(); }
+    return rows.filter(r => r["Order ID"]);
+  }catch(e){
+    console.warn("GViz fetch failed, trying CSV. Reason:", e.message || e);
+    // Try CSV export if GID is provided
+    if(!SHEET_GID) return null;
+    try{
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+      const res2 = await fetch(csvUrl, {cache: "no-store"});
+      const csv = await res2.text();
+      const [headerLine, ...lines] = csv.split(/\r?\n/).filter(Boolean);
+      const headers = headerLine.split(",").map(h => h.trim());
+      const out = lines.map(line => {
+        // naive CSV parse (handles basic commas; for complex CSV consider a parser)
+        const cells = line.split(",").map(v => v.trim());
+        const o = {};
+        headers.forEach((h,i)=>o[h]=cells[i]||"");
+        return o;
+      });
+      return out.filter(r=>r["Order ID"]);
+    }catch(err){
+      console.warn("CSV fallback failed:", err.message || err);
+      return null;
+    }
+  }
+}
+
+// ====== INTERACTION ======
+function attachHandlers(){
   document.querySelectorAll(".order-card").forEach(card=>{
-    card.addEventListener("click", ()=>{
+    card.addEventListener("click", (e)=>{
+      const sel = (window.getSelection && window.getSelection().toString()) || "";
+      if(sel && sel.length > 0){ return; }
       const idx = card.getAttribute("data-idx");
       const modal = document.getElementById(`modal-${idx}`);
-      if(modal){ 
-        modal.classList.add("show"); 
+      if(modal){
+        modal.classList.add("show");
         modal.setAttribute("aria-hidden","false");
-        document.body.classList.add("no-scroll"); 
+        document.body.classList.add("no-scroll");
       }
     });
   });
   document.querySelectorAll("[data-close]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const idx = btn.getAttribute("data-close");
-      closeModal(idx);
+      const m = document.getElementById(`modal-${idx}`);
+      if(m){ m.classList.remove("show"); m.setAttribute("aria-hidden","true"); document.body.classList.remove("no-scroll"); }
     });
   });
   document.querySelectorAll(".modal").forEach(m=>{
-    m.addEventListener("click", (e)=>{ if(e.target === m){ closeModal(m.getAttribute("data-idx")); }});
+    m.addEventListener("click", (e)=>{ if(e.target === m){ m.classList.remove("show"); document.body.classList.remove("no-scroll"); }});
   });
-  document.addEventListener("keydown", (e)=>{ 
-    if(e.key === "Escape"){ 
-      document.querySelectorAll(".modal.show").forEach(m=>m.classList.remove("show")); 
-      document.body.classList.remove("no-scroll"); 
-    }
+  document.addEventListener("keydown", (e)=>{ if(e.key === "Escape"){ document.querySelectorAll(".modal.show").forEach(m=>m.classList.remove("show")); document.body.classList.remove("no-scroll"); }});
+
+  // Copy button
+  document.querySelectorAll(".btn-copy").forEach(btn=>{
+    btn.addEventListener("click", async (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      const idx = +btn.getAttribute("data-copy");
+      const o = (window.__ORDERS || [])[idx] || {};
+      const text = buildCopyText(o);
+      const ok = await copyToClipboard(text);
+      showToast(ok ? "Copied to clipboard" : "Copy failed");
+    });
   });
-}
-function closeModal(idx){
-  const m = document.getElementById(`modal-${idx}`);
-  if(m){ 
-    m.classList.remove("show"); 
-    m.setAttribute("aria-hidden","true");
-    document.body.classList.remove("no-scroll"); 
-  }
 }
 
+// ====== MAIN ======
 async function main(){
-  try{
-    const rows = await getSheetRows();
-    const list = document.getElementById("orderList");
-    const modalRoot = document.getElementById("modalRoot");
+  const list = document.getElementById("orderList");
+  const modalRoot = document.getElementById("modalRoot");
+  list.innerHTML = `<div class="center"><div class="spinner" aria-label="Loading"></div></div>`;
 
-    if(!rows.length){
-      list.innerHTML = `<div class="order-card empty">No orders in the sheet.</div>`;
-      return;
-    }
+  const rows = await getSheetRows();
 
-    list.innerHTML = rows.map((o, i) => cardHTML(o, i)).join("");
-    modalRoot.innerHTML = rows.map((o, i) => modalHTML(o, i)).join("");
-    attachCardHandlers();
-  }catch(err){
-    console.error(err);
-    document.getElementById("orderList").innerHTML =
-      `<div class="order-card empty">Could not load the Google Sheet. Check sharing & Sheet name.</div>`;
+  // If no rows (fetch failed), show demo content so the page is never blank
+  const data = rows && rows.length ? rows : [{
+    "Order ID":"COD-1757229331357",
+    "Order Timestamp (IST)":"2025-09-07 12:45:00",
+    "Customer Name":"gifts.and.glory_",
+    "Full Address":"Pradhan Enclave buradi Delhi, Delhi, Delhi - 110084",
+    "Phone Number":"8744841734",
+    "Alternate Phone Number":"788",
+    "Customer Email":"ask.gifts.and.glory@gmail.com",
+    "City":"Delhi",
+    "State":"Delhi",
+    "Postal Code (Pincode)":"110084",
+    "Payment Method (Razorpay / Cash on Delivery)":"Cash on Delivery",
+    "Payment Status (Paid / Unpaid / Prepaid-COD)":"Unpaid",
+    "Payment Reference (Razorpay Payment ID / COD Reference)":"—",
+    "COD Prepaid Amount (₹)":"0",
+    "COD Charges (₹)":"89",
+    "Coupon Code":"—",
+    "Discount Amount (₹)":"0",
+    "Delivery Fee (₹ or \"Free Delivery\")":"Free Delivery",
+    "Item Count":"1",
+    "Items (Name × Quantity; pipe-separated)":"Sunset Resin Tray × 1",
+    "Item Image URLs":"",
+    "Subtotal (₹)":"1099",
+    "Order Total (₹)":"1099"
+  }];
+
+  window.__ORDERS = data; // make available to copy handler
+  list.innerHTML = data.map((o, i) => cardHTML(o, i)).join(""); 
+  modalRoot.innerHTML = data.map((o, i) => modalHTML(o, i)).join(""); 
+  attachHandlers();
+
+  if(!rows){
+    const info = document.createElement("div");
+    info.className = "center";
+    info.innerHTML = "<small>Showing demo order because the Google Sheet could not be loaded right now.</small>";
+    list.prepend(info);
+  }else if(rows && !rows.length){
+    list.innerHTML = `<div class="order-card empty">No orders found in the sheet.</div>`;
   }
 }
-main();
+
+document.addEventListener("DOMContentLoaded", main);
 </script>
 </body>
 </html>
