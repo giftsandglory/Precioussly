@@ -102,14 +102,14 @@ function normalizeToDate(val){
   const s = String(val).trim();
 
   // GViz style Date(YYYY,MM,DD,hh,mm,ss)
-  const m = s.match(/^Date\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*(\\d+),\\s*(\\d+),\\s*(\\d+))?\\)$/);
+  const m = s.match(/^Date\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+),\s*(\d+),\s*(\d+))?\)$/);
   if(m){
     const y = +m[1], mo = +m[2], d = +m[3], hh = +(m[4]||0), mi = +(m[5]||0), ss = +(m[6]||0);
     return new Date(y, mo, d, hh, mi, ss);
   }
 
   // ISO-like "YYYY-MM-DD HH:mm:ss"
-  if(/^\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}/.test(s)){
+  if(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}/.test(s)){
     return new Date(s.replace(" ","T")+("+05:30"));
   }
 
@@ -135,6 +135,15 @@ function timeFromIST(val){
 
 const firstOr = (s, alt="") => s ? String(s).split("|")[0].trim() : alt;
 
+// Helper to fetch first non-empty value by trying multiple header names
+const getField = (o, keys) => {
+  for(const k of keys){
+    const v = o[k];
+    if(v !== undefined && v !== null && String(v).trim() !== "") return v;
+  }
+  return "";
+};
+
 function cardHTML(o, idx){
   const orderTime = timeFromIST(o["Order Timestamp (IST)"]);
   const firstItem = safe(firstOr(o['Items (Name × Quantity; pipe-separated)'], ""));
@@ -157,7 +166,7 @@ function modalHTML(o, idx){
   const images = (o["Item Image URLs"] || "").split("|").map(s => s.trim()).filter(Boolean);
   const thumbs = images.map(src => `<a href="${src}" target="_blank" rel="noopener"><img src="${src}" alt=""></a>`).join("");
 
-  const phone = String(o["Phone Number"]||"").replace(/\\D/g,"");
+  const phone = String(o["Phone Number"]||"").replace(/\D/g,"");
   const waLink = phone ? `https://wa.me/91${phone}` : "";
 
   const field = (label, value, wide=false) => `
@@ -191,6 +200,9 @@ function modalHTML(o, idx){
     </div>
   </div>`;
 
+  // Try multiple header names for Pincode to match your sheet (e.g., "Pincode")
+  const pincode = getField(o, ["Postal Code (Pincode)", "Pincode", "Postal Code", "Pin code", "Pin Code"]);
+
   return `
   <div class="modal" id="modal-${idx}" data-idx="${idx}" aria-hidden="true">
     <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle-${idx}">
@@ -214,7 +226,7 @@ function modalHTML(o, idx){
           ${field("City", o["City"])}
           ${field("State", o["State"])}
 
-          ${field("Postal Code (Pincode)", o["Postal Code (Pincode)"])}
+          ${field("Postal Code (Pincode)", pincode)}
           ${field("Payment Method (Razorpay / Cash on Delivery)", o["Payment Method (Razorpay / Cash on Delivery)"])}
 
           ${field("Payment Status (Paid / Unpaid / Prepaid-COD)", o["Payment Status (Paid / Unpaid / Prepaid-COD)"])}
