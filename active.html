@@ -61,6 +61,12 @@ button, .btn-copy { user-select:none; }
   .details .v{ font-size:14.5px; }
 
   .field-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px; }
+  .name .wa{
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex: 0 0 32px;
+}
   .btn-copy{
     appearance:none; border:1px solid var(--green-border); background:var(--green-bg);
     color:var(--green-ink); padding:10px 14px; border-radius:10px; font-weight:800; font-size:13px;
@@ -182,7 +188,10 @@ function cardHTML(o, idx){
       <span>ORDER#${o["Order ID"]}</span>
       <span>${orderTime}</span>
     </div>
-    <h2 class="name">${safe(o["Customer Name"]) || "—"}</h2>
+    <h2 class="name">
+  <span>${safe(o["Customer Name"]) || "—"}</span>
+  <img class="wa" src="https://i.postimg.cc/L6YgQyRH/cropped-circle-image-1.png" alt="WhatsApp" loading="lazy" decoding="async">
+</h2>
     <p class="item">${firstItem || ""}</p>
     <div class="amt">${total}</div>
   </article>`;
@@ -418,5 +427,72 @@ async function main(){
 
 document.addEventListener("DOMContentLoaded", main);
 </script>
+
+<!-- WhatsApp Autofill (non-invasive) -->
+<script>
+(function(){
+  function sanitizePhone(raw){
+    const digits = String(raw||"").replace(/[^\d]/g, "");
+    if(!digits) return "";
+    let n = digits.replace(/^0+/, "");
+    if(n.length === 10) n = "91" + n; // assume India if 10 digits
+    return n;
+  }
+  function fmtINR(n){ try{ return new Intl.NumberFormat('en-IN', {style:'currency', currency:'INR', maximumFractionDigits:0}).format(+n||0);}catch(e){ return "₹"+(n||0);}}
+  function timeFromIST(s){
+    try{
+      if(!s) return "—";
+      const d = new Date(s);
+      if(isNaN(d)) return s;
+      const opts = { day:'2-digit', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' };
+      return d.toLocaleString('en-GB', opts).replace(',', ' —');
+    }catch(e){ return s; }
+  }
+  function safe(v){ return (v==null?"":String(v)); }
+  function buildOrderDetails(o){
+    const id = safe(o["Order ID"]);
+    const when = timeFromIST(o["Order Timestamp (IST)"]);
+    const items = safe(o["Items (Name × Quantity; pipe-separated)"]);
+    const itemLines = items ? items.split("|").map(s=>s.trim()).filter(Boolean).map(s=>"• "+s).join("\n") : "";
+    const total = safe(o["Order Total (₹)"]);
+    const payMethod = safe(o["Payment Method (Razorpay / Cash on Delivery)"]);
+    const payStatus = safe(o["Payment Status (Paid / Unpaid / Prepaid-COD)"]);
+    const parts = [];
+    if(id) parts.push("Order ID: "+id);
+    if(when && when !== "—") parts.push("Order Date: "+when);
+    if(itemLines) parts.push("Items:\n"+itemLines);
+    if(total) parts.push("Total: "+(isFinite(+total)? fmtINR(+total): total));
+    if(payMethod) parts.push("Payment Method: "+payMethod);
+    if(payStatus) parts.push("Payment Status: "+payStatus);
+    return parts.join("\n");
+  }
+  function buildWhatsAppText(o){
+    const details = buildOrderDetails(o);
+    const header = "━━━━━━━━━━━━━━━━━━━━━━\nThank you for choosing Precioussly\n━━━━━━━━━━━━━━━━━━━━━━";
+    const body = "\n\nYour Order Details\n" + (details || "(Details unavailable)") +
+                 "\n\nOnce your order is dispatched,\nyou will be able to track it directly on our website:\nwww.precioussly.com\n\nWe truly appreciate your trust in us.\n━━━━━━━━━━━━━━━━━━━━━━";
+    return header + body;
+  }
+  function onClickWA(e){
+    const img = e.target.closest('img.wa, img[alt="WhatsApp"]');
+    if(!img) return;
+    e.preventDefault(); e.stopPropagation();
+    const card = img.closest('.order-card');
+    const idx = card && card.getAttribute('data-idx');
+    const o = (window.__ORDERS || [])[idx] || {};
+    const phone = sanitizePhone(o["Phone Number"]) || sanitizePhone(o["Alternate Phone Number"]);
+    const msg = buildWhatsAppText(o);
+    const url = phone ? "https://wa.me/"+phone+"?text="+encodeURIComponent(msg)
+                      : "https://wa.me/?text="+encodeURIComponent(msg);
+    if(/Mobi|Android/i.test(navigator.userAgent)){
+      location.href = url;
+    }else{
+      const win = window.open(url, "_blank"); if(!win) location.href = url;
+    }
+  }
+  document.addEventListener('click', onClickWA, true);
+})();
+</script>
+
 </body>
 </html>
