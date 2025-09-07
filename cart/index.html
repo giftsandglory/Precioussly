@@ -1,302 +1,3758 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Orders from Google Sheet → Full-Height Popup</title>
+  <meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/>
+<script sync defer src="https://accounts.google.com/gsi/client"></script>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <title>Your Cart - Precioussly</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#f6f7fb; --surface:#fff; --muted:#8a8f98; --ink:#121417; --accent:#2b6df6;
-    --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.12); --pad:clamp(10px,2.2vh,16px);
-  }
-  *{ -webkit-tap-highlight-color:transparent; user-select:none; box-sizing:border-box; }
-  html,body{ margin:0; background:var(--bg);
-    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
-    color:var(--ink);
-  }
+.proceed-btn,
+.popup-razorpay-btn,
+.cod-inline-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
 
-  /* Page wrap */
-  .wrap{ min-height:100dvh; padding:20px 16px 40px; display:flex; justify-content:center; }
-  .list{ width:clamp(320px, 92vw, 720px); display:grid; gap:16px; }
+.btn-label { display: inline-block; }
 
-  /* Order card */
-  .order-card{
-    background:var(--surface); border-radius:var(--radius); box-shadow:0 6px 20px rgba(0,0,0,.08);
-    padding:18px 20px; cursor:pointer; transition:.25s ease;
-  }
-  .order-card:hover{ transform:translateY(-1px) }
-  .row{ display:flex; justify-content:space-between; align-items:center; gap:16px; color:#6f757d; font-weight:600; letter-spacing:.02em; font-size:14px; }
-  .name{ margin:.45rem 0 0 0; font-size:clamp(22px,3.5vw,30px); font-weight:800; }
-  .item{ margin:.15rem 0 0 0; font-size:clamp(14px,2.7vw,18px); color:#7a8088; font-style:italic; }
-  .amt{ margin-top:.5rem; font-size:clamp(22px,3.6vw,32px); font-weight:800; color:var(--accent); }
+/* Spinner: perfectly centered overlay */
+.btn-spinner{
+  position: absolute;
+  /* center regardless of padding/line-height quirks */
+  inset: 0;              /* top:0; right:0; bottom:0; left:0 */
+  margin: auto;          /* centers the fixed-size circle */
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  display: none;
+  pointer-events: none;
+}
+/* Make spinner visible on white-outline buttons */
+.btn--outline .btn-spinner{
+  border-color: rgba(0,0,0,0.35);
+  border-top-color: #000;
+}
 
-  /* ---------- Modal (FULL HEIGHT) ---------- */
-  .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:var(--pad);
-    background:rgba(10,14,20,.28); backdrop-filter:blur(6px); z-index:40; }
-  .modal.show{ display:flex }
+/* When loading */
+.is-loading .btn-label { visibility: hidden; }
+.is-loading .btn-spinner { display: block; }
+.is-loading { pointer-events: none; }
+#minimumNotice {
+  animation: fadeIn 0.3s ease;
+}
 
-  .sheet{
-    background:var(--surface); border-radius:22px; width:min(96vw, 980px);
-    height:calc(100dvh - (var(--pad) * 2)); max-height:100dvh; box-shadow:var(--shadow);
-    display:flex; flex-direction:column; overflow:hidden;
-  }
-  .sheet-header{ padding:14px 18px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #eef0f4; }
-  .sheet-title{ font-weight:800; letter-spacing:.02em; }
-  .close{ display:grid; place-items:center; width:38px; height:38px; border-radius:12px; border:1px solid #e8eaf0; background:#f6f7fb; cursor:pointer; }
-  .close:active{ transform:scale(.96) }
-  .sheet-body{ flex:1; overflow:auto; padding:14px 18px 18px; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; touch-action:pan-y; }
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
 
-  /* fields grid */
-  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  @media (max-width:760px){ .grid{ grid-template-columns:1fr; } }
-  .field{ padding:12px; border:1px solid #eef0f4; border-radius:14px; background:#fff; }
-  .label{ font-size:12px; color:var(--muted); letter-spacing:.03em; margin-bottom:6px; font-weight:700; }
-  .value{ font-size:14.5px; color:#252a31; line-height:1.35; word-break:break-word; user-select:text; }
+.cart-item-animate {
+  animation: fadeInUp 0.4s ease forwards;
+}
 
-  /* thumbnails */
-  .thumbs{ display:flex; gap:8px; flex-wrap:wrap; }
-  .thumbs img{ width:76px; height:76px; object-fit:cover; border-radius:10px; border:1px solid #eef0f4; }
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
 
-  /* details inside the single box */
-  .details{ display:grid; gap:10px; }
-  .details .row{ display:block; color:#252a31; font-weight:500; }
-  .details .k{ font-size:12px; color:var(--muted); letter-spacing:.03em; font-weight:700; display:block; margin-bottom:4px; }
-  .details .v{ font-size:14.5px; }
+.empty-cart-img {
+  animation: pulse 2s infinite;
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-top: 2px solid #2874f0;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
 
-  .no-scroll{ height:100vh; overflow:hidden; }
-  .empty{ opacity:.5; }
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.site-header {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  min-height: 56px;
+  position: relative;
+}
+
+.hamburger-wrapper {
+  width: 22px;
+  height: 18px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hamburger-wrapper div {
+  width: 100%;
+  height: 2.5px;
+  background-color: #000;
+  border-radius: 2px;
+}
+
+.right-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+
+
+#announcementBar {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #ffffff;
+  background: #000000;
+  font-weight: 500;
+  text-align: center;
+  font-family: 'Roboto Slab', serif;
+  min-height: 24px;
+  line-height: 22px;
+  user-select: none;
+}
+body {
+  font-family: 'Roboto Slab', serif;
+  margin: 0;
+  background: #fff;
+  color: #111;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 12px;
+  padding-bottom: 100px; /* ✅ This ensures button has room on small screens */
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.address {
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+#displayAddress strong {
+  font-size: 16px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+  animation: fadeInUp 0.4s ease forwards;
+  transition: box-shadow 0.3s;
+}
+.item:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 10px;
+}
+
+.item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.item-price {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qty-btn {
+  border: 1px solid #ddd;
+  background: #f9f9f9;
+  color: #111;
+  font-size: 15px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn:hover {
+  background: #2874f0;
+  color: white;
+  transform: scale(1.05);
+}
+
+.qty-count {
+  font-size: 15px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.payment {
+  font-size: 15px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.summary {
+  font-size: 15px;
+  margin-top: 12px;
+}
+#summaryBox {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-top: 20px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+
+.proceed-btn {
+  background: #2874f0;               /* Flipkart blue */
+  color: #fff;                       /* white text */
+  font-family: 'Roboto Slab', serif; /* Roboto Slab font */
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+.proceed-btn:hover {
+  background: #1565c0;               /* darker blue on hover */
+}
+.payment-method-box {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 10px;
+  background: #f9f9f9;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  font-family: 'Roboto Slab', serif;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ✅ ULTRA-PREMIUM RADIO BUTTON DESIGN */
+.payment-option input[type="radio"] {
+  display: none;
+}
+
+.custom-radio {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid #2874f0;
+  border-radius: 50%;
+  position: relative;
+  margin-right: 12px;
+  display: inline-block;
+}
+
+.payment-option input[type="radio"]:checked + .custom-radio::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background-color: #2874f0;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* POLISHED ADDRESS POPUP */
+.address-popup-overlay {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  padding: 20px;
+}
+
+.address-popup-box {
+  background: #fff;
+  width: 100%;
+  max-width: 360px;
+  padding: 16px 16px 12px;
+  border-radius: 14px;
+  border: 2px solid #bbb; /* ✅ Darker border */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  overflow-y: auto;
+  max-height: 92vh;
+}
+
+.address-popup-box input,
+.address-popup-box select {
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  border: 1.2px solid #dcdcdc;
+  border-radius: 10px;
+  background: #f9f9f9;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.address-popup-box input:focus,
+.address-popup-box select:focus {
+  border-color: #888;
+  background: #fff;
+}
+
+.close-btn {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #fff;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.cancel-btn {
+  background: #f0f0f0;
+  color: #444;
+  padding: 12px;
+  border: none;
+  border-radius: 30px;
+  flex: 1;
+  font-weight: 600;
+}
+
+.whatsapp-btn {
+  background: #000;
+  color: #fff;
+  padding: 12px;
+  border: none;
+  border-radius: 30px;
+  flex: 1;
+  font-weight: 600;
+}
+* {
+  -webkit-tap-highlight-color: transparent; /* removes blue highlight */
+  outline: none;                            /* removes outline on click */
+}
+
+button.remove-btn:hover {
+  background: #2874f0;
+  color: white;
+  border-color: #2874f0;
+}
+.floating-input {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.floating-input input,
+.floating-input select {
+  width: 100%;
+  padding: 16px 12px 6px;
+  font-size: 15px;
+  border: 1.5px solid #ccc;
+  border-radius: 12px;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.floating-input label {
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  background: #fff;
+  padding: 0 4px;
+  font-size: 15px;
+  color: #999;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  line-height: 1; /* ✅ Add this line */
+  white-space: nowrap; /* ✅ Add this line to prevent wrapping */
+}
+
+.floating-input input:focus,
+.floating-input select:focus {
+  border-color: #2874f0;
+}
+
+.floating-input input:focus + label,
+.floating-input input:not(:placeholder-shown) + label,
+.floating-input select:focus + label,
+.floating-input select:valid + label {
+  top: -8px;
+  left: 10px;
+  font-size: 12px;
+  color: #2874f0;
+}
+/* 🔽 ULTRA PREMIUM DROPDOWN STYLING 🔽 */
+.floating-input select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  font-family: 'Roboto Slab', serif;
+  font-size: 15px;
+  font-weight: 500;
+  background-color: #fff;
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="%232874f0" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 18px 18px;
+  padding-right: 48px;
+  transition: border 0.3s;
+  cursor: pointer;
+  text-indent: 1px; /* ✅ Add this */
+}
+.floating-input select:focus {
+  border-color: #2874f0;
+  background-color: #fff;
+}
+/* ===== Coupons strip (same look as index) ===== */
+.coupon-strip{display:flex;overflow-x:auto;gap:10px;padding:10px 12px;background:transparent;scroll-behavior:smooth}
+.coupon-card{background:#e9fef1;border:1px solid #c5ecd6;border-radius:10px;padding:8px 10px;width:220px;box-shadow:0 1px 3px rgba(0,0,0,.04);flex-shrink:0;display:flex;flex-direction:column;justify-content:center}
+.coupon-card h3{font-size:15px;font-weight:bold;margin:0;color:#064c2c}
+.coupon-card p{font-size:12px;margin:2px 0 6px;color:#064c2c}
+.code-row{display:flex;align-items:center;gap:6px}
+.code-box{background:#d5f5e5;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;color:#064c2c;letter-spacing:.3px}
+
+/* ===== Apply box row ===== */
+.coupon-apply-row{display:flex;gap:8px;margin:8px 12px 2px}
+.apply-input{flex:1;padding:12px 12px;border:1.2px solid #dcdcdc;border-radius:12px;background:#fff;font-size:14px}
+.apply-btn{padding:12px 16px;border:1.4px solid #000;background:#fff;color:#000;border-radius:12px;font-size:14px;font-family:'Roboto Slab',serif}
+
+/* ===== Progress text + bar ===== */
+.coupon-progress{margin:6px 12px 2px}
+.progress-text{font-size:13px;color:#333;margin-bottom:6px}
+.progress-bar{height:8px;background:#eee;border-radius:999px;overflow:hidden}
+.progress-bar .bar{height:100%;width:0;background:#2874f0;transition:width .35s ease}
+
+/* Applied coupon tag (mini pill) */
+.applied-tag{margin:8px 12px 0;font-size:13px;background:#f0f7ff;border:1px solid #cfe3ff;color:#0b3d91;padding:6px 10px;border-radius:999px;display:none}
+.applied-tag .remove{color:#2874f0;text-decoration:underline;cursor:pointer;margin-left:6px}
+/* Hide coupons by default; JS will show when cart has items */
+#couponSection{display:none;}
+
+/* ===== Quantity bar (from product popup) ===== */
+.quantity-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  width: fit-content;
+  margin: 14px auto;
+  padding: 4px 10px;
+  gap: 16px;
+}
+
+.quantity-bar button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  outline: none !important;               /* ✅ Removes dotted focus */
+  box-shadow: none !important;            /* ✅ No glow */
+  -webkit-tap-highlight-color: transparent !important;  /* ✅ Remove Android/iOS grey flash */
+  user-select: none;                      /* ✅ Prevents accidental text selection */
+  touch-action: manipulation;            /* ✅ Better touch response */
+}
+
+.quantity-bar button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.quantity-bar button:active {
+  background: transparent !important;
+}
+
+
+
+.quantity-display {
+  font-size: 15px;
+  min-width: 20px;
+  text-align: center;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 500;
+  color: #222;
+}
+/* Make header icons same as Resin (32x32), ignore inline sizes */
+.site-header .right-icon { width: 32px !important; height: 32px !important; }
+/* Make Search icon match desired size */
+.site-header img[alt="Search"] {
+  border-radius: 0 !important;
+  width: 25px !important;
+  height: 26px !important;
+  margin-top: 2px !important;
+}
+
+/* ==== Smart header (hide on scroll) ==== */
+.site-header{
+  position: sticky;
+  top: 0;
+  z-index: 3500;
+  transition: transform .35s ease;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.site-header.header-hidden{ transform: translateY(-100%); }
+
+/* ==== Overlay + Side Menu (Resin.html style) ==== */
+.menu-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.4);
+  display: none; opacity: 0;
+  z-index: 4000;
+  transition: opacity .35s cubic-bezier(.22,1,.36,1) !important;
+}
+.menu-overlay.active{ display:block; opacity:1; }
+
+.side-menu{
+  position: fixed; top:0; left:0;
+  width:74%; height:100%;
+  background:#fff; padding:20px 16px;
+  overflow-y:auto; z-index:5000;
+  box-shadow: 4px 0 16px rgba(0,0,0,.1);
+  transform: translateX(-100%);
+  will-change: transform; backface-visibility: hidden;
+  transition: transform .8s cubic-bezier(.25,1,.3,1) !important;
+  font-family:'Roboto Slab',serif;
+}
+.side-menu.active{ transform: translateX(0); }
+
+.menu-header{
+  display:flex; justify-content:space-between; align-items:center;
+  padding-bottom:12px; border-bottom:1px solid #ddd; margin-bottom:16px;
+}
+.menu-title{ font-size:18px; font-weight:600; color:#000; font-family:'Roboto Slab',serif; }
+
+.menu-close{
+  width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+  border:1px solid #000; border-radius:10px; font-size:18px; font-weight:700; color:#000;
+  cursor:pointer; -webkit-tap-highlight-color:transparent; transition:none !important;
+}
+
+#menuContent{ display:flex; flex-direction:column; gap:10px; padding:8px 16px 18px !important; }
+
+.menu-link{
+  display:block; text-align:center; padding:10px 14px; min-height:auto;
+  border:1px solid #dcdcdc !important; border-radius:12px;
+  background:#fff; color:#111 !important; text-decoration:none;
+  font-family:'Roboto Slab',serif; font-size:17px; font-weight:500 !important;
+  box-shadow:0 1px 2px rgba(0,0,0,.03) !important; -webkit-tap-highlight-color:transparent;
+}
+.menu-link--primary{
+  background:#e9fef1 !important; border:1.5px solid #c5ecd6 !important; color:#064c2c !important;
+}
+
+.menu-link:hover, .menu-link--primary:hover,
+.menu-link:active, .menu-link--primary:active{
+  background:inherit !important; color:inherit !important; transform:none !important;
+}
+
+.submenu-container, .submenu{ display:none; background:#fafafa; padding-left:8px; }
+.submenu-container.open, .submenu.open{ display:block; }
+
+.menu-link, .submenu-link, .dropdown-toggle{ transition:none !important; }
+
+.menu-text, .header-title{ user-select:none !important; -webkit-user-select:none !important; -ms-user-select:none !important; }
+/* First menu button special styling */
+#menuContent .menu-link:first-child {
+  background-color: #e6f7ec !important;      /* halka green bg */
+  border: 1px solid #b7e2c1 !important;       /* soft green border */
+  color: #0a7c5b !important;                  /* dark green text */
+  font-weight: 700 !important;                /* bold */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);      /* halka shadow */
+  transition: background 0.3s ease;
+}
+
+/* Hover/active effect for better UX */
+#menuContent .menu-link:first-child:hover {
+  background-color: #d4f3df !important;       /* thoda dark hover green */
+}
+</style>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  // 🔗 Paste the Apps Script Web App URL you copied
+  window.GS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOukNsXwM1X7RA0nf9kLajFhBSSGaHZQ5zprYhHlRjr8s3m-8waYiYxDVu_PcfrVXckg/exec";
+</script>
+
+<style id="menuFixCSS">
+/* ===== Menu fix overrides ===== */
+#menuContent{ display:flex; flex-direction:column; gap:10px; padding:8px 16px 18px !important; }
+.menu-link{
+  display:block; text-align:center; padding:10px 14px;
+  border:1px solid #dcdcdc !important; border-radius:12px;
+  background:#fff; color:#111 !important; text-decoration:none;
+  font-size:17px; font-weight:500 !important;
+}
+.menu-link--primary{ border-color:#111 !important; font-weight:700 !important; }
+.menu-group{ margin-bottom:8px; }
+.dropdown-toggle{ position:relative; }
+.dropdown-toggle::after{ content:"▾"; position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:14px; }
+.submenu{ display:none; padding:8px 0 0; }
+.submenu.open{ display:block !important; }
+</style>
+<style>
+/* ===== Header Search (inline) ===== */
+.header-search{ display:none; align-items:center; gap:8px; width:100%; }
+.header-search input{
+  flex:1; padding:12px 14px; font:400 16px 'Roboto Slab', serif;
+  border:1px solid #d9d9d9; border-radius:12px; outline:none; background:#fff;
+}
+.header-search input:focus{ border-color:#bfbfbf; }
+
+/* Back pill button */
+#headerSearchBack{
+  height:36px; padding:0 14px; font:500 14px 'Roboto Slab', serif; color:#222;
+  background:#fff; border:1px solid rgba(0,0,0,.18); border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06); cursor:pointer; -webkit-tap-highlight-color:transparent;
+}
+
+/* Searching mode: logo/menu/icons hide, input row show */
+.site-header.searching .hamburger-wrapper,
+.site-header.searching #logoWrap,
+.site-header.searching #rightIcons{ display:none !important; }
+.site-header.searching #headerSearchBar{ display:flex !important; }
+
+/* Suggestions box: search bar ke BILKUL niche */
+#headerSearchBar{ position:relative; }
+#headerSearchResults{
+  position:absolute; top:calc(100% + 10px); left:0; right:0;
+  display:none; background:#fff; border:1px solid #eaeaea; border-radius:12px;
+  box-shadow:0 8px 22px rgba(0,0,0,0.08); max-height:62vh; overflow:auto; padding:6px; z-index:4000;
+}
+.header-suggest{
+  display:grid; grid-template-columns:56px 1fr; gap:10px; align-items:center;
+  padding:8px; border-radius:10px;
+}
+.header-suggest:hover{ background:#f9f9f9; }
+.header-suggest img{ width:56px; height:56px; border-radius:10px; object-fit:cover; }
+.header-suggest .name{ font-size:14px; font-weight:600; }
+.header-suggest .price{ font-size:13px; color:#111; }
+.header-suggest .tag{ font-size:11px; padding:3px 6px; border:1px solid #ddd; border-radius:8px; color:#333; }
+
+/* Header sticky (already present; ensure z-index high) */
+.site-header{ position:sticky; top:0; z-index:3500; }
+</style>
+
+<style>
+/* === Address validation visuals === */
+.floating-input .error-msg{
+  display:none;
+  font-size:12px;
+  line-height:1.3;
+  margin-top:2px;
+  padding-left:12px;
+  color:#e53935;
+}
+.floating-input.error .error-msg{ display:block; }
+.floating-input.error input,
+.floating-input.error select{
+  border-color:#e53935 !important;
+  background:#fff;
+}
+</style>
+<style>/* Hide right-side tag pill in header search suggestions */.header-suggest .tag{display:none!important;}
+/* ==== Payment Success 1:1 Popup ==== */
+.payment-success-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10050;
+}
+.payment-success-overlay.active{ display:flex; }
+
+.payment-success-box{
+  background: #ffffff;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1 / 1;                /* ✅ perfect square */
+  border-radius: 18px;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 18px 45px rgba(0,0,0,.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 18px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+}
+
+/* animated check icon */
+.animated-check{
+  width: 86px;
+  height: 86px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+.animated-check svg{
+  display:block;
+}
+.check-circle, .check-mark{
+  fill: none;
+  stroke: #16a34a;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.check-circle{
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: drawCircle 1s ease forwards;
+}
+.check-mark{
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: drawCheck .7s .7s ease forwards;
+}
+@keyframes drawCircle{ to{ stroke-dashoffset: 0; } }
+@keyframes drawCheck{ to{ stroke-dashoffset: 0; } }
+
+.payment-success-title{
+  font-size: 20px;
+  font-weight: 800;
+  color: #111;
+  margin: 8px 0 6px;
+  font-family: 'Roboto Slab', serif;
+}
+.payment-success-sub{
+  font-size: 14px;
+  color: #333;
+  margin: 0 10px 10px;
+  line-height: 1.45;
+  font-family: 'Roboto Slab', serif;
+}
+
+.payment-success-actions{
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ps-button{
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 12px;
+  font-family: 'Roboto Slab', serif;
+  cursor: pointer;
+}
+.ps-button--outline{
+  background: #fff;
+  color: #111;
+  border: 1.5px solid #000;
+}
+.ps-button--primary{
+  background: #2874f0;
+  color: #fff;
+  border: none;
+}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div id="orderList" class="list" aria-live="polite"></div>
+<!-- 👇 Resin-style MENU -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu(false)"></div>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <span class="menu-title">Menu</span>
+    <span class="menu-close" onclick="toggleMenu(false)">✕</span>
+  </div>
+  <!-- content will be injected by JS -->
+  <div id="menuContent"></div>
+</nav>
+
+ <header class="site-header">
+  <!-- Hamburger menu -->
+  <div class="hamburger-wrapper" onclick="toggleMenu()">
+    <div></div>
+    <div></div>
+    <div></div>
   </div>
 
-  <!-- Modal root (filled dynamically) -->
-  <div id="modalRoot"></div>
+  <!-- Logo -->
+  <div id="logoWrap" style="display: flex; align-items: center; position: absolute; left: 70px; top: 6px;">
+    <img
+      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+      alt="Precioussly Logo"
+      onclick="location.href = 'https://precioussly.com';"
+      style="width: 110px; height: auto; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease;"
+    />
+  </div>
+
+  <div id="rightIcons" style="display: flex; align-items: center; gap: 12px;">
+    <!-- Search icon -->
+    <img
+      src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
+      alt="Search"
+      class="right-icon"
+      style="border-radius: 0; width: 25px; height: 26px; margin-top: 2px; cursor: pointer;"
+      onclick="openHeaderSearch()"
+    />
+
+    <!-- Profile icon -->
+    <img
+      id="profileIcon"
+      src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
+      alt="Profile"
+      class="right-icon"
+      onclick="handleProfileClick()"
+      style="width: 28px; height: 28px; cursor: pointer;"
+    />
+
+    <!-- Cart icon -->
+    <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+      <img
+        src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
+        alt="Cart"
+        class="right-icon"
+        style="width: 28px; height: 28px;"
+      />
+      <span
+        id="cartCountBadge"
+        style="position: absolute; top: -6px; right: -6px; background: white; color: black; font-size: 12px; border: 1px solid grey; border-radius: 50%; width: 19px; height: 19px; display: none; align-items: center; justify-content: center;"
+      >
+        0
+      </span>
+    </a>
+  </div>
+
+  <!-- 🔎 Inline header search row -->
+  <div id="headerSearchBar" class="header-search">
+    <input id="headerSearchInput" type="text" placeholder="Search products..." autocomplete="off" />
+    <button id="headerSearchBack" class="back-btn" type="button" onclick="closeHeaderSearch()">Back</button>
+    <div id="headerSearchResults"></div>
+  </div>
+</header>
+
+<!-- Announcement Bar -->
+<div id="announcementBar">🧿</div>
+  <div class="container">
+    <div class="section-title">Confirm Order</div>
+
+<div class="address">
+  <strong>Shipping Address</strong><br>
+  <div id="displayAddress" style="margin-top: 6px;"></div>
+<button onclick="openAddressPopup()" style="margin-top: 10px; padding: 8px 12px; background: #2874f0; color: #fff; border: none; border-radius: 6px; font-family: 'Roboto Slab', serif;">Add / Edit Address</button>
+</div>
+
+    <div class="items" id="cartItems"></div>
+
+
+<!-- ULTRA PREMIUM PAYMENT OPTIONS -->
+
+<!-- ===== Coupons (fetched from same Google Sheet as index) ===== -->
+<div id="couponSection" style="margin-top:10px;">
+  <div id="couponContainerCart" class="coupon-strip" style="display:none;"></div>
+
+  <div class="coupon-apply-row">
+    <input id="couponInput" class="apply-input" placeholder="Enter coupon code">
+    <button class="apply-btn" onclick="applyCouponManually()">Apply</button>
+  </div>
+
+  <div id="appliedCouponTag" class="applied-tag"></div>
+
+  <div id="couponProgressWrap" class="coupon-progress" style="display:none;">
+    <div id="couponProgressText" class="progress-text"></div>
+    <div class="progress-bar"><div id="couponProgressBar" class="bar"></div></div>
+  </div>
+</div>
+    <!-- START: Summary and Pay Section -->
+<div id="bottomBox">
+  <div class="summary" id="summaryBox">
+  <div class="summary-row"><span>Item Total</span><span><span class="spinner"></span></span></div>
+  <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
+  <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
+</div>
+<div class="payment-method-box" id="paymentMethodBox">
+  <label class="payment-option">
+    <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
+    <span class="custom-radio"></span>
+    Pay via Razorpay (Free Delivery)
+  </label>
+
+  <label class="payment-option">
+    <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
+    <span class="custom-radio"></span> <span id="codLabelText">Cash on Delivery</span></label>
+</div>
+<div id="minimumNotice" style="display: none; text-align: center; color: #d9534f; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
+</div><!-- Fast Delivery Notice (left-aligned, above pay button) -->
+<div id="fastDeliveryRow" style="display:flex;align-items:center;gap:0px;margin-top:0px;margin-bottom:0px;line-height:1;">
+  <img src="https://i.postimg.cc/TPcvSnLK/1000053157-removebg-preview.png"
+       alt="Fast Delivery"
+       style="width:80px;height:80px;object-fit:contain;display:block;" />
+  <span style="font-family: 'Roboto Slab', serif; font-size:14px; color:#333; line-height:1;">
+    <strong>Fast Delivery:</strong> Arrives in 5-7 days
+  </span>
+</div>
+
+
+
+<button class="proceed-btn" id="proceedBtn" onclick="handleProceed()" style="display:none; margin-top:0px;">
+  <span class="btn-label">Proceed to Pay</span>
+  <span class="btn-spinner" aria-hidden="true"></span>
+</button>
+</div>
+<!-- END: Summary and Pay Section -->
+  </div>
 
 <script>
-/* === CONFIG: put your Sheet info here === */
-const SHEET_ID   = "1wfMl8tSlmfVgoSvnFI6gHEDpmvJsF5wdOQdhFowmngo"; // your sheet ID
-const SHEET_NAME = "Sheet1";
+  const shippingAddress = localStorage.getItem("shippingAddress") || "";
 
-/* === Helper: fetch & parse GViz JSON === */
-async function getSheetRows(){
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
-  const cols = json.table.cols.map(c => (c.label || "").trim());
+  document.addEventListener("DOMContentLoaded", () => {
+    // Show saved address if exists
+    if (shippingAddress) {
+      document.getElementById("displayAddress").innerHTML = shippingAddress;
+    }
 
-  // Build row objects keyed by header text
-  const rows = (json.table.rows || []).map(r => {
-    const obj = {};
-    cols.forEach((h, i) => obj[h] = (r.c[i] && r.c[i].v != null) ? String(r.c[i].v) : "");
-    return obj;
+    const container = document.getElementById("cartItems");
+    let total = 0;
+
+    cartData.forEach((item, index) => {
+      total += item.price * item.qty;
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <img src="${item.photo}" />
+        <div class="item-info">
+  <div class="item-name">${item.name}</div>
+  <div class="item-price">₹${item.price}</div>
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+    <div class="quantity-bar" style="margin:0;">
+      <button onclick="decrease(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+      <button onclick="increase(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+  </div>
+</div>
+      `;
+      container.appendChild(div);
+    });
+
+    
+
+    if (cartData.length === 0) {
+  container.innerHTML = `
+    <div style="text-align:center; margin-top: 30px;">
+      <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
+      <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+      <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+    </div>
+  `;
+  document.getElementById("summaryBox").innerHTML = "";
+  document.getElementById("bottomBox").style.display = "none";
+  document.getElementById("paymentMethodBox").style.display = "none";
+}
   });
-  // drop header row if it was included as data (rare)
-  if(rows.length && rows[0]["Order ID"] === "Order ID"){ rows.shift(); }
-  // remove blank rows (no Order ID)
-  return rows.filter(r => r["Order ID"]);
-}
 
-/* === Formatting helpers === */
-const fmtINR = n => isFinite(n) ? new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR"}).format(n) : "";
-const safe = s => (s && String(s).trim()) ? String(s).trim() : "—";
-function timeFromIST(ts){
-  // Accept "YYYY-MM-DD HH:mm:ss" straight from sheet
-  if(!ts) return "—";
-  // treat as local India time visually
-  return new Date(ts.replace(" ","T")+"+05:30").toLocaleString("en-IN",{
-    year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit"
-  }).replace(","," –");
-}
-const firstOr = (s, alt="") => s ? s.split("|")[0].trim() : alt;
+function updateSummary() {
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
 
-/* === UI builders === */
-function cardHTML(o, idx){
-  const orderTime = timeFromIST(o["Order Timestamp (IST)"]);
-  const firstItem = safe(firstOr(o['Items (Name × Quantity; pipe-separated)'], ""));
-  const totalLabel = safe(o["Order Total (₹)"]);
-  const total = isFinite(+totalLabel) ? fmtINR(+totalLabel) : totalLabel;
+  const fee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
 
-  return `
-  <article class="order-card" data-idx="${idx}" aria-label="Order ${o["Order ID"]}">
-    <div class="row">
-      <span>ORDER#${o["Order ID"]}</span>
-      <span>${orderTime.split("–").pop()?.trim() || ""}</span>
+  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee
+  try { syncCouponInput(); } catch(e){}
+}</span>`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+      <span>Order Total</span><span>₹${total + fee}</span>
     </div>
-    <h2 class="name">${safe(o["Customer Name"])}</h2>
-    <p class="item">${firstItem || ""}</p>
-    <div class="amt">${total}</div>
-  </article>`;
+  `;
 }
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) badge.innerText = count;
+  }
 
-function modalHTML(o, idx){
-  const images = (o["Item Image URLs"] || "").split("|").map(s => s.trim()).filter(Boolean);
-  const thumbs = images.map(src => `<a href="${src}" target="_blank" rel="noopener"><img src="${src}" alt=""></a>`).join("");
+  updateCartBadge();
+</script>
 
-  const phone = (o["Phone Number"]||"").replace(/\\D/g,"");
-  const waLink = phone ? `https://wa.me/91${phone}` : "";
 
-  const field = (label, value, wide=false) => `
-    <div class="field" ${wide ? 'style="grid-column:1/-1"' : ""}>
-      <div class="label">${label}</div>
-      <div class="value">${safe(value)}</div>
-    </div>`;
+<!-- MODERN ADDRESS POPUP START -->
+<div class="address-popup-overlay" id="addressPopup">
+  <div class="address-popup-box">
 
-  // Build the single details box
-  const detailsBox = `
-  <div class="field" style="grid-column:1/-1">
-    <div class="label">Customer Details</div>
-    <div class="value">
-      <div class="details">
-        <div class="row">
-          <span class="k">Customer Name</span>
-          <span class="v">${safe(o["Customer Name"])}</span>
-        </div>
-        <div class="row">
-          <span class="k">Full Address</span>
-          <span class="v">${safe(o["Full Address"])}</span>
-        </div>
-        <div class="row">
-          <span class="k">Phone Number</span>
-          <span class="v">${safe(o["Phone Number"])}</span>
-        </div>
-        <div class="row">
-          <span class="k">Alternate Phone Number</span>
-          <span class="v">${safe(o["Alternate Phone Number"])}</span>
-        </div>
-      </div>
+    <div class="floating-input">
+      <input id="fullname" type="text" placeholder=" " required />
+      <label for="fullname">Full Name</label>
     </div>
-  </div>`;
+  <div class="floating-input">
+  <input
+    id="email"
+    type="email"
+    placeholder=" "
+    inputmode="email"
+    autocomplete="email"
+    autocapitalize="off"
+    spellcheck="false"
+  />
+  <label for="email">Email Address</label>
+</div>
+      <div class="floating-input">
+  <select id="state" required>
+    <option disabled hidden selected value=""></option>
+        <option>Andhra Pradesh</option>
+        <option>Arunachal Pradesh</option>
+        <option>Assam</option>
+        <option>Bihar</option>
+        <option>Chandigarh</option>
+        <option>Chhattisgarh</option>
+        <option>Delhi</option>
+        <option>Goa</option>
+        <option>Gujarat</option>
+        <option>Haryana</option>
+        <option>Himachal Pradesh</option>
+        <option>Jammu and Kashmir</option>
+        <option>Jharkhand</option>
+        <option>Karnataka</option>
+        <option>Kerala</option>
+        <option>Ladakh</option>
+        <option>Madhya Pradesh</option>
+        <option>Maharashtra</option>
+        <option>Manipur</option>
+        <option>Meghalaya</option>
+        <option>Mizoram</option>
+        <option>Nagaland</option>
+        <option>Odisha</option>
+        <option>Puducherry</option>
+        <option>Punjab</option>
+        <option>Rajasthan</option>
+        <option>Sikkim</option>
+        <option>Tamil Nadu</option>
+        <option>Telangana</option>
+        <option>Tripura</option>
+        <option>Uttar Pradesh</option>
+        <option>Uttarakhand</option>
+        <option>West Bengal</option>
+      </select>
+      <label for="state">Select your state</label>
+    </div>
 
-  // Modal content
-  return `
-  <div class="modal" id="modal-${idx}" data-idx="${idx}" aria-hidden="true">
-    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle-${idx}">
-      <header class="sheet-header">
-        <div class="sheet-title" id="sheetTitle-${idx}">ORDER DETAILS — #${o["Order ID"]}</div>
-        <button class="close" data-close="${idx}" aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0b1a2b" stroke-width="2">
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-        </button>
-      </header>
-      <div class="sheet-body">
-        <div class="grid">
-          ${field("Order ID", o["Order ID"])}
-          ${field("Order Timestamp (IST)", o["Order Timestamp (IST)"])}
+    <div class="floating-input">
+      <input id="city" type="text" placeholder=" " required />
+      <label for="city">City</label>
+    </div>
 
-          ${detailsBox}
+    <div class="floating-input">
+      <input id="pincode" type="text" placeholder=" " required />
+      <label for="pincode">Pincode</label>
+    </div>
 
-          ${field("Customer Email", o["Customer Email"])}
+    <div class="floating-input">
+      <input id="address" type="text" placeholder=" " required />
+      <label for="address">Your Full Address</label>
+    </div>
 
-          ${field("City", o["City"])}
-          ${field("State", o["State"])}
+    <div class="floating-input">
+      <input id="phone" type="text" placeholder=" " required />
+      <label for="phone">Phone Number</label>
+    </div>
 
-          ${field("Postal Code (Pincode)", o["Postal Code (Pincode)"])}
-          ${field("Payment Method (Razorpay / Cash on Delivery)", o["Payment Method (Razorpay / Cash on Delivery)"])}
+    <div class="floating-input">
+      <input id="altphone" type="text" placeholder=" " />
+      <label for="altphone">Alternate Phone (Optional)</label>
+    </div>
 
-          ${field("Payment Status (Paid / Unpaid / Prepaid-COD)", o["Payment Status (Paid / Unpaid / Prepaid-COD)"])}
-          ${field("Payment Reference (Razorpay Payment ID / COD Reference)", o["Payment Reference (Razorpay Payment ID / COD Reference)"], true)}
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+      <button id="confirmAddressBtn" onclick="confirmAddress()" disabled style="background: #2874f0; color: white; border: none; border-radius: 12px; padding: 12px; font-size: 16px; font-family: 'Roboto Slab', serif; opacity: 0.5; cursor: not-allowed;">Confirm Address</button>
+      <button onclick="closeAddressPopup()" style="background: white; color: black; border: 1px solid #ccc; border-radius: 12px; padding: 12px; font-size: 16px; font-family: 'Roboto Slab', serif;">Back</button>
+    </div>
 
-          ${field("COD Prepaid Amount (₹)", o["COD Prepaid Amount (₹)"])}
-          ${field("COD Charges (₹)", o["COD Charges (₹)"])}
+  </div>
+</div>
+<!-- MODERN ADDRESS POPUP END -->
+<script>
+function openAddressPopup() {
+  document.getElementById("addressPopup").style.display = "flex";
+  document.body.style.overflow = "hidden";
 
-          ${field("Coupon Code", o["Coupon Code"])}
-          ${field("Discount Amount (₹)", o["Discount Amount (₹)"])}
+  // Autofill Full Name & Email if available
+  const name = localStorage.getItem("user_name");
+  const email = localStorage.getItem("user_email");
 
-          ${field('Delivery Fee (₹ or "Free Delivery")', o['Delivery Fee (₹ or "Free Delivery")'])}
-          ${field("Item Count", o["Item Count"])}
+  if (name) document.getElementById("fullname").value = name;
+  if (email) document.getElementById("email").value = email;
+  // ✅ Autofill rest of the saved address if available
+  const savedAddressObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
 
-          ${field("Items (Name × Quantity; pipe-separated)", o["Items (Name × Quantity; pipe-separated)"], true)}
+  if (savedAddressObj.fullname) document.getElementById("fullname").value = savedAddressObj.fullname;
+  if (savedAddressObj.state) document.getElementById("state").value = savedAddressObj.state;
+  if (savedAddressObj.city) document.getElementById("city").value = savedAddressObj.city;
+  if (savedAddressObj.pincode) document.getElementById("pincode").value = savedAddressObj.pincode;
+  if (savedAddressObj.address) document.getElementById("address").value = savedAddressObj.address;
+  if (savedAddressObj.phone) document.getElementById("phone").value = savedAddressObj.phone;
+  if (savedAddressObj.altphone) document.getElementById("altphone").value = savedAddressObj.altphone;
+// ✅ Attach input listeners to validate in real-time
+["fullname", "state", "city", "pincode", "address", "phone", "altphone"].forEach(id => {
+  document.getElementById(id).addEventListener("input", validateAddressFields);
+});
 
-          <div class="field" style="grid-column:1/-1">
-            <div class="label">Item Image URLs</div>
-            <div class="value ${images.length? "" : "empty"}">
-              ${images.length ? `<div class="thumbs">${thumbs}</div>` : "—"}
-            </div>
-          </div>
-
-          ${field("Subtotal (₹)", o["Subtotal (₹)"])}
-          ${field("Order Total (₹)", o["Order Total (₹)"])}
-        </div>
-
-        ${waLink ? `
-          <div style="margin-top:16px">
-            <a href="${waLink}" target="_blank" rel="noopener" style="text-decoration:none">
-              <span class="value" style="display:inline-flex;align-items:center;gap:8px">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M20.52 3.48A11.9 11.9 0 0 0 12.06 0C5.46 0 .1 5.36.1 11.96c0 2.11.56 4.17 1.62 5.99L0 24l6.2-1.64a11.92 11.92 0 0 0 5.86 1.51h.01c6.6 0 11.96-5.36 11.96-11.96 0-3.2-1.25-6.2-3.47-8.43zM12.06 21.9h-.01a9.93 9.93 0 0 1-5.06-1.39l-.36-.21-3.68.97.98-3.59-.24-.37A9.95 9.95 0 0 1 2.13 11.96C2.13 6.48 6.58 2.03 12.06 2.03c2.66 0 5.16 1.04 7.04 2.93a9.89 9.89 0 0 1 2.92 7.01c0 5.48-4.45 9.93-9.96 9.93zm5.74-7.44c-.31-.16-1.83-.9-2.11-1.01-.28-.1-.49-.16-.7.16-.21.31-.8 1-.98 1.2-.18.2-.36.22-.67.06-.31-.16-1.31-.48-2.49-1.53a9.26 9.26 0 0 1-1.72-2.13c-.18-.31 0-.48.14-.64.14-.15.31-.39.47-.59.16-.2.21-.35.31-.59.1-.24.05-.44-.02-.61-.06-.16-.7-1.7-.96-2.32-.25-.6-.5-.52-.7-.53l-.6-.01c-.2 0-.52.07-.8.39-.28.31-1.06 1.04-1.06 2.54 0 1.49 1.09 2.94 1.25 3.15.16.2 2.14 3.28 5.19 4.6.73.32 1.3.51 1.75.66.74.24 1.42.21 1.95.13.59-.09 1.83-.75 2.09-1.48.26-.73.26-1.35.18-1.48-.08-.13-.28-.21-.59-.37z"/></svg>
-                Message on WhatsApp
-              </span>
-            </a>
-          </div>` : ``}
-      </div>
-    </section>
-  </div>`;
 }
 
-/* === Render === */
-function attachCardHandlers(){
-  document.querySelectorAll(".order-card").forEach(card=>{
-    card.addEventListener("click", ()=>{
-      const idx = card.getAttribute("data-idx");
-      const modal = document.getElementById(`modal-${idx}`);
-      if(modal){ 
-        modal.classList.add("show"); 
-        modal.setAttribute("aria-hidden","false");
-        document.body.classList.add("no-scroll"); 
+function closeAddressPopup() {
+  document.getElementById("addressPopup").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+function confirmAddress() {
+  const fullName = document.getElementById("fullname").value;
+  const state = document.getElementById("state").value;
+  const city = document.getElementById("city").value;
+  const pincode = document.getElementById("pincode").value;
+  const address = document.getElementById("address").value;
+  const phone = document.getElementById("phone").value;
+  const altphone = document.getElementById("altphone").value;
+
+  const finalAddress = `
+  <strong>${fullName}</strong><br>
+  ${address},<br>${city}, ${state} - ${pincode}<br>
+   <strong>${phone}</strong>${altphone ? '<br> Alt: <strong>' + altphone + '</strong>' : ''}
+`;
+// ✅ Save as object for refilling popup next time
+  const addressObj = {
+    fullname: fullName,
+    state: state,
+    city: city,
+    pincode: pincode,
+    address: address,
+    phone: phone,
+    altphone: altphone
+  };
+  localStorage.setItem("shippingAddressObj", JSON.stringify(addressObj));
+
+
+  localStorage.setItem("shippingAddress", finalAddress);
+  document.getElementById("displayAddress").innerHTML = finalAddress;
+  closeAddressPopup();
+}
+
+</script>
+<script>
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
       }
     });
-  });
-  document.querySelectorAll("[data-close]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      const idx = btn.getAttribute("data-close");
-      closeModal(idx);
-    });
-  });
-  // click outside to close
-  document.querySelectorAll(".modal").forEach(m=>{
-    m.addEventListener("click", (e)=>{ if(e.target === m){ closeModal(m.getAttribute("data-idx")); }});
-  });
-  document.addEventListener("keydown", (e)=>{ 
-    if(e.key === "Escape"){ 
-      document.querySelectorAll(".modal.show").forEach(m=>m.classList.remove("show")); 
-      document.body.classList.remove("no-scroll"); 
+
+  const photo = localStorage.getItem("user_photo");
+  if (photo) {
+    document.getElementById("profileIcon").src = photo;
+  }
+
+  function handleProfileClick() {
+    const isLoggedIn = localStorage.getItem("user_email");
+    if (isLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
     }
-  });
+  }
+
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) {
+      if (count > 0) {
+        badge.innerText = count;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+  }
+
+  updateCartBadge();
+</script>
+<script>
+  const feeSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const feeURL = `https://opensheet.elk.sh/${feeSheetID}/Sheet1`;
+
+  fetch(feeURL)
+    .then(res => res.json())
+    .then(data => {
+      const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+      let total = 0;
+      cartData.forEach(item => total += item.price * item.qty);
+
+      let fee = 0;
+      let feeText = "";
+
+      if (data[0] && data[0]["Delivery Fee"]) {
+        const value = data[0]["Delivery Fee"].trim();
+        if (value === "0") {
+          // If column is exactly 0 → Free Delivery
+          fee = 0;
+          feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
+        } else {
+          // Else use actual fee
+          fee = parseFloat(value);
+          feeText = `₹${fee}`;
+        }
+      } else {
+        // No fee column? fallback
+        fee = 0;
+        feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
+      }
+
+      // Set for other function use
+      window.deliveryFee = fee;
+
+      // COD charges from sheet (column: COD charges)
+      try {
+        if (data[0] && data[0]["COD charges"]) {
+          var codVal = String(data[0]["COD charges"]).trim();
+          window.codCharge = Number(codVal.replace(/[^\d.]/g, "")) || 0;
+        }
+      } catch(e) { window.codCharge = window.codCharge || 0; }
+
+      // Update COD label text dynamically
+      try {
+        var codInput = document.querySelector('input[name="paymentMethod"][value="cod"]');
+        if (codInput) {
+          var codLabel = codInput.parentElement;
+          // ensure a span exists for text
+          if (!codLabel.querySelector('#codLabelText')) {
+            var radioSpan = codLabel.querySelector('.custom-radio');
+            if (radioSpan) {
+              radioSpan.insertAdjacentHTML('afterend', ' <span id="codLabelText"></span>');
+              // remove trailing text nodes if any
+            }
+          }
+          var lbl = codLabel.querySelector('#codLabelText');
+          if (lbl) lbl.textContent = 'Cash on Delivery (+₹' + window.codCharge + ')';
+        }
+      } catch(e) {}
+
+      // Show on screen
+      document.getElementById("summaryBox").innerHTML = `
+        <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+        <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+        <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + fee}</span></div>
+      `;
+      try { if (typeof updateSummary === "function") updateSummary(); } catch(e) {}
+
+    // === NEW: read "COD PREPAID" from sheet and update UI ===
+try {
+  if (data[0] && data[0]["COD PREPAID"] != null) {
+    var prepaidRaw = String(data[0]["COD PREPAID"]).trim();
+    var prepaidNum = Number(prepaidRaw.replace(/[^\d.]/g, "")) || 95;
+    window.codPrepaid = prepaidNum;
+  }
+} catch(e){ window.codPrepaid = window.codPrepaid || 95; }
+
+// Update the COD prepaid text in the popup heading and button label
+function updateCODPrepaidUI() {
+  try {
+    var p = Number(window.codPrepaid) || 95;
+    document.querySelectorAll('#cod95Popup .address-popup-box > div:first-child').forEach(function(el){
+      if (el) el.textContent = 'Pay ₹' + p + ' now, to confirm your COD order';
+    });
+    document.querySelectorAll('#cod95Popup .btn-label').forEach(function(lbl){
+      if (lbl) lbl.textContent = 'Pay ₹' + p + ' now';
+    });
+  } catch(e){}
 }
-function closeModal(idx){
-  const m = document.getElementById(`modal-${idx}`);
-  if(m){ 
-    m.classList.remove("show"); 
-    m.setAttribute("aria-hidden","true");
-    document.body.classList.remove("no-scroll"); 
+updateCODPrepaidUI();
+});
+
+</script>
+<script>
+window.codCharge = 95; // default until sheet loads
+window.codPrepaid = 95; // default COD prepaid until sheet loads
+window.cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+document.addEventListener("DOMContentLoaded", () => {
+  const shippingAddress = localStorage.getItem("shippingAddress") || "";
+
+  if (shippingAddress) {
+    document.getElementById("displayAddress").innerHTML = shippingAddress;
+  }
+
+  const container = document.getElementById("cartItems");
+  let total = 0;
+
+  window.cartData.forEach((item, index) => {
+    total += item.price * item.qty;
+    const div = document.createElement("div");
+    div.className = "item cart-item-animate";
+    div.innerHTML = `
+      <img src="${item.photo}" />
+      <div class="item-info">
+  <div class="item-name">${item.name}</div>
+  <div class="item-price">₹${item.price}</div>
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+    <div class="quantity-bar" style="margin:0;">
+      <button onclick="decrease(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+      <button onclick="increase(${index})">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+  </div>
+</div>
+    `;
+    container.appendChild(div);
+  });
+
+  // If cart is empty
+  if (window.cartData.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; margin-top: 30px;">
+        <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" />
+        <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+        <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+      </div>
+    `;
+    document.getElementById("summaryBox").innerHTML = "";
+    document.getElementById("bottomBox").style.display = "none";
+  document.getElementById("paymentMethodBox").style.display = "none";
+    return;
+  }
+
+  document.getElementById("paymentMethodBox").style.display = "block";
+
+  // Summary section
+  let deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const feeText = deliveryFee === 0
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
+  `;
+});
+</script>
+<script>
+function increase(index) {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  cartData[index].qty++;
+  localStorage.setItem("cartItems", JSON.stringify(cartData));
+
+  document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
+
+  if (typeof updateCartBadge === "function") updateCartBadge();
+  if (typeof updateSummary === "function") updateSummary();
+}
+
+function decrease(index) {
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  if (cartData[index].qty > 1) {
+    cartData[index].qty--;
+    localStorage.setItem("cartItems", JSON.stringify(cartData));
+
+    document.getElementById(`qty-${index}`).innerText = cartData[index].qty;
+
+    if (typeof updateCartBadge === "function") updateCartBadge();
+    if (typeof updateSummary === "function") updateSummary();
   }
 }
 
-async function main(){
-  try{
-    const rows = await getSheetRows();
-    const list = document.getElementById("orderList");
-    const modalRoot = document.getElementById("modalRoot");
 
-    if(!rows.length){
-      list.innerHTML = `<div class="order-card empty">No orders in the sheet.</div>`;
+function removeItem(index) {
+  // Read current cart
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+
+  // Remove the item at this index
+  items.splice(index, 1);
+
+  // Persist back
+  localStorage.setItem("cartItems", JSON.stringify(items));
+  window.cartData = items;
+
+  // Update the UI without a page reload
+  if (typeof renderCart === "function") {
+    renderCart();              // re-build the list with fresh indexes
+  } else {
+    // Fallback: minimal DOM update if renderCart isn't found
+    const container = document.getElementById("cartItems");
+    if (container && container.children[index]) {
+      container.removeChild(container.children[index]);
+    }
+  }
+
+  // Update header badge, summary & any min-order logic
+  try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+  try { if (typeof updateSummary === "function") updateSummary(); } catch(e){}
+  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
+
+  // If cart is now empty, show the empty-state and hide pay UI
+  if (items.length === 0) {
+    const container = document.getElementById("cartItems");
+    if (container) {
+      container.innerHTML = `
+        <div style="text-align:center; margin-top: 30px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
+          <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+          <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+        </div>
+      `;
+    }
+    const sb = document.getElementById("summaryBox");
+    if (sb) sb.innerHTML = "";
+    const pb = document.getElementById("paymentMethodBox");
+    if (pb) pb.style.display = "none";
+    const bb = document.getElementById("bottomBox");
+    if (bb) bb.style.display = "none";
+  }
+}
+
+
+// Re-render cart items list & ensure indexes stay correct
+function renderCart() {
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const container = document.getElementById("cartItems");
+  if (!container) return;
+
+  // If empty, show empty-state and bail
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; margin-top: 30px;">
+        <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
+        <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+        <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+      </div>
+    `;
+    const sb = document.getElementById("summaryBox");
+    if (sb) sb.innerHTML = "";
+    const pb = document.getElementById("paymentMethodBox");
+    if (pb) pb.style.display = "none";
+    const bb = document.getElementById("bottomBox");
+    if (bb) bb.style.display = "none";
+    return;
+  }
+
+  // Build fresh DOM
+  container.innerHTML = "";
+  items.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "item cart-item-animate";
+    div.innerHTML = `
+      <img src="${item.photo}" />
+      <div class="item-info">
+        <div class="item-name">${item.name}</div>
+        <div class="item-price">₹${item.price}</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+          <div class="quantity-bar" style="margin:0;">
+            <button onclick="decrease(${index})">
+              <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+            <button onclick="increase(${index})">
+              <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  // Ensure payment section is visible when items exist
+  const pb = document.getElementById("paymentMethodBox");
+  if (pb) pb.style.display = "block";
+  const bb = document.getElementById("bottomBox");
+  if (bb) bb.style.display = "block";
+
+  // Update totals & badges
+  try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+  try { if (typeof updateSummary === "function") updateSummary(); } catch(e){}
+}
+
+</script>
+
+<script>
+let selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || "razorpay";
+window.selectedPayment = selectedPayment;
+
+function updatePaymentMethod() {
+  const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+  selectedPayment = method;
+  window.selectedPayment = method;
+
+  const labelEl = document.querySelector('#proceedBtn .btn-label');
+  if (labelEl) {
+    labelEl.textContent = (method === "cod") ? "Continue with COD" : "Proceed to Pay";
+  }
+
+  updateSummary();
+  // minimum order ka notice total ke hisaab se dubara check ho
+  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
+}
+
+
+
+// Override updateSummary to include COD charge
+function updateSummary() {
+  // ---- totals ----
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+
+  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const codFee      = (selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
+
+  // ---- coupon logic (same as before) ----
+  let couponToUse = null, discount = 0;
+  if (window.allCoupons && allCoupons.length){
+    if (window.manualLock && window.appliedCoupon){
+      couponToUse = window.appliedCoupon;
+      discount = (subtotal >= couponToUse.min) ? discountOnSubtotal(subtotal, couponToUse) : 0;
+    } else {
+      const {coupon, amount} = bestCouponFor(subtotal);
+      couponToUse = coupon;
+      discount = amount;
+      window.appliedCoupon = coupon || null; try{syncCouponInput();}catch(e){}
+    }
+  }
+
+  // “Free Delivery” ya amount ki text
+  const feeText = (deliveryFee === 0)
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  // ✅ COD par Delivery Fee line HIDE — chahe free ho ya paid
+  const showDeliveryRow = !(selectedPayment === "cod");
+
+  // grand total: agar Delivery row hide hai to usko add na karein
+  const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
+
+  // ---- build rows ----
+  let rows = `
+    <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
+  `;
+
+  if (showDeliveryRow) {
+    rows += `<div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>`;
+  }
+
+  // ✅ COD amount ko green rounded chip me dikhayein
+  if (codFee) {
+    rows += `<div class="summary-row" style="justify-content: flex-start; gap: 20px;">
+            <span>COD Charges</span>
+            <span style="font-weight: bold;">₹${codFee}</span>
+          </div>`;
+  }
+
+  if (discount) {
+    rows += `<div class="summary-row"><span>Coupon (${couponToUse.code})</span><span>-₹${discount}</span></div>`;
+  }
+
+  rows += `<div class="summary-row" style="font-weight: bold; font-size: 18px;">
+            <span>Order Total</span><span>₹${grand}</span>
+          </div>`;
+
+  document.getElementById("summaryBox").innerHTML = rows;
+
+  // helpers jinhe aap pehle se use kar rahe the
+  try { showAppliedTag(subtotal); } catch(e){}
+  try { showProgress(subtotal); } catch(e){}
+  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
+}
+</script>
+<!-- ✅ COD Razorpay Suggestion Popup -->
+<div class="address-popup-overlay" id="codPopup">
+  <div class="address-popup-box" style="text-align: center; max-width: 320px;">
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">Free Delivery with Razorpay</div>
+    <div style="font-size: 15px; color: #444; margin-bottom: 16px;">
+      Orders paid online are processed and shipped faster.<br>Want to switch?
+    </div>
+
+    <div class="button-row" style="flex-direction: column; gap: 10px; margin-top: 16px;">
+      <button class="popup-razorpay-btn" onclick="startRazorpayWithSpinner(this)" style="
+  background: #2874f0;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;
+">
+  <span class="btn-label">Pay via Razorpay</span>
+  <span class="btn-spinner" aria-hidden="true"></span>
+</button>
+
+      <button class="popup-razorpay-btn btn--outline" onclick="continueWithCOD(this)" style="
+  background: white;
+  color: black;
+  border: 1.4px solid #000;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;
+">
+  <span class="btn-label">Place Order (COD)</span>
+  <span class="btn-spinner" aria-hidden="true"></span>
+</button>
+<!-- Back Button in Same Theme -->
+<button class="popup-razorpay-btn btn--outline" onclick="closeCODPopup()" style="
+  background: white;
+  color: black;
+  border: 1.4px solid #000;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;
+">
+  Back
+</button>
+    </div>
+  </div>
+</div>
+<!-- 🔊 COD confirmation sound (preloaded) -->
+<script>
+  // MP3 ko pehle se load kar lo taa ki play instant ho
+  window.codConfirmAudio = new Audio("https://files.catbox.moe/qkc0il.mp3");
+  window.codConfirmAudio.preload = "auto";
+
+  function playCODConfirm() {
+    try {
+      const a = window.codConfirmAudio;
+      a.currentTime = 0;
+      a.play().catch(()=>{});
+    } catch(e) {}
+  }
+</script>
+<script>
+  // show the 1s spinner then trigger Razorpay
+  function setLoading(btn, on) {
+    if (!btn) return;
+    if (on) {
+      btn.classList.add('is-loading');
+      btn.setAttribute('aria-busy','true');
+    } else {
+      btn.classList.remove('is-loading');
+      btn.removeAttribute('aria-busy');
+    }
+  }
+
+  
+  // REPLACE the whole function with this version
+  function startRazorpayWithSpinner(btnEl) {
+    setLoading(btnEl, true);
+
+    // 1) Send pre-payment Telegram now
+    preNotifyTelegram("Razorpay 😎");
+
+    // 2) Wait ~2 seconds BEFORE opening Razorpay
+    setTimeout(() => {
+      setLoading(btnEl, false);
+      payViaRazorpay(); // opens Razorpay after the ~2s gap
+    }, 2000);
+  }
+</script>
+<script>
+function handleProceed() {
+  const shippingAddress = localStorage.getItem("shippingAddress");
+
+  // If address missing → show required popup
+  if (!shippingAddress || shippingAddress.trim() === "") {
+    document.getElementById("addressRequiredPopup").style.display = "flex";
+    document.body.style.overflow = "hidden";
+    return;
+  }
+
+  const selected = document.querySelector('input[name="paymentMethod"]:checked');
+  const method = selected ? selected.value : "razorpay";
+
+  if (method === "cod") {
+    // COD → show suggestion popup (no spinner here)
+    openCOD95Popup();
+    document.body.style.overflow = "hidden";
+  } else {
+    // Razorpay → show 1s spinner on Proceed button, then open Razorpay
+    const btn = document.getElementById("proceedBtn");
+    startRazorpayWithSpinner(btn);
+  }
+}
+
+
+  // REPLACE the whole continueWithCOD with this version
+  function continueWithCOD(btnEl) {
+    if (btnEl) {
+      btnEl.classList.add('is-loading');
+      btnEl.setAttribute('aria-busy', 'true');
+    }
+
+    // 1) Pre-notify now and freeze an ID to reuse on Thank-You
+    const pre = preNotifyTelegram("Cash on Delivery", buildCODPreview());
+    const fixedId = pre.id; // reuse this so TG and Saved Order match
+
+    // Keep your sound timing
+    setTimeout(() => { try { playCODConfirm(); } catch(e){} }, 1000);
+
+    // 2) After ~2s, stop spinner and place order + redirect
+    setTimeout(() => {
+      if (btnEl) {
+        btnEl.classList.remove('is-loading');
+        btnEl.removeAttribute('aria-busy');
+      }
+      setTimeout(() => {
+        placeCODOrderAndRedirect(fixedId, /*alreadyNotified=*/true);
+      }, 150);
+    }, 2000);
+  }
+</script>
+<script>
+function placeCODOrderAndRedirect(orderIdOverride, alreadyNotified) {
+  // --- items subtotal ---
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+
+  // ✅ COD flow me delivery fee NA dikhana/NA add karna
+  const deliveryFee = 0;
+
+  // ✅ Sheet/variable se COD fee
+  const codFee = Number(window.codCharge || 0);
+
+  // ✅ Coupon/discount (agar appliedCoupon mila ho)
+  let discount = 0, couponCode = null;
+  try {
+    if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0)) {
+      couponCode = window.appliedCoupon.code || null;
+      if (typeof discountOnSubtotal === "function") {
+        discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
+      }
+    }
+  } catch(e){}
+
+  // ✅ Grand total = items + COD − discount
+  const grandTotal = Math.max(0, itemsTotal + codFee - discount);
+
+  const order = {
+    id: orderIdOverride || ("COD-" + Date.now()),
+    method: "Cash on Delivery",
+    items,
+    coupon: couponCode || null,
+    amounts: {
+      itemsTotal,
+      deliveryFee,     // 0 for COD
+      codFee,          // ✅ important
+      discount,        // ✅ important
+      grandTotal
+    },
+    address: localStorage.getItem("shippingAddress") || "",
+    createdAt: new Date().toISOString(),
+    preNotified: !!alreadyNotified
+  };
+
+  // Save & clear
+  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  orders.unshift(order);
+  localStorage.setItem("orders", JSON.stringify(orders));
+  localStorage.setItem("cartItems", "[]");
+  try{ if(typeof updateCartBadge==='function') updateCartBadge(); }catch(e){}
+  localStorage.setItem("lastOrderClearedCart","1");
+
+  // Pre-notify bheja tha to dubara TG mat bhejo
+  if (!order.preNotified) { try{ sendOrderToTelegram(order); }catch(e){} }
+  if (!order.preNotified) { try{ sendOrderToTelegram(order); }catch(e){} }
+// 👇 add this new line
+try { saveOrderToGoogleSheet(order); } catch(e) {}
+showPaymentPopup("success");
+
+  showPaymentPopup("success");
+}
+</script>
+<script>
+function closeCODPopup() {
+  document.getElementById("codPopup").style.display = "none";
+  document.body.style.overflow = "";
+}
+function closeAddressRequiredPopup() {
+  document.getElementById("addressRequiredPopup").style.display = "none";
+  document.body.style.overflow = "";
+}
+function openAddressAndClosePopup() {
+  document.getElementById("addressRequiredPopup").style.display = "none";
+  document.body.style.overflow = "";
+  openAddressPopup(); // Already defined elsewhere
+}
+</script>
+
+<script>
+  // Razorpay ko 1s spinner ke baad open karne ke liye final function
+  function payViaRazorpay() {
+    // Koi popup khula ho to band
+    try {
+      document.getElementById("codPopup").style.display = "none";
+      document.body.style.overflow = "";
+    } catch (e) {}
+
+    // --- Amounts (coupon ko minus karke) ---
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+
+    // Applied coupon ka discount (agar min meet ho raha hai)
+    let discount = 0;
+    try {
+      if (window.appliedCoupon && subtotal >= window.appliedCoupon.min) {
+        // discountOnSubtotal helper aapke file me upar defined hai
+        discount = discountOnSubtotal(subtotal, window.appliedCoupon);
+      }
+    } catch (e) {}
+
+    const finalAmount = Math.max(1, subtotal + deliveryFee - discount); // safeguard
+
+    // Prefill details (address/localStorage se)
+    const name  = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").fullname) || (localStorage.getItem("user_name") || "");
+    const email = localStorage.getItem("user_email") || "";
+    const phone = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone) || "";
+
+    const options = {
+      key: "rzp_live_RD9Vpf0c38C3vD",               // ✅ aapka live Key ID
+      amount: Math.round(finalAmount * 100),        // paise
+      currency: "INR",
+      name: "Precioussly",
+      description: "Secure Payment",
+      image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+      prefill: { name: name, email: email, contact: phone },
+      notes: { address: localStorage.getItem("shippingAddress") || "" },
+      theme: { color: "#2874f0" },
+
+      handler: function (response) {
+        // --- Success ke baad order ko localStorage me save + cart clear ---
+        const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+        const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+        const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+        const applied = window.appliedCoupon ? window.appliedCoupon.code : null;
+        const discountAmt = discount; // upar calculate
+
+        const grandTotal = Math.max(0, itemsTotal + deliveryFee - discountAmt);
+
+        const order = {
+          id: "RZP-" + (response.razorpay_payment_id || Date.now()),
+          method: "Razorpay",
+          items,
+          coupon: applied,
+          amounts: { itemsTotal, deliveryFee, codFee: 0, discount: discountAmt, grandTotal },
+          address: localStorage.getItem("shippingAddress") || "",
+          createdAt: new Date().toISOString()
+        };
+
+        const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+        orders.unshift(order);
+        localStorage.setItem("orders", JSON.stringify(orders));
+
+        localStorage.setItem("cartItems", "[]");
+        try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+        localStorage.setItem("lastOrderClearedCart", "1");
+
+        try{ sendOrderToTelegram(order); }catch(e){}
+        try { saveOrderToGoogleSheet(order); } catch(e) {}
+        showPaymentPopup("success");
+      },
+
+      modal: {
+        // User ne Razorpay close kar diya → spinner/reset states
+        ondismiss: function () {
+          const proceedBtn = document.getElementById("proceedBtn");
+          if (proceedBtn) {
+            proceedBtn.classList.remove("is-loading");
+            proceedBtn.removeAttribute("aria-busy");
+          }
+          document.querySelectorAll(".popup-razorpay-btn.is-loading").forEach(b=>{
+            b.classList.remove("is-loading");
+            b.removeAttribute("aria-busy");
+          });
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  }
+</script>
+<!-- ✅ FINAL ADDRESS REQUIRED POPUP -->
+<div class="address-popup-overlay" id="addressRequiredPopup">
+  <div class="address-popup-box" style="text-align: center; max-width: 320px; border: none; box-shadow: 0 6px 20px rgba(0,0,0,0.2); border-radius: 16px;">
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">
+      Address Required
+    </div>
+    <div style="font-size: 15px; color: #444; margin-bottom: 16px; font-family: 'Roboto Slab', serif;">
+      Please add your shipping address before<br>proceeding.
+    </div>
+
+    <div class="button-row" style="flex-direction: column; gap: 10px; margin-top: 12px;">
+      <!-- ✅ BLUE BUTTON -->
+      <button onclick="openAddressAndClosePopup()" style="
+        background: #2874f0;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 15px;
+        font-family: 'Roboto Slab', serif;
+      ">Add Address</button>
+
+      <!-- ✅ OUTLINED BLACK BUTTON -->
+      <button onclick="closeAddressRequiredPopup()" style="
+        background: white;
+        color: black;
+        border: 1.4px solid #000;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 15px;
+        font-family: 'Roboto Slab', serif;
+      ">Back</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function validateAddressFields() {
+  const fullName = document.getElementById("fullname").value.trim();
+  const state = document.getElementById("state").value;
+  const city = document.getElementById("city").value.trim();
+  const pincode = document.getElementById("pincode").value.trim();
+  const address = document.getElementById("address").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+
+  const isValid = fullName && state && city && pincode && address && phone;
+
+  const btn = document.getElementById("confirmAddressBtn");
+  if (isValid) {
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+    btn.style.cursor = "not-allowed";
+  }
+}
+</script>
+<script>
+let minimumOrderValue = null; // nothing shown until fetched
+
+// ✅ Fetch minimum order value from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    if (data[0] && data[0]["minimum order"]) {
+      minimumOrderValue = parseInt(data[0]["minimum order"]);
+      document.getElementById("proceedBtn").style.display = "block"; // show button
+      document.getElementById("minimumNotice").style.display = "block"; // show message area
+      checkMinOrderCondition(); // run logic after fetch
+    }
+  });
+
+function checkMinOrderCondition() {
+  if (minimumOrderValue === null) return; // stop if not fetched yet
+
+  const proceedBtn = document.getElementById("proceedBtn");
+  const notice = document.getElementById("minimumNotice");
+
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
+
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+  const grandTotal = total + deliveryFee + codFee;
+
+  notice.innerText = `Minimum order amount is ₹${minimumOrderValue} to proceed`;
+
+  if (grandTotal < minimumOrderValue) {
+    proceedBtn.style.opacity = "0.4";
+    proceedBtn.disabled = true;
+    proceedBtn.style.cursor = "not-allowed";
+    notice.style.display = "block";
+  } else {
+    proceedBtn.style.opacity = "1";
+    proceedBtn.disabled = false;
+    proceedBtn.style.cursor = "pointer";
+    notice.style.display = "none";
+  }
+}
+
+
+// ====== 1) CONFIG: use the SAME sheet as index.html coupons  ======
+const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
+// Index renders coupons by reading Title / MinAmount / Code / Discount columns
+
+// ====== 2) State ======
+window.allCoupons = [];            // raw coupons from sheet
+window.appliedCoupon = null; try{syncCouponInput();}catch(e){}       // {code,title,min,amount,isPercent,raw}
+window.manualLock = false;         // if user applied manually, don't auto-switch
+
+// ====== 3) Helpers ======
+function parseCouponRow(r){
+  const title = (r.Title||"").trim();
+  const code  = (r.Code||"").trim();
+  const min   = Number(String(r.MinAmount||"0").replace(/[^\d.]/g,"")) || 0;
+  const raw   = (r.Discount||"").trim(); // supports "50" or "10%"
+  const isPercent = /%$/.test(raw);
+  const value = Number(raw.replace(/[^\d.]/g,"")) || 0;
+  return { title, code, min, raw, isPercent, value };
+}
+
+function discountOnSubtotal(subtotal, c){
+  if (!c) return 0;
+  let d = c.isPercent ? Math.floor(subtotal * c.value/100) : c.value;
+  d = Math.max(0, Math.min(d, subtotal)); // never exceed items total
+  return d;
+}
+
+function bestCouponFor(subtotal){
+  let best = null, bestAmt = 0;
+  allCoupons.forEach(c=>{
+    if (subtotal >= c.min){
+      const amt = discountOnSubtotal(subtotal, c);
+      if (amt > bestAmt){ best = c; bestAmt = amt; }
+    }
+  });
+  return {coupon: best, amount: bestAmt};
+}
+
+function renderCouponCards(){
+  const holder = document.getElementById("couponContainerCart");
+  if (!holder) return;
+  holder.innerHTML = allCoupons.map(c=>`
+    <div class="coupon-card" onclick="document.getElementById('couponInput').value='${c.code}'">
+      <h3>${c.title}</h3>
+      <p>Min. Order ₹${c.min.toLocaleString()}</p>
+      <div class="code-row">
+        <span class="code-box">${c.code}</span>
+        <span style="font-size:12px;color:#064c2c;">Save ${c.raw}</span>
+      </div>
+    </div>
+  `).join("");
+  holder.style.display = allCoupons.length ? "flex" : "none";
+}
+
+function showAppliedTag(subtotal){
+  const tag = document.getElementById("appliedCouponTag");
+  if (!tag) return;
+
+  if (!appliedCoupon){
+    tag.style.display = "none";
+    return;
+  }
+  const amount = discountOnSubtotal(subtotal, appliedCoupon);
+  tag.innerHTML = `Applied: <strong>${appliedCoupon.code}</strong> — You saved ₹${amount}`;
+  tag.style.display = "inline-block";
+}
+
+function showProgress(subtotal){
+  const wrap = document.getElementById("couponProgressWrap");
+  if (!wrap) return;
+  // find next coupon threshold > subtotal
+  const next = [...allCoupons].sort((a,b)=>a.min-b.min).find(c => c.min > subtotal);
+  if (!next){
+    wrap.style.display = "none";
+    return;
+  }
+  const need = next.min - subtotal;
+  const text = document.getElementById("couponProgressText");
+  const bar  = document.getElementById("couponProgressBar");
+  text.textContent = `Add ₹${need} more to unlock ${next.raw} (code ${next.code})`;
+  const pct = Math.max(0, Math.min(100, Math.round((subtotal/next.min)*100)));
+  bar.style.width = pct + "%";
+  wrap.style.display = "block";
+}
+
+// ====== 4) Manual apply / clear ======
+function applyCouponManually(){
+  const input = document.getElementById("couponInput");
+  const code = (input.value||"").trim().toUpperCase();
+  if (!code) return;
+
+  const found = allCoupons.find(c=>c.code.toUpperCase()===code);
+  window.manualLock = true;
+
+  const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
+  const subtotal = cart.reduce((s,it)=>s + (Number(it.price)*Number(it.qty)), 0);
+
+  if (found){
+    if (subtotal >= found.min) {
+      window.appliedCoupon = found; try{syncCouponInput();}catch(e){}
+    } else {
+      alert(`Minimum order ₹${found.min} required for this coupon.`);
+      window.appliedCoupon = null; try{syncCouponInput();}catch(e){}
+      input.value = "";
+    }
+  } else {
+    alert("Invalid coupon");
+    window.appliedCoupon = null; try{syncCouponInput();}catch(e){}
+  }
+  
+  updateSummary();
+}
+
+function clearManualCoupon(){
+  window.manualLock = false;
+  window.appliedCoupon = null; try{syncCouponInput();}catch(e){}
+  document.getElementById("couponInput").value = "";
+  updateSummary();
+}
+
+// ====== 5) Load coupons once ======
+function loadCoupons(){
+  fetch(couponSheetURL)
+    .then(r=>r.json())
+    .then(rows=>{
+      window.allCoupons = rows
+        .filter(r => r.Title && r.MinAmount && r.Code && r.Discount) // same columns as index
+        .map(parseCouponRow)
+        .sort((a,b)=>a.min-b.min);
+      renderCouponCards();
+      updateSummary(); // first render with coupons available
+    })
+    .catch(()=>{ /* fail silently */ });
+}
+document.addEventListener("DOMContentLoaded", loadCoupons);
+
+// ====== 6) ONE clean updateSummary (items + delivery + COD + coupon) ======
+function updateSummary(){
+  const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
+  const subtotal = cart.reduce((s,it)=>s + (Number(it.price)*Number(it.qty)), 0);
+  // ---- show/hide coupons when cart empty ----
+const coupWrap = document.getElementById("couponSection");
+if (coupWrap){
+  const hasItems = subtotal > 0 && cart.length > 0;
+  coupWrap.style.display = hasItems ? "block" : "none";
+}
+
+  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+
+  // auto-pick the best coupon unless user manually locked one
+  let couponToUse = null, discount = 0;
+  if (allCoupons.length){
+    if (window.manualLock && window.appliedCoupon){
+      couponToUse = window.appliedCoupon;
+      // respect min amount even for manual apply
+      discount = (subtotal >= couponToUse.min) ? discountOnSubtotal(subtotal, couponToUse) : 0;
+    } else {
+      const {coupon, amount} = bestCouponFor(subtotal);
+      couponToUse = coupon;
+      discount = amount;
+      window.appliedCoupon = coupon || null; try{syncCouponInput();}catch(e){}
+    }
+  }
+  // ✅ Auto-fill the input box with applied coupon code
+if (couponToUse && document.getElementById("couponInput")) {
+  document.getElementById("couponInput").value = couponToUse.code;
+} else if (!couponToUse && !window.manualLock) {
+  document.getElementById("couponInput").value = "";
+}
+  const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
+
+  const feeText = (deliveryFee === 0)
+    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+    : `₹${deliveryFee}`;
+
+  document.getElementById("summaryBox").innerHTML = `
+    <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
+    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+    ${codFee ? `<div class="summary-row"><span>COD Charges</span><span>₹${codFee}</span></div>` : ""}
+    ${discount ? `<div class="summary-row"><span>Coupon (${couponToUse.code})</span><span>-₹${discount}</span></div>` : ""}
+    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${grand}</span></div>
+  `;
+
+  // UI helpers
+  showAppliedTag(subtotal);
+  showProgress(subtotal);
+
+  // keep your “Minimum Order” logic alive if present
+  try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
+}
+
+// Ensure other places call our summary (qty +/- already call updateSummary in your file)
+</script>
+
+  <script src="coupon-persist.js"></script>
+  <script>
+/* ====== MENU: fetch from Google Sheet + re-render on open + auto-heal ====== */
+(() => {
+  const SHEET_ID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
+
+  const menuEl   = document.getElementById("menuContent");
+  const sideMenu = document.getElementById("sideMenu");
+  const overlay  = document.getElementById("menuOverlay");
+
+  let MENU_CACHE = null;
+
+  function buildMenu(rows){
+    const map = {};
+    rows.forEach(r=>{
+      const parent = (r["Menu"]||"").trim();
+      const child  = (r["Submenu"]||"").trim();
+      const link   = (r["Link"]||"").trim();
+      if(!parent) return;
+      map[parent] ||= { link:"", subs:[] };
+      if (child) map[parent].subs.push({title:child, link:link||"#"});
+      else if (link) map[parent].link = link;
+    });
+
+    menuEl.innerHTML = "";
+    const parents = Object.keys(map);
+    parents.forEach(p=>{
+      if (map[p].subs.length){
+        const wrap = document.createElement("div");
+        wrap.className = "menu-group";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "menu-link dropdown-toggle";
+        btn.textContent = p;
+        const sub = document.createElement("div");
+        sub.className = "submenu";
+        map[p].subs.forEach(s=>{
+          const a = document.createElement("a");
+          a.className = "menu-link";
+          a.href = s.link || "#";
+          a.textContent = s.title;
+          sub.appendChild(a);
+        });
+        btn.addEventListener("click", ()=> sub.classList.toggle("open"));
+        wrap.append(btn, sub);
+        menuEl.appendChild(wrap);
+      } else {
+        const a = document.createElement("a");
+        a.className = "menu-link";
+        a.href = map[p].link || "#";
+        a.textContent = p;
+        menuEl.appendChild(a);
+      }
+    });
+
+    if (!parents.length){
+      menuEl.innerHTML = `
+        <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+        <a href="https://precioussly.com/" class="menu-link">Home</a>
+      `;
+    }
+  }
+
+  async function ensureMenuLoaded(){
+    if (MENU_CACHE){ buildMenu(MENU_CACHE); return; }
+    try{
+      const r = await fetch(SHEET_URL, {cache:"no-store"});
+      const data = await r.json();
+      MENU_CACHE = Array.isArray(data) ? data : [];
+      buildMenu(MENU_CACHE);
+    }catch(_){
+      MENU_CACHE = [];
+      buildMenu(MENU_CACHE);
+    }
+  }
+
+  // Override and harden toggleMenu
+  window.toggleMenu = function(open){
+    const shouldOpen = (typeof open === "boolean")
+      ? open : !sideMenu.classList.contains("active");
+    if (shouldOpen){
+      overlay.classList.add("active");
+      sideMenu.classList.add("active");
+      document.body.style.overflow = "hidden";
+      ensureMenuLoaded();
+    } else {
+      overlay.classList.remove("active");
+      sideMenu.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+  };
+
+  // Stop propagation so overlay click-only closes it
+  sideMenu.addEventListener("click", e => e.stopPropagation());
+
+  // Auto-heal: if something wipes #menuContent while open, rebuild
+  const mo = new MutationObserver(() => {
+    if (sideMenu.classList.contains("active") && !menuEl.firstElementChild){
+      ensureMenuLoaded();
+    }
+  });
+  mo.observe(menuEl, {childList: true});
+
+  // Preload once in idle time
+  if ("requestIdleCallback" in window){
+    requestIdleCallback(()=> ensureMenuLoaded());
+  } else {
+    setTimeout(()=> ensureMenuLoaded(), 500);
+  }
+})();
+</script>
+
+
+<script>
+(() => {
+  const SHEET_ID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
+
+  const menuEl   = document.getElementById("menuContent");
+  const sideMenu = document.getElementById("sideMenu");
+  const overlay  = document.getElementById("menuOverlay");
+
+  let MENU_CACHE = null;
+
+  function buildMenu(rows){
+    const map = {};
+    rows.forEach(r=>{
+      const parent = (r["Menu"]||"").trim();
+      const child  = (r["Submenu"]||"").trim();
+      const link   = (r["Link"]||"").trim();
+      if (!parent) return;
+      map[parent] ||= { link:"", subs:[] };
+      if (child) map[parent].subs.push({title:child, link:link||"#"});
+      else if (link) map[parent].link = link;
+    });
+    menuEl.innerHTML = "";
+    const parents = Object.keys(map);
+    parents.forEach(p=>{
+      if (map[p].subs.length){
+        const wrap = document.createElement("div");
+        wrap.className = "menu-group";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "menu-link dropdown-toggle";
+        btn.textContent = p;
+        const sub = document.createElement("div");
+        sub.className = "submenu";
+        map[p].subs.forEach(s=>{
+          const a = document.createElement("a");
+          a.className = "menu-link";
+          a.href = s.link || "#";
+          a.textContent = s.title;
+          sub.appendChild(a);
+        });
+        btn.addEventListener("click", ()=> sub.classList.toggle("open"));
+        wrap.append(btn, sub);
+        menuEl.appendChild(wrap);
+      } else {
+        const a = document.createElement("a");
+        a.className = "menu-link";
+        a.href = map[p].link || "#";
+        a.textContent = p;
+        menuEl.appendChild(a);
+      }
+    });
+    if (!parents.length){
+      menuEl.innerHTML = `
+        <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+        <a href="https://precioussly.com/" class="menu-link">Home</a>
+      `;
+    }
+  }
+
+  async function ensureMenuLoaded(){
+    if (MENU_CACHE) { buildMenu(MENU_CACHE); return; }
+    try{
+      const r = await fetch(SHEET_URL, {cache:"no-store"});
+      const data = await r.json();
+      MENU_CACHE = Array.isArray(data) ? data : [];
+      buildMenu(MENU_CACHE);
+    }catch(e){
+      MENU_CACHE = [];
+      buildMenu(MENU_CACHE);
+    }
+  }
+
+  window.toggleMenu = function(open){
+    const shouldOpen = (typeof open === "boolean")
+      ? open : !sideMenu.classList.contains("active");
+    if (shouldOpen){
+      overlay.classList.add("active");
+      sideMenu.classList.add("active");
+      document.body.style.overflow = "hidden";
+      ensureMenuLoaded();
+    }else{
+      overlay.classList.remove("active");
+      sideMenu.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+  };
+
+  const mo = new MutationObserver(() => {
+    if (sideMenu.classList.contains("active") && !menuEl.firstElementChild) {
+      ensureMenuLoaded();
+    }
+  });
+  mo.observe(menuEl, {childList:true});
+  sideMenu.addEventListener("click", e => e.stopPropagation());
+})();
+</script>
+
+<!-- ✅ COD ₹95 ADVANCE POPUP (auto-inserted) -->
+<div class="address-popup-overlay" id="cod95Popup" style="display:none;">
+  <div class="address-popup-box" style="text-align:center;max-width:320px;">
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px;">
+      Pay ₹95 now, rest to Delivery Partner
+    </div>
+    <div style="font-size:15px;color:#444;margin-bottom:14px;">
+       Remaining amount will be collected by the delivery partner at doorstep.
+    </div>
+    <div class="button-row" style="flex-direction:column;gap:10px;margin-top:12px;">
+      <button class="popup-razorpay-btn" onclick="startCOD95WithSpinner(this)" style="background:#2874f0;color:#fff;border:none;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
+        <span class="btn-label">Pay ₹95 now</span>
+        <span class="btn-spinner" aria-hidden="true"></span>
+      </button>
+      <button class="popup-razorpay-btn btn--outline" onclick="closeCOD95Popup()" style="background:#fff;color:#000;border:1.4px solid #000;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
+        Back
+      </button>
+    </div>
+  </div>
+</div>
+<!-- COD ₹95 popup + pre-notification + spinner -->
+<script>
+  /* ========= CONFIG: Telegram =========
+     For security, prefer setting these via JS before this script runs
+     or saving in localStorage:
+       localStorage.TG_BOT_TOKEN = "123:ABC..."
+       localStorage.TG_CHAT_ID   = "792731562"
+  */
+  const TG_BOT  = (window.TELEGRAM_BOT_TOKEN || localStorage.getItem("TG_BOT_TOKEN") || "").trim();
+  const TG_CHAT = (window.TELEGRAM_CHAT_ID  || localStorage.getItem("TG_CHAT_ID")  || "").trim();
+
+  function openCOD95Popup(){
+    var el = document.getElementById('cod95Popup');
+    if(el){ el.style.display='flex'; document.body.style.overflow='hidden'; }
+  }
+  function closeCOD95Popup(){
+    var el = document.getElementById('cod95Popup');
+    if(el){ el.style.display='none'; document.body.style.overflow=''; }
+  }
+
+  /** Build a lightweight preview of the order for the pre-notification */
+  function buildPreCODPreview(){
+    let addrObj = {};
+    try{ addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); }catch(e){}
+
+    const name  = addrObj.fullname || (localStorage.getItem("user_name") || "");
+    const phone = addrObj.phone || "";
+    const email = localStorage.getItem("user_email") || "";
+    const address = localStorage.getItem("shippingAddress") || "";
+
+    let items = [];
+    try{ items = JSON.parse(localStorage.getItem("cartItems") || "[]"); }catch(e){}
+
+    const itemsTotal = items.reduce((s,it)=> s + (Number(it.price)||0)*(Number(it.qty)||0), 0);
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    const codFee = Number(window.codCharge) || 0;
+    const remaining = Math.max(0, itemsTotal + deliveryFee + codFee - (Number(window.codPrepaid)||95));
+
+    // 1–2 top items to keep the message compact
+    const itemLines = items.slice(0,2).map(it => `• ${it.title || "Item"} × ${it.qty || 1}`).join('\n')
+      + (items.length > 2 ? `\n• +${items.length-2} more…` : "");
+
+    return {
+      text:
+`🟦 <b>COD ₹${Number(window.codPrepaid)||95} Clicked — Payment Pending</b>
+Name: ${name || "-"}
+Phone: ${phone || "-"}
+Email: ${email || "-"}
+Address: ${address || "-"}
+
+Items:
+${itemLines || "• (empty cart)"}
+
+Amounts:
+Items: ₹${itemsTotal}
+Delivery: ₹${deliveryFee}
+COD Fee: ₹${codFee}
+To Pay Now: ₹${Number(window.codPrepaid)||95}
+Remaining on Delivery: ₹${remaining}
+
+Time: ${new Date().toLocaleString()}`,
+      debug: {itemsTotal, deliveryFee, codFee, remaining}
+    };
+  }
+
+  /** Fire-and-forget Telegram pre-notification (doesn’t block the UI) */
+  function preNotifyTelegram(){
+    if(!TG_BOT || !TG_CHAT) return; // silently skip if not configured
+    const preview = buildPreCODPreview();
+    const url = `https://api.telegram.org/bot${TG_BOT}/sendMessage`;
+    const body = {
+      chat_id: TG_CHAT,
+      text: preview.text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true
+    };
+    // Don’t await — we want Razorpay to open regardless.
+    try {
+      fetch(url, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(body),
+        keepalive: true
+      }).catch(()=>{});
+    } catch(e){}
+  }
+
+  /** Main click handler for the blue “Pay ₹95 now” button */
+  function startCOD95WithSpinner(btnEl){
+    // Start spinner immediately
+    if (typeof setLoading === 'function') setLoading(btnEl, true);
+
+    // 1) Send Telegram PRE-NOTIFICATION right away (non-blocking)
+    preNotifyTelegram("Cash on Delivery 😅");
+
+    // 2) After ~2 seconds, stop spinner → CLOSE POPUP → open Razorpay
+    setTimeout(function(){
+      if (typeof setLoading === 'function') setLoading(btnEl, false);
+
+      // ✅ NEW: close the ₹95 popup exactly when the spinner stops
+      try { closeCOD95Popup(); } catch(e) {}
+
+      // Now open Razorpay for the prepaid amount
+      payCODAdvance95();
+    }, 2000);
+  }
+</script>
+
+<!-- Razorpay flow (unchanged logic, small safety tweaks) -->
+<script>
+function payCODAdvance95(){
+  var prepaid = Number(window.codPrepaid)||95;
+  // Prefills
+  var addrObj = {};
+  try{ addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}"); }catch(e){}
+  var preName  = addrObj.fullname || (localStorage.getItem("user_name") || "");
+  var preEmail = localStorage.getItem("user_email") || "";
+  var prePhone = addrObj.phone || "";
+
+  // Cart + amounts
+  var items = [];
+  try{ items = JSON.parse(localStorage.getItem("cartItems") || "[]"); }catch(e){}
+  var itemsTotal = items.reduce(function(s,it){ var p=Number(it.price)||0; var q=Number(it.qty)||0; return s + p*q; }, 0);
+  var deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  var codFee = Number(window.codCharge) || 0;
+  var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - (Number(window.codPrepaid)||95));
+
+  var options = {
+    key: "rzp_live_RD9Vpf0c38C3vD",
+    amount: 95 * 100,
+    currency: "INR",
+    name: "Precioussly",
+    description: "COD advance ₹95",
+    image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+    prefill: { name: preName, email: preEmail, contact: prePhone },
+    notes: { address: localStorage.getItem("shippingAddress") || "" },
+    theme: { color: "#2874f0" },
+
+    handler: function (response) {
+      // Build order object
+      var order = {
+        id: "COD-" + Date.now(),
+        method: "COD",
+        prepaidAmount: prepaid,
+        remainingAmount: remaining,
+        razorpay_payment_id: response.razorpay_payment_id || "",
+        items: items,
+        amounts: {
+          itemsTotal: itemsTotal, deliveryFee: deliveryFee, codFee: codFee,
+          prepaid: prepaid, remaining: remaining, grandTotal: itemsTotal + deliveryFee + codFee
+        },
+        address: localStorage.getItem("shippingAddress") || "",
+        createdAt: new Date().toISOString()
+      };
+
+      // Save to local orders
+      try{
+        var orders = JSON.parse(localStorage.getItem("orders") || "[]");
+        orders.unshift(order);
+        localStorage.setItem("orders", JSON.stringify(orders));
+      }catch(e){}
+
+      // Clear cart + UI badge
+      localStorage.setItem("cartItems", "[]");
+      try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+      localStorage.setItem("lastOrderClearedCart", "1");
+
+      // Final Telegram (successful) notification — already in your codebase
+      try{ sendOrderToTelegram(order); }catch(e){}
+      try { saveOrderToGoogleSheet(order); } catch(e) {}
+
+      // Redirect
+      showPaymentPopup("success");
+    },
+
+    modal: {
+      ondismiss: function () {
+        // Ensure any loading state on the popup button is cleared
+        var btns = document.querySelectorAll(".popup-razorpay-btn.is-loading");
+        btns.forEach(function(b){ b.classList.remove("is-loading"); b.removeAttribute("aria-busy"); });
+      }
+    }
+  };
+
+  try { options.amount = prepaid * 100; } catch(e) {}
+  var rzp = new Razorpay(options);
+      try{ rzp.on('payment.failed', function(){ showPaymentPopup('failed'); }); }catch(_){}
+      rzp.open();
+}
+</script>
+<script>
+// ===== Google Sheet payload builder + sender =====
+
+// Build the exact 23-field payload your Apps Script expects
+function buildSheetPayload(order) {
+  // Pull customer/contact/address from localStorage
+  let addr = {};
+  try { addr = JSON.parse(localStorage.getItem('shippingAddressObj') || '{}'); } catch (e) {}
+  const userEmail = localStorage.getItem('user_email') || '';
+
+  // Items fall back to cart if not on order (safety)
+  const items = Array.isArray(order?.items) ? order.items : (JSON.parse(localStorage.getItem('cartItems') || '[]'));
+
+  const itemCount = items.reduce((s, it) => s + Number(it.qty || 1), 0);
+
+  // Texts required by your sheet
+  const itemsText = items
+    .map(it => `${String(it.name || 'Item').replace(/\|/g, '/')} × ${Number(it.qty || 1)}`)
+    .join(' | ');
+
+  const itemImageUrls = items
+    .map(it => it.photo || '')
+    .filter(Boolean)
+    .join(' | ');
+
+  const a = order.amounts || {};
+  const isCOD = /cod/i.test(String(order.method || ''));
+  const hasRzpId = String(order.razorpay_payment_id || '');
+  const isRazorpay = /razorpay/i.test(String(order.method || '')) || (!!hasRzpId && !isCOD);
+
+  // Payment Status logic (exactly as requested)
+  let paymentStatus = 'Unpaid';
+  if (isRazorpay) paymentStatus = 'Paid';
+  else if (isCOD && Number(order.prepaidAmount || 0) > 0) paymentStatus = 'Prepaid-COD';
+
+  // Delivery fee label (hide for COD, else Free Delivery when 0)
+  const deliveryFeeText = isCOD
+    ? '' // COD flow me delivery fee line UI se hata rahe ho
+    : (Number(a.deliveryFee || 0) === 0 ? 'Free Delivery' : `₹${Number(a.deliveryFee || 0)}`);
+
+  const fullAddress = (function () {
+    if (addr.address) {
+      return `${addr.address}, ${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}`.replace(/\n/g, ' ').trim();
+    }
+    return (localStorage.getItem('shippingAddress') || '').replace(/\n/g, ' ').trim();
+  })();
+
+  return {
+    orderId: order.id || `ORD-${Date.now()}`,
+    customerName: addr.fullname || localStorage.getItem('user_name') || '',
+    customerEmail: userEmail,
+    phone: addr.phone || '',
+    altPhone: addr.altphone || '',
+    fullAddress,
+    city: addr.city || '',
+    state: addr.state || '',
+    pincode: addr.pincode || '',
+    paymentMethod: isCOD ? 'Cash on Delivery' : 'Razorpay',
+    paymentStatus,
+    paymentReference: hasRzpId || order.id || '',
+    codPrepaidAmount: Number(order.prepaidAmount || 0),
+    codCharges: Number(a.codFee || 0),
+    couponCode: order.coupon || '',
+    discountAmount: Number(a.discount || 0),
+    deliveryFeeText,
+    itemCount,
+    itemsText,
+    itemImageUrls,
+    subtotal: Number(a.itemsTotal || 0),
+    orderTotal: Number(a.grandTotal || 0)
+  };
+}
+
+// Fire-and-forget POST to Apps Script (avoids CORS preflight)
+function saveOrderToGoogleSheet(order) {
+  try {
+    if (!window.GS_WEB_APP_URL) return;
+    const payload = buildSheetPayload(order);
+    fetch(window.GS_WEB_APP_URL, {
+      method: 'POST',
+      mode: 'no-cors',                           // no need to read response
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // no preflight
+      body: JSON.stringify(payload)
+    });
+  } catch (e) { /* ignore silently */ }
+}
+</script>
+<!-- ======= Telegram Order Notifier (auto-inserted) ======= -->
+<script>
+const TG_BOT_TOKEN = "8338453495:AAGlEj98SoocsWjT2qa6FRo6qjHInDafqfA";
+const TG_CHAT_ID   = "792731562";
+
+/* Build the exact text we send to Telegram */
+function formatOrderForTelegram(order){
+  try{
+    const when = new Date(order.createdAt || Date.now())
+      .toLocaleString("en-IN", { day: "2-digit", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
+
+    const a = order.amounts || {};
+    const isCOD = /cod/i.test(String(order.displayMethod || order.method || ""));
+
+    const lines = [];
+    lines.push(`🧾 <b>New Order</b>  <code>${order.id || ""}</code>`);
+    lines.push(`💳 Method: <b>${order.displayMethod || order.method || "-"}</b>`);
+    lines.push(`⏱️ Time: ${when}`);
+    lines.push(``);
+    lines.push(`<b>Items:</b>`);
+
+    (order.items || []).forEach((it, idx) => {
+      const qty   = Number(it.qty)   || 1;
+      const price = Number(it.price) || 0;
+      lines.push(`${idx+1}) ${it.name || "Item"} × ${qty} — ₹${price * qty}`);
+    });
+
+    lines.push(``);
+    // Totals section
+    if (a.itemsTotal != null) lines.push(`Item Total: ₹${a.itemsTotal}`);
+
+    // Delivery: hide on COD, otherwise show "Free Delivery" when 0
+    if (!isCOD && a.deliveryFee != null) {
+      lines.push(`Delivery: ${Number(a.deliveryFee) === 0 ? "Free Delivery" : `₹${a.deliveryFee}`}`);
+    }
+
+    // COD charges: show only when present (>0)
+    const codFeeNum = Number(a.codFee || 0);
+    if (codFeeNum > 0) {
+      lines.push(`COD Charges: ₹${codFeeNum}`);
+    }
+
+    if (Number(a.discount || 0) > 0) {
+      const couponTag = order.coupon ? ` (${order.coupon})` : "";
+      lines.push(`Coupon${couponTag}: -₹${a.discount}`);
+    }
+
+    if (a.grandTotal != null) lines.push(`<b>Order Total: ₹${a.grandTotal}</b>`);
+
+    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
+
+    lines.push(``);
+    lines.push(`<b>Shipping Address</b>`);
+    lines.push(order.address ? String(order.address).replace(/<br\s*\/?>(\n)?/gi, "\n") : "(not provided)");
+
+    // Optional product photos
+    const photos = (order.items || [])
+      .map(i => i.photo)
+      .filter(u => typeof u === "string" && /^https?:\/\//i.test(u));
+    if (photos.length){ lines.push(`\nPhotos:\n` + photos.join("\n")); }
+
+    return lines.join("\n");
+  }catch(e){
+    try{ return JSON.stringify(order,null,2); }catch(_){ return "New order"; }
+  }
+}
+
+/* Send the message */
+async function sendOrderToTelegram(order){
+  try{
+    const url  = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`;
+    const text = formatOrderForTelegram(order);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        chat_id: TG_CHAT_ID,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true
+      })
+    });
+    if (!res.ok){
+      const t = await res.text().catch(()=> "");
+      console.warn("Telegram send failed", res.status, t);
+    }
+  } catch(err){
+    console.warn("Telegram send error", err);
+  }
+}
+</script>
+<!-- PRE-PAY Telegram helpers: paste AFTER formatOrderForTelegram, BEFORE sendOrderToTelegram -->
+<script>
+  // Build a consistent order snapshot (used for the pre-payment ping)
+  function buildOrderSnapshot(methodLabel, forcedId) {
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+
+    // Detect COD from label like "Cash on Delivery" or "COD"
+    const isCOD = /(cash\s*on\s*delivery|cod)/i.test(String(methodLabel));
+
+    // Delivery is NOT charged for COD pre-notify snapshot (to match your UI)
+    const deliveryFee = isCOD ? 0 : (typeof window.deliveryFee === "number" ? window.deliveryFee : 0);
+
+    // COD fee only when COD
+    const codFee = isCOD ? (Number(window.codCharge) || 0) : 0;
+
+    // Optional coupon logic
+    let discount = 0, applied = null;
+    try {
+      if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0)) {
+        discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
+        applied  = window.appliedCoupon.code || null;
+      }
+    } catch (_) {}
+
+    const grandTotal = Math.max(0, itemsTotal + deliveryFee + codFee - discount);
+    const address = localStorage.getItem("shippingAddress") || "";
+
+    // Freeze an ID so Thank-You can reuse the same one
+    const orderId = forcedId || ((isCOD ? "COD" : "RZP") + "-PRE-" + Date.now());
+
+    return {
+      id: orderId,
+      method: String(methodLabel || ""),
+      items,
+      coupon: applied,
+      amounts: { itemsTotal, deliveryFee, codFee, discount, grandTotal },
+      address,
+      createdAt: new Date().toISOString(),
+      preNotified: true
+    };
+  }
+
+  /**
+   * Fire-and-forget pre-notification.
+   *  - If 2nd arg is an OBJECT, it will be used as the snapshot directly.
+   *  - If 2nd arg is a STRING (forcedId) or empty, we build a snapshot now.
+   */
+  function preNotifyTelegram(methodLabel, snapshotOrForcedId) {
+    const snapshot = (snapshotOrForcedId && typeof snapshotOrForcedId === "object")
+      ? snapshotOrForcedId
+      : buildOrderSnapshot(methodLabel, typeof snapshotOrForcedId === "string" ? snapshotOrForcedId : undefined);
+
+    try { sendOrderToTelegram(snapshot); } catch (_) {}
+    window._lastPreNotify = snapshot;   // remember for COD handoff
+    return snapshot;
+  }
+</script>
+<script>
+(function(){
+  try {
+    window.selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || window.selectedPayment || "razorpay";
+  } catch(e){ window.selectedPayment = "razorpay"; }
+
+  window.updateSummary = function(){
+    try{
+      const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+      const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+
+      const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+      const codFee = (window.selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
+
+      let discount = 0, couponCode = null;
+      try{
+        if (window.appliedCoupon && subtotal >= window.appliedCoupon.min) {
+          discount = discountOnSubtotal(subtotal, window.appliedCoupon);
+          couponCode = window.appliedCoupon.code;
+        }
+      }catch(e){}
+
+      const showDeliveryRow = !(window.selectedPayment === "cod");
+      const feeText = (deliveryFee === 0)
+        ? '<span style="color: green; font-family: \'Roboto Slab\', serif;">Free Delivery</span>'
+        : '₹' + deliveryFee;
+
+      const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
+
+      let rows = '';
+      rows += '<div class="summary-row"><span>Item Total</span><span>₹'+subtotal+'</span></div>';
+      if (showDeliveryRow) {
+        rows += '<div class="summary-row"><span>Delivery Fee</span><span>'+feeText+'</span></div>';
+      }
+      if (codFee) {
+        rows += '<div class="summary-row"><span>COD Charges</span><span><span class="cod-chip">₹'+codFee+'</span></span></div>';
+      }
+      if (discount) {
+        rows += '<div class="summary-row"><span>Coupon ('+(couponCode||'')+')</span><span>-₹'+discount+'</span></div>';
+      }
+      rows += '<div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹'+grand+'</span></div>';
+
+      var box = document.getElementById("summaryBox");
+      if (box) box.innerHTML = rows;
+    }catch(e){ console.error('updateSummary error', e); }
+  };
+
+  document.addEventListener('change', function(ev){
+    if (ev.target && ev.target.name === 'paymentMethod') {
+      window.selectedPayment = ev.target.value;
+      try{
+        const labelEl = document.querySelector('#proceedBtn .btn-label');
+        if (labelEl) labelEl.textContent = (window.selectedPayment === "cod") ? "Continue with COD" : "Proceed to Pay";
+      }catch(e){}
+      window.updateSummary();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){ try{ window.updateSummary(); }catch(e){} });
+})();
+</script>
+<script>
+// ===== Final Override: COD-aware updateSummary that PRESERVES coupons =====
+window.selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || window.selectedPayment || "razorpay";
+
+document.addEventListener('change', function(ev){
+  if (ev.target && ev.target.name === 'paymentMethod') {
+    window.selectedPayment = ev.target.value;
+    try{
+      const labelEl = document.querySelector('#proceedBtn .btn-label');
+      if (labelEl) labelEl.textContent = (window.selectedPayment === "cod") ? "Continue with COD" : "Proceed to Pay";
+    }catch(e){}
+    updateSummary();
+  }
+});
+
+window.updateSummary = function() {
+  try{
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+
+    const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    const codFee = (window.selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
+
+    // ---- coupons (respect manualLock/appliedCoupon; else bestCouponFor) ----
+    let couponToUse = null, discount = 0;
+    try {
+      if (window.allCoupons && allCoupons.length){
+        if (window.manualLock && window.appliedCoupon){
+          couponToUse = window.appliedCoupon;
+          discount = (subtotal >= couponToUse.min) ? discountOnSubtotal(subtotal, couponToUse) : 0;
+        } else {
+          const pick = bestCouponFor(subtotal);
+          couponToUse = pick.coupon;
+          discount = pick.amount;
+          window.appliedCoupon = couponToUse || null; try{syncCouponInput();}catch(e){}
+        }
+      }
+    } catch(e){}
+
+    const showDeliveryRow = !(window.selectedPayment === "cod");
+    const feeText = (deliveryFee === 0)
+      ? '<span style="color: green; font-family: \'Roboto Slab\', serif;">Free Delivery</span>'
+      : '₹' + deliveryFee;
+
+    const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
+
+    let rows = '';
+    rows += '<div class="summary-row"><span>Item Total</span><span>₹'+subtotal+'</span></div>';
+    if (showDeliveryRow) {
+      rows += '<div class="summary-row"><span>Delivery Fee</span><span>'+feeText+'</span></div>';
+    }
+    if (codFee) {
+      rows += '<div class="summary-row"><span>COD Charges</span><span><span class="cod-chip">₹'+codFee+'</span></span></div>';
+    }
+    if (discount) {
+      const code = (couponToUse && couponToUse.code) ? couponToUse.code : '';
+      rows += '<div class="summary-row"><span>Coupon ('+code+')</span><span>-₹'+discount+'</span></div>';
+    }
+    rows += '<div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹'+grand+'</span></div>';
+
+    var box = document.getElementById("summaryBox");
+    if (box) box.innerHTML = rows;
+
+    // Keep coupon UI in sync
+    try { showAppliedTag(subtotal); } catch(e){}
+    try { showProgress(subtotal); } catch(e){}
+    try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
+  }catch(e){ console.error('updateSummary error', e); }
+};
+
+document.addEventListener('DOMContentLoaded', function(){ try{ updateSummary(); }catch(e){} });
+</script>
+<script>
+function ensureCouponSectionVisibility() {
+  try {
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const hasItems = items.length > 0;
+    const sec = document.getElementById("couponSection");
+    if (sec) sec.style.display = hasItems ? "block" : "none";
+  } catch(e){}
+}
+document.addEventListener("DOMContentLoaded", ensureCouponSectionVisibility);
+</script>
+<script>
+/* === Keep the coupon input always in sync with the active coupon === */
+function syncCouponInput(){
+  var inp = document.getElementById('couponInput');
+  if(!inp) return;
+  var c = (window.appliedCoupon || null);
+  if(c && c.code){ inp.value = c.code; } else { inp.value = ''; }
+}
+document.addEventListener('DOMContentLoaded', function(){ try{ syncCouponInput(); }catch(e){} });
+
+/* Wrap manual apply to lock and resync */
+(function(){
+  var _orig = window.applyCouponManually;
+  window.applyCouponManually = function(){
+    if(typeof _orig === 'function'){ _orig.apply(this, arguments); }
+    window.manualLock = true;
+    setTimeout(function(){
+      try{ syncCouponInput(); }catch(e){}
+      try{ if(typeof updateSummary==='function') updateSummary(); }catch(e){}
+    }, 0);
+  };
+})();
+</script>
+<script>
+function buildCODPreview() {
+  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
+  const codFee = Number(window.codCharge || 0);
+  let discount = 0, couponCode = null;
+  try {
+    if (window.appliedCoupon && itemsTotal >= (window.appliedCoupon.min || 0)) {
+      couponCode = window.appliedCoupon.code || null;
+      if (typeof discountOnSubtotal === "function") {
+        discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
+      }
+    }
+  } catch(e){}
+  const grandTotal = Math.max(0, itemsTotal + codFee - discount);
+
+  return {
+    method: "Cash on Delivery",
+    items,
+    coupon: couponCode,
+    amounts: { itemsTotal, deliveryFee: 0, codFee, discount, grandTotal },
+    address: localStorage.getItem("shippingAddress") || "",
+    createdAt: new Date().toISOString()
+  };
+}
+</script>
+<script>
+/* ===== Multi-Page Search Setup =====
+   👉 "CATALOGS" me jitne pages/sheets chahen add kijiye.
+   ✅ page ko safest tarike se current page path par set kiya (location.pathname),
+      taaki yahin ka popup ?p= se open ho (aapka maybeOpenFromURL already handle karta hai).
+*/
+const CATALOGS = [
+  {
+    name: "Resin Necklace",
+    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
+    page : location.pathname            // e.g. "/resin-necklace/" or "/Resin Necklace.html"
+  },
+  // { name:"Hello", sheet:"https://opensheet.elk.sh/XXXX/Sheet1", page:"/hello.html" },
+  // { name:"Rings", sheet:"https://opensheet.elk.sh/YYYY/Sheet1", page:"/rings/" },
+];
+
+// Global merged list
+window.allProducts = [];
+
+// Load all catalogs from Google Sheets
+Promise.all(
+  CATALOGS.map(cat =>
+    fetch(cat.sheet).then(r => r.json()).then(rows => {
+      const items = rows
+        .filter(row => (row["Product Name"] || "").trim())
+        .map(row => ({
+          name: String(row["Product Name"]).trim(),
+          price: Number(row["Selling Price"] || 0),
+          mrp: Number(row["MRP"] || 0),
+          image: row["photo 1"] || row["Photo 1"] || "",
+          page: cat.page,
+          from: cat.name
+        }));
+      return items;
+    })
+  )
+).then(listOfLists => {
+  window.allProducts = listOfLists.flat();
+}).catch(()=>{ /* ignore */ });
+
+/* ========== UI wiring ========== */
+const inputEl = document.getElementById('headerSearchInput');
+const boxEl   = document.getElementById('headerSearchResults');
+
+function openHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  if(header) header.classList.add('searching');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  if(header) header.classList.remove('searching');
+  hideSuggest();
+}
+function hideSuggest(){
+  if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
+}
+
+/* Filter + render suggestions below the bar */
+function renderSuggestions(q){
+  const ql = (q||"").toLowerCase().trim();
+  if(!ql){ hideSuggest(); return; }
+
+  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
+  const top  = list.slice(0, 12); // max 12 items
+
+  if(!top.length){ hideSuggest(); return; }
+
+  boxEl.innerHTML = top.map(p => `
+    <div class="header-suggest" onclick="goToProduct('${p.page}', '${(p.name||"").replace(/'/g,"\\'")}')">
+      <img src="${p.image || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
+      <div>
+        <div class="name">${p.name}</div>
+        <div class="price">₹${p.price || '-'}</div>
+      </div></div>
+  `).join('');
+
+  boxEl.style.display = 'block';
+}
+
+/* Go to that page and auto-open the product popup via ?p= */
+function goToProduct(pagePath, productName){
+  // Agar pagePath current file hi hai to same-page URL banega
+  const base = location.origin;
+  location.href = `${base}${pagePath}?p=${encodeURIComponent(productName)}`;
+}
+
+/* Typing events */
+if (inputEl){
+  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
+
+  // Enter: first best match open, bina kisi unwanted redirect ke
+  inputEl.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      const typed = (inputEl.value||'').trim();
+      if(!typed){ closeHeaderSearch(); return; }
+
+      const list = (window.allProducts || [])
+        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+
+      const chosen =
+        list[0] ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase()) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase())) ||
+        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+
+      if (chosen){
+        goToProduct(chosen.page, chosen.name);
+      } else {
+        // Fallback: isi page par typed name ke saath popup kholne ki koshish
+        goToProduct(location.pathname, typed);
+      }
+    }
+  });
+}
+
+// Expose for inline onclick
+window.goToProduct = goToProduct;
+window.openHeaderSearch = openHeaderSearch;
+window.closeHeaderSearch = closeHeaderSearch;
+</script>
+<script>
+// ========== Address Validation Logic (warnings + enable Confirm) ==========
+(function(){
+  function ensureErrorContainers(){
+    var ids = ["fullname","email","state","city","pincode","address","phone","altphone"];
+    ids.forEach(function(id){
+      var el = document.getElementById(id);
+      if(!el) return;
+      var wrap = el.closest(".floating-input");
+      if(!wrap) return;
+      if(!wrap.querySelector(".error-msg")){
+        var div = document.createElement("div");
+        div.className = "error-msg";
+        wrap.appendChild(div);
+      }
+    });
+  }
+
+  window.validateAddressFields = function(){
+    ensureErrorContainers();
+
+    var EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+    var CITY_RE=/^[a-zA-Z][a-zA-Z .'-]{1,}$/;
+    var PIN_RE=/^\d{6}$/;
+    var PHONE_RE=/^\d{10}$/;
+
+    function setError(id,msg){
+      var el=document.getElementById(id); if(!el) return false;
+      var wrap=el.closest(".floating-input"); if(!wrap) return false;
+      var box=wrap.querySelector(".error-msg");
+      if(msg){
+        wrap.classList.add("error");
+        if(box) box.textContent=msg;
+        el.setAttribute("aria-invalid","true");
+        return false;
+      } else {
+        wrap.classList.remove("error");
+        if(box) box.textContent="";
+        el.removeAttribute("aria-invalid");
+        return true;
+      }
+    }
+
+    var fullName = (document.getElementById("fullname")||{}).value || "";
+    var email    = (document.getElementById("email")||{}).value || "";
+    var state    = (document.getElementById("state")||{}).value || "";
+    var city     = (document.getElementById("city")||{}).value || "";
+    var pincode  = (document.getElementById("pincode")||{}).value || "";
+    var address  = (document.getElementById("address")||{}).value || "";
+    var phone    = (document.getElementById("phone")||{}).value || "";
+    var altphone = (document.getElementById("altphone")||{}).value || "";
+
+    var okName  = fullName.trim().length >= 3;   setError("fullname", okName ? "" : "Please enter your full name.");
+    var okEmail = true; // optional email
+    setError("email", "");
+    var okState = !!state && state.trim().length>0; setError("state", okState ? "" : "Please select your state.");
+    var okCity  = CITY_RE.test(city.trim());      setError("city", okCity ? "" : "Enter a valid city name.");
+    var okPin   = PIN_RE.test(pincode.trim());    setError("pincode", okPin ? "" : "Pincode must be 6 digits.");
+    var okAddr  = address.trim().length >= 10;    setError("address", okAddr ? "" : "Address should be at least 10 characters.");
+    var okPhone = PHONE_RE.test(phone.trim());    setError("phone", okPhone ? "" : "Phone number must be 10 digits.");
+    var okAlt   = true;
+    if(altphone.trim().length){
+      okAlt = PHONE_RE.test(altphone.trim());
+      setError("altphone", okAlt ? "" : "Alternate phone must be 10 digits.");
+    } else {
+      setError("altphone", "");
+    }
+
+    var allOK = okName && okEmail && okState && okCity && okPin && okAddr && okPhone && okAlt;
+
+    var btn = document.getElementById("confirmAddressBtn");
+    if(btn){
+      btn.disabled = !allOK;
+      btn.style.opacity = allOK ? "1" : "0.5";
+      btn.style.cursor  = allOK ? "pointer" : "not-allowed";
+      btn.setAttribute("aria-disabled", String(!allOK));
+    }
+
+    return allOK;
+  };
+
+  // Hook Confirm button to block submit when invalid
+  document.addEventListener("DOMContentLoaded", function(){
+    var btn = document.getElementById("confirmAddressBtn");
+    if(btn){
+      btn.addEventListener("click", function(e){
+        if(!window.validateAddressFields || !validateAddressFields()){
+          e.preventDefault();
+          var firstErr = document.querySelector(".floating-input.error");
+          if(firstErr){
+            var y = firstErr.getBoundingClientRect().top + window.scrollY - 40;
+            window.scrollTo({top:y, left:0, behavior:"smooth"});
+          }
+        }
+      });
+    }
+  });
+})();
+</script>
+<!-- ===== Payment Result Popups (Success / Failed) ===== -->
+<style>
+  .paypop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:99999;}
+  .paypop{width:min(520px,88vw);background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);padding:22px 20px 18px;text-align:center;font-family:'Roboto Slab',serif;border:1px solid #e5e7eb;}
+  .paypop h3{font-size:22px;line-height:1.35;margin:0 0 8px;font-weight:800;color:#111;}
+  .paypop p{font-size:15px;color:#374151;margin:0 0 18px;line-height:1.55;}
+  .paypop .primary{display:inline-flex;gap:10px;align-items:center;justify-content:center;width:100%;padding:12px 16px;border-radius:12px;border:none;background:#2874f0;color:#fff;font-size:16px;cursor:pointer}
+  .paypop .ghost{margin-top:10px;width:100%;padding:11px 16px;border-radius:12px;background:#fff;border:1.4px solid #000;color:#000;font-size:16px;cursor:pointer}
+  .paypop .icon{font-size:28px;margin-bottom:6px}
+</style>
+<div id="paySuccess" class="paypop-overlay" role="dialog" aria-modal="true">
+  <div class="paypop">
+    <div class="icon">✅</div>
+    <h3>Payment Completed</h3>
+    <p>Your payment was received successfully.</p>
+    <button class="primary" onclick="paypopBack()">Back</button>
+  </div>
+</div>
+<div id="payFailed" class="paypop-overlay" role="dialog" aria-modal="true">
+  <div class="paypop">
+    <div class="icon">❌</div>
+    <h3>Payment Failed</h3>
+    <p>The payment didn’t complete. You can try again or go back.</p>
+    <button class="primary" onclick="paypopBack()">Back</button>
+  </div>
+</div>
+<script>
+  function openPayPopup(id){
+    try{ document.getElementById(id).style.display='flex'; document.body.style.overflow='hidden'; }catch(_){}
+  }
+  function closePayPopups(){
+    try{ document.getElementById('paySuccess').style.display='none'; }catch(_){}
+    try{ document.getElementById('payFailed').style.display='none'; }catch(_){}
+    try{ document.body.style.overflow=''; }catch(_){}
+  }
+  function showPaymentPopup(type){
+    if(type==='success'){ openPayPopup('paySuccess'); }
+    else { openPayPopup('payFailed'); }
+  }
+  function paypopBack(){
+    closePayPopups();
+    try{ history.back(); }catch(_){}
+  }
+</script>
+
+
+<!-- ✅ Payment Success 1:1 Popup -->
+<div id="paymentSuccessPopup" class="payment-success-overlay" role="dialog" aria-modal="true" aria-labelledby="paySuccessTitle">
+  <div class="payment-success-box">
+    <!-- Ultra-premium animated SVG check -->
+    <div class="animated-check" aria-hidden="true">
+      <svg viewBox="0 0 120 120">
+        <circle class="check-circle" cx="60" cy="60" r="52"></circle>
+        <path class="check-mark" d="M34 62 L54 80 L88 42"></path>
+      </svg>
+    </div>
+
+    <div id="paySuccessTitle" class="payment-success-title">Payment Successful</div>
+    <div class="payment-success-sub">
+      Thank you! Your payment has been received securely.
+      <br><br>
+      Your order is now being processed, and we'll notify you once it's on the way.
+    </div>
+
+    <div class="payment-success-actions">
+      <button type="button" class="ps-button ps-button--outline" onclick="closePaymentSuccess()">Back</button>
+      <a class="ps-button ps-button--primary" href="https://precioussly.com/dashboard?popup=orders">View Order</a>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  // Open the payment success popup
+  function openPaymentSuccess() {
+    var el = document.getElementById('paymentSuccessPopup');
+    if (el) { el.classList.add('active'); document.body.style.overflow='hidden'; }
+  }
+  // Close the payment success popup
+  function closePaymentSuccess() {
+    var el = document.getElementById('paymentSuccessPopup');
+    if (el) { el.classList.remove('active'); document.body.style.overflow=''; }
+  }
+  // Expose a global alias some flows might call
+  window.showPaymentSuccessPopup = openPaymentSuccess;
+</script>
+
+
+<script>
+// === Free Delivery live system (sheet-driven) ===
+(function(){
+  const SHEET_ID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
+
+  function getMsgEl(){
+    let el = document.getElementById('freeDeliveryLine');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'freeDeliveryLine';
+      el.style.cssText = "display:none;color:#15803d;font-family:'Roboto Slab',serif;font-size:12px;margin:4px 0;text-align:center;";
+      const anchor = document.getElementById('minimumNotice') || document.getElementById('proceedBtn');
+      if(anchor){
+        anchor.insertAdjacentElement('afterend', el);
+      }else{
+        document.body.appendChild(el);
+      }
+    }
+    return el;
+  }
+  const msgEl = getMsgEl();
+
+  window.baseDeliveryFee = typeof window.baseDeliveryFee === 'number' ? window.baseDeliveryFee : 0;
+  window.freeDeliveryThreshold = typeof window.freeDeliveryThreshold === 'number' ? window.freeDeliveryThreshold : null;
+
+  function fetchThreshold() {
+    fetch(SHEET_URL).then(r=>r.json()).then(rows => {
+      const row0 = rows && rows[0] ? rows[0] : {};
+      try {
+        const feeRaw = (row0["Delivery Fee"] ?? "").toString().trim();
+        const feeNum = Number(feeRaw.replace(/[^\d.]/g,'')) || 0;
+        window.baseDeliveryFee = feeNum;
+      } catch(e){ window.baseDeliveryFee = 0; }
+
+      try {
+        const thRaw = (row0["free delivery above"] ?? row0["Free delivery above"] ?? row0["FREE DELIVERY ABOVE"] ?? "").toString().trim();
+        const thNum = Number(thRaw.replace(/[^\d.]/g,'')) || null;
+        window.freeDeliveryThreshold = thNum;
+      } catch(e){ window.freeDeliveryThreshold = null; }
+
+      try { recomputeDeliveryAndMessage(); } catch(e){}
+      try { if (typeof window.updateSummary === "function") window.updateSummary(); } catch(e){}
+    }).catch(()=>{
+      try { recomputeDeliveryAndMessage(); } catch(e){}
+    });
+  }
+
+  function cartSubtotal(){
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    return items.reduce((s,it)=> s + (Number(it.price)||0) * (Number(it.qty)||1), 0);
+  }
+
+  function recomputeDeliveryAndMessage(){
+    const subtotal = cartSubtotal();
+    const threshold = Number(window.freeDeliveryThreshold);
+    const baseFee = Number(window.baseDeliveryFee) || 0;
+
+    let unlocked = false;
+    if (!isNaN(threshold) && threshold > 0) {
+      unlocked = subtotal >= threshold;
+    }
+
+    window.deliveryFee = unlocked ? 0 : baseFee;
+
+    if (msgEl) {
+      if (!isNaN(threshold) && threshold > 0) {
+        if (unlocked) {
+          msgEl.textContent = "You’ve unlocked FREE DELIVERY!";
+          msgEl.style.display = "block";
+        } else {
+          const more = Math.max(0, threshold - subtotal);
+          msgEl.textContent = `Add ₹${more} more to your cart to unlock FREE DELIVERY!`;
+          msgEl.style.display = "block";
+        }
+      } else {
+        msgEl.style.display = "none";
+      }
+    }
+  }
+
+  function patchUpdateSummary(){
+    if (typeof window.updateSummary === "function" && !window.__fdPatched){
+      window.__origUpdateSummary = window.updateSummary;
+      window.updateSummary = function(){
+        try { recomputeDeliveryAndMessage(); } catch(e){}
+        return window.__origUpdateSummary.apply(this, arguments);
+      };
+      window.__fdPatched = true;
+    }
+  }
+
+  window.addEventListener('storage', function(ev){
+    if (ev.key === 'cartItems') {
+      try { recomputeDeliveryAndMessage(); } catch(e){}
+      try { if (typeof window.updateSummary === "function") window.updateSummary(); } catch(e){}
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){ try{ getMsgEl(); }catch(e){};
+    patchUpdateSummary();
+    fetchThreshold();
+    try { recomputeDeliveryAndMessage(); } catch(e){}
+  });
+
+  window.__fd_recompute = recomputeDeliveryAndMessage;
+})();
+</script>
+
+<!-- ✅ Payment Processing Overlay (non-blocking) -->
+<style>
+.payment-processing-overlay{
+  position: fixed; inset: 0; display:none; align-items:center; justify-content:center;
+  background: rgba(0,0,0,.45); z-index: 10060; padding:16px;
+}
+.payment-processing-box{
+  background:#ffffff; width:100%; max-width:360px; border-radius:18px; border:1px solid #e5e5e5;
+  box-shadow:0 18px 45px rgba(0,0,0,.15); padding:18px 16px; text-align:center; font-family:'Roboto Slab', serif;
+}
+.processing-title{ font-size:20px; font-weight:800; color:#111; margin:8px 0 6px; }
+.processing-sub{ font-size:14px; color:#333; margin:0 10px 10px; line-height:1.45; }
+</style>
+<div class="payment-processing-overlay" id="paymentProcessingOverlay">
+  <div class="payment-processing-box">
+    <div class="processing-title">Verifying Payment…</div>
+    <div class="processing-sub">We’re confirming your payment with Razorpay. Please don’t refresh this page.</div>
+  </div>
+</div>
+
+<script>
+// ===== Razorpay (safe) with server-created order + webhook verification =====
+(function(){
+  // Small helper: show/hide "processing" overlay
+  function showProcessing(on){
+    var el = document.getElementById("paymentProcessingOverlay");
+    if(!el) return;
+    el.style.display = on ? "flex" : "none";
+  }
+
+  // Poll server for status after webhook processes the payment
+  async function pollOrderStatus(orderId, maxTries=15, delayMs=3000){
+    for (let i=0;i<maxTries;i++){
+      try{
+        const res = await fetch(`/api/razorpay/order-status?order_id=${encodeURIComponent(orderId)}`, {cache:"no-store"});
+        if (res.ok){
+          const data = await res.json();
+          const status = String(data.status||"").toLowerCase(); // expected: "paid" | "failed" | "created" | "processing"
+          if (status === "paid" || status === "captured" ){
+            try { finalizeSuccessfulOrder(data, orderId); } catch(e){}
+            showProcessing(false);
+            try { showPaymentPopup && showPaymentPopup("success"); } catch(e){}
+            return;
+          }
+          if (status === "failed"){
+            showProcessing(false);
+            try { showPaymentPopup && showPaymentPopup("failed"); } catch(e){}
+            return;
+          }
+        }
+      }catch(e){ /* ignore and keep polling */ }
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+    // timeout → leave a gentle message
+    showProcessing(false);
+    alert("Payment received. We couldn't auto-confirm yet. You'll see your order in Dashboard once confirmed.");
+  }
+
+  // Save order locally (for Dashboard) after server confirms via webhook
+  function finalizeSuccessfulOrder(serverData, orderId){
+    try{
+      const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+      const itemsTotal = items.reduce((s,it)=> s + (Number(it.price)||0) * (Number(it.qty)||1), 0);
+      const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+
+      // Try to preserve coupon info if present
+      let discount = 0, coupon = null;
+      try {
+        if (window.appliedCoupon){
+          coupon = window.appliedCoupon.code || null;
+          if (typeof discountOnSubtotal === "function"){
+            discount = Number(discountOnSubtotal(itemsTotal, window.appliedCoupon)) || 0;
+          }
+        }
+      } catch(e){}
+
+      const grandTotal = Math.max(0, itemsTotal + deliveryFee - discount);
+
+      const order = {
+        id: serverData?.order_id || orderId || ("RZP-" + Date.now()),
+        method: "Razorpay",
+        items,
+        coupon,
+        amounts: { itemsTotal, deliveryFee, codFee: 0, discount, grandTotal },
+        address: localStorage.getItem("shippingAddress") || "",
+        createdAt: new Date().toISOString()
+      };
+      const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+      orders.unshift(order);
+      localStorage.setItem("orders", JSON.stringify(orders));
+      localStorage.setItem("cartItems","[]");
+      localStorage.setItem("lastOrderClearedCart","1");
+      try { updateCartBadge && updateCartBadge(); } catch(e){}
+      try { sendOrderToTelegram && sendOrderToTelegram(order); } catch(e){}
+    }catch(e){ /* non-fatal */ }
+  }
+
+  // Create Razorpay order on server and open Checkout
+  window.payViaRazorpay = async function(){
+    // Get address before proceeding
+    const shippingAddress = localStorage.getItem("shippingAddress");
+    if (!shippingAddress || !shippingAddress.trim()){
+      try {
+        document.getElementById("addressRequiredPopup").style.display = "flex";
+        document.body.style.overflow = "hidden";
+      } catch(e){}
       return;
     }
 
-    list.innerHTML = rows.map((o, i) => cardHTML(o, i)).join("");
-    modalRoot.innerHTML = rows.map((o, i) => modalHTML(o, i)).join("");
-    attachCardHandlers();
-  }catch(err){
-    console.error(err);
-    document.getElementById("orderList").innerHTML =
-      `<div class="order-card empty">Could not load the Google Sheet. Check sharing & Sheet name.</div>`;
-  }
-}
-main();
+    // Build payload for server
+    let items = [];
+    try{ items = JSON.parse(localStorage.getItem("cartItems")||"[]"); }catch(e){}
+    const addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
+    const customer = {
+      name: addrObj.fullname || (localStorage.getItem("user_name") || ""),
+      email: localStorage.getItem("user_email") || "",
+      contact: addrObj.phone || ""
+    };
+
+    const meta = {
+      coupon: (window.appliedCoupon && window.appliedCoupon.code) ? window.appliedCoupon.code : null,
+      notes: { address: shippingAddress || "" }
+    };
+
+    // Call your server to create an order
+    let orderResp;
+    try{
+      orderResp = await fetch("/api/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items, customer, meta })
+      });
+    }catch(e){
+      alert("Network error while creating order. Please try again.");
+      return;
+    }
+    if (!orderResp.ok){
+      alert("Unable to create order. Please try again.");
+      return;
+    }
+    const { order, key } = await orderResp.json(); // expected: { order:{id, amount, currency}, key: "rzp_live_xxx" }
+
+    // Prepare Razorpay options using server-created order
+    const options = {
+      key: key,
+      order_id: order.id,
+      amount: order.amount,
+      currency: order.currency || "INR",
+      name: "Precioussly",
+      description: "Online Payment",
+      image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
+      prefill: customer,
+      notes: meta.notes || {},
+      theme: { color: "#2874f0" },
+
+      // DO NOT trust client 'handler' for fulfillment; webhook will verify.
+      handler: function (response) {
+        // Show processing UI and poll server until webhook marks it paid
+        showProcessing(true);
+        pollOrderStatus(order.id);
+      },
+      modal: {
+        ondismiss: function(){
+          // reset any spinners on close
+          try{
+            const proceedBtn = document.getElementById("proceedBtn");
+            if (proceedBtn){ proceedBtn.classList.remove("is-loading"); proceedBtn.removeAttribute("aria-busy"); }
+            document.querySelectorAll(".popup-razorpay-btn.is-loading").forEach(b=>{
+              b.classList.remove("is-loading"); b.removeAttribute("aria-busy");
+            });
+          }catch(e){}
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    try { rzp.on("payment.failed", function(){ showProcessing(false); try{ showPaymentPopup && showPaymentPopup("failed"); }catch(e){} }); } catch(_){}
+    rzp.open();
+  };
+})();
 </script>
+
 </body>
 </html>
