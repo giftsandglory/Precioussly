@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<head><meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/><script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
@@ -1248,6 +1248,52 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
 .ig-banner .ig-link:active{ transform:scale(.96); }
 .ig-banner .ig-icon{ width:36px; height:36px; }
 </style>
+<style id="pink-profile-popup-css">
+
+/* === Pink Profile Popup (ChatGPT Resin) === */
+.pp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:7000;}
+.pp-overlay.show{display:block;}
+.pp-card{
+  position: fixed; left:50%; top:18%;
+  transform: translateX(-50%);
+  width: min(92vw, 420px);
+  background:#fff;
+  border:2px solid #ff6ea8;
+  border-radius: 22px;
+  box-shadow:0 18px 40px rgba(0,0,0,.18);
+  padding: 18px 16px 16px;
+  font-family: 'Roboto Slab', serif;
+}
+.pp-hero{display:flex;justify-content:center;align-items:center;margin-top:6px;margin-bottom:6px;}
+.pp-hero .pp-badge{
+  width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(135deg,#ffe1ef,#ffd4ea 50%, #ffc1e1);
+  border:1.5px solid #ff8fbe;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 6px 16px rgba(255,110,168,.25);
+  font-size:30px; line-height:1;
+}
+.pp-title{font-size:20px; font-weight:800; color:#111; text-align:center; margin:8px 0 6px;}
+.pp-sub{font-size:15px; color:#3a3a3a; text-align:center; line-height:1.6; padding:0 8px;}
+.pp-cta{
+  display:block; width:100%; text-align:center; text-decoration:none;
+  margin:14px 0 2px; padding:12px 14px; border-radius:14px;
+  background:#ff6ea8; color:#fff; font-weight:800; border:1px solid #ff4d98;
+  box-shadow:0 8px 18px rgba(255,110,168,.28);
+}
+.pp-cta:active{transform:scale(.985);}
+.pp-back{
+  position:absolute; right:10px; top:10px;
+  height:34px; padding:0 12px; border-radius:10px; cursor:pointer;
+  font:600 14px/1 'Roboto Slab', serif; color:#ff2f90;
+  background:#fff; border:1px solid rgba(255,47,144,.5);
+  box-shadow: 0 3px 10px rgba(255,47,144,.15);
+}
+.pp-back:active{transform:scale(.98);}
+@media (max-width:420px){
+  .pp-card{top:14%;}
+}
+
+</style>
 </head>
 <body>
 <!-- 👇 SIDE MENU STRUCTURE NEEDED FOR OVERLAY -->
@@ -1723,44 +1769,6 @@ slider.addEventListener("touchend", e => {
     else showPrevSlide();
   }
 });
-</script><script>
-  function handleCredentialResponse(response) {
-    const data = jwt_decode(response.credential);
-    alert("Welcome " + data.name + " (" + data.email + ")");
-  }
-
-  
-</script><script>
-  // If redirected from Google login
-  if (window.location.hash.includes("access_token")) {
-    const accessToken = window.location.hash.split("=")[1].split("&")[0];
-    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    })
-    .then(res => res.json())
-    .then(data => {
-      localStorage.setItem("user_name", data.name);
-      localStorage.setItem("user_email", data.email);
-      localStorage.setItem("user_photo", data.picture);
-      location.href = "https://precioussly.com"; // redirect clean
-    });
-  }
-
-  // Show profile photo if already logged in
-  const photo = localStorage.getItem("user_photo");
-  if (photo) {
-    document.getElementById("profileIcon").src = photo;
-  }
-
-  // When user taps profile icon
-  function handleProfileClick() {
-    const isLoggedIn = localStorage.getItem("user_email");
-    if (isLoggedIn) {
-      window.location.href = "/dashboard";
-    } else {
-      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
-    }
-  }
 </script>
 <script>
   function updateCartBadge() {
@@ -2484,5 +2492,104 @@ function escapeHtml(s=""){ return String(s).replaceAll("&","&amp;").replaceAll("
   });
 </script>
 
+
+
+<!-- === Pink Profile Popup (injected by ChatGPT) === -->
+<div class="pp-overlay" id="profilePopupOverlay" aria-hidden="true">
+  <div class="pp-card" role="dialog" aria-modal="true" aria-labelledby="ppTitle">
+    <button class="pp-back" id="ppBackBtn">Back</button>
+    <div class="pp-hero"><div class="pp-badge">♡</div></div>
+    <h3 class="pp-title" id="ppTitle">Precioussly for preciouss ones</h3>
+    <p class="pp-sub">You can track your order 24 hours after placing it by clicking the ‘Track Order’ button.</p>
+    <a class="pp-cta" id="ppTrackBtn" href="https://www.precioussly.com/track-order">Track Order</a>
+  </div>
+</div>
+
+<script id="pink-profile-popup-js">
+// === Pink Profile Popup (Back-button safe) ===
+(function(){
+  const overlay = document.getElementById('profilePopupOverlay');
+  const back = document.getElementById('ppBackBtn');
+
+  function baseline(){
+    try {
+      if (!history.state || !history.state.__page) {
+        history.replaceState({ __page: 'resin' }, '');
+      }
+    } catch(e){}
+  }
+  baseline();
+
+  function actuallyClose(){
+    if (!overlay) return false;
+    if (!overlay.classList.contains('show')) return false;
+    overlay.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    overlay.setAttribute('aria-hidden','true');
+    return true;
+  }
+
+  function openPopup(){
+    if(!overlay) return;
+    overlay.classList.add('show');
+    document.body.classList.add('no-scroll');
+    overlay.setAttribute('aria-hidden','false');
+    // Push a history entry + hash so Android back closes this
+    try { history.pushState({ __ui: 'pp' }, ''); } catch(e){}
+    if (location.hash !== '#pp') {
+      try { location.hash = 'pp'; } catch(e){}
+    }
+  }
+
+  function closePopup(){
+    const wasOpen = actuallyClose();
+    if (!wasOpen) return;
+    // Clean up state so another back doesn't leave the page immediately
+    try {
+      if (history.state && history.state.__ui === 'pp') {
+        history.back(); // pop the popup entry
+      } else {
+        history.replaceState({ __page: 'resin' }, '');
+      }
+    } catch(e){}
+    if (location.hash === '#pp') {
+      try { history.replaceState({ __page: 'resin' }, ''); location.hash = ''; } catch(e){}
+    }
+  }
+
+  // System back: close the popup instead of exiting
+  window.addEventListener('popstate', function(){
+    if (actuallyClose()){
+      try { history.replaceState({ __page: 'resin' }, ''); } catch(e){}
+    }
+  });
+
+  // Hash fallback (works in content:// & file:// viewers)
+  window.addEventListener('hashchange', function(){
+    if (location.hash !== '#pp' && overlay && overlay.classList.contains('show')){
+      actuallyClose();
+      try { history.replaceState({ __page: 'resin' }, ''); } catch(e){}
+    }
+  });
+
+  // Wire up triggers
+  const profileIcon = document.getElementById('profileIcon') ||
+    document.querySelector('img[alt="Profile"], .icon-profile, .profile-icon, [data-profile]');
+  if(profileIcon){
+    profileIcon.style.cursor = 'pointer';
+    profileIcon.addEventListener('click', openPopup, {passive:true});
+  }
+  if(back) back.addEventListener('click', closePopup);
+  if(overlay){
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay) closePopup();
+    });
+  }
+
+  // Expose for other scripts if needed
+  window.__openProfilePopup = openPopup;
+  window.__closeProfilePopup = closePopup;
+})();
+</script>
 </body>
 </html>
