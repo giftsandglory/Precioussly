@@ -668,32 +668,6 @@ button.remove-btn:hover {
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-// === AUTO-CAPTURE ENFORCER (added by ChatGPT) ===
-function withAutoCapture(opts){
-  try{
-    // Razorpay Orders path: backend should set payment_capture=1. We also send a hint.
-    opts.capture = true; // Checkout hint
-    // If notes field exists, embed instruction for Apps Script backend (optional)
-    opts.notes = Object.assign({payment_capture: 1}, (opts.notes||{}));
-  }catch(e){}
-  return opts;
-}
-// === /AUTO-CAPTURE ENFORCER ===
-
-// === PREPAID COD DETECTOR (added by ChatGPT) ===
-function isPrepaidCOD(){
-  try{
-    const selected = document.querySelector('input[name="paymentMethod"]:checked');
-    if(!selected || selected.value !== 'cod') return false;
-    const labelText = (document.getElementById('codLabelText')?.textContent || '').toLowerCase();
-    // Treat as prepaid if merchant labels it like "Prepaid COD", "Prepaid Cash on Delivery", etc.
-    return /prepaid/.test(labelText);
-  }catch(e){}
-  return false;
-}
-// === /PREPAID COD DETECTOR ===
-
-
   // 🔗 Paste the Apps Script Web App URL you copied
   window.GS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOukNsXwM1X7RA0nf9kLajFhBSSGaHZQ5zprYhHlRjr8s3m-8waYiYxDVu_PcfrVXckg/exec";
 </script>
@@ -1876,10 +1850,9 @@ function handleProceed() {
   const method = selected ? selected.value : "razorpay";
 
   if (method === "cod") {
-    if (isPrepaidCOD()) { const btn = document.getElementById("proceedBtn"); startRazorpayWithSpinner(btn); return; }
     // COD → show suggestion popup (no spinner here)
     openCOD95Popup();
-document.body.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
   } else {
     // Razorpay → show 1s spinner on Proceed button, then open Razorpay
     const btn = document.getElementById("proceedBtn");
@@ -2081,7 +2054,7 @@ function openAddressAndClosePopup() {
       }
     };
 
-    const rzp = new Razorpay(withAutoCapture(options));
+    const rzp = new Razorpay(options);
     rzp.open();
   }
 </script>
@@ -2801,7 +2774,7 @@ function payCODAdvance95(){
   };
 
   try { options.amount = prepaid * 100; } catch(e) {}
-  var rzp = new Razorpay(withAutoCapture(options));
+  var rzp = new Razorpay(options);
       try{ rzp.on('payment.failed', function(){ showPaymentPopup('failed'); }); }catch(_){}
       rzp.open();
 }
@@ -3829,7 +3802,7 @@ window.closeHeaderSearch = closeHeaderSearch;
       }
     };
 
-    const rzp = new Razorpay(withAutoCapture(options));
+    const rzp = new Razorpay(options);
     try { rzp.on("payment.failed", function(){ showProcessing(false); try{ showPaymentPopup && showPaymentPopup("failed"); }catch(e){} }); } catch(_){}
     rzp.open();
   };
@@ -3965,7 +3938,7 @@ window.closeHeaderSearch = closeHeaderSearch;
 
     // Open Razorpay
     var rzp;
-    try { rzp = new Razorpay(withAutoCapture(options)); } catch(e){
+    try { rzp = new Razorpay(options); } catch(e){
       alert("Razorpay SDK failed to load. Please refresh and try again.");
       return;
     }
