@@ -1963,101 +1963,159 @@ function openAddressAndClosePopup() {
   openAddressPopup(); // Already defined elsewhere
 }
 </script>
-
 <script>
-  // Razorpay ko 1s spinner ke baad open karne ke liye final function
-  function payViaRazorpay() {
+  // ✅ FINAL: Server-order + verification based Razorpay flow
+  async function payViaRazorpay() {
     // Koi popup khula ho to band
     try {
-      document.getElementById("codPopup").style.display = "none";
-      document.body.style.overflow = "";
+      const p = document.getElementById("codPopup");
+      if (p) { p.style.display = "none"; document.body.style.overflow = ""; }
     } catch (e) {}
 
-    // --- Amounts (coupon ko minus karke) ---
+    // --- Cart / totals (client UI ke liye) ---
     const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
     const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
 
-    // Applied coupon ka discount (agar min meet ho raha hai)
+    // Applied coupon discount
     let discount = 0;
     try {
       if (window.appliedCoupon && subtotal >= window.appliedCoupon.min) {
-        // discountOnSubtotal helper aapke file me upar defined hai
+        // ⚠️ discountOnSubtotal helper tumhari file me already defined hai
         discount = discountOnSubtotal(subtotal, window.appliedCoupon);
       }
     } catch (e) {}
 
-    const finalAmount = Math.max(1, subtotal + deliveryFee - discount); // safeguard
-
-    // Prefill details (address/localStorage se)
-    const name  = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").fullname) || (localStorage.getItem("user_name") || "");
+    // Prefill (address/localStorage se)
+    const addrObj = JSON.parse(localStorage.getItem("shippingAddressObj")||"{}");
+    const name  = addrObj.fullname || (localStorage.getItem("user_name") || "");
     const email = localStorage.getItem("user_email") || "";
-    const phone = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone) || "";
+    const phone = addrObj.phone || "";
+    const addressText = localStorage.getItem("shippingAddress") || "";
 
-    const options = {
-      key: "rzp_live_RD9Vpf0c38C3vD",               // ✅ aapka live Key ID
-      amount: Math.round(finalAmount * 100),        // paise
-      currency: "INR",
+    // ---- 1) SERVER PE ORDER BANAO (⭐ important)
+    // Server hi final amount calculate karega (subtotal + deliveryFee - discount),
+    // order create karega with auto-capture, aur key + order_id return karega.
+    let orderRes;
+    try {
+      orderRes = await fetch("/api/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items,
+          totals: { subtotal, deliveryFee, discount },
+          customer: { name, email, contact: phone },
+          notes: { address: addressText, coupon: (window.appliedCoupon?.code || null) }
+        })
+      });
+    } catch (e) {
+      alert("Network error while creating order. Please try again.");
+      return resetPayButtons();
+    }
+
+    if (!orderRes.ok) {
+      alert("Unable to create order. Please try again.");
+      return resetPayButtons();
+    }
+
+    // Expecting: { key: "rzp_live_xxx", order: { id, amount, currency } }
+    const { key, order } = await orderRes.json();
+    if (!key || !order?.id) {
+      alert("Order creation failed. Please try again.");
+      return resetPayButtons();
+    }
+
+    // ---- 2) Razorpay checkout ko ORDER_ID ke saath open karo
+    const rzp = new Razorpay({
+      key,                   // ❌ hardcoded key hataya, ✅ server se aaya
+      order_id: order.id,    // ⭐ mandatory for authorized flow
       name: "Precioussly",
       description: "Secure Payment",
       image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
-      prefill: { name: name, email: email, contact: phone },
-      notes: { address: localStorage.getItem("shippingAddress") || "" },
+      prefill: { name, email, contact: phone },
+      notes: { address: addressText, coupon: (window.appliedCoupon?.code || null) },
       theme: { color: "#2874f0" },
 
-      handler: function (response) {
-        // --- Success ke baad order ko localStorage me save + cart clear ---
-        const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-        const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
-        const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-        const applied = window.appliedCoupon ? window.appliedCoupon.code : null;
-        const discountAmt = discount; // upar calculate
+      // ---- 3) Success par server verification (signature check + capture)
+      handler: async function (response) {
+        try {
+          const verifyRes = await fetch("/api/razorpay/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(response) // { razorpay_order_id, razorpay_payment_id, razorpay_signature }
+          });
+          const result = await verifyRes.json();
 
-        const grandTotal = Math.max(0, itemsTotal + deliveryFee - discountAmt);
+          if (verifyRes.ok && result.status === "paid") {
+            // ---- 4) Ab order ko localStorage me save karo & cart clear
+            const itemsTotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
+            const grandTotal = Math.max(0, itemsTotal + deliveryFee - discount);
 
-        const order = {
-          id: "RZP-" + (response.razorpay_payment_id || Date.now()),
-          method: "Razorpay",
-          items,
-          coupon: applied,
-          amounts: { itemsTotal, deliveryFee, codFee: 0, discount: discountAmt, grandTotal },
-          address: localStorage.getItem("shippingAddress") || "",
-          createdAt: new Date().toISOString()
-        };
+            const orderObj = {
+              id: result.order_id || response.razorpay_order_id || ("RZP-" + Date.now()),
+              method: "Razorpay",
+              items,
+              coupon: (window.appliedCoupon?.code || null),
+              amounts: { itemsTotal, deliveryFee, codFee: 0, discount, grandTotal },
+              address: addressText,
+              createdAt: new Date().toISOString(),
+              payment_id: response.razorpay_payment_id
+            };
 
-        const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-        orders.unshift(order);
-        localStorage.setItem("orders", JSON.stringify(orders));
+            const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+            orders.unshift(orderObj);
+            localStorage.setItem("orders", JSON.stringify(orders));
 
-        localStorage.setItem("cartItems", "[]");
-        try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
-        localStorage.setItem("lastOrderClearedCart", "1");
+            localStorage.setItem("cartItems", "[]");
+            try { if (typeof updateCartBadge === "function") updateCartBadge(); } catch(e){}
+            localStorage.setItem("lastOrderClearedCart", "1");
 
-        try{ sendOrderToTelegram(order); }catch(e){}
-        try { saveOrderToGoogleSheet(order); } catch(e) {}
-        showPaymentPopup("success");
+            try { sendOrderToTelegram(orderObj); } catch(e){}
+            try { saveOrderToGoogleSheet(orderObj); } catch(e) {}
+
+            showPaymentPopup("success");
+          } else {
+            showPaymentPopup("failed");
+          }
+        } catch (e) {
+          showPaymentPopup("failed");
+        } finally {
+          resetPayButtons();
+        }
       },
 
       modal: {
         // User ne Razorpay close kar diya → spinner/reset states
-        ondismiss: function () {
-          const proceedBtn = document.getElementById("proceedBtn");
-          if (proceedBtn) {
-            proceedBtn.classList.remove("is-loading");
-            proceedBtn.removeAttribute("aria-busy");
-          }
-          document.querySelectorAll(".popup-razorpay-btn.is-loading").forEach(b=>{
-            b.classList.remove("is-loading");
-            b.removeAttribute("aria-busy");
-          });
-        }
+        ondismiss: function () { resetPayButtons(); }
       }
-    };
+    });
 
-    const rzp = new Razorpay(options);
+    // Failure listener
+    try {
+      rzp.on("payment.failed", function () {
+        showPaymentPopup("failed");
+        resetPayButtons();
+      });
+    } catch (e) {}
+
     rzp.open();
+
+    // ---- Utility: buttons/spinners reset ----
+    function resetPayButtons() {
+      const proceedBtn = document.getElementById("proceedBtn");
+      if (proceedBtn) {
+        proceedBtn.classList.remove("is-loading");
+        proceedBtn.removeAttribute("aria-busy");
+      }
+      document.querySelectorAll(".popup-razorpay-btn.is-loading").forEach(b => {
+        b.classList.remove("is-loading");
+        b.removeAttribute("aria-busy");
+      });
+    }
   }
 </script>
+
+
 <!-- ✅ FINAL ADDRESS REQUIRED POPUP -->
 <div class="address-popup-overlay" id="addressRequiredPopup">
   <div class="address-popup-box" style="text-align: center; max-width: 320px; border: none; box-shadow: 0 6px 20px rgba(0,0,0,0.2); border-radius: 16px;">
