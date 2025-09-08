@@ -666,27 +666,7 @@ button.remove-btn:hover {
   background-color: #d4f3df !important;       /* thoda dark hover green */
 }
 </style>
-<script src="https://checkout.razorpay.com/v1/checkout.js">
-    // === CART FIX (Coupons/Fees -> Sheet) ===
-    window.selectedPayment = window.selectedPayment || "razorpay";
-    window.deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
-    window.codCharge = typeof window.codCharge === "number" ? window.codCharge : 0;
-    window.appliedCoupon = window.appliedCoupon || null; // {code, type, value, min}
-    window.discountAmount = typeof window.discountAmount === "number" ? window.discountAmount : 0;
-    function __cartSubtotal(){
-      try{
-        const items = JSON.parse(localStorage.getItem("cartItems")||"[]");
-        return items.reduce((s,it)=>s + Number(it.price||0)*Number(it.qty||1), 0);
-      }catch(_){ return 0; }
-    }
-    function __computeDiscount(sum, coupon){
-      if(!coupon) return 0;
-      const min = Number(coupon.min||0);
-      if(sum < min) return 0;
-      if(String(coupon.type).toLowerCase()==="percent") return Math.floor(sum * (Number(coupon.value||0)/100));
-      return Number(coupon.value||0);
-    }
-    </script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
   // 🔗 Paste the Apps Script Web App URL you copied
   window.GS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOukNsXwM1X7RA0nf9kLajFhBSSGaHZQ5zprYhHlRjr8s3m-8waYiYxDVu_PcfrVXckg/exec";
@@ -2690,7 +2670,7 @@ Time: ${new Date().toLocaleString()}`,
       fetch(url, {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(__buildOrderPayload()),
+        body: JSON.stringify(body),
         keepalive: true
       }).catch(()=>{});
     } catch(e){}
@@ -2881,7 +2861,7 @@ function saveOrderToGoogleSheet(order) {
       method: 'POST',
       mode: 'no-cors',                           // no need to read response
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // no preflight
-      body: JSON.stringify(__buildOrderPayload())
+      body: JSON.stringify(payload)
     });
   } catch (e) { /* ignore silently */ }
 }
@@ -2961,7 +2941,12 @@ async function sendOrderToTelegram(order){
     const res = await fetch(url, {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(__buildOrderPayload())
+      body: JSON.stringify({
+        chat_id: TG_CHAT_ID,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true
+      })
     });
     if (!res.ok){
       const t = await res.text().catch(()=> "");
@@ -3772,7 +3757,7 @@ window.closeHeaderSearch = closeHeaderSearch;
       orderResp = await fetch("/api/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(__buildOrderPayload())
+        body: JSON.stringify({ items, customer, meta })
       });
     }catch(e){
       alert("Network error while creating order. Please try again.");
@@ -4037,25 +4022,6 @@ window.closeHeaderSearch = closeHeaderSearch;
       if(e.target === overlay) closePopup();
     });
   }
-})();
-    function __buildOrderPayload(extra){
-      const items = JSON.parse(localStorage.getItem("cartItems")||"[]");
-      const isCOD = (window.selectedPayment === "cod");
-      const sum = __cartSubtotal();
-      window.discountAmount = __computeDiscount(sum, window.appliedCoupon);
-      const dfText = isCOD ? "—" : (Number(window.deliveryFee||0)===0 ? "Free Delivery" : "₹"+Number(window.deliveryFee||0));
-      const payload = Object.assign({
-        items: items.map(it=>({name:it.name, qty:Number(it.qty||1), price:Number(it.price||0), photo:it.photo})),
-        item_count: items.reduce((n,it)=>n+Number(it.qty||1),0),
-        item_total: sum,
-        payment_method: window.selectedPayment,
-        "COD Charges (₹)": isCOD ? Number(window.codCharge||0) : 0,
-        "Coupon Code": window.appliedCoupon ? window.appliedCoupon.code : "",
-        "Discount Amount (₹)": Number(window.discountAmount||0),
-        "Delivery Fee (₹ or \\"Free Delivery\\")": dfText
-      }, (extra||{}));
-      return payload;
-    }
-    </script>
+})();</script>
 </body>
 </html>
