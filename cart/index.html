@@ -2712,9 +2712,10 @@ function payCODAdvance95(){
   var items = [];
   try{ items = JSON.parse(localStorage.getItem("cartItems") || "[]"); }catch(e){}
   var itemsTotal = items.reduce(function(s,it){ var p=Number(it.price)||0; var q=Number(it.qty)||0; return s + p*q; }, 0);
-  var deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-  var codFee = Number(window.codCharge) || 0;
-  var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - (Number(window.codPrepaid)||95));
+  var deliveryFee = 0; // COD: never add delivery fee
+var codFee = Number(window.codCharge) || 0;
+var remaining = Math.max(0, itemsTotal + codFee - (Number(window.codPrepaid)||95));
+
 
   var options = {
     key: "rzp_live_RFC8iPX7kMLSuX",
@@ -2749,14 +2750,15 @@ try {
   items: items,
   coupon: appliedCouponCode || null,           // <-- NEW
   amounts: {
-    itemsTotal: itemsTotal,
-    deliveryFee: deliveryFee,
-    codFee: codFee,
-    discount: discount,                         // <-- NEW
-    prepaid: prepaid,
-    remaining: remaining,
-    grandTotal: Math.max(0, itemsTotal + deliveryFee + codFee - discount) // <-- updated
-  },
+  itemsTotal: itemsTotal,
+  deliveryFee: 0,           // COD: keep 0
+  codFee: codFee,
+  discount: discount,
+  prepaid: prepaid,
+  remaining: remaining,
+  grandTotal: Math.max(0, itemsTotal + codFee - discount) // no delivery fee in COD
+},
+
   address: localStorage.getItem("shippingAddress") || "",
   createdAt: new Date().toISOString()
 };
