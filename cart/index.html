@@ -1995,7 +1995,7 @@ function openAddressAndClosePopup() {
     const phone = (JSON.parse(localStorage.getItem("shippingAddressObj")||"{}").phone) || "";
 
     const options = {
-      key: "rzp_live_RFC8iPX7kMLSuX",               // ✅ aapka live Key ID
+      key: "rzp_live_RD9Vpf0c38C3vD",               // ✅ aapka live Key ID
       amount: Math.round(finalAmount * 100),        // paise
       currency: "INR",
       name: "Precioussly",
@@ -2717,7 +2717,7 @@ function payCODAdvance95(){
   var remaining = Math.max(0, itemsTotal + deliveryFee + codFee - (Number(window.codPrepaid)||95));
 
   var options = {
-    key: "rzp_live_RFC8iPX7kMLSuX",
+    key: "rzp_live_RD9Vpf0c38C3vD",
     amount: 95 * 100,
     currency: "INR",
     name: "Precioussly",
@@ -3905,7 +3905,7 @@ window.closeHeaderSearch = closeHeaderSearch;
     };
 
     var options = {
-      key: "rzp_live_RFC8iPX7kMLSuX",
+      key: "rzp_live_RD9Vpf0c38C3vD",
       amount: amountPaise,
       currency: "INR",
       name: "Precioussly",
@@ -4040,102 +4040,5 @@ window.closeHeaderSearch = closeHeaderSearch;
     });
   }
 })();</script>
-<script>
-// === 1) UI se total nikaalo (₹ me); apne DOM ke hisab se adjust karo ===
-function getGrandTotalInPaise() {
-  // Example: <span id="orderTotal">₹105</span>
-  const el = document.querySelector("#orderTotal");
-  if (!el) { alert("Total not found"); return null; }
-  const num = parseFloat(el.textContent.replace(/[^\d.]/g, "")); // 105
-  return Math.round(num * 100); // paise
-}
-
-// === 2) Netlify Function: create-order call ===
-async function createOrder(amountInPaise) {
-  const res = await fetch("/.netlify/functions/create-order", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amountInPaise })
-  });
-  const data = await res.json();
-  if (!res.ok || !data.id) throw new Error(data.error?.description || "Order create failed");
-  return data; // contains id (order_id), amount, currency
-}
-
-// === 3) Verify signature (optional but recommended) ===
-async function verifySignature({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
-  const res = await fetch("/.netlify/functions/verify-signature", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      order_id: razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature
-    })
-  });
-  const data = await res.json();
-  return data.ok;
-}
-
-// === 4) Open Razorpay Checkout with order_id ===
-async function payWithRazorpay() {
-  const amountInPaise = getGrandTotalInPaise();
-  if (!amountInPaise) return;
-
-  // 4a. create order on server (auto-capture on)
-  let order;
-  try { order = await createOrder(amountInPaise); }
-  catch (e) { alert(e.message || "Order create error"); return; }
-
-  // 4b. open checkout
-  const options = {
-    key: "<?= your_public_key_if_you_use_templating ?>", // OPTIONAL (Checkout still works with just order_id)
-    order_id: order.id, // << IMPORTANT
-    name: "Preciously",
-    description: "Order Payment",
-    theme: { color: "#2563eb" },
-    handler: async function (response) {
-      // Auto-capture already requested at order creation
-      const ok = await verifySignature(response);
-      if (ok) {
-        // TODO: yahan apna "save order to Google Sheet/DB" call karo
-        alert("Payment successful! 🎉");
-        // window.location.href = "/dashboard.html";
-      } else {
-        alert("Signature verification failed. Please contact support.");
-      }
-    },
-    modal: {
-      ondismiss: function(){ console.log("Checkout closed"); }
-    },
-    prefill: {
-      name: localStorage.getItem("userName") || "",
-      email: localStorage.getItem("userEmail") || "",
-      contact: localStorage.getItem("userPhone") || ""
-    },
-    notes: { cartId: localStorage.getItem("cartId") || "" }
-  };
-
-  const rzp = new Razorpay(options);
-  rzp.open();
-}
-
-// === 5) COD button (aapka existing flow) ===
-// Yahan kuch nahi badalna unless aap COD bhi server par save karte ho
-async function continueWithCOD() {
-  // yahan aap jo kar rahe the wahi rakho: order save + thank you page
-  alert("COD selected. Order placed!");
-}
-
-// === 6) Button listeners ===
-document.getElementById("btnRazorpay")?.addEventListener("click", function(e){
-  e.preventDefault();
-  payWithRazorpay();
-});
-document.getElementById("btnCOD")?.addEventListener("click", function(e){
-  e.preventDefault();
-  continueWithCOD();
-});
-</script>
 </body>
 </html>
