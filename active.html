@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Orders from Google Sheet → Full-Height Popup (FIXED)</title>
+<title>Orders from Google Sheet → Full-Height Popup (FIXED + Lightbox)</title>
 <style>
   :root{
     --bg:#f1f3f8; --surface:#fff; --muted:#6c7280; --ink:#101318; --accent:#2563eb;
@@ -43,6 +43,22 @@ button, .btn-copy { user-select:none; }
     display:inline-block;
     vertical-align:middle;
   }
+
+  .phone-btn{
+    width:1.35em;
+    height:1.35em;
+    flex:0 0 auto;
+    display:inline-grid;
+    place-items:center;
+    border:none;
+    background:transparent;
+    padding:0;
+    margin-left:2px;
+    cursor:pointer;
+  }
+  .phone-btn:active{ transform:scale(.96) }
+  .phone-btn svg{ width:100%; height:100%; stroke:#0b1a2b; }
+
   .item{ margin:.15rem 0 0 0; font-size:clamp(14px,2.7vw,18px); color:#7a8088; font-style:italic; }
   .amt{ margin-top:.5rem; font-size:clamp(22px,3.6vw,32px); font-weight:800; color:var(--accent); }
 
@@ -68,7 +84,7 @@ button, .btn-copy { user-select:none; }
   .value{ font-size:14.5px; color:#252a31; line-height:1.35; word-break:break-word; user-select:text; }
 
   .thumbs{ display:flex; gap:8px; flex-wrap:wrap; }
-  .thumbs img{ width:76px; height:76px; object-fit:cover; border-radius:10px; border:1px solid #eef0f4; }
+  .thumbs img{ width:76px; height:76px; object-fit:cover; border-radius:10px; border:1px solid #eef0f4; cursor:zoom-in; }
 
   .details{ display:grid; gap:10px; }
   .details .row{ display:block; color:#252a31; font-weight:500; }
@@ -95,7 +111,6 @@ button, .btn-copy { user-select:none; }
   .spinner{ width:28px; height:28px; border-radius:999px; border:3px solid #e5e7eb; border-top-color:#9aa0a6; animation:spin 1s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg) } }
 
-  /* Toast for copy feedback */
   .toast{
     position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
     background:#0f172a; color:#fff; border-radius:14px; padding:10px 14px;
@@ -104,18 +119,12 @@ button, .btn-copy { user-select:none; }
   }
   .toast.show{ opacity:1 }
 
-/* Align WhatsApp icon with customer name */
-.customer-name {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.customer-name .wa-icon {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
-
+  /* LIGHTBOX */
+  .lightbox{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(10,14,20,.86); backdrop-filter:blur(2px); z-index:60; }
+  .lightbox.show{ display:flex; }
+  .lightbox img{ max-width:92vw; max-height:86vh; width:auto; height:auto; border-radius:18px; box-shadow:0 18px 60px rgba(0,0,0,.45); }
+  .lightbox .lb-close{ position:absolute; top:14px; right:14px; width:42px; height:42px; border-radius:14px; background:#ffffff; display:grid; place-items:center; border:1px solid #e5e7eb; cursor:pointer; }
+  .lightbox .lb-close:active{ transform:scale(.96) }
 </style>
 </head>
 <body>
@@ -127,15 +136,20 @@ button, .btn-copy { user-select:none; }
 
   <div id="modalRoot"></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <!-- Lightbox root -->
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <button class="lb-close" aria-label="Close image">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0b1a2b" stroke-width="2">
+        <path d="M18 6L6 18M6 6l12 12" />
+      </svg>
+    </button>
+    <img id="lightboxImg" alt="Preview">
+  </div>
 
 <script>
 // ====== CONFIG ======
-/* IMPORTANT:
-   1) Make sure the Google Sheet is shared as "Anyone with the link → Viewer".
-   2) Update SHEET_ID and SHEET_NAME below, if different. */
-const SHEET_ID   = "1wfMl8tSlmfVgoSvnFI6gHEDpmvJsF5wdOQdhFowmngo";  // change if needed
+const SHEET_ID   = "1wfMl8tSlmfVgoSvnFI6gHEDpmvJsF5wdOQdhFowmngo";
 const SHEET_NAME = "Sheet1";
-// Optional fallback: if you know the GID of the sheet tab, put it here to try CSV if GViz fails.
 const SHEET_GID  = "";
 
 // ====== UTIL ======
@@ -170,7 +184,6 @@ const getField = (o, keys) => { for(const k of keys){ const v=o[k]; if(v!==undef
 
 // ====== COPY HELPERS ======
 function buildCopyText(o){
-  // WhatsApp-friendly; blank lines between blocks
   const name = safe(o["Customer Name"]);
   const address = safe(o["Full Address"]).replace(/[\s\n\r]+/g, " ").trim();
   const phone = safe(o["Phone Number"]);
@@ -183,7 +196,6 @@ async function copyToClipboard(str){
     await navigator.clipboard.writeText(str);
     return true;
   }catch(err){
-    // Fallback for older browsers
     const ta = document.createElement('textarea');
     ta.value = str;
     ta.style.position = 'fixed';
@@ -205,6 +217,12 @@ function showToast(msg){
 }
 
 // ====== TEMPLATES ======
+function phoneSVG(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4.06 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.77.59 2.61a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.47-1.47a2 2 0 0 1 2.11-.45c.84.27 1.71.47 2.61.59A2 2 0 0 1 22 16.92z"></path>
+  </svg>`;
+}
+
 function cardHTML(o, idx){
   const orderTime = timeFromIST(o["Order Timestamp (IST)"]);
   const firstItem = safe(firstOr(o['Items (Name × Quantity; pipe-separated)'], ""));
@@ -217,9 +235,12 @@ function cardHTML(o, idx){
       <span>${orderTime}</span>
     </div>
     <h2 class="name">
-  <span>${safe(o["Customer Name"]) || "—"}</span>
-  <img class="wa" src="https://i.postimg.cc/L6YgQyRH/cropped-circle-image-1.png" alt="WhatsApp" loading="lazy" decoding="async">
-</h2>
+      <span>${safe(o["Customer Name"]) || "—"}</span>
+      <img class="wa" src="https://i.postimg.cc/L6YgQyRH/cropped-circle-image-1.png" alt="WhatsApp" loading="lazy" decoding="async">
+      <button class="phone-btn" type="button" aria-label="Call customer">
+        ${phoneSVG()}
+      </button>
+    </h2>
     <p class="item">${firstItem || ""}</p>
     <div class="amt">${total}</div>
   </article>`;
@@ -227,7 +248,7 @@ function cardHTML(o, idx){
 
 function modalHTML(o, idx){
   const images = (o["Item Image URLs"] || "").split("|").map(s => s.trim()).filter(Boolean);
-  const thumbs = images.map(src => `<a href="${src}" target="_blank" rel="noopener"><img src="${src}" alt=""></a>`).join("");
+  const thumbs = images.map(src => `<img class="thumb" src="${src}" data-full="${src}" alt="Item image">`).join("");
 
   const field = (label, value, wide=false) => `
     <div class="field" ${wide ? 'style="grid-column:1/-1"' : ""}>
@@ -315,9 +336,8 @@ function modalHTML(o, idx){
   </div>`;
 }
 
-// ====== FETCH SHEET (robust with fallback) ======
+// ====== FETCH SHEET ======
 async function getSheetRows(){
-  // Try GViz first (works for "Anyone with link → Viewer")
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(SHEET_NAME)}`;
   try{
     const ctrl = new AbortController();
@@ -333,14 +353,13 @@ async function getSheetRows(){
     const cols = (json.table.cols || []).map(c => (c.label || "").trim());
     const rows = (json.table.rows || []).map(r => {
       const obj = {};
-      cols.forEach((h, i) => obj[h] = (r.c[i] && r.c[i].v != null) ? r.c[i].v : "");
+      cols.forEach((h, i) => { obj[h] = (r.c[i] && r.c[i].v != null) ? r.c[i].v : ""; });
       return obj;
     });
     if(rows.length && rows[0]["Order ID"] === "Order ID"){ rows.shift(); }
     return rows.filter(r => r["Order ID"]);
   }catch(e){
     console.warn("GViz fetch failed, trying CSV. Reason:", e.message || e);
-    // Try CSV export if GID is provided
     if(!SHEET_GID) return null;
     try{
       const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
@@ -349,7 +368,6 @@ async function getSheetRows(){
       const [headerLine, ...lines] = csv.split(/\r?\n/).filter(Boolean);
       const headers = headerLine.split(",").map(h => h.trim());
       const out = lines.map(line => {
-        // naive CSV parse (handles basic commas; for complex CSV consider a parser)
         const cells = line.split(",").map(v => v.trim());
         const o = {};
         headers.forEach((h,i)=>o[h]=cells[i]||"");
@@ -361,6 +379,24 @@ async function getSheetRows(){
       return null;
     }
   }
+}
+
+// ====== LIGHTBOX API ======
+function openLightbox(src){
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightboxImg');
+  img.src = src;
+  lb.classList.add('show');
+  lb.setAttribute('aria-hidden','false');
+  document.body.classList.add('no-scroll');
+}
+function closeLightbox(){
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightboxImg');
+  img.src = "";
+  lb.classList.remove('show');
+  lb.setAttribute('aria-hidden','true');
+  document.body.classList.remove('no-scroll');
 }
 
 // ====== INTERACTION ======
@@ -388,7 +424,13 @@ function attachHandlers(){
   document.querySelectorAll(".modal").forEach(m=>{
     m.addEventListener("click", (e)=>{ if(e.target === m){ m.classList.remove("show"); document.body.classList.remove("no-scroll"); }});
   });
-  document.addEventListener("keydown", (e)=>{ if(e.key === "Escape"){ document.querySelectorAll(".modal.show").forEach(m=>m.classList.remove("show")); document.body.classList.remove("no-scroll"); }});
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape"){
+      document.querySelectorAll(".modal.show").forEach(m=>m.classList.remove("show"));
+      document.body.classList.remove("no-scroll");
+      closeLightbox();
+    }
+  });
 
   // Copy button
   document.querySelectorAll(".btn-copy").forEach(btn=>{
@@ -401,6 +443,36 @@ function attachHandlers(){
       showToast(ok ? "Copied to clipboard" : "Copy failed");
     });
   });
+
+  // Phone button (open dialer)
+  document.querySelectorAll(".phone-btn").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      const card = btn.closest(".order-card");
+      const idx = card && card.getAttribute("data-idx");
+      const o = (window.__ORDERS || [])[idx] || {};
+      let raw = (o["Phone Number"] || o["Alternate Phone Number"] || "").toString();
+      let digits = raw.replace(/[^\d]/g,"").replace(/^0+/,"");
+      if(!digits){ showToast("No phone number"); return; }
+      if(digits.length === 10){ digits = "91" + digits; }
+      const tel = "tel:+" + digits;
+      try{ window.location.href = tel; }catch(_){ showToast("Could not open dialer"); }
+    });
+  });
+
+  // Lightbox open on thumbnail click
+  document.querySelectorAll(".thumbs img.thumb").forEach(img=>{
+    img.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const src = img.getAttribute("data-full") || img.src;
+      openLightbox(src);
+    });
+  });
+
+  // Lightbox close
+  document.getElementById('lightbox').addEventListener('click', (e)=>{
+    if(e.target.id === 'lightbox' || e.target.closest('.lb-close')) closeLightbox();
+  });
 }
 
 // ====== MAIN ======
@@ -411,7 +483,6 @@ async function main(){
 
   const rows = await getSheetRows();
 
-  // If no rows (fetch failed), show demo content so the page is never blank
   const data = rows && rows.length ? rows : [{
     "Order ID":"COD-1757229331357",
     "Order Timestamp (IST)":"2025-09-07 12:45:00",
@@ -438,7 +509,7 @@ async function main(){
     "Order Total (₹)":"1099"
   }];
 
-  window.__ORDERS = data; // make available to copy handler
+  window.__ORDERS = data;
   list.innerHTML = data.map((o, i) => cardHTML(o, i)).join(""); 
   modalRoot.innerHTML = data.map((o, i) => modalHTML(o, i)).join(""); 
   attachHandlers();
@@ -470,7 +541,6 @@ document.addEventListener("DOMContentLoaded", main);
   function timeFromIST(s){
     try{
       if(!s) return "—";
-      // Prefer the robust normalizer from the main script if available
       const parseDate = (typeof normalizeToDate === 'function') ? normalizeToDate : (val => {
         const str = String(val).trim();
         const m = str.match(/^Date\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+),\s*(\d+),\s*(\d+))?\)$/);
