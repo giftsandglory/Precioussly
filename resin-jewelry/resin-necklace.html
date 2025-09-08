@@ -1447,6 +1447,16 @@ body.horizontal-mode .product-grid{
 /* Also hide any generic tag badge inside suggestions, just in case */
 #headerSearchResults .tag{ display:none !important; }
 </style>
+<style id="instant-popup-css">
+  /* Open instantly: no fade/slide */
+  #productPopup { transition: none !important; }
+  .popup-card { 
+    transition: none !important; 
+    transform: none !important; 
+    opacity: 1 !important;
+  }
+</style>
+
 </head>
 <body>
 <header class="site-header">
@@ -3145,16 +3155,17 @@ track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.2
 
     // Open popup smoothly (uses existing CSS classes)
     var popup = $("productPopup");
-    var card = popup ? popup.querySelector(".popup-card") : null;
-    if (popup && card){
-      popup.style.display = "flex";
-      requestAnimationFrame(function(){
-        popup.classList.add("is-open");
-        card.classList.remove("leave");
-        card.classList.add("enter");
-      });
-      document.body.classList.add("noscroll");
-    }
+var card  = popup ? popup.querySelector(".popup-card") : null;
+if (popup){
+  popup.style.display = "flex";
+  popup.classList.add("is-open");           // keeps overlay visible
+  if (card) {                               // OK to keep enter (no animation now)
+    card.classList.remove("leave");
+    card.classList.add("enter");
+  }
+  document.body.classList.add("noscroll");
+}
+
   };
 })();
 </script>
