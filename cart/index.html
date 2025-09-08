@@ -1315,6 +1315,7 @@ function confirmAddress() {
 
 </script>
 <script>
+  // Announcement Bar from Google Sheet
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
   const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
 
@@ -1325,9 +1326,6 @@ function confirmAddress() {
         document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
       }
     });
-
-  
-  }
 
 
   function updateCartBadge() {
