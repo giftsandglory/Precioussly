@@ -1520,6 +1520,7 @@ body.horizontal-mode .product-grid{
 <!-- Announcement Bar -->
 <div id="announcementBar">🧿</div>
 
+
 <!-- Menu overlay + drawer (same as index.html) -->
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 
@@ -1535,162 +1536,321 @@ body.horizontal-mode .product-grid{
 
 <div id="content"></div>
 <script>
-(async function () {
-  // --- helper to fetch JSON ---
-  async function fetchJSON(url) {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error("Network error: " + r.status);
-    return r.json();
-  }
-
-  // === PASTE YOUR GOOGLE SHEET LINK + TAB NAME HERE ===😎😎😎😎
+// === PASTE YOUR GOOGLE SHEET LINK + TAB NAME HERE ===😎😎😎😎
   const PASTED_SHEET_LINK =
     "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
-  const TAB_NAME = "Resin Necklace"; // 👈 Yahan apna tab name likho (e.g. "Products", "Necklace")😎😎😎😎
+  const TAB_NAME = "Sheet1"; // 👈 Yahan apna tab name likho (e.g. "Products", "Necklace")😎😎😎😎
 
   // --- extract spreadsheet ID ---
   const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
   if (!idMatch) {
     console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
-    return;
   }
-  const sheetId = idMatch[1];
+  const sheetId = idMatch ? idMatch[1] : "";
 
   // --- final opensheet URL ---
   const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(TAB_NAME)}`;
   console.log("✅ Final working Sheet URL:", DATA_URL);
 
-  // --- fetch products ---
-  const data = await fetchJSON(DATA_URL);
-
-  // preserve for popup deep-link
-  window.__activeSheet = { sheetId, tab: TAB_NAME, url: DATA_URL };
-
-  // optional direction toggle
-  if (typeof applyDirectionFromSheet === "function") {
-    try { applyDirectionFromSheet(data); } catch (e) {}
+  // Use this in the app:
+  const SHEET_URL = DATA_URL;
+// === Visibility control from Google Sheet ===
+// If the "visibility" cell contains the word "hide" (any case), the product is hidden.
+// If the cell is blank (or anything else), the product is shown.
+function isHidden(row){
+  const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
+  for (const k of keys){
+    if (row.hasOwnProperty(k) && row[k] != null){
+      const v = String(row[k]).trim().toLowerCase();
+      if (v.includes("hide")) return true;   // ✅ hide when cell contains "hide"
+      // return false on any other non-empty value – requirement only mentions "hide"
+      if (v.length) return false;
+    }
   }
+  return false; // blank means show
+}
 
-  window.catalogData = data;
-  const content = document.getElementById("content");
-  let currentSection = "";
-  let sectionWrapper;
-  let currentSectionHidden = false;
+// Robust: read "Description" even if header has spaces/case variants
+function getSheetDescription(row){
+  const keys = [
+    "Description","description","Desc","desc","Product Description","product description",
+    "Description ", " Description", "DESCRIPTION"
+  ];
+  for (const k of keys){
+    if (row[k] && String(row[k]).trim()) return String(row[k]);
+  }
+  return "";
+}
 
-  data.forEach((item) => {
-    // --- Section header row ---
-    if (item["Section"]) {
-      currentSection = item["Section"];
-      const secVis = String(item["visibility"] || item["Visibility"] || "")
-        .trim()
-        .toLowerCase();
-      currentSectionHidden = secVis.includes("hide");
-      if (currentSectionHidden) { sectionWrapper = null; return; }
 
-      const sectionTitle = document.createElement("div");
-      sectionTitle.className = "section-title";
-      sectionTitle.innerText = currentSection;
-      content.appendChild(sectionTitle);
 
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      content.appendChild(sectionWrapper);
-      return; // this row only section title
+(async function () {
+  try {
+    // Directly read from the single sheet URL
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+
+    if (typeof applyDirectionFromSheet === "function") {
+      applyDirectionFromSheet(data);
     }
 
-    if (currentSectionHidden) return;
-    if (typeof isHidden === "function" && isHidden(item)) return;
-    if (!item["Product Name"]) return;
+    window.catalogData = data;
 
-    // --- Product card ---
-    const product = document.createElement("div");
-    product.className = "product";
+    const content = document.getElementById("content");
+    let currentSection = "";
+    let sectionWrapper;
+    let currentSectionHidden = false;
 
-    product.addEventListener("click", (e) => {
-      if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-      const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-      if (typeof openPopup === "function") {
-        openPopup(allPhotos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"], getSheetDescription(item));
+    data.forEach((item) => {
+      if (item["Section"]) {
+        currentSection = item["Section"];
+        const secVis = String(item["visibility"] || item["Visibility"] || "")
+          .trim()
+          .toLowerCase();
+        currentSectionHidden = secVis.includes("hide");
+        if (currentSectionHidden) {
+          sectionWrapper = null;
+          return;
+        }
+
+        const sectionTitle = document.createElement("div");
+        sectionTitle.className = "section-title";
+        sectionTitle.innerText = currentSection;
+        content.appendChild(sectionTitle);
+
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+
+        return;
       }
+
+      if (currentSectionHidden) return;
+      if (!item["Product Name"]) return;
+
+      const product = document.createElement("div");
+      product.className = "product";
+
+      product.addEventListener("click", (e) => {
+        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+        const allPhotos = [
+          item["photo 1"],
+          item["photo 2"],
+          item["photo 3"],
+          item["photo 4"],
+        ].filter(Boolean);
+        openPopup(
+          allPhotos,
+          item["Product Name"],
+          item["MRP"],
+          item["Selling Price"],
+          item["in stock"],
+          getSheetDescription(item)
+        );
+      });
+
+      const img = document.createElement("img");
+      img.src = item["photo 1"];
+      img.alt = item["Product Name"];
+      img.style.pointerEvents = "none";
+      img.style.cursor = "default";
+      product.appendChild(img);
+
+      if (item["Badge"]) {
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.innerText = item["Badge"];
+        product.appendChild(badge);
+      }
+
+      const infoWrapper = document.createElement("div");
+      infoWrapper.style.padding = "0 6px";
+
+      const title = document.createElement("div");
+      title.className = "product-title";
+      title.style.fontSize = "14px";
+      title.style.textAlign = "left";
+      title.style.marginTop = "8px";
+      title.innerText = item["Product Name"];
+      infoWrapper.appendChild(title);
+
+      const info = document.createElement("div");
+      info.className = "product-info";
+
+      let priceHTML = "";
+      if (item["MRP"] && item["Selling Price"]) {
+        priceHTML = `
+          <div style="
+            text-align:left;
+            font-size:14px;
+            font-weight:bold;
+            display:flex;
+            gap:6px;
+            align-items:center;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+          ">
+            <span>₹${item["Selling Price"]}</span>
+            <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+          </div>
+        `;
+      }
+
+      if (+item["in stock"] === 0) {
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
+        `;
+      } else {
+        const productData = {
+          photo: item["photo 1"],
+          name: item["Product Name"],
+          mrp: item["MRP"],
+          price: item["Selling Price"],
+        };
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(
+            productData
+          )})'>Add to Cart</button>
+        `;
+      }
+
+      infoWrapper.appendChild(info);
+      product.appendChild(infoWrapper);
+
+      if (!sectionWrapper) {
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+      }
+      sectionWrapper.appendChild(product);
     });
 
-    const img = document.createElement("img");
-    img.src = item["photo 1"];
-    img.alt = item["Product Name"];
-    img.style.pointerEvents = "none";
-    img.style.cursor = "default";
-    product.appendChild(img);
-
-    const infoWrapper = document.createElement("div");
-    infoWrapper.style.padding = "0 6px";
-
-    const title = document.createElement("div");
-    title.className = "product-title";
-    title.style.fontSize = "14px";
-    title.style.textAlign = "left";
-    title.style.marginTop = "8px";
-    title.innerText = item["Product Name"];
-    infoWrapper.appendChild(title);
-
-    if (item["Badge"]) {
-      const badge = document.createElement("div");
-      badge.className = "badge";
-      badge.innerText = item["Badge"];
-      product.appendChild(badge);
+    if (typeof maybeOpenFromURL === "function") {
+      maybeOpenFromURL();
     }
-
-    const info = document.createElement("div");
-    info.className = "product-info";
-
-    let priceHTML = "";
-    if (item["MRP"] && item["Selling Price"]) {
-      priceHTML = `
-        <div style="
-          text-align:left;
-          font-size:14px;
-          font-weight:bold;
-          display:flex;
-          gap:6px;
-          align-items:center;
-          white-space:nowrap;
-          overflow:hidden;
-          text-overflow:ellipsis;
-        ">
-          <span>₹${item["Selling Price"]}</span>
-          <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-        </div>`;
-    }
-
-    if (+item["in stock"] === 0) {
-      info.innerHTML = `
-        ${priceHTML}
-        <button class="add-btn" disabled style="background:#f1f1f1; color:#888; border:1px solid #ccc;">Out of Stock</button>`;
-    } else {
-      const productData = {
-        photo: item["photo 1"],
-        name: item["Product Name"],
-        mrp: item["MRP"],
-        price: item["Selling Price"],
-      };
-      info.innerHTML = `
-        ${priceHTML}
-        <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>`;
-    }
-
-    infoWrapper.appendChild(info);
-    product.appendChild(infoWrapper);
-
-    if (!sectionWrapper) {
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      content.appendChild(sectionWrapper);
-    }
-    sectionWrapper.appendChild(product);
-  });
-
-  if (typeof maybeOpenFromURL === "function") {
-    try { maybeOpenFromURL(); } catch (e) {}
+  } catch (err) {
+    console.error("Failed to load products:", err);
   }
+
+    // A2_DIRECTION_TOGGLE :: call
+applyDirectionFromSheet(data);
+    window.catalogData = data;
+    const content = document.getElementById('content');
+    let currentSection = '';
+    let sectionWrapper;
+    let currentSectionHidden = false;
+
+    data.forEach(item => {
+        // --- Section header row handling (section-level hide support) ---
+        if (item["Section"]) {
+          currentSection = item["Section"];
+          const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
+          currentSectionHidden = secVis.includes("hide");
+          if (currentSectionHidden) { sectionWrapper = null; return; }
+          const sectionTitle = document.createElement('div');
+sectionTitle.className = 'section-title';
+        sectionTitle.innerText = currentSection;
+        content.appendChild(sectionTitle);
+
+        sectionWrapper = document.createElement('div');
+        sectionWrapper.className = 'product-grid';
+        content.appendChild(sectionWrapper);
+      }
+
+      if (currentSectionHidden) return;
+      if (isHidden(item)) return;
+      if (!item["Product Name"]) return;
+
+      const product = document.createElement('div');
+      product.className = 'product';
+      // ✅ Open popup when clicking anywhere on the product card (except buttons/qty areas)
+      product.addEventListener('click', (e) => {
+        if (e.target.closest('.add-to-cart, .quantity-bar, button')) return; // ignore interactive controls
+        const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
+        openPopup(allPhotos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"], getSheetDescription(item));
+      });
+
+
+      const img = document.createElement('img');
+      img.src = item["photo 1"];
+      img.alt = item["Product Name"];
+      // 🚫 Make the grid photo non-clickable
+      img.style.pointerEvents = "none";
+      img.style.cursor = "default";
+
+      product.appendChild(img);
+
+      const infoWrapper = document.createElement('div');
+infoWrapper.style.padding = "0 6px"; // This adds left-right padding
+
+const title = document.createElement('div');
+title.className = 'product-title';
+title.style.fontSize = "14px";
+title.style.textAlign = "left";
+title.style.marginTop = "8px";
+title.innerText = item["Product Name"];
+infoWrapper.appendChild(title);
+
+      if (item["Badge"]) {
+        const badge = document.createElement('div');
+        badge.className = 'badge';
+        badge.innerText = item["Badge"];
+        product.appendChild(badge);
+      }
+
+      const info = document.createElement('div');
+      info.className = 'product-info';
+
+      let priceHTML = "";
+if (item["MRP"] && item["Selling Price"]) {
+  const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
+  priceHTML = `
+    <div style="
+       text-align:left;
+       font-size:14px;
+       font-weight:bold;
+       display:flex;
+       gap:6px;
+       align-items:center;
+       white-space:nowrap;
+       overflow:hidden;
+       text-overflow:ellipsis;
+    ">
+      <span>₹${item["Selling Price"]}</span>
+      <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+    </div>
+  `;
+}
+      if (+item["in stock"] === 0) {
+  info.innerHTML = `
+    ${priceHTML}
+    <button class="add-btn" disabled style="
+      background: #f1f1f1;
+      color: #888;
+      border: 1px solid #ccc;
+    ">Out of Stock</button>
+  `;
+      } else {
+        const productData = {
+          photo: item["photo 1"],
+          name: item["Product Name"],
+          mrp: item["MRP"],
+          price: item["Selling Price"]
+        };
+
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>
+        `;
+      }
+
+      infoWrapper.appendChild(info);
+product.appendChild(infoWrapper);
+      sectionWrapper.appendChild(product);
+    });
+    
+    maybeOpenFromURL();
 })();
 </script>
 
