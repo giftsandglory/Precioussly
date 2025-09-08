@@ -2,8 +2,6 @@
 
 <html lang="en">
 <head>
-<script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
-<meta content="746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com" name="google-signin-client_id"/>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
@@ -1872,57 +1870,7 @@ down-toggle {
   border-radius: 0px !important;
 }
 </style>
-<style id="premium-preloader-css">
-html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important; height: 100vh !important; }
-#preloaderOverlay{
-  position: fixed; left: 0; right: 0; top: var(--preloaderTop, 0px); bottom: 0;
-  z-index: 999999;
-  display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(1200px 600px at 50% -10%, rgba(255,182,193,.28), transparent 60%),
-              linear-gradient(180deg, #ffffff 0%, #fff5fb 100%);
-  transition: opacity .5s ease, visibility .5s ease;
-  opacity: 1; visibility: visible;
-  -webkit-tap-highlight-color: transparent;
-}
-#preloaderOverlay.hide{ opacity: 0; visibility: hidden; }
 
-.pre-card{
-  position: relative;
-  width: min(90vw, 360px);
-  padding: 22px 20px 18px;
-  border-radius: 20px;
-  background: rgba(255,255,255,.88);
-  border: 1px solid rgba(0,0,0,.12);
-  box-shadow: 0 20px 60px rgba(0,0,0,.10);
-  backdrop-filter: blur(6px);
-  text-align: center;
-  font-family: 'Roboto Slab', serif;
-  color: #111;
-}
-.pre-logo{
-  width: 76px; height: 76px;
-  margin: 2px auto 6px;
-  position: relative;
-  display: grid; place-items: center;
-  border-radius: 999px;
-  background: radial-gradient(circle at 50% 45%, #fff 40%, #ffe7f3 100%);
-  border: 1px solid rgba(0,0,0,.08);
-  box-shadow: 0 8px 18px rgba(255, 121, 176, .35), inset 0 0 0 6px #fff;
-  overflow: hidden;
-}
-.pre-logo img{ width: 54px; height: 54px; object-fit: contain; transform-origin: 50% 60%; }
-.pre-title{ font-size: 18px; font-weight: 600; letter-spacing: .2px; margin: 2px 0 6px; }
-.pre-sub{ font-size: 13px; color: #444; margin-bottom: 12px; }
-.pre-bar{ position: relative; height: 6px; border-radius: 999px; background: #f0f0f0; overflow: hidden; border: 1px solid rgba(0,0,0,.06); }
-.pre-bar::before{ content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #ffd1e6, #ff79b0, #ffd1e6); transform: translateX(-100%); animation: loadSweep 1.2s ease-in-out infinite; }
-@keyframes loadSweep{ 0%{ transform: translateX(-100%); } 50%{ transform: translateX(-10%); } 100%{ transform: translateX(100%); } }
-.sparkles{ pointer-events: none; }
-.sparkles span{ position: absolute; width: 6px; height: 6px; border-radius: 50%; background: radial-gradient(circle, #fff 30%, #ffb6d3 60%, transparent 70%); opacity: .9; animation: floatUp calc(2.4s + var(--d,0s)) ease-in-out infinite; filter: blur(.2px); }
-@keyframes floatUp{ 0%{ transform: translateY(12px) scale(.8); opacity: .0; } 10%{ opacity: .9; } 100%{ transform: translateY(-38px) scale(1.05); opacity: 0; } }
-#skipPreloader{ margin-top: 14px; display: inline-block; padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(0,0,0,.18); background: #fff; font-size: 12px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
-#skipPreloader.show{ opacity: 1; pointer-events: auto; }
-#skipPreloader:active{ transform: scale(.98); }
-</style>
 <style id="happy-customers-grid-css">
 /* === Happy Customers: Grid/Row layout (white background) === */
 #happySection{
@@ -2271,25 +2219,57 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 }
 </style>
 
+<style id="pink-profile-popup-css">
+
+/* === Pink Profile Popup (ChatGPT) === */
+.pp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:7000;}
+.pp-overlay.show{display:block;}
+.pp-card{
+  position: fixed; left:50%; top:18%;
+  transform: translateX(-50%);
+  width: min(92vw, 420px);
+  background:#fff;
+  border:2px solid #ff6ea8;
+  border-radius: 22px;
+  box-shadow:0 18px 40px rgba(0,0,0,.18);
+  padding: 18px 16px 16px;
+  font-family: 'Roboto Slab', serif;
+}
+.pp-hero{display:flex;justify-content:center;align-items:center;margin-top:6px;margin-bottom:6px;}
+.pp-hero .pp-badge{
+  width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(135deg,#ffe1ef,#ffd4ea 50%, #ffc1e1);
+  border:1.5px solid #ff8fbe;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 6px 16px rgba(255,110,168,.25);
+  font-size:30px; line-height:1;
+}
+.pp-title{font-size:20px; font-weight:800; color:#111; text-align:center; margin:8px 0 6px;}
+.pp-sub{font-size:15px; color:#3a3a3a; text-align:center; line-height:1.6; padding:0 8px;}
+.pp-cta{
+  display:block; width:100%; text-align:center; text-decoration:none;
+  margin:14px 0 2px; padding:12px 14px; border-radius:14px;
+  background:#ff6ea8; color:#fff; font-weight:800; border:1px solid #ff4d98;
+  box-shadow:0 8px 18px rgba(255,110,168,.28);
+}
+.pp-cta:active{transform:scale(.985);}
+.pp-links{display:flex; gap:10px; justify-content:center; margin-top:10px;}
+.pp-links a{font-size:13px; color:#ff2f90; text-decoration:none;}
+.pp-links a:hover{text-decoration:underline;}
+.pp-back{
+  position:absolute; right:10px; top:10px;
+  height:34px; padding:0 12px; border-radius:10px; cursor:pointer;
+  font:600 14px/1 'Roboto Slab', serif; color:#ff2f90;
+  background:#fff; border:1px solid rgba(255,47,144,.5);
+  box-shadow: 0 3px 10px rgba(255,47,144,.15);
+}
+.pp-back:active{transform:scale(.98);}
+@media (max-width:420px){
+  .pp-card{top:14%;}
+}
+
+</style>
 </head>
 <body>
-<!-- ===== Premium Preloader Overlay (keeps header + announcement bar visible) ===== -->
-<div aria-label="Loading" aria-live="polite" id="preloaderOverlay" role="status">
-<div class="pre-card">
-<div class="pre-logo">
-<img alt="Precioussly" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"/>
-<div class="sparkles">
-<span style="left:16%; top:20%; --d:.1s"></span>
-<span style="left:76%; top:30%; --d:.3s"></span>
-<span style="left:50%; top:10%; --d:.5s"></span>
-</div>
-</div>
-<div class="pre-title">Precioussly</div>
-<div class="pre-sub">Preparing your premium experience…</div>
-<div class="pre-bar"></div>
-<button aria-label="Skip preloader" id="skipPreloader" type="button">Continue</button>
-</div>
-</div>
 <header class="site-header" id="mainHeader">
 <!-- Left: Menu (unchanged) -->
 <button aria-label="Menu" class="hamburger-wrapper" onclick="toggleMenu()">
@@ -2304,7 +2284,7 @@ html.no-scroll-preloader, body.no-scroll-preloader{ overflow: hidden !important;
 <!-- Search icon → NEW handler -->
 <img alt="Search" class="right-icon" onclick="openHeaderSearch()" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="cursor:pointer; border-radius:0; width:25px; height:26px; margin-top:2px;"/>
 <!-- Profile icon (unchanged) -->
-<img alt="Profile" class="right-icon icon-size" id="profileIcon" onclick="handleProfileClick()" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" style="cursor:pointer;"/>
+<img alt="Profile" class="right-icon icon-size" id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" style="cursor: default;">
 <!-- Cart icon with badge (unchanged) -->
 <a href="https://www.precioussly.com/cart" style="position:relative; display:inline-block; margin-top:5px;">
 <img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
@@ -2913,52 +2893,12 @@ loadCategories();
 setInterval(loadCategories, 180000);
 </script>
 <!-- <<< ChatGPT JS end -->
-<script>
-  function handleCredentialResponse(response) {
-    const data = jwt_decode(response.credential);
-    alert("Welcome " + data.name + " (" + data.email + ")");
-  }
 
-  
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+
 <script>
   function clearStorage() {
     localStorage.clear();
     sessionStorage.clear();
-  }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
-<script>
-  // If redirected from Google login
-  if (window.location.hash.includes("access_token")) {
-    const accessToken = window.location.hash.split("=")[1].split("&")[0];
-    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    })
-    .then(res => res.json())
-    .then(data => {
-      localStorage.setItem("user_name", data.name);
-      localStorage.setItem("user_email", data.email);
-      localStorage.setItem("user_photo", data.picture);
-      location.href = "https://precioussly.com"; // redirect clean
-    });
-  }
-
-  // Show profile photo if already logged in
-  const photo = localStorage.getItem("user_photo");
-  if (photo) {
-    document.getElementById("profileIcon").src = photo;
-  }
-
-  // When user taps profile icon
-  function handleProfileClick() {
-    const isLoggedIn = localStorage.getItem("user_email");
-    if (isLoggedIn) {
-      window.location.href = "/dashboard";
-    } else {
-      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
-    }
   }
 </script>
 <script>
@@ -3642,176 +3582,9 @@ try {
     document.addEventListener("DOMContentLoaded", loadHero);
   })();
 }</script>
-<script id="premium-preloader-js">
-(function(){
-  document.documentElement.classList.add('no-scroll-preloader');
-  document.body.classList.add('no-scroll-preloader');
-  const overlay = document.getElementById('preloaderOverlay');
-  const skipBtn = document.getElementById('skipPreloader');
 
-  function computeTop(){
-    try{
-      let maxBottom = 0;
-      const midX = Math.floor(window.innerWidth/2);
-      for(let y=0; y<=180; y+=8){
-        const els = document.elementsFromPoint(midX, y);
-        for(const el of els){
-          if(!el || el===overlay) continue;
-          const rect = el.getBoundingClientRect();
-          const style = window.getComputedStyle(el);
-          const coversTop = rect.top <= 2 && rect.bottom > 2;
-          const goodWidth = rect.width >= window.innerWidth * 0.6;
-          const goodHeight = rect.height >= 28 && rect.height <= 160;
-          if(coversTop && goodWidth && goodHeight){
-            if (style.position === 'fixed' || style.position === 'sticky' || y < 80) {
-              if(rect.bottom > maxBottom) maxBottom = rect.bottom;
-            }
-          }
-        }
-      }
-      return Math.round(Math.max(0, Math.min(maxBottom, 260)));
-    }catch(e){ return 0; }
-  }
-  function setTop(){ overlay && overlay.style.setProperty('--preloaderTop', computeTop() + 'px'); }
-  setTop(); window.addEventListener('resize', setTop); setTimeout(setTop,200); setTimeout(setTop,800);
 
-  // Build promises for: window load, fonts, images & videos fully loaded
-  function whenWindowLoaded(){
-    return new Promise((res)=>{
-      if(document.readyState === 'complete') res(); else window.addEventListener('load', ()=>res(), {once:true});
-    });
-  }
-  function whenFontsReady(){
-    try{ return document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve(); }
-    catch(e){ return Promise.resolve(); }
-  }
-  function whenMediaLoaded(){
-    const imgs = Array.from(document.images || []);
-    const vids = Array.from(document.querySelectorAll('video'));
-    const promises = [];
 
-    imgs.forEach(img=>{
-      // If lazy images use data-src, don't force set it; just wait if src exists
-      if(img.complete && img.naturalWidth>0){ return; }
-      promises.append = 0;  // no-op to keep structure (avoid NameError)
-    });
-
-    const imgPromises = imgs.map(img => {
-      if (img.complete && img.naturalWidth>0) return Promise.resolve();
-      return new Promise(res=>{ img.addEventListener('load', res, {once:true}); img.addEventListener('error', res, {once:true}); });
-    });
-    const vidPromises = vids.map(v => {
-      if (v.readyState>=3) return Promise.resolve();
-      return new Promise(res=>{ v.addEventListener('loadeddata', res, {once:true}); v.addEventListener('error', res, {once:true}); });
-    });
-    return Promise.all([...imgPromises, ...vidPromises]);
-  }
-  function networkIdle(delay=400){
-    // Wait until there are no new resource timings for 'delay' ms
-    return new Promise((res)=>{
-      if (!('PerformanceObserver' in window)) return setTimeout(res, delay);
-      let timer = null;
-      const po = new PerformanceObserver(()=>{
-        clearTimeout(timer);
-        timer = setTimeout(()=>{ po.disconnect(); res(); }, delay);
-      });
-      try{
-        po.observe({entryTypes:['resource']});
-        // start the timer in case no resources come in
-        timer = setTimeout(()=>{ po.disconnect(); res(); }, delay);
-      }catch(e){
-        setTimeout(res, delay);
-      }
-    });
-  }
-
-  function hidePreloader(){
-    if(!overlay || overlay.classList.contains('hide')) return;
-    overlay.classList.add('hide');
-    document.documentElement.classList.remove('no-scroll-preloader');
-    document.body.classList.remove('no-scroll-preloader');
-    setTimeout(()=>{ overlay.parentNode && overlay.parentNode.removeChild(overlay); }, 520);
-  }
-
-  setTimeout(()=>{ skipBtn && skipBtn.classList.add('show'); }, 2200);
-  skipBtn && skipBtn.addEventListener('click', hidePreloader);
-
-  Promise.all([ whenWindowLoaded(), whenFontsReady(), whenMediaLoaded() ])
-    .then(()=> networkIdle(450))
-    .then(()=> setTimeout(hidePreloader, 150)) // small paint settle
-    .catch(()=> hidePreloader());
-
-  // Safety net to avoid being stuck forever (e.g., broken CDN)
-  setTimeout(hidePreloader, 30000);
-})();
-</script>
-<!-- Preloader: keep visible until the whole page is fully loaded (NO SKIP) + hide announcement bar during preload -->
-<style>
-  /* Lock scroll while preloader is active */
-  html.no-scroll-preloader, body.no-scroll-preloader { overflow: hidden !important; height: 100% !important; }
-  /* Ensure any existing "skip" control is hidden */
-  #skipPreloader{ display:none !important; }
-  /* 🔒 Prevent announcement bar flash while loading */
-  html.no-scroll-preloader #announcementBar,
-  html.no-scroll-preloader .announcement-bar,
-  html.no-scroll-preloader [data-announcement],
-  html.no-scroll-preloader .shopify-section--announcement-bar{
-    display: none !important;
-  }
-</style>
-<script id="preloader-control-v2">
-(function(){
-  try{
-    var html = document.documentElement;
-    var body = document.body;
-
-    html.classList.add('no-scroll-preloader');
-    body.classList.add('no-scroll-preloader');
-
-    var overlay = document.getElementById('preloaderOverlay');
-    if(!overlay){ return; }
-
-    function computeTop(){
-      // While preloading we deliberately ignore the announcement bar (it's hidden)
-      var header = document.getElementById('mainHeader');
-      var top = 0;
-      if (header) top += header.offsetHeight || 0;
-      overlay.style.setProperty('--preloaderTop', top + 'px');
-    }
-    computeTop();
-    window.addEventListener('resize', computeTop);
-
-    var MIN_SHOW_MS = 800;
-    var start = (window.performance && performance.now) ? performance.now() : Date.now();
-
-    function release(){
-      var now = (window.performance && performance.now) ? performance.now() : Date.now();
-      var elapsed = now - start;
-      var wait = Math.max(0, MIN_SHOW_MS - elapsed);
-      window.setTimeout(function(){
-        overlay.classList.add('hide');
-        html.classList.remove('no-scroll-preloader');
-        body.classList.remove('no-scroll-preloader');
-      }, wait);
-    }
-
-    var loadPromise = new Promise(function(res){ window.addEventListener('load', function(){ res(); }, { once: true }); });
-    var fontsPromise = ('fonts' in document && document.fonts && document.fonts.ready) ? document.fonts.ready.catch(function(){}) : Promise.resolve();
-
-    Promise.all([loadPromise, fontsPromise]).then(release);
-
-    // Safety: never trap the user if some third-party never finishes
-    setTimeout(release, 15000);
-  }catch(e){
-    try{
-      var overlay = document.getElementById('preloaderOverlay');
-      if(overlay){ overlay.classList.add('hide'); }
-      document.documentElement.classList.remove('no-scroll-preloader');
-      document.body.classList.remove('no-scroll-preloader');
-    }catch(_){}
-  }
-})();
-</script>
 <script id="happy-customers-grid-js">
 (function(){
   try{
@@ -4149,6 +3922,146 @@ try {
     object-fit: cover;
   }
 </style>
+
+
+
+<!-- === Pink Profile Popup (injected by ChatGPT) === -->
+<div class="pp-overlay" id="profilePopupOverlay" aria-hidden="true">
+  <div class="pp-card" role="dialog" aria-modal="true" aria-labelledby="ppTitle">
+    <button class="pp-back" id="ppBackBtn">Back</button>
+    <div class="pp-hero"><div class="pp-badge">♡</div></div>
+    <h3 class="pp-title" id="ppTitle">Precioussly for preciouss ones</h3>
+    <p class="pp-sub">You can track your order 24 hours after placing it by clicking the ‘Track Order’ button.</p>
+    <a class="pp-cta" id="ppTrackBtn" href="https://www.precioussly.com/track-order">Track Order</a>
+    <div class="pp-links">
+      <a href="https://www.precioussly.com/dashboard"></a>
+      <span></span>
+      <a href="https://www.precioussly.com/login"></a>
+    </div>
+  </div>
+</div>
+
+<script id="pink-profile-popup-js">
+// === Pink Profile Popup (ChatGPT) ===
+(function(){
+  const overlay = document.getElementById('profilePopupOverlay');
+  const back = document.getElementById('ppBackBtn');
+  function openPopup(){
+    if(!overlay) return;
+    overlay.classList.add('show');
+    document.body.classList.add('no-scroll');
+    overlay.setAttribute('aria-hidden','false');
+  }
+  function closePopup(){
+    overlay.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    overlay.setAttribute('aria-hidden','true');
+  }
+  // Try to grab the profile icon
+  const profileIcon = document.getElementById('profileIcon') ||
+    document.querySelector('img[alt="Profile"], .icon-profile, .profile-icon, [data-profile]');
+  if(profileIcon){
+    profileIcon.style.cursor = 'pointer';
+    profileIcon.addEventListener('click', openPopup, {passive:true});
+  }
+  if(back) back.addEventListener('click', closePopup);
+  // tap outside to close
+  if(overlay){
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay) closePopup();
+    });
+  }
+})();
+</script>
+<!-- ChatGPT: Back-button popup handler v2 (profile popup aware) -->
+<script>
+(function(){
+  var overlay = document.getElementById('profilePopupOverlay') || document.querySelector('.pp-overlay, .overlay');
+  if(!overlay) return;
+  var card = overlay.querySelector('.pp-card, .popup-box');
+  var HASH = '#pp';
+  var closing = false;
+
+  function isOpen(){
+    return overlay.classList.contains('show') ||
+           overlay.classList.contains('active') ||
+           overlay.getAttribute('aria-hidden') === 'false';
+  }
+
+  function closeInternal(){
+    if(!isOpen()) return;
+    overlay.classList.remove('show','active');
+    if(card) card.classList.remove('show','active');
+    overlay.setAttribute('aria-hidden','true');
+    document.body.classList.remove('no-scroll');
+  }
+
+  function ensureBaseState(){
+    try {
+      if(!history.state || !history.state.__base){
+        history.replaceState({__base:true}, '');
+      }
+    } catch(e){}
+  }
+
+  function pushModalState(){
+    ensureBaseState();
+    try {
+      if(!history.state || !history.state.__modal){
+        history.pushState({__modal:true}, '', HASH);
+      }
+    } catch(e){ try{ location.hash = HASH; }catch(_e){} }
+  }
+
+  // Observe overlay attribute/class changes to know when it's opened
+  var mo = new MutationObserver(function(){
+    if(isOpen()) pushModalState();
+  });
+  mo.observe(overlay, {attributes:true, attributeFilter:['class','aria-hidden','style']});
+
+  // Back button (history pop) -> close popup instead of leaving
+  window.addEventListener('popstate', function(){
+    if(closing) return;
+    if(isOpen()){
+      closing = True;
+      closeInternal();
+      // normalize URL to base (remove hash) so next Back exits page
+      try{ history.replaceState({__base:true}, '', location.pathname + location.search); }catch(e){}
+      closing = False;
+    }
+  });
+
+  // Hash fallback
+  window.addEventListener('hashchange', function(){
+    if(location.hash !== HASH && isOpen()) closeInternal();
+  });
+
+  // Close via overlay click (outside the card) or dedicated buttons
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay){
+      closeInternal();
+      try{ history.back(); }catch(e){}
+    }
+  }, true);
+
+  var backBtn = document.getElementById('ppBackBtn') || overlay.querySelector('.pp-back, .close-btn, [data-close-popup]');
+  if(backBtn){
+    backBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      closeInternal();
+      try{ history.back(); }catch(_e){}
+    });
+  }
+
+  // Escape key closes
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && isOpen()){
+      closeInternal();
+      try{ history.back(); }catch(_e){}
+    }
+  });
+})();
+</script>
 
 </body>
 </html>
