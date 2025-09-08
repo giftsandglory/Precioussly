@@ -2977,9 +2977,23 @@ var imageUrl = (images && images[0]) ? String(images[0]) : "";
 var line1 = "Check this on Precioussly: " + (name || "") + " — ₹" + (price || "");
 var wh = $("whShare");
 if (wh) {
-  // WhatsApp preview hack: put product image URL first, then text line, then page link
-  wh.href = "https://wa.me/?text=" + encodeURIComponent(imageUrl) + "%0A" + encodeURIComponent(line1) + "%0A" + encodeURIComponent(shareUrl);
+  // Use the postimg *page* (https://postimg.cc/ID/) instead of the direct i.postimg.cc image
+  function toPostimgPage(u){
+    try {
+      // e.g. https://i.postimg.cc/fk4627NT/IMG-20250629-004309.jpg -> https://postimg.cc/fk4627NT/
+      var m = String(u).match(/^https?:\/\/i\.postimg\.cc\/([^/]+)/i);
+      return m ? `https://postimg.cc/${m[1]}/` : u;
+    } catch(e){ return u; }
+  }
+  var shareImage = toPostimgPage(imageUrl);
+
+  // Share: image page first (for preview), then line1, then product link
+  wh.href = "https://wa.me/?text="
+            + encodeURIComponent(shareImage) + "%0A"
+            + encodeURIComponent(line1) + "%0A"
+            + encodeURIComponent(shareUrl);
 }
+
 history.replaceState && history.replaceState(null, "", shareUrl);
     } catch(e){}
 
