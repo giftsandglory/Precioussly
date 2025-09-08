@@ -1919,6 +1919,27 @@ down-toggle {
   text-align:center;
   padding:10px 10px;
 }
+
+/* === Pink "Buy Now" button under username === */
+#happySection .happy-buy-btn{
+  display:inline-block;
+  margin: 6px 10px 12px;
+  padding: 10px 14px;
+  width: calc(100% - 20px);
+  text-align:center;
+  font-family:'Roboto Slab', serif;
+  font-weight:700;
+  font-size:14px;
+  color:#fff;
+  background: linear-gradient(180deg, #ff69a6, #ff4f96);
+  border: 1px solid #ff8db5;
+  border-radius:12px;
+  text-decoration:none;
+  box-shadow: 0 6px 16px rgba(255, 105, 166, 0.25);
+}
+#happySection .happy-buy-btn:active{ transform: scale(.98); }
+#happySection .happy-buy-btn:hover{ text-decoration:none; }
+
 </style>
 <style id="happy-edge-to-edge">
 /* === Edge-to-edge layout ONLY for the section under "Happy Customers" === */
@@ -3590,9 +3611,9 @@ try {
   try{
     const secEl = document.getElementById('happySection');
     const rowEl = document.getElementById('happyRow');
-    if(!secEl){ return; } // if section missing, nothing to do
+    if(!secEl){ return; } // section missing
 
-    // Read Google Sheet via OpenSheet (same ID+tab you shared)
+    // Read Google Sheet via OpenSheet
     const SHEET_ID = '1T3pK9Ya7hm-RXWH4Hq-wV2JUYRbFJJ5qo8rSMbPIcLs';
     const TAB = 'Sheet1';
     const endpoint = `https://opensheet.elk.sh/${SHEET_ID}/${TAB}`;
@@ -3600,48 +3621,73 @@ try {
     fetch(endpoint)
       .then(r => r.json())
       .then(rows => {
-        // C2 logic: value directly below "visibility" header
+        // Visibility cell: first row's "visibility" value
         const visVal = (rows && rows[0] && rows[0]['visibility'])
           ? String(rows[0]['visibility']).trim().toLowerCase()
           : '';
 
         if (visVal === 'hide') {
-          secEl.style.display = 'none'; // hide whole section incl. title
+          secEl.style.display = 'none';
           return;
         } else {
-          secEl.style.removeProperty('display'); // show normally
+          secEl.style.removeProperty('display');
         }
 
-        // If there is a row container, continue building cards as usual (non-breaking safeguard)
         if(!rowEl) return;
-        const items = (rows || []).filter(r => (r['photo']||'').trim() !== '');
+
+        // Build cards
         rowEl.innerHTML = '';
-        items.forEach((r) => {
-          const photo = (r['photo']||'').trim();
-          const handleRaw = (r['insta link']||'').trim();
-          const handle = handleRaw.replace(/^@/, '');
+        (rows || []).forEach((r) => {
+          const photo = String(r['photo']||'').trim();
+          if(!photo) return;
 
-          const a = document.createElement(handle ? 'a' : 'div');
-          a.className = 'happy-card';
-          if (handle) {
-            a.href = `https://instagram.com/${handle}`;
-            a.target = '_blank';
-            a.rel = 'noopener';
-          }
+          // Username can be plain or with @
+          const handleRaw = String(r['insta link']||r['instagram']||r['insta']||'').trim();
+          const handle = handleRaw.replace(/^@/,''); // strip @ for link
 
+          // Buy link: show button only if non-empty
+          const buyUrl = String(r['Buy Now']||r['buy now']||r['buy']||r['Buy']||'').trim();
+
+          // Card container (always a DIV to allow nested links)
+          const card = document.createElement('div');
+          card.className = 'happy-card';
+
+          // Photo (click -> Instagram if handle exists)
           const img = document.createElement('img');
           img.className = 'happy-photo';
           img.loading = 'lazy';
           img.alt = handle ? '@' + handle : 'Happy customer photo';
           img.src = photo;
 
+          if (handle) {
+            const link = document.createElement('a');
+            link.href = `https://instagram.com/${handle}`;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.appendChild(img);
+            card.appendChild(link);
+          } else {
+            card.appendChild(img);
+          }
+
+          // Username line
           const cap = document.createElement('div');
           cap.className = 'happy-id';
           cap.textContent = handle ? ('@' + handle) : '';
+          card.appendChild(cap);
 
-          a.appendChild(img);
-          a.appendChild(cap);
-          rowEl.appendChild(a);
+          // Optional Buy Now button
+          if (buyUrl) {
+            const btn = document.createElement('a');
+            btn.className = 'happy-buy-btn';
+            btn.href = buyUrl;
+            btn.target = '_blank';
+            btn.rel = 'noopener';
+            btn.textContent = 'Buy Now';
+            card.appendChild(btn);
+          }
+
+          rowEl.appendChild(card);
         });
       })
       .catch(err => console.error('Happy Customers grid error:', err));
