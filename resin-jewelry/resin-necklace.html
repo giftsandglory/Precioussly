@@ -1372,6 +1372,74 @@ body.horizontal-mode .product-grid{
   .ig-banner .ig-link:active{ transform:scale(.96); }
   .ig-banner .ig-icon{ width:36px; height:36px; }
 </style>
+<style id="pink-profile-popup-css">
+
+/* === Pink Profile Popup (ChatGPT Resin) === */
+.pp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:7000;}
+.pp-overlay.show{display:block;}
+.pp-card{
+  position: fixed; left:50%; top:18%;
+  transform: translateX(-50%);
+  width: min(92vw, 420px);
+  background:#fff;
+  border:2px solid #ff6ea8;
+  border-radius: 22px;
+  box-shadow:0 18px 40px rgba(0,0,0,.18);
+  padding: 18px 16px 16px;
+  font-family: 'Roboto Slab', serif;
+
+  margin-left:15px; margin-right:15px; width: calc(100% - 30px);}
+.pp-hero{display:flex;justify-content:center;align-items:center;margin-top:6px;margin-bottom:6px;}
+.pp-hero .pp-badge{
+  width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(135deg,#ffe1ef,#ffd4ea 50%, #ffc1e1);
+  border:1.5px solid #ff8fbe;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 6px 16px rgba(255,110,168,.25);
+  font-size:30px; line-height:1;
+}
+.pp-title{font-size:20px; font-weight:800; color:#111; text-align:center; margin:8px 0 6px;}
+.pp-sub{font-size:15px; color:#3a3a3a; text-align:center; line-height:1.6; padding:0 8px;}
+.pp-cta{
+  display:block; width:100%; text-align:center; text-decoration:none;
+  margin:14px 0 2px; padding:12px 14px; border-radius:14px;
+  background:#ff6ea8; color:#fff; font-weight:800; border:1px solid #ff4d98;
+  box-shadow:0 8px 18px rgba(255,110,168,.28);
+}
+.pp-cta:active{transform:scale(.985);}
+.pp-back{
+  position:absolute; right:10px; top:10px;
+  height:34px; padding:0 12px; border-radius:10px; cursor:pointer;
+  font:600 14px/1 'Roboto Slab', serif; color:#ff2f90;
+  background:#fff; border:1px solid rgba(255,47,144,.5);
+  box-shadow: 0 3px 10px rgba(255,47,144,.15);
+}
+.pp-back:active{transform:scale(.98);}
+@media (max-width:420px){
+  .pp-card{top:14%;
+  margin-left:15px; margin-right:15px; width: calc(100% - 30px);}
+}
+
+
+/* --- FORCE margins 15px L/R on popup --- */
+.pp-card{
+  box-sizing: border-box !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  width: calc(100vw - 30px) !important;   /* viewport width minus 15px+15px */
+  max-width: 420px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* --- Ensure Track button respects same left/right margin --- */
+.pp-card .pp-cta{
+  width: auto !important;
+  display: block !important;
+  margin-left: 15px !important;
+  margin-right: 15px !important;
+}
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -2124,15 +2192,6 @@ if (existing) {
   const photo = localStorage.getItem("user_photo");
   if (photo) {
     document.getElementById("profileIcon").src = photo;
-  }
-
-  function handleProfileClick() {
-    const isLoggedIn = localStorage.getItem("user_email");
-    if (isLoggedIn) {
-      window.location.href = "/dashboard";
-    } else {
-      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=746848628668-83a44mlh0klb2kp8gajhi4j26sd33l61.apps.googleusercontent.com&redirect_uri=https://precioussly.com&response_type=token&scope=email%20profile&prompt=consent`;
-    }
   }
   
   function updateCartBadge(animate = true) {
@@ -2983,6 +3042,220 @@ track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.2
   };
 })();
 </script>
+
+<div class="pp-overlay" id="profilePopupOverlay" aria-hidden="true">
+  <div class="pp-card" role="dialog" aria-modal="true" aria-labelledby="ppTitle">
+    <button class="pp-back" id="ppBackBtn">Back</button>
+    <div class="pp-hero"><div class="pp-badge">♡</div></div>
+    <h3 class="pp-title" id="ppTitle">Precioussly for preciouss ones</h3>
+    <p class="pp-sub">You can track your order 24 hours after placing it by clicking the ‘Track Order’ button.</p>
+    <a class="pp-cta" id="ppTrackBtn" href="https://www.precioussly.com/track-order">Track Order</a>
+  </div>
+</div>
+
+<script id="pink-profile-popup-js">
+// === Pink Profile Popup (ChatGPT Resin) ===
+(function(){
+  const overlay = document.getElementById('profilePopupOverlay');
+  const back = document.getElementById('ppBackBtn');
+  function openPopup(){
+    if(!overlay) return;
+    overlay.classList.add('show');
+    document.body.classList.add('no-scroll');
+    overlay.setAttribute('aria-hidden','false');
+  }
+  function closePopup(){
+    overlay.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    overlay.setAttribute('aria-hidden','true');
+  }
+  // Try to grab the profile icon
+  const profileIcon = document.getElementById('profileIcon') ||
+    document.querySelector('img[alt="Profile"], .icon-profile, .profile-icon, [data-profile]');
+  if(profileIcon){
+    profileIcon.style.cursor = 'pointer';
+    profileIcon.addEventListener('click', openPopup, {passive:true});
+  }
+  if(back) back.addEventListener('click', closePopup);
+  // tap outside to close
+  if(overlay){
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay) closePopup();
+    });
+  }
+})();</script>
+
+<script>
+// === Android Back Button: close popup instead of exiting ===
+(function () {
+  const POPUP_ID = 'productPopup';
+  const popupEl = () => document.getElementById(POPUP_ID);
+  const isOpen = () => {
+    const el = popupEl();
+    if (!el) return false;
+    const ds = (el.style.display || '').toLowerCase();
+    return el.classList.contains('is-open') || ds === 'flex' || ds === 'block';
+  };
+
+  // Ensure base state so first Back hits our handler
+  try {
+    if (!history.state || !history.state.__base) {
+      history.replaceState({ __base: true }, "", location.href);
+    }
+  } catch (e) {}
+
+  // Wrap openPopup to push one history state
+  const __origOpenPopup = window.openPopup;
+  if (typeof __origOpenPopup === "function") {
+    window.openPopup = function() {
+      try {
+        if (!history.state || !history.state.__popup) {
+          history.pushState({ __popup: true }, "", location.href);
+        }
+      } catch (e) {}
+      return __origOpenPopup.apply(this, arguments);
+    };
+  }
+
+  // Visual close without touching history
+  function __forceClosePopup() {
+    const el = popupEl();
+    if (!el) return;
+    el.classList.remove("is-open");
+    el.style.display = "none";
+    document.body.classList.remove("noscroll");
+  }
+
+  // Wrap closePopup so the UI Back button also uses history
+  const __origClosePopup = window.closePopup;
+  window.closePopup = function() {
+    if (history.state && history.state.__popup) {
+      try { history.back(); } catch (e) {}
+      return;
+    }
+    __forceClosePopup();
+    if (typeof __origClosePopup === "function") {
+      try { __origClosePopup.apply(this, arguments); } catch (e) {}
+    }
+  };
+
+  // Hardware/browser back
+  window.addEventListener("popstate", function () {
+    if (isOpen()) {
+      __forceClosePopup();
+      return;
+    }
+  });
+
+  // Overlay click should also go through history when possible
+  const el = popupEl();
+  if (el) {
+    el.addEventListener("click", function (e) {
+      if (e.target === el) {
+        if (history.state && history.state.__popup) {
+          try { history.back(); } catch (e2) {}
+        } else {
+          __forceClosePopup();
+        }
+      }
+    }, { passive: true });
+  }
+})();
+</script>
+
+
+<script>
+// === Enhanced Back Handling: product popup + profile popup ===
+(function () {
+  function $(id){ return document.getElementById(id); }
+  const product = () => $('productPopup');
+  const profile = () => $('profilePopupOverlay');
+
+  function productOpen(){
+    const el = product();
+    if(!el) return false;
+    const ds = (el.style.display||'').toLowerCase();
+    return el.classList.contains('is-open') || ds === 'flex' || ds === 'block';
+  }
+  function profileOpen(){
+    const el = profile();
+    if(!el) return false;
+    const aria = el.getAttribute('aria-hidden');
+    return el.classList.contains('show') || aria === 'false';
+  }
+  function closeProduct(){
+    const el = product();
+    if(!el) return;
+    el.classList.remove('is-open');
+    el.style.display = 'none';
+    document.body.classList.remove('noscroll');
+  }
+  function closeProfile(){
+    const el = profile();
+    if(!el) return;
+    el.classList.remove('show');
+    el.setAttribute('aria-hidden','true');
+    document.body.classList.remove('no-scroll');
+  }
+
+  // Base state so first Back is caught
+  try {
+    if (!history.state || !history.state.__base) {
+      history.replaceState({ __base: true }, "", location.href);
+    }
+  } catch(e){}
+
+  // Observe profile popup becoming visible -> push a state once
+  const profEl = profile();
+  if (profEl) {
+    const pushIfNeeded = () => {
+      if (profileOpen() && !(history.state && history.state.__profile)) {
+        try { history.pushState({ __profile: true }, "", location.href); } catch(e){}
+      }
+    };
+    const mo = new MutationObserver(pushIfNeeded);
+    mo.observe(profEl, { attributes: true, attributeFilter: ['class','aria-hidden','style'] });
+    // also bind its buttons to use history.back()
+    const backBtn = $('ppBackBtn');
+    if (backBtn) {
+      backBtn.addEventListener('click', function(ev){
+        if (history.state && history.state.__profile) {
+          try { history.back(); ev.preventDefault(); } catch(e){}
+        } else {
+          closeProfile();
+        }
+      }, { passive: false });
+    }
+    // overlay click should also go through history
+    profEl.addEventListener('click', function(e){
+      if (e.target === profEl) {
+        if (history.state && history.state.__profile) { try { history.back(); } catch(e){} }
+        else { closeProfile(); }
+      }
+    }, { passive: true });
+  }
+
+  // Ensure product open pushes a state (safety in case wrapper missed)
+  const prodEl = product();
+  if (prodEl) {
+    const mo2 = new MutationObserver(() => {
+      if (productOpen() && !(history.state && history.state.__product)) {
+        try { history.pushState({ __product: true }, "", location.href); } catch(e){}
+      }
+    });
+    mo2.observe(prodEl, { attributes: true, attributeFilter: ['class','style'] });
+  }
+
+  // BACK button / gesture
+  window.addEventListener('popstate', function(){
+    if (productOpen()) { closeProduct(); return; }
+    if (profileOpen()) { closeProfile(); return; }
+  });
+})();
+</script>
+
+</body>
+</html>
 
 </body>
 </html>
