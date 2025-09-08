@@ -2178,6 +2178,7 @@ if (existing) {
 }
 </script>
 <script>
+  // Announcement Bar from Google Sheet
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
   const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
 
@@ -2188,11 +2189,6 @@ if (existing) {
         document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
       }
     });
-
-  const photo = localStorage.getItem("user_photo");
-  if (photo) {
-    document.getElementById("profileIcon").src = photo;
-  }
   
   function updateCartBadge(animate = true) {
   const items = JSON.parse(localStorage.getItem("cartItems")) || [];
