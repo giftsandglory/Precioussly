@@ -2728,21 +2728,38 @@ function payCODAdvance95(){
     theme: { color: "#2874f0" },
 
     handler: function (response) {
+      // --- Compute discount from applied coupon ---
+var discount = 0, appliedCouponCode = null;
+try {
+  var subtotalForDisc = itemsTotal; // same as itemsTotal already computed
+  if (window.appliedCoupon && subtotalForDisc >= (window.appliedCoupon.min || 0)) {
+    // discountOnSubtotal is already used in your page logic
+    discount = Number(discountOnSubtotal(subtotalForDisc, window.appliedCoupon)) || 0;
+    appliedCouponCode = window.appliedCoupon.code || null;
+  }
+} catch (e) { discount = 0; }
+
       // Build order object
       var order = {
-        id: "COD-" + Date.now(),
-        method: "COD",
-        prepaidAmount: prepaid,
-        remainingAmount: remaining,
-        razorpay_payment_id: response.razorpay_payment_id || "",
-        items: items,
-        amounts: {
-          itemsTotal: itemsTotal, deliveryFee: deliveryFee, codFee: codFee,
-          prepaid: prepaid, remaining: remaining, grandTotal: itemsTotal + deliveryFee + codFee
-        },
-        address: localStorage.getItem("shippingAddress") || "",
-        createdAt: new Date().toISOString()
-      };
+  id: "COD-" + Date.now(),
+  method: "COD",
+  prepaidAmount: prepaid,
+  remainingAmount: remaining,
+  razorpay_payment_id: response.razorpay_payment_id || "",
+  items: items,
+  coupon: appliedCouponCode || null,           // <-- NEW
+  amounts: {
+    itemsTotal: itemsTotal,
+    deliveryFee: deliveryFee,
+    codFee: codFee,
+    discount: discount,                         // <-- NEW
+    prepaid: prepaid,
+    remaining: remaining,
+    grandTotal: Math.max(0, itemsTotal + deliveryFee + codFee - discount) // <-- updated
+  },
+  address: localStorage.getItem("shippingAddress") || "",
+  createdAt: new Date().toISOString()
+};
 
       // Save to local orders
       try{
