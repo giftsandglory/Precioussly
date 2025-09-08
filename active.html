@@ -26,6 +26,27 @@ button, .btn-copy { user-select:none; }
     padding:18px 20px; cursor:pointer; transition:.25s ease;
   }
   .order-card:hover{ transform:translateY(-1px) }
+
+  .summary-card{
+    user-select:none;
+    background:var(--surface);
+    border-radius:var(--radius);
+    box-shadow:0 6px 20px rgba(0,0,0,.08);
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    font-weight:800;
+    font-size:clamp(18px,3.3vw,22px);
+    letter-spacing:.02em;
+    border:1px solid #eef0f4;
+  }
+  .summary-card .count{
+    font-size:clamp(22px,3.6vw,28px);
+    color:var(--accent);
+  }
+
   .row{ display:flex; justify-content:space-between; align-items:center; gap:16px; color:#6f757d; font-weight:600; letter-spacing:.02em; font-size:14px; }
   .name{
     margin:.45rem 0 0 0;
@@ -130,7 +151,10 @@ button, .btn-copy { user-select:none; }
 <body>
   <div class="wrap">
     <div id="orderList" class="list" aria-live="polite">
+
+      <div id="summaryCard" class="summary-card" role="status" aria-live="polite">Total Orders — <span id="orderCount" class="count">0</span></div>
       <div class="center"><div class="spinner" aria-label="Loading"></div></div>
+    </div></div>
     </div>
   </div>
 
@@ -205,6 +229,13 @@ async function copyToClipboard(str){
     }catch(e){ document.body.removeChild(ta); return false; }
   }
 }
+
+// ====== SUMMARY ======
+function updateTotal(n){
+  const el = document.getElementById('orderCount');
+  if(el) el.textContent = (isFinite(n)? Number(n): 0);
+}
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -506,7 +537,9 @@ async function main(){
   }];
 
   window.__ORDERS = data;
-  list.innerHTML = data.map((o, i) => cardHTML(o, i)).join(""); 
+  const summaryHTML = `<div id="summaryCard" class="summary-card" role="status" aria-live="polite">Total Orders — <span id="orderCount" class="count">${data.length}</span></div>`;
+  list.innerHTML = summaryHTML + data.map((o, i) => cardHTML(o, i)).join(""); 
+  updateTotal(data.length);
   modalRoot.innerHTML = data.map((o, i) => modalHTML(o, i)).join(""); 
   attachHandlers();
 
@@ -514,9 +547,12 @@ async function main(){
     const info = document.createElement("div");
     info.className = "center";
     info.innerHTML = "<small>Showing demo order because the Google Sheet could not be loaded right now.</small>";
-    list.prepend(info);
+    const summary = document.getElementById("summaryCard");
+    if(summary){ list.insertBefore(info, summary.nextSibling); } else { list.prepend(info); }
   }else if(rows && !rows.length){
-    list.innerHTML = `<div class="order-card empty">No orders found in the sheet.</div>`;
+    list.innerHTML = `<div id="summaryCard" class="summary-card" role="status" aria-live="polite">Total Orders — <span id="orderCount" class="count">0</span></div>` +
+      `<div class="order-card empty">No orders found in the sheet.</div>`;
+    updateTotal(0);
   }
 }
 
