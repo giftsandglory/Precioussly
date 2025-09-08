@@ -3824,12 +3824,11 @@ window.closeHeaderSearch = closeHeaderSearch;
     }, 0);
 
     // Delivery fee logic:
-    // Razorpay path shows "Free Delivery" (0). COD path has deliveryFee 0 (not shown) and codFee applied.
+    // Use the Google Sheet delivery fee for Razorpay so checkout amount matches the on-page summary.
+    // COD path keeps 0 delivery and applies COD fee separately.
     var deliveryFee = 0;
     if (String(forMethod).toLowerCase() === "razorpay") {
-      // leave as 0 (Free Delivery) to match UI text; if you ever want to charge delivery for online,
-      // set deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-      deliveryFee = 0;
+      deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
     } else {
       deliveryFee = 0;
     }
