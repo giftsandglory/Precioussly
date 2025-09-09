@@ -2419,6 +2419,29 @@ down-toggle {
 #categorySection a { cursor: pointer; }
 </style>
 
+
+<!-- === ChatGPT fix: Happy Customers media top-only rounding === -->
+<style id="happy-video-corner-fix">
+  /* Make ONLY the top corners rounded for Happy Customers media */
+  #happySection .fade-slider{
+    border-radius: 14px 14px 0 0 !important;   /* container top rounded, bottom straight */
+    overflow: hidden !important;
+  }
+  #happySection .fade-slide img,
+  #happySection .fade-slide video,
+  #happySection .happy-photo,
+  #happySection .happy-video{
+    border-top-left-radius: 14px !important;
+    border-top-right-radius: 14px !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+  #happySection .happy-video-wrap{
+    border-radius: 14px 14px 0 0 !important;
+    overflow: hidden !important;
+  }
+</style>
+
 </head>
 <body>
 <header class="site-header" id="mainHeader">
