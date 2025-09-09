@@ -2002,7 +2002,7 @@ function openAddressAndClosePopup() {
       description: "Secure Payment",
       image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
       prefill: { name: name, email: email, contact: phone },
-      notes: { address: localStorage.getItem("shippingAddress") || "" },
+      notes: buildRazorpayNotes(),
       theme: { color: "#2874f0" },
 
       handler: function (response) {
@@ -2725,7 +2725,7 @@ var remaining = Math.max(0, itemsTotal + codFee - (Number(window.codPrepaid)||95
     description: "Precioussly ❤️",
     image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
     prefill: { name: preName, email: preEmail, contact: prePhone },
-    notes: { address: localStorage.getItem("shippingAddress") || "" },
+    notes: buildRazorpayNotes(),
     theme: { color: "#2874f0" },
 
     handler: function (response) {
@@ -3767,7 +3767,7 @@ window.closeHeaderSearch = closeHeaderSearch;
 
     const meta = {
       coupon: (window.appliedCoupon && window.appliedCoupon.code) ? window.appliedCoupon.code : null,
-      notes: { address: shippingAddress || "" }
+      notes: buildRazorpayNotes()
     };
 
     // Call your server to create an order
@@ -3776,7 +3776,7 @@ window.closeHeaderSearch = closeHeaderSearch;
       orderResp = await fetch("/api/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, customer, meta })
+        body: JSON.stringify({ items, customer, meta, notes: buildRazorpayNotes() })
       });
     }catch(e){
       alert("Network error while creating order. Please try again.");
@@ -3914,7 +3914,7 @@ window.closeHeaderSearch = closeHeaderSearch;
       description: "Order Payment",
       image: "https://i.postimg.cc/HnRbjRbh/Best-Logo.png",
       prefill: { name: preName, email: preEmail, contact: prePhone },
-      notes: { address: addressStr },
+      notes: buildRazorpayNotes(),
       theme: { color: "#2874f0" },
       handler: function (response) {
         try{
@@ -4042,5 +4042,60 @@ window.closeHeaderSearch = closeHeaderSearch;
     });
   }
 })();</script>
+
+<script>
+// ===== Build clean Razorpay notes (address + order summary + photo URLs) =====
+function buildRazorpayNotes(){
+  try{
+    const addrObj = JSON.parse(localStorage.getItem("shippingAddressObj") || "{}");
+    const addrHtml = (localStorage.getItem("shippingAddress") || "").replace(/\s+/g,' ').trim();
+    const name  = addrObj.fullname || (localStorage.getItem("user_name") || "");
+    const email = localStorage.getItem("user_email") || "";
+    const phone = addrObj.phone || "";
+
+    // Plain human‑readable address (no HTML)
+    const address_plain = [
+      name ? name : null,
+      addrObj.address ? addrObj.address : null,
+      (addrObj.city && addrObj.state && addrObj.pincode) ? (addrObj.city + ", " + addrObj.state + " - " + addrObj.pincode) : null,
+      phone ? ("Ph: " + phone) : null,
+      addrObj.altphone ? ("Alt: " + addrObj.altphone) : null
+    ].filter(Boolean).join(" | ");
+
+    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const subtotal = items.reduce((s,it)=> s + (Number(it.price) * Number(it.qty||1)), 0);
+    const delivery = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    const codFee   = (window.selectedPayment === "cod") ? (Number(window.codCharge)||0) : 0;
+    const discount = (window.appliedCoupon && window.appliedCoupon.code)
+                      ? (typeof discountOnSubtotal === "function" ? discountOnSubtotal(subtotal, window.appliedCoupon) : 0)
+                      : 0;
+    const grand = Math.max(0, subtotal + (window.selectedPayment === "cod" ? 0 : delivery) + codFee - discount);
+
+    // Compact line‑by‑line summary
+    const lines = items.map(it => `${it.qty || 1} x ${it.name} @ ₹${it.price} = ₹${(Number(it.price)*Number(it.qty||1))}`);
+    const summary = [
+      ...lines,
+      `Subtotal: ₹${subtotal}`,
+      (window.selectedPayment === "cod" ? null : `Delivery: ${delivery === 0 ? "Free" : "₹"+delivery}`),
+      codFee ? `COD Charges: ₹${codFee}` : null,
+      discount ? `Coupon: -₹${discount}` : null,
+      `Grand Total: ₹${grand}`
+    ].filter(Boolean).join(" | ");
+
+    const photo_urls = items.map(it => it.photo).filter(Boolean).join(", ");
+
+    // Razorpay 'notes' must be a flat object with string values
+    return {
+      address: address_plain || addrHtml || "",
+      order_summary: summary,
+      photo_urls: photo_urls,
+      payment_method: window.selectedPayment || "razorpay"
+    };
+  }catch(e){
+    return { address: localStorage.getItem("shippingAddress") || "" };
+  }
+}
+</script>
+
 </body>
 </html>
