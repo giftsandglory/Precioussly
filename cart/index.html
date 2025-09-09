@@ -3452,7 +3452,7 @@ window.closeHeaderSearch = closeHeaderSearch;
 <!-- ===== Payment Result Popups (Success / Failed) ===== -->
 <style>
   .paypop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:99999;}
-  .paypop{width:min(520px,88vw);background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);padding:22px 20px 18px;text-align:center;font-family:'Roboto Slab',serif;border:1px solid #e5e7eb;}
+  .paypop{ margin: 0 10px;width:min(520px,88vw);background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);padding:22px 20px 18px;text-align:center;font-family:'Roboto Slab',serif;border:1px solid #e5e7eb;}
   .paypop h3{font-size:22px;line-height:1.35;margin:0 0 8px;font-weight:800;color:#111;}
   .paypop p{font-size:15px;color:#374151;margin:0 0 18px;line-height:1.55;}
   .paypop .primary{display:inline-flex;gap:10px;align-items:center;justify-content:center;width:100%;padding:12px 16px;border-radius:12px;border:none;background:#2874f0;color:#fff;font-size:16px;cursor:pointer}
@@ -3461,9 +3461,9 @@ window.closeHeaderSearch = closeHeaderSearch;
 </style>
 <div id="paySuccess" class="paypop-overlay" role="dialog" aria-modal="true">
   <div class="paypop">
-    <div class="icon">✅</div>
-    <h3>Payment Completed</h3>
-    <p>Your payment was received successfully.</p>
+    <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+    <h3>Order Confirmed!</h3>
+    <p>Your order has been successfully confirmed. Thank you for choosing Precioussly.</p>
     <button class="primary" onclick="paypopBack()">Back</button>
   </div>
 </div>
@@ -3506,12 +3506,8 @@ window.closeHeaderSearch = closeHeaderSearch;
       </svg>
     </div>
 
-    <div id="paySuccessTitle" class="payment-success-title">Payment Successful</div>
-    <div class="payment-success-sub">
-      Thank you! Your payment has been received securely.
-      <br><br>
-      Your order is now being processed, and we'll notify you once it's on the way.
-    </div>
+    <div id="paySuccessTitle" class="payment-success-title">Order Confirmed!</div>
+    <div class="payment-success-sub">We’ve received your payment. Welcome to the Precioussly family.</div>
 
     <div class="payment-success-actions">
       <button type="button" class="ps-button ps-button--outline" onclick="closePaymentSuccess()">Back</button>
