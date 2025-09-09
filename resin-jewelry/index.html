@@ -2,6 +2,106 @@
 
 <html lang="en">
 <head>
+
+<!-- 🔒 Google Sheets SWR Fetch Interceptor (self-contained; no UI changes) -->
+<script>
+(function(){
+  // Only intercept GET requests to Google Sheets providers
+  const MATCH_HOSTS = ["opensheet.elk.sh", "docs.google.com"];
+  const SHEETS_PATH_HINT = "/spreadsheets"; // for docs.google.com
+  const TIMEOUT_MS = 7000;
+
+  const origFetch = window.fetch.bind(window);
+  const toStr = (u) => (typeof u === "string" ? u : (u && u.url) ? String(u.url) : String(u || ""));
+  const isSheetsURL = (url) => {
+    try {
+      const u = new URL(url, location.origin);
+      if (!MATCH_HOSTS.includes(u.host)) return false;
+      if (u.host === "docs.google.com" && !u.pathname.includes(SHEETS_PATH_HINT)) return false;
+      // GET only, no cache-busting here — let caller decide
+      return true;
+    } catch { return false; }
+  };
+
+  function looksLikeHtmlError(res, bodyText){
+    const ct = (res && res.headers && res.headers.get && res.headers.get("content-type")) || "";
+    const t = (bodyText || "").trim().slice(0, 120).toLowerCase();
+    return ct.includes("text/html") || t.startsWith("<!doctype html") || t.startsWith("<html");
+  }
+
+  function cacheKey(url){ return "gswr::" + url; }
+
+  function storeCache(url, bodyText, mime){
+    try{
+      localStorage.setItem(cacheKey(url), JSON.stringify({
+        v:1, t: Date.now(), mime: mime || "application/json", body: bodyText
+      }));
+    }catch(e){}
+  }
+
+  function readCache(url){
+    try{
+      const raw = localStorage.getItem(cacheKey(url));
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (!obj || !obj.body) return null;
+      const headers = new Headers();
+      headers.set("content-type", obj.mime || "application/json; charset=utf-8");
+      headers.set("x-gswr", "cache");
+      return new Response(obj.body, {status: 200, statusText:"OK (cache)", headers});
+    }catch(e){ return null; }
+  }
+
+  function withTimeout(promise, ms){
+    return new Promise((resolve, reject) => {
+      const id = setTimeout(() => reject(new Error("GSWR_TIMEOUT")), ms);
+      promise.then(v => { clearTimeout(id); resolve(v); }, err => { clearTimeout(id); reject(err); });
+    });
+  }
+
+  async function networkAndMaybeCache(url, init){
+    const res = await withTimeout(origFetch(url, init), TIMEOUT_MS);
+    // Clone BEFORE reading
+    const clone = res.clone();
+    const text = await clone.text();
+    if (!looksLikeHtmlError(res, text)) {
+      // Infer mime: opensheet JSON else gviz text/javascript
+      let mime = "application/json; charset=utf-8";
+      if (url.includes("docs.google.com")) mime = "text/plain; charset=utf-8";
+      storeCache(url, text, mime);
+    }
+    return new Response(text, {
+      status: res.status, statusText: res.statusText, headers: res.headers
+    });
+  }
+
+  // Monkey patch
+  window.fetch = function(input, init){
+    const url = toStr(input);
+    const method = (init && init.method) ? (init.method + "").toUpperCase() : "GET";
+    if (method !== "GET" || !isSheetsURL(url)) {
+      return origFetch(input, init);
+    }
+
+    // Serve cached immediately if present
+    const cached = readCache(url);
+    if (cached) {
+      // Fire-and-forget revalidation
+      Promise.resolve().then(() => networkAndMaybeCache(url, init)).catch(()=>{});
+      return Promise.resolve(cached);
+    }
+
+    // No cache: go to network with timeout; cache if good
+    return networkAndMaybeCache(url, init).catch(err => {
+      // On timeout/error, if a (now) cache exists (race), use it; else propagate error
+      const late = readCache(url);
+      if (late) return late;
+      throw err;
+    });
+  };
+})();
+</script>
+
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
