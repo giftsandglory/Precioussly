@@ -2,6 +2,102 @@
 
 <html lang="en">
 <head>
+
+<!-- === SWR fetch interceptor for Google Sheets (opensheet.elk.sh & docs.google.com/spreadsheets) === -->
+<script>
+(function(){
+  const ALLOWED_HOSTS = [
+    "opensheet.elk.sh",
+    "docs.google.com"
+  ];
+  const TIMEOUT_MS = 7000; // ~7s
+  const isSheetsUrl = (url) => {
+    try {
+      const u = new URL(url, location.href);
+      if (!ALLOWED_HOSTS.includes(u.hostname)) return false;
+      // Only intercept docs.google.com/spreadsheets paths
+      if (u.hostname === "docs.google.com" && !u.pathname.startsWith("/spreadsheets")) return false;
+      return true;
+    } catch (e) { return false; }
+  };
+
+  // naive HTML page sniff (to avoid caching error pages)
+  const looksLikeHtml = (text) => {
+    const t = text.trim().toLowerCase();
+    return t.startsWith("<!doctype") || t.startsWith("<html");
+  };
+
+  const _origFetch = window.fetch.bind(window);
+
+  function withTimeout(promise, ms, controller){
+    const t = setTimeout(() => controller.abort("timeout"), ms);
+    return promise.finally(() => clearTimeout(t));
+  }
+
+  async function maybeCache(url, resp){
+    try {
+      if (!resp || !resp.ok) return;
+      if (resp.type === "opaque") return; // can't read/cors restricted
+      const ct = resp.headers.get("content-type") || "";
+      const clone = resp.clone();
+      const text = await clone.text();
+      if (looksLikeHtml(text)) return; // skip HTML error pages
+      // Heuristic: allow JSON, CSV, plain text
+      if (!/json|csv|plain|sheet|javascript/i.test(ct) && !/^\s*[\[\{]/.test(text)) {
+        // not an expected data type, still allow plain text
+      }
+      localStorage.setItem("swr:" + url, JSON.stringify({
+        ts: Date.now(),
+        body: text,
+        headers: { "content-type": ct || "text/plain;charset=utf-8" },
+        status: resp.status
+      }));
+    } catch(e){ /* ignore */ }
+  }
+
+  function buildResponseFromCache(cached){
+    try{
+      const data = JSON.parse(cached);
+      const headers = new Headers(data.headers || {});
+      return new Response(data.body, { status: data.status || 200, headers });
+    }catch(e){ return null; }
+  }
+
+  window.fetch = function(input, init){
+    const req = input instanceof Request ? input : new Request(input, init);
+    const url = req.url;
+    if (!isSheetsUrl(url)) {
+      return _origFetch(input, init);
+    }
+
+    const cacheKey = "swr:" + url;
+    const cached = localStorage.getItem(cacheKey);
+
+    if (cached){
+      (async () => {
+        const controller = new AbortController();
+        try{
+          const network = withTimeout(_origFetch(req, { signal: controller.signal }), TIMEOUT_MS, controller);
+          const resp = await network;
+          await maybeCache(url, resp);
+        }catch(e){ /* keep old cache */ }
+      })();
+      const resp = buildResponseFromCache(cached);
+      if (resp) return Promise.resolve(resp);
+    }
+
+    const controller = new AbortController();
+    return withTimeout(_origFetch(req, { signal: controller.signal }), TIMEOUT_MS, controller)
+      .then(async (resp) => {
+        await maybeCache(url, resp);
+        return resp;
+      })
+      .catch((err) => { throw err; });
+  };
+})();
+</script>
+<!-- === /SWR interceptor end === -->
+
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
