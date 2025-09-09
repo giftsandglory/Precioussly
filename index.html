@@ -2541,6 +2541,9 @@ down-toggle {
 /* Remove hidden pseudo padders if present */
 .cat-sec:has(.cat-strip .square-mini) .cat-strip::before,
 .cat-sec:has(.cat-strip .square-mini) .cat-strip::after{ content:none !important; display:none !important; }
+.hero-mute-btn .hero-icon-on { display: none; }
+.hero-mute-btn[data-muted="false"] .hero-icon-on { display: inline; }
+.hero-mute-btn[data-muted="true"]  .hero-icon-off { display: inline; }
 </style>
 
 
@@ -4528,101 +4531,137 @@ try {
 (function(){
   function makeBtn(video){
     // Avoid duplicates
-    if(video.__muteBtn) return;
+    if (video.__muteBtn) return;
+
     var host = video.closest('.fade-slide, a, .swiper-slide, .slick-slide, .slide') || video.parentElement;
-    if(!host) host = video.parentElement || document.body;
-    if(getComputedStyle(host).position === 'static'){ host.style.position = 'relative'; }
+    if (!host) host = video.parentElement || document.body;
+    if (getComputedStyle(host).position === 'static'){ host.style.position = 'relative'; }
 
     var btn = document.createElement('button');
-    btn.className = 'hero-mute-btn'; btn.type = 'button';
-    btn.setAttribute('aria-pressed','true'); btn.setAttribute('aria-label','Unmute');
+    btn.className = 'hero-mute-btn';
+    // Guard: only attach in the black announcement hero slider (#fadeSlider)
+    if(!video.closest('#fadeSlider')) return;
+    btn.type = 'button';
+    // Default state = muted
+    btn.setAttribute('aria-pressed','true'); // pressed means "sound off" state
+    btn.setAttribute('aria-label','Unmute');
     btn.dataset.muted = 'true';
 
-    function svg(name, d1, d2){
-      var s = document.createElementNS('http://www.w3.org/2000/svg','svg');
-      s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('class',name);
-      var p = document.createElementNS('http://www.w3.org/2000/svg','path');
-      p.setAttribute('d','M4 9v6h4l5 4V5L8 9H4z'); s.appendChild(p);
-      if(d2){
-        var p2 = document.createElementNS('http://www.w3.org/2000/svg','path');
-        p2.setAttribute('d',d2); p2.setAttribute('fill','none');
-        p2.setAttribute('stroke','currentColor'); p2.setAttribute('stroke-width','2');
-        p2.setAttribute('stroke-linecap','round'); s.appendChild(p2);
-      }
-      if(d1){
-        var p1 = document.createElementNS('http://www.w3.org/2000/svg','path');
-        p1.setAttribute('d',d1); p1.setAttribute('fill','none');
-        p1.setAttribute('stroke','currentColor'); p1.setAttribute('stroke-width','2');
-        p1.setAttribute('stroke-linecap','round'); s.appendChild(p1);
-      }
-      return s;
-    }
-    // ON waves need two paths:
-    var on = document.createDocumentFragment();
+    // ====== UNMUTED ICON (waves) -> class: hero-icon-on ======
+    // Matches your "Unmute icon"
     var onSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    onSvg.setAttribute('viewBox','0 0 24 24'); onSvg.setAttribute('class','hero-icon-on');
-    var p0 = document.createElementNS('http://www.w3.org/2000/svg','path'); p0.setAttribute('d','M4 9v6h4l5 4V5L8 9H4z'); onSvg.appendChild(p0);
-    var w1 = document.createElementNS('http://www.w3.org/2000/svg','path'); w1.setAttribute('d','M16 8a4 4 0 0 1 0 8');
-    w1.setAttribute('fill','none'); w1.setAttribute('stroke','currentColor'); w1.setAttribute('stroke-width','2'); w1.setAttribute('stroke-linecap','round');
-    var w2 = document.createElementNS('http://www.w3.org/2000/svg','path'); w2.setAttribute('d','M18.5 5.5a7 7 0 0 1 0 13');
-    w2.setAttribute('fill','none'); w2.setAttribute('stroke','currentColor'); w2.setAttribute('stroke-width','2'); w2.setAttribute('stroke-linecap','round');
-    onSvg.appendChild(w1); onSvg.appendChild(w2);
+    onSvg.setAttribute('viewBox','0 0 24 24');
+    onSvg.setAttribute('class','hero-icon-on');
 
+    var onPoly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    onPoly.setAttribute('points','11 5 6 9 2 9 2 15 6 15 11 19 11 5');
+    onPoly.setAttribute('fill','none');
+    onPoly.setAttribute('stroke','currentColor');
+    onPoly.setAttribute('stroke-width','2');
+    onPoly.setAttribute('stroke-linecap','round');
+    onPoly.setAttribute('stroke-linejoin','round');
+
+    var onWave1 = document.createElementNS('http://www.w3.org/2000/svg','path');
+    onWave1.setAttribute('d','M19.07 4.93a10 10 0 0 1 0 14.14');
+    onWave1.setAttribute('fill','none');
+    onWave1.setAttribute('stroke','currentColor');
+    onWave1.setAttribute('stroke-width','2');
+    onWave1.setAttribute('stroke-linecap','round');
+    onWave1.setAttribute('stroke-linejoin','round');
+
+    var onWave2 = document.createElementNS('http://www.w3.org/2000/svg','path');
+    onWave2.setAttribute('d','M15.54 8.46a4 4 0 0 1 0 5.08');
+    onWave2.setAttribute('fill','none');
+    onWave2.setAttribute('stroke','currentColor');
+    onWave2.setAttribute('stroke-width','2');
+    onWave2.setAttribute('stroke-linecap','round');
+    onWave2.setAttribute('stroke-linejoin','round');
+
+    onSvg.appendChild(onPoly);
+    onSvg.appendChild(onWave1);
+    onSvg.appendChild(onWave2);
+
+    // ====== MUTED ICON (X) -> class: hero-icon-off ======
+    // Matches your "Mute icon"
     var offSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    offSvg.setAttribute('viewBox','0 0 24 24'); offSvg.setAttribute('class','hero-icon-off');
-    var b0 = document.createElementNS('http://www.w3.org/2000/svg','path'); b0.setAttribute('d','M4 9v6h4l5 4V5L8 9H4z');
-    var cross = document.createElementNS('http://www.w3.org/2000/svg','path'); cross.setAttribute('d','M17 9l4 4m0-4l-4 4');
-    cross.setAttribute('fill','none'); cross.setAttribute('stroke','currentColor'); cross.setAttribute('stroke-width','2'); cross.setAttribute('stroke-linecap','round');
-    offSvg.appendChild(b0); offSvg.appendChild(cross);
+    offSvg.setAttribute('viewBox','0 0 24 24');
+    offSvg.setAttribute('class','hero-icon-off');
 
-    btn.appendChild(onSvg); btn.appendChild(offSvg);
+    var offPoly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    offPoly.setAttribute('points','11 5 6 9 2 9 2 15 6 15 11 19 11 5');
+    offPoly.setAttribute('fill','none');
+    offPoly.setAttribute('stroke','currentColor');
+    offPoly.setAttribute('stroke-width','2');
+    offPoly.setAttribute('stroke-linecap','round');
+    offPoly.setAttribute('stroke-linejoin','round');
 
-    video.muted = true; video.setAttribute('muted',''); // default muted
+    var offLine1 = document.createElementNS('http://www.w3.org/2000/svg','line');
+    offLine1.setAttribute('x1','22'); offLine1.setAttribute('y1','9');
+    offLine1.setAttribute('x2','16'); offLine1.setAttribute('y2','15');
+    offLine1.setAttribute('stroke','currentColor');
+    offLine1.setAttribute('stroke-width','2');
+    offLine1.setAttribute('stroke-linecap','round');
+    offLine1.setAttribute('stroke-linejoin','round');
+
+    var offLine2 = document.createElementNS('http://www.w3.org/2000/svg','line');
+    offLine2.setAttribute('x1','16'); offLine2.setAttribute('y1','9');
+    offLine2.setAttribute('x2','22'); offLine2.setAttribute('y2','15');
+    offLine2.setAttribute('stroke','currentColor');
+    offLine2.setAttribute('stroke-width','2');
+    offLine2.setAttribute('stroke-linecap','round');
+    offLine2.setAttribute('stroke-linejoin','round');
+
+    offSvg.appendChild(offPoly);
+    offSvg.appendChild(offLine1);
+    offSvg.appendChild(offLine2);
+
+    // Add icons to button
+    btn.appendChild(onSvg);
+    btn.appendChild(offSvg);
+
+    // Default: start muted
+    video.muted = true;
+    video.setAttribute('muted','');
+
+    // Toggle logic
     btn.addEventListener('click', function(e){
       e.preventDefault(); e.stopPropagation();
-      var willMute = !video.muted;
+      var willMute = !video.muted;       // if currently unmuted -> willMute true
       video.muted = willMute;
       btn.dataset.muted = String(willMute);
-      btn.setAttribute('aria-pressed', String(!willMute));
+      btn.setAttribute('aria-pressed', String(willMute)); // pressed when muted
       btn.setAttribute('aria-label', willMute ? 'Unmute' : 'Mute');
-      if(!willMute){ video.play && video.play().catch(function(){}); }
+      if (!willMute && video.play){ video.play().catch(function(){}); }
     }, {passive:false});
 
     host.appendChild(btn);
     video.__muteBtn = btn;
   }
 
-  function scanAndAttach(){
-    // Prefer videos inside the first major hero above categories
-    var vids = Array.from(document.querySelectorAll('#fadeSlider video, #fadeSlider .fade-slide video, .hero video, .banner video, .swiper-wrapper video'));
-    
-    vids = vids.filter(function(v){ return !v.closest('#categorySection') && !v.closest('#happySection'); });
-    if(!vids.length) return;
-    // Pick the first visible video in viewport (hero)
-    var first = vids.find(function(v){
-      var r = v.getBoundingClientRect();
-      return r.top < (window.innerHeight*0.8);
-    }) || vids[0];
-    makeBtn(first);
-  }
-
-  function init(){
-    scanAndAttach();
-    // Observe DOM for late-inserted videos (sliders often lazy-load)
-    var mo = new MutationObserver(function(){
-      scanAndAttach();
-    });
-    mo.observe(document.documentElement, {childList:true, subtree:true});
-    document.addEventListener('visibilitychange', function(){
-      var v = document.querySelector('.hero-mute-btn') && document.querySelector('.hero-mute-btn').closest('.fade-slide, .swiper-slide, .slide, a, div')?.querySelector('video');
-      if(v && !v.muted && !document.hidden){ v.play && v.play().catch(function(){}); }
+  // Attach buttons to all videos with autoplay/loop or hero context
+  function scan(){
+    document.querySelectorAll('#fadeSlider video').forEach(function(v){
+      // You can refine this condition if needed:
+      if (!v.__muteBtn) makeBtn(v);
     });
   }
 
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', init);
-  } else { init(); }
+  // Initial + dynamic
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', scan, {once:true});
+  } else {
+    scan();
+  }
+
+  // In case videos load later
+  var mo = new MutationObserver(function(){
+    scan();
+  });
+  mo.observe(document.documentElement, {childList:true, subtree:true});
 })();
+</script>
+
+  
 </script>
 
 </body>
