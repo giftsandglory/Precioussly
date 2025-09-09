@@ -2442,6 +2442,108 @@ down-toggle {
   }
 </style>
 
+
+<!-- === Hero video Mute/Unmute (top-left) — injected by ChatGPT === -->
+<style id="hero-mute-control-css">
+/* Container that will host the mute button; we attach it to the slide element */
+.hero-mute-btn{
+  position:absolute;
+  top:8px;
+  left:8px;
+  width:38px;
+  height:38px;
+  display:inline-grid;
+  place-items:center;
+  border:none;
+  border-radius:999px;
+  background:rgba(0,0,0,.6);
+  color:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+  cursor:pointer;
+  padding:0;
+  line-height:0;
+  -webkit-tap-highlight-color:transparent;
+  z-index: 10;
+}
+.hero-mute-btn:active{ transform: scale(.97); }
+.hero-mute-btn svg{ width:22px; height:22px; display:none; }
+
+/* show OFF (cross) when muted; ON waves when unmuted */
+.hero-mute-btn[data-muted="true"]  .hero-icon-off{ display:block; }
+.hero-mute-btn[data-muted="false"] .hero-icon-on { display:block; }
+</style>
+
+
+<style id="hero-mute-control-css-v2">
+.hero-mute-btn{
+  position:absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left:max(8px, env(safe-area-inset-left));
+  width:40px;height:40px;
+  display:inline-grid;place-items:center;
+  border:none;border-radius:999px;
+  background:rgba(0,0,0,.65);color:#fff;
+  box-shadow:0 2px 10px rgba(0,0,0,.4);
+  cursor:pointer;padding:0;line-height:0;
+  -webkit-tap-highlight-color:transparent;
+  z-index:10000; /* force above badges like 1/2 */
+}
+.hero-mute-btn:active{ transform:scale(.97); }
+.hero-mute-btn svg{ width:22px;height:22px; display:none; }
+.hero-mute-btn[data-muted="true"]  .hero-icon-off{ display:block; }
+.hero-mute-btn[data-muted="false"] .hero-icon-on { display:block; }
+
+<style id="mute-scope-fix">
+  /* Never show the hero mute button inside Categories or Happy Customers */
+  #categorySection .hero-mute-btn,
+  #happySection .hero-mute-btn { display: none !important; }
+
+
+
+
+<!-- === Edge‑to‑Edge (ONLY for the horizontal small‑squares strip) — ChatGPT === -->
+
+/* Make only the section that contains the horizontal small-squares strip full-bleed */
+.cat-sec:has(.cat-strip .square-mini){
+  width: 100vw !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+  padding-left: 0 !important;  /* keep section itself flush */
+  padding-right: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Put the breathing space on the INNER scroll strip so first/last card never touch screen edges */
+.cat-sec:has(.cat-strip .square-mini) .cat-strip{
+  padding-left: 15px !important;
+  padding-right: 3px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: none !important;
+  scroll-padding-left: 15px !important;
+  scroll-padding-right: 15px !important;
+  box-sizing: border-box;
+}
+
+/* Keep inter-item spacing as-is; prevent any outside margins from cancelling padding */
+.cat-sec:has(.cat-strip .square-mini) .cat-card{
+  flex: 0 0 auto;
+}
+
+/* Safety: remove negative margins on first/last if theme had any */
+.cat-sec:has(.cat-strip .square-mini) .cat-card:first-child{ margin-left: 0 !important; }
+.cat-sec:has(.cat-strip .square-mini) .cat-card:last-child{ margin-right: 0 !important; }
+
+/* Center labels under each square */
+.cat-sec:has(.cat-strip .square-mini) .cat-card .label{ text-align: center !important; }
+
+/* Remove hidden pseudo padders if present */
+.cat-sec:has(.cat-strip .square-mini) .cat-strip::before,
+.cat-sec:has(.cat-strip .square-mini) .cat-strip::after{ content:none !important; display:none !important; }
+</style>
+
+
 </head>
 <body>
 <header class="site-header" id="mainHeader">
@@ -4419,6 +4521,107 @@ try {
 
   // Re-run on window load as a final safety
   window.addEventListener("load", upgradeAll);
+})();
+</script>
+
+<script id="hero-mute-control-js-v2">
+(function(){
+  function makeBtn(video){
+    // Avoid duplicates
+    if(video.__muteBtn) return;
+    var host = video.closest('.fade-slide, a, .swiper-slide, .slick-slide, .slide') || video.parentElement;
+    if(!host) host = video.parentElement || document.body;
+    if(getComputedStyle(host).position === 'static'){ host.style.position = 'relative'; }
+
+    var btn = document.createElement('button');
+    btn.className = 'hero-mute-btn'; btn.type = 'button';
+    btn.setAttribute('aria-pressed','true'); btn.setAttribute('aria-label','Unmute');
+    btn.dataset.muted = 'true';
+
+    function svg(name, d1, d2){
+      var s = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('class',name);
+      var p = document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d','M4 9v6h4l5 4V5L8 9H4z'); s.appendChild(p);
+      if(d2){
+        var p2 = document.createElementNS('http://www.w3.org/2000/svg','path');
+        p2.setAttribute('d',d2); p2.setAttribute('fill','none');
+        p2.setAttribute('stroke','currentColor'); p2.setAttribute('stroke-width','2');
+        p2.setAttribute('stroke-linecap','round'); s.appendChild(p2);
+      }
+      if(d1){
+        var p1 = document.createElementNS('http://www.w3.org/2000/svg','path');
+        p1.setAttribute('d',d1); p1.setAttribute('fill','none');
+        p1.setAttribute('stroke','currentColor'); p1.setAttribute('stroke-width','2');
+        p1.setAttribute('stroke-linecap','round'); s.appendChild(p1);
+      }
+      return s;
+    }
+    // ON waves need two paths:
+    var on = document.createDocumentFragment();
+    var onSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    onSvg.setAttribute('viewBox','0 0 24 24'); onSvg.setAttribute('class','hero-icon-on');
+    var p0 = document.createElementNS('http://www.w3.org/2000/svg','path'); p0.setAttribute('d','M4 9v6h4l5 4V5L8 9H4z'); onSvg.appendChild(p0);
+    var w1 = document.createElementNS('http://www.w3.org/2000/svg','path'); w1.setAttribute('d','M16 8a4 4 0 0 1 0 8');
+    w1.setAttribute('fill','none'); w1.setAttribute('stroke','currentColor'); w1.setAttribute('stroke-width','2'); w1.setAttribute('stroke-linecap','round');
+    var w2 = document.createElementNS('http://www.w3.org/2000/svg','path'); w2.setAttribute('d','M18.5 5.5a7 7 0 0 1 0 13');
+    w2.setAttribute('fill','none'); w2.setAttribute('stroke','currentColor'); w2.setAttribute('stroke-width','2'); w2.setAttribute('stroke-linecap','round');
+    onSvg.appendChild(w1); onSvg.appendChild(w2);
+
+    var offSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    offSvg.setAttribute('viewBox','0 0 24 24'); offSvg.setAttribute('class','hero-icon-off');
+    var b0 = document.createElementNS('http://www.w3.org/2000/svg','path'); b0.setAttribute('d','M4 9v6h4l5 4V5L8 9H4z');
+    var cross = document.createElementNS('http://www.w3.org/2000/svg','path'); cross.setAttribute('d','M17 9l4 4m0-4l-4 4');
+    cross.setAttribute('fill','none'); cross.setAttribute('stroke','currentColor'); cross.setAttribute('stroke-width','2'); cross.setAttribute('stroke-linecap','round');
+    offSvg.appendChild(b0); offSvg.appendChild(cross);
+
+    btn.appendChild(onSvg); btn.appendChild(offSvg);
+
+    video.muted = true; video.setAttribute('muted',''); // default muted
+    btn.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      var willMute = !video.muted;
+      video.muted = willMute;
+      btn.dataset.muted = String(willMute);
+      btn.setAttribute('aria-pressed', String(!willMute));
+      btn.setAttribute('aria-label', willMute ? 'Unmute' : 'Mute');
+      if(!willMute){ video.play && video.play().catch(function(){}); }
+    }, {passive:false});
+
+    host.appendChild(btn);
+    video.__muteBtn = btn;
+  }
+
+  function scanAndAttach(){
+    // Prefer videos inside the first major hero above categories
+    var vids = Array.from(document.querySelectorAll('#fadeSlider video, #fadeSlider .fade-slide video, .hero video, .banner video, .swiper-wrapper video'));
+    
+    vids = vids.filter(function(v){ return !v.closest('#categorySection') && !v.closest('#happySection'); });
+    if(!vids.length) return;
+    // Pick the first visible video in viewport (hero)
+    var first = vids.find(function(v){
+      var r = v.getBoundingClientRect();
+      return r.top < (window.innerHeight*0.8);
+    }) || vids[0];
+    makeBtn(first);
+  }
+
+  function init(){
+    scanAndAttach();
+    // Observe DOM for late-inserted videos (sliders often lazy-load)
+    var mo = new MutationObserver(function(){
+      scanAndAttach();
+    });
+    mo.observe(document.documentElement, {childList:true, subtree:true});
+    document.addEventListener('visibilitychange', function(){
+      var v = document.querySelector('.hero-mute-btn') && document.querySelector('.hero-mute-btn').closest('.fade-slide, .swiper-slide, .slide, a, div')?.querySelector('video');
+      if(v && !v.muted && !document.hidden){ v.play && v.play().catch(function(){}); }
+    });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
 })();
 </script>
 
