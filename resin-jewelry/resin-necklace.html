@@ -72,6 +72,15 @@ body.noscroll {
   overflow: hidden;
   height: 100vh;
 }
+
+#popupSlider video.popup-slide{
+  width:100%;
+  height:100%;
+  aspect-ratio:1/1;
+  object-fit:cover;    /* fill the 1:1 square */
+  display:block;
+}
+
 /* 👇 SIMPLE popup slider (fade only) */
 #popupSlider{
   position: relative;
@@ -537,6 +546,12 @@ body.horizontal-mode .product img{
   border-radius: 10px !important; /* sleeker corners */
   display: block !important;
 }
+\1height: 100% !important; aspect-ratio: 1 / 1 !important;
+  object-fit:contain;
+  border-radius:12px;
+  background:#000;
+}
+
 
 /* Flexible content */
 body.horizontal-mode .product .content,
@@ -1115,6 +1130,7 @@ body.horizontal-mode .product-grid{
 #popupSlider.dragging{ cursor: grabbing; }
 #popupSlider .popup-track{
   display: flex;
+  gap: 10px;
   width: 100%;
   height: 100%;
   transition: transform 1400ms cubic-bezier(.22,1,.36,1);
@@ -1123,10 +1139,10 @@ body.horizontal-mode .product-grid{
 #popupSlider .popup-slide{
   position: relative !important;
   inset: auto !important;
-  width: calc(100% - 10px) !important;  /* slide width shrinks by 10px */
+  width: 100% !important;  /* slide width shrinks by 10px */
   max-width: none !important;
-  flex: 0 0 calc(100% - 10px) !important;
-  margin: 0 5px;   /* 👈 equal left & right spacing */
+  flex: 0 0 100% !important;
+  margin: 0;   /* no gutter: prevents left photo peeking */
   aspect-ratio: 1 / 1 !important;
   border-radius: 14px !important;
   object-fit: cover !important;
@@ -1135,6 +1151,8 @@ body.horizontal-mode .product-grid{
   pointer-events: auto !important;
   transition: none !important;
   user-select: none !important;
+
+  box-sizing: border-box !important;
 }
 
 .popup-dots{ display:flex; justify-content:center; gap:8px; margin-top:10px; }
@@ -1666,12 +1684,47 @@ function getSheetDescription(row){
         );
       });
 
-      const img = document.createElement("img");
-      img.src = item["photo 1"];
-      img.alt = item["Product Name"];
-      img.style.pointerEvents = "none";
-      img.style.cursor = "default";
-      product.appendChild(img);
+      
+// Media (photo or video)
+(function(){
+  const url1 = (item["photo 1"] || "").trim();
+  let el;
+  if (isVideoUrl(url1)) {
+    const v = document.createElement("video");
+    v.src = url1;
+    v.muted = true;
+    v.autoplay = true;
+    v.loop = true;
+    v.playsInline = true;
+    v.preload = "metadata";
+    v.style.width = "100%";
+    v.style.height = "100%";
+    v.style.objectFit = "cover";
+    v.disablePictureInPicture = true;
+    v.setAttribute("muted","");
+    v.setAttribute("webkit-playsinline","true");
+    v.setAttribute("playsinline","true");
+    v.style.pointerEvents = "none"; // allow card click to bubble
+    v.style.cursor = "default";
+    v.style.display = "block";
+    v.style.width = "100%";
+    v.style.height = "100%"; v.style.aspectRatio = "1 / 1";
+    v.style.objectFit = "contain";
+    el = v;
+  } else {
+    const img = document.createElement("img");
+    img.src = url1;
+    img.alt = item["Product Name"];
+    img.style.pointerEvents = "none";
+    img.style.cursor = "default";
+    el = img;
+  }
+  const wrap = document.createElement('div');
+wrap.className = 'media-square';
+wrap.appendChild(el);
+product.appendChild(wrap);
+})();
+
 
       if (item["Badge"]) {
         const badge = document.createElement("div");
@@ -1796,7 +1849,10 @@ sectionTitle.className = 'section-title';
       img.style.pointerEvents = "none";
       img.style.cursor = "default";
 
-      product.appendChild(img);
+      const wrap2 = document.createElement('div');
+wrap2.className = 'media-square';
+wrap2.appendChild(img);
+product.appendChild(wrap2);
 
       const infoWrapper = document.createElement('div');
 infoWrapper.style.padding = "0 6px"; // This adds left-right padding
@@ -1996,6 +2052,13 @@ function generateSeoDescription(name) {
   return { bullets: [line1, line2, line3, line4], sentence };
 }
 
+// --- Media helpers ---
+function isVideoUrl(url){
+  if (!url) return false;
+  url = String(url).split('?')[0].split('#')[0].trim().toLowerCase();
+  return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg') || url.includes('=video') || url.includes('/video/');
+}
+
 /* ====== Inject JSON-LD Product schema (SEO) ====== */
 function injectProductSchema({name, price, mrp, image, description}) {
   try {
@@ -2131,20 +2194,50 @@ injectProductSchema({
   const slides = [];
   const dots = [];
 
-  images.forEach((url, i) => {
-    const img = document.createElement("img");
-    img.src = (url || "").trim();
-    img.className = "popup-slide";
-    img.setAttribute("draggable", "false");
-    track.appendChild(img);
-    slides.push(img);
+  
 
-    const dot = document.createElement("div");
-    dot.className = "popup-dot" + (i === 0 ? " active" : "");
-    dot.addEventListener("click", () => goTo(i));
-    if (dotsContainer) dotsContainer.appendChild(dot);
-    dots.push(dot);
-  });
+images.forEach((url, i) => {
+  const clean = (url || "").trim();
+  let el;
+
+  if (isVideoUrl(clean)) {
+    const v = document.createElement("video");
+    v.className = "popup-slide";
+    v.src = clean;                       // ✅ set video source
+    v.muted = true;                      // ✅ allow autoplay on mobile
+    v.autoplay = true;
+    v.loop = true;
+    v.playsInline = true;
+    v.preload = "metadata";
+    v.disablePictureInPicture = true;
+
+    // start/pause based on visibility
+    v.addEventListener("loadeddata", () => {
+      if (i === 0) v.play();
+      else v.pause();
+    });
+
+    el = v;
+  } else {
+    const img = document.createElement("img");
+    img.className = "popup-slide";
+    img.src = clean;
+    img.alt = (name || "product");
+    el = img;
+  }
+
+  track.appendChild(el);
+  slides.push(el);
+
+  // dots
+  if (dotsContainer) {
+    const d = document.createElement("div");
+    d.className = "popup-dot" + (i === 0 ? " active" : "");
+    d.addEventListener("click", () => goTo(i));
+    dotsContainer.appendChild(d);
+    dots.push(d);
+  }
+});
 
   // Hide dots if single or zero images; show otherwise
   if (dotsContainer){
@@ -2158,7 +2251,7 @@ injectProductSchema({
     });
   }
 
-  function width(){ return slider.getBoundingClientRect().width; }
+  function width(){ return slider.getBoundingClientRect().width + 10; }
 
   function goTo(i, animate=true) {
     if (!slides.length) return;
@@ -2176,6 +2269,12 @@ if (window.__fastSwipe) dur = Math.max(420, base - 120);
 track.style.transition = animate ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
     track.style.transform = `translateX(${-i * width()}px)`;
     setActiveDot(i);
+    // Play/pause videos: only current slide plays
+    slides.forEach((el, idx) => {
+      if (el && el.tagName === 'VIDEO') {
+        try { if (idx === i) { el.play(); } else { el.pause(); } } catch(e){}
+      }
+    });
   }
 
   // Init position
@@ -2368,6 +2467,7 @@ function closePopup() {
   const onDone = (e) => {
     if (e.target !== card) return;
     popup.style.display = "none";
+    try { popup.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; }); } catch(e){}
   try { history.replaceState(null, "", location.pathname); } catch (e) {}
     card.removeEventListener("transitionend", onDone);
   };
@@ -3077,25 +3177,49 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     track.className = "popup-track";
     slider.appendChild(track);
 
-    // Slides + dots
-    var slides = [], dots = [];
-    images.forEach(function(url, i){
-      var img = document.createElement("img");
-      img.src = url;
-      img.className = "popup-slide";
-      img.setAttribute("draggable","false");
-      img.style.touchAction = "pinch-zoom";
-      track.appendChild(img);
-      slides.push(img);
+// Slides + dots
+var slides = [], dots = [];
+images.forEach(function(url, i) {
+  var clean = (url || "").trim();
+  var el;
 
-      if (dotsContainer){
-        var dot = document.createElement("div");
-        dot.className = "popup-dot" + (i===0 ? " active" : "");
-        dot.addEventListener("click", function(){ goTo(i, true); });
-        dotsContainer.appendChild(dot);
-        dots.push(dot);
-      }
+  if (isVideoUrl(clean)) {
+    var v = document.createElement("video");
+    v.className = "popup-slide";
+    v.src = clean;
+    v.muted = true;
+    v.autoplay = true;
+    v.loop = true;
+    v.playsInline = true;
+    v.preload = "metadata";
+    v.disablePictureInPicture = true;
+
+    v.addEventListener("loadeddata", function() {
+      if (i === 0) v.play(); else v.pause();
     });
+
+    el = v;
+  } else {
+    var img = document.createElement("img");
+    img.src = clean;
+    img.className = "popup-slide";
+    img.setAttribute("draggable","false");
+    img.style.touchAction = "pinch-zoom";
+    el = img;
+  }
+
+  track.appendChild(el);
+  slides.push(el);
+
+  if (dotsContainer) {
+    var dot = document.createElement("div");
+    dot.className = "popup-dot" + (i === 0 ? " active" : "");
+    dot.addEventListener("click", function(){ goTo(i, true); });
+    dotsContainer.appendChild(dot);
+    dots.push(dot);
+  }
+});
+
 
     // Hide dots if single/none
     if (dotsContainer){
@@ -3108,7 +3232,7 @@ history.replaceState && history.replaceState(null, "", shareUrl);
       });
     }
 
-    function width(){ return slider.getBoundingClientRect().width; }
+    function width(){ return slider.getBoundingClientRect().width + 10; }
 
     var currentIndex = 0;
     function goTo(i, animate) {
@@ -3400,3 +3524,57 @@ if (popup){
 
 </body>
 </html>
+
+
+<!-- ===== 1:1 MEDIA FIXES (injected by ChatGPT) ===== -->
+<style id="one-to-one-fixes">
+/* Grid square wrapper */
+.product .media-square{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Media inside wrapper fills square */
+.product .media-square img,
+.product .media-square video{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;      /* fill 1:1 like your photo cards */
+  display: block;
+}
+
+/* Override any previous video sizing in grid */
+.product video{
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+  border-radius: 12px !important;
+  background: #000 !important;
+}
+
+/* Popup slider: force perfect square */
+#popupSlider .popup-slide{
+  aspect-ratio: 1 / 1 !important;
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
+  border-radius: 14px !important;
+}
+
+/* Videos inside popup slides */
+#popupSlider video.popup-slide{
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* Ensure dots stay on-media */
+.popup-media{ position: relative !important; }
+</style>
