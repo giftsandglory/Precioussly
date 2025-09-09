@@ -1438,7 +1438,44 @@ down-toggle {
 
 /* Default rectangle image (grid mode) */
 .rect-img{ width:100%; border-radius:18px; display:block; object-fit:cover; }
-</style>
+
+/* === Square (for Shape = 3) — fully customizable spacing === */
+.square-mini {
+  width: 120px;              /* Box ka size control yahin se hoga */
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+
+  /* Spacing controls */
+  margin: 10px;              /* Har square ke bahar ka space (left/right/top/bottom) */
+  padding: 0;                /* Box ke andar ka space (agar chaho to set kar sakte ho) */
+
+  /* Layout controls */
+  display: inline-block;     /* Inline-block se ye horizontally align honge */
+  vertical-align: top;       /* Align properly on top */
+  
+  /* Border/Shadow controls */
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Gap control agar parent container flex/ grid use kare */
+.squares-container {
+  display: flex;             /* Flexbox layout */
+  flex-wrap: nowrap;         /* Ek hi line mein scroll karne ke liye */
+  gap: 10px;                 /* Har square ke beech ka gap */
+  padding: 0 10px;           /* Left aur right side ka padding (edge spacing) */
+  overflow-x: auto;          /* Horizontal scroll enable */
+}
+
+.square-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;          /* Image crop/stretch kaise hoga */
+  border-radius: 12px;        /* Shape maintain */
+  display: block;
+}
 <!-- <<< ChatGPT CSS end -->
 <style>
   /* 🔴 Pink ring for all small circle thumbnails */
@@ -2868,14 +2905,17 @@ function renderCategories(rows){
 
     // Build items
     for (const item of group.items){
-      const a = document.createElement("a");
+      
+      const shapeClass = (item.shape === "circle3") ? "square-mini" : "circle-mini";
+const a = document.createElement("a");
       a.href = item.link || "#";
       a.className = "cat-card";
       if (isStrip){
         a.style.flex = "0 0 auto";
         a.style.width = "132px"; // compact
+        const shapeClass = (item.shape === "circle3") ? "square-mini" : "circle-mini";
         a.innerHTML = `
-          <div class="circle-mini">
+          <div class="${shapeClass}">
             <img src="${item.img}" alt="${item.name}">
           </div>
           <div class="label">${item.name}</div>`;
