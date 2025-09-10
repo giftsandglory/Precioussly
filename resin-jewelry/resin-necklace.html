@@ -5,12 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Precioussly — Handmade Jewellery" />
-<meta property="og:description" content="Tap to view the product and buy." />
-<meta property="og:image" content="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" />
-<meta property="og:url" content="https://precioussly.com/resin-necklace" />
-<meta name="twitter:card" content="summary_large_image" />
+
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
@@ -2030,32 +2025,7 @@ product.appendChild(infoWrapper);
 const WHATSAPP_NUMBER = "8586057887";
 const BRAND_NAME = "precioussly";
 
-/* ====== Description Generator ====== */
-function generateSeoDescription(name) {
-  const lower = (name || "").toLowerCase();
-  const colors = ["red","blue","green","pink","black","white","purple","yellow","gold","silver","beige","brown","orange"];
-  const colorFound = colors.find(c => lower.includes(c));
-  const categories = [
-    { keys:["necklace","pendant","locket"], label:"necklace", use:"daily wear, parties and gifting" },
-    { keys:["ring"], label:"ring", use:"everyday elegance and special moments" },
-    { keys:["bracelet","bangle"], label:"bracelet", use:"stacking or solo style" },
-    { keys:["earring","stud","jhumka"], label:"earrings", use:"casual to festive looks" },
-    { keys:["keychain","key ring","key-ring"], label:"keychain", use:"bag charm or keys" },
-    { keys:["car","toy"], label:"mini collectible", use:"desk decor or gifting" },
-  ];
-  let cat = { label: "handmade piece", use: "gifting and everyday use" };
-  for (const c of categories) {
-    if (c.keys.some(k => lower.includes(k))) { cat = c; break; }
-  }
-  const niceName = name || "Beautiful Piece";
-  const colorTxt = colorFound ? `${colorFound} ` : "";
-  const line1 = `Premium ${colorTxt}${cat.label} — crafted for comfort and long-lasting shine.`;
-  const line2 = `Perfect for ${cat.use}.`;
-  const line3 = `Want a custom version? Message us on WhatsApp: ${WHATSAPP_NUMBER}.`;
-  const line4 = BRAND_NAME;
-  const sentence = `${niceName}: a premium ${colorTxt}${cat.label} designed for ${cat.use}. Lightweight, comfortable and gift-ready.`;
-  return { bullets: [line1, line2, line3, line4], sentence };
-}
+
 
 // --- Media helpers ---
 function isVideoUrl(url){
@@ -2917,17 +2887,7 @@ function applyDirectionFromSheet(rows){
     }
   }
 
-  // Show footer 3 seconds after page load with fade-in
-  window.addEventListener("load", function(){
-    setTimeout(function(){
-      const footer = document.getElementById("delayedFooter");
-      footer.style.display = "block";
-      footer.style.opacity = "0";
-      footer.style.transition = "opacity 1s ease";
-      requestAnimationFrame(() => { footer.style.opacity = "1"; });
-      adjustFooter();
-    }, 200);
-  });
+
 
   // Re-check if window is resized
   window.addEventListener("resize", adjustFooter);
