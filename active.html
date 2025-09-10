@@ -510,6 +510,7 @@ async function main(){
 
   const rows = await getSheetRows();
 
+  
   const data = rows && rows.length ? rows : [{
     "Order ID":"COD-1757229331357",
     "Order Timestamp (IST)":"2025-09-07 12:45:00",
@@ -536,11 +537,22 @@ async function main(){
     "Order Total (₹)":"1099"
   }];
 
-  window.__ORDERS = data;
-  const summaryHTML = `<div id="summaryCard" class="summary-card" role="status" aria-live="polite">Total Orders — <span id="orderCount" class="count">${data.length}</span></div>`;
-  list.innerHTML = summaryHTML + data.map((o, i) => cardHTML(o, i)).join(""); 
-  updateTotal(data.length);
-  modalRoot.innerHTML = data.map((o, i) => modalHTML(o, i)).join(""); 
+  // === NEW: Always show newest orders first ===
+  const sorted = (data || []).slice().sort((a, b) => {
+    const da = normalizeToDate(a["Order Timestamp (IST)"]);
+    const db = normalizeToDate(b["Order Timestamp (IST)"]);
+    if (da && db && !isNaN(da) && !isNaN(db)) return db - da; // newer first
+    const na = parseInt(String(a["Order ID"] || "").replace(/[^0-9]/g, "")) || 0;
+    const nb = parseInt(String(b["Order ID"] || "").replace(/[^0-9]/g, "")) || 0;
+    return nb - na;
+  });
+
+  window.__ORDERS = sorted;
+
+  const summaryHTML = `<div id="summaryCard" class="summary-card" role="status" aria-live="polite">Total Orders — <span id="orderCount" class="count">${sorted.length}</span></div>`;
+  list.innerHTML = summaryHTML + sorted.map((o, i) => cardHTML(o, i)).join("");
+  updateTotal(sorted.length);
+  modalRoot.innerHTML = sorted.map((o, i) => modalHTML(o, i)).join("");
   attachHandlers();
 
   if(!rows){
