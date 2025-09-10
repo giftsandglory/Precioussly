@@ -3621,10 +3621,23 @@ window.allProducts = [];
 })();
 
 /* ========= URL builder & UI ========= */
+/* Rule: if product name is a single word (no spaces), append a trailing space before encoding.
+   Example: "Red"  -> encode("Red ") -> "Red%20"
+            "Red Rose" -> encode("Red Rose") -> "Red%20Rose"
+*/
+function isSingleWord(str){
+  return !!str && str.trim().split(/\s+/).length === 1;
+}
+function buildParamValue(productName){
+  const raw = String(productName || "").trim();
+  const toEncode = isSingleWord(raw) ? (raw + " ") : raw;
+  return encodeURIComponent(toEncode);
+}
+
 function makeProductURL(routePath, productName){
   const base = location.origin;                        // e.g., https://precioussly.com
   const route = routePath.startsWith("/") ? routePath : "/" + routePath;
-  return `${base}${route}?p=${encodeURIComponent(productName)}`;
+  return `${base}${route}?p=${buildParamValue(productName)}`;
 }
 
 const inputEl = document.getElementById('headerSearchInput');
@@ -3755,6 +3768,7 @@ window.closeHeaderSearch = function(){
   hideSuggest();
 };
 </script>
+
 ♥️♥️♥️♥️
 <footer aria-label="Site footer" id="siteFooter">
 <div class="brand">© <span id="footerYear"></span> Precioussly. All rights reserved.</div>
