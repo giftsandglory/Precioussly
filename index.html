@@ -2642,72 +2642,8 @@ down-toggle {
 .hero-mute-btn[data-muted="true"]  .hero-icon-off { display: inline; }
 </style>
 
-
-
-<!-- Refresh Back Overlay (pink theme) -->
-  <style id="refresh-back-overlay-css">
-    .refresh-overlay{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.28);
-      display: none;              /* shown by JS on load */
-      align-items: center;
-      justify-content: center;
-      z-index: 99999;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .refresh-card{
-      background: #fff5fb;                         /* soft pink bg */
-      border: 3px solid #ff4f96;                   /* strong pink border */
-      box-shadow: 0 14px 40px rgba(255, 79, 150, .25);
-      border-radius: 18px;
-      padding: 18px 18px 14px;
-      width: min(92vw, 420px);                     /* not 1:1; fits text neatly */
-      max-width: 420px;
-      text-align: center;
-      font-family: 'Roboto Slab', serif;
-      color: #1b1b1b;
-    }
-    .refresh-card .title{
-      font-weight: 800;
-      font-size: 18px;
-      margin: 0 0 8px;
-      color: #000;
-    }
-    .refresh-card .msg{
-      font-weight: 600;
-      font-size: 16px;
-      line-height: 1.45;
-      margin: 0 0 14px;
-      color: #a00058;
-      text-shadow: 0 1px 0 rgba(255,255,255,.6);
-    }
-    .refresh-card .back-btn{
-      display: inline-block;
-      padding: 8px 18px;
-      border: 1.8px solid #111;          /* black outline for contrast */
-      background: #ffffff;
-      color: #111;
-      border-radius: 10px;               /* small rectangle with slight curve */
-      font: 600 14px 'Roboto Slab', serif;
-      letter-spacing: .2px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    .refresh-card .back-btn:active{ transform: scale(.98); }
-    body.refresh-lock{ overflow: hidden; height: 100vh; }
-  </style>
-
 </head>
 <body>
-
-  <!-- Refresh Notice Popup -->
-  <div id="refreshOverlay" class="refresh-overlay" role="dialog" aria-modal="true" aria-labelledby="refreshMsg">
-    <div class="refresh-card">
-      <p id="refreshMsg" class="msg">Please refresh if it looks empty</p>
-      <button id="refreshBackBtn" class="back-btn" type="button">Back</button>
-    </div>
   </div>
 </div>
 
@@ -4825,49 +4761,6 @@ try {
 
   
 </script>
-
-
-<!-- Refresh Notice script -->
-<!-- Refresh Notice JS -->
-  <script id="refresh-back-overlay-js">
-    (function(){
-      var overlay = document.getElementById('refreshOverlay');
-      var btn = document.getElementById('refreshBackBtn');
-
-      function showOverlay(){
-        if(!overlay) return;
-        overlay.style.display = 'flex';           // show and center
-        document.body.classList.add('refresh-lock');  // stop page scroll
-      }
-      function hideOverlay(){
-        if(!overlay) return;
-        overlay.style.display = 'none';
-        document.body.classList.remove('refresh-lock');
-      }
-
-      // Show on first paint after refresh
-      if(document.readyState === 'complete' || document.readyState === 'interactive'){
-        setTimeout(showOverlay, 0);
-      }else{
-        document.addEventListener('DOMContentLoaded', showOverlay, { once: true });
-      }
-
-      // Close only via Back button
-      if(btn){
-        btn.addEventListener('click', hideOverlay);
-      }
-
-      // Prevent accidental close by outside click / ESC
-      overlay && overlay.addEventListener('click', function(e){
-        // If click is directly on the dim background, do nothing.
-        // Allow clicks on children (like the Back button) to work normally.
-        if (e.target === overlay) { e.preventDefault(); }
-      }, false);
-      document.addEventListener('keydown', function(e){
-        if(e.key === 'Escape'){ e.preventDefault(); } // do nothing on ESC
-      });
-    })();
-  </script>
 
 </body>
 </html>
