@@ -1479,58 +1479,6 @@ body.horizontal-mode .product-grid{
     opacity: 1 !important;
   }
 </style>
-<!-- ===== 1:1 MEDIA FIXES (injected by ChatGPT) ===== -->
-<style id="one-to-one-fixes">
-/* Grid square wrapper */
-.product .media-square{
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #000;
-}
-
-/* Media inside wrapper fills square */
-.product .media-square img,
-.product .media-square video{
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;      /* fill 1:1 like your photo cards */
-  display: block;
-}
-
-/* Override any previous video sizing in grid */
-.product video{
-  width: 100% !important;
-  height: 100% !important;
-  aspect-ratio: 1 / 1 !important;
-  object-fit: cover !important;
-  border-radius: 12px !important;
-  background: #000 !important;
-}
-
-/* Popup slider: force perfect square */
-#popupSlider .popup-slide{
-  aspect-ratio: 1 / 1 !important;
-  width: 100% !important;
-  height: auto !important;
-  object-fit: cover !important;
-  border-radius: 14px !important;
-}
-
-/* Videos inside popup slides */
-#popupSlider video.popup-slide{
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-}
-
-/* Ensure dots stay on-media */
-.popup-media{ position: relative !important; }
-</style>
 
 </head>
 <body>
@@ -1990,38 +1938,16 @@ product.appendChild(infoWrapper);
     const u = new URLSearchParams(location.search);
     return u.get(name);
   }
-  
-function maybeOpenFromURL() {
-  const wanted = getParam('p');
-  if (!wanted || !window.catalogData) return;
-
-  const raw = decodeURIComponent(wanted);
-  const compact = raw.replace(/\s+/g,'').toLowerCase();
-
-  const item = window.catalogData.find(row => {
-    const nm = String(row["Product Name"] || "");
-    return nm.toLowerCase() === raw.toLowerCase() ||
-           nm.replace(/\s+/g,'').toLowerCase() === compact;
-  });
-  if (!item) return;
-
-  const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-  openPopup(
-    images,
-    item["Product Name"],
-    Number(item["MRP"]),
-    Number(item["Selling Price"]),
-    Number(item["in stock"]),
-    getSheetDescription(item)
-  );
-}
-</script>
-<script>
-  // Build: https://precioussly.com/resin-necklace/?p=carKeychain
-  function buildShareURL(productName){
-    const base = 'https://precioussly.com/resin-necklace/'; // note trailing slash
-    const compact = String(productName).replace(/\s+/g, ''); // remove spaces only
-    return base + '?p=' + encodeURIComponent(compact);
+  function maybeOpenFromURL() {
+    const wanted = getParam('p');
+    if (!wanted || !window.catalogData) return;
+    const wantedLower = decodeURIComponent(wanted).toLowerCase();
+    const item = window.catalogData.find(row =>
+      (row["Product Name"] || "").toLowerCase() === wantedLower
+    );
+    if (!item) return;
+    const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
+    openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]), getSheetDescription(item));
   }
 </script>
 
@@ -2484,12 +2410,6 @@ if (existing) {
     }, 2000);
   }, 1000);
 }
-</script>
-<script>
-  // Set WhatsApp share link to our canonical URL
-  const shareLink = buildShareURL(name);           // 'name' is the product name param of openPopup
-  document.getElementById('whShare').href =
-    'https://wa.me/?text=' + encodeURIComponent(shareLink);
 </script>
 <script>
   // Announcement Bar from Google Sheet
@@ -3611,3 +3531,55 @@ if (popup){
 </html>
 
 
+<!-- ===== 1:1 MEDIA FIXES (injected by ChatGPT) ===== -->
+<style id="one-to-one-fixes">
+/* Grid square wrapper */
+.product .media-square{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Media inside wrapper fills square */
+.product .media-square img,
+.product .media-square video{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;      /* fill 1:1 like your photo cards */
+  display: block;
+}
+
+/* Override any previous video sizing in grid */
+.product video{
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+  border-radius: 12px !important;
+  background: #000 !important;
+}
+
+/* Popup slider: force perfect square */
+#popupSlider .popup-slide{
+  aspect-ratio: 1 / 1 !important;
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
+  border-radius: 14px !important;
+}
+
+/* Videos inside popup slides */
+#popupSlider video.popup-slide{
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* Ensure dots stay on-media */
+.popup-media{ position: relative !important; }
+</style>
