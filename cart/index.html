@@ -667,6 +667,33 @@ button.remove-btn:hover {
 }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+// === ntfy notification: instant push on successful payment ===
+(function(){
+  const NTFY_URL = "https://ntfy.sh/precioussly-orders-9yTg2P1vK";
+  function postNtfy(bodyText){
+    const body = bodyText || "🎉 Congratulations! You’ve received a new order from Precioussly.";
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([body], { type: "text/plain;charset=UTF-8" });
+        navigator.sendBeacon(NTFY_URL, blob);
+        return;
+      }
+    } catch (e) {}
+    try {
+      fetch(NTFY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=UTF-8" },
+        body,
+        keepalive: true,
+        mode: "no-cors"
+      });
+    } catch (e) {}
+  }
+  window.notifyOrderNtfy = postNtfy;
+})();
+</script>
 <script>
   // 🔗 Paste the Apps Script Web App URL you copied
   window.GS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOukNsXwM1X7RA0nf9kLajFhBSSGaHZQ5zprYhHlRjr8s3m-8waYiYxDVu_PcfrVXckg/exec";
@@ -2036,7 +2063,9 @@ function openAddressAndClosePopup() {
         try{ sendOrderToTelegram(order); }catch(e){}
         try { saveOrderToGoogleSheet(order); } catch(e) {}
         showPaymentPopup("success");
-      },
+      
+          try { notifyOrderNtfy("🎉 Congratulations! You’ve received a new order from Precioussly."); } catch(e) {} // ntfy
+},
 
       modal: {
         // User ne Razorpay close kar diya → spinner/reset states
@@ -2781,7 +2810,11 @@ try {
 
       // Redirect
       showPaymentPopup("success");
-    },
+    
+          
+      try { notifyOrderNtfy("🎉 Congratulations! You’ve received a new order from Precioussly."); } catch(e) {} // ntfy
+try { notifyOrderNtfy("🎉 Congratulations! You’ve received a new order from Precioussly."); } catch(e) {} // ntfy
+},
 
     modal: {
       ondismiss: function () {
@@ -3736,7 +3769,9 @@ window.closeHeaderSearch = closeHeaderSearch;
       localStorage.setItem("lastOrderClearedCart","1");
       try { updateCartBadge && updateCartBadge(); } catch(e){}
       try { sendOrderToTelegram && sendOrderToTelegram(order); } catch(e){}
-    }catch(e){ /* non-fatal */ }
+    
+      try { notifyOrderNtfy("🎉 Congratulations! You’ve received a new order from Precioussly."); } catch(e) {} // ntfy
+}catch(e){ /* non-fatal */ }
   }
 
   // Create Razorpay order on server and open Checkout
@@ -3934,8 +3969,12 @@ window.closeHeaderSearch = closeHeaderSearch;
           try { sendOrderToTelegram(order); } catch(e){}
           try { saveOrderToGoogleSheet(order); } catch(e){}
 
-          // Success UI
-          try { showPaymentPopup("success"); } catch(e){ location.href = "/dashboard"; }
+          
+          try { notifyOrderNtfy("🎉 Congratulations! You’ve received a new order from Precioussly."); } catch(e) {} // ntfy
+// Success UI
+          try { showPaymentPopup("success"); 
+          try { notifyOrderNtfy("🎉 Congratulations! You’ve received a new order from Precioussly."); } catch(e) {} // ntfy
+} catch(e){ location.href = "/dashboard"; }
         } catch(err){
           try { showPaymentPopup("failed"); } catch(e){ alert("Payment captured, but post-processing failed. We'll reach out!"); }
         }
