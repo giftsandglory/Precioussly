@@ -2,6 +2,175 @@
 
 <html lang="en">
 <head>
+
+<!-- Resilient Google Sheets Fetch v2 (SWR + 7s timeout + IndexedDB fallback) -->
+<script>
+(function(){
+  const MATCHERS = [
+    /^(https?:)?\/\/opensheet\.elk\.sh\//i,
+    /^(https?:)?\/\/docs\.google\.com\/spreadsheets\//i
+  ];
+  const TIMEOUT_MS = 7000;
+  const CACHE_PREFIX = "swr-cache:";
+  const origFetch = window.fetch.bind(window);
+
+  // ---------- Storage Abstraction (localStorage -> IndexedDB) ----------
+  let storageMode = "localStorage";
+  const TEST_KEY = "__swr_test__";
+  try {
+    localStorage.setItem(TEST_KEY, "1");
+    localStorage.removeItem(TEST_KEY);
+  } catch(e) {
+    storageMode = "idb";
+  }
+
+  // Minimal IndexedDB helper (string values)
+  const idb = {
+    db: null,
+    ready(){
+      return new Promise((resolve, reject) => {
+        if (this.db) return resolve(this.db);
+        const open = indexedDB.open("SWR_CACHE_DB", 1);
+        open.onupgradeneeded = () => {
+          const db = open.result;
+          if (!db.objectStoreNames.contains("entries")) {
+            db.createObjectStore("entries");
+          }
+        };
+        open.onsuccess = () => { this.db = open.result; resolve(this.db); };
+        open.onerror = () => reject(open.error);
+      });
+    },
+    async get(key){
+      const db = await this.ready();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction("entries", "readonly");
+        const store = tx.objectStore("entries");
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    },
+    async set(key, val){
+      const db = await this.ready();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction("entries", "readwrite");
+        const store = tx.objectStore("entries");
+        const req = store.put(val, key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => resolve();
+      });
+    }
+  };
+
+  async function storageGet(key){
+    if (storageMode === "localStorage") {
+      try{ return JSON.parse(localStorage.getItem(key)); }catch(_){ return null; }
+    } else {
+      try{ return await idb.get(key); }catch(_){ return null; }
+    }
+  }
+  async function storageSet(key, val){
+    if (storageMode === "localStorage") {
+      try{ localStorage.setItem(key, JSON.stringify(val)); }catch(_){}
+    } else {
+      try{ await idb.set(key, val); }catch(_){}
+    }
+  }
+
+  // ---------- Utilities ----------
+  function isTarget(url){
+    try{
+      const u = typeof url === "string" ? url : (url && url.url) || String(url);
+      return MATCHERS.some(rx => rx.test(u));
+    }catch(_){ return false; }
+  }
+
+  function cacheKey(url){
+    return CACHE_PREFIX + (typeof url === "string" ? url : (url && url.url) || String(url));
+  }
+
+  function looksLikeHtmlError(text){
+    if (!text) return false;
+    const t = text.trim().slice(0, 400).toLowerCase();
+    if (t.startsWith("<!doctype html") || t.startsWith("<html")) return true;
+    if (t.includes("<title>error</title>")) return true;
+    if (t.includes("not found") && t.includes("<html")) return true;
+    return false;
+  }
+
+  function buildResponseFromCache(entry){
+    const headers = new Headers();
+    const ct = entry && entry.contentType ? entry.contentType : "text/plain; charset=utf-8";
+    headers.set("Content-Type", ct);
+    return new Response(entry.body, { status: 200, headers });
+  }
+
+  async function saveCache(key, text, contentType){
+    if (!text || looksLikeHtmlError(text)) return;
+    const entry = { body: text, contentType: contentType || "text/plain; charset=utf-8", ts: Date.now() };
+    await storageSet(key, entry);
+  }
+
+  async function getCache(key){
+    return await storageGet(key);
+  }
+
+  async function fetchWithTimeout(resource, options){
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try{
+      return await origFetch(resource, { ...(options||{}), signal: controller.signal });
+    } finally {
+      clearTimeout(id);
+    }
+  }
+
+  // ---------- Monkey-patch fetch ----------
+  window.fetch = function(resource, options){
+    if (!isTarget(resource)) {
+      return origFetch(resource, options);
+    }
+
+    const key = cacheKey(resource);
+
+    // Start background refresh immediately (SWR)
+    (async () => {
+      try{
+        const netRes = await fetchWithTimeout(resource, options);
+        const ct = (netRes.headers && netRes.headers.get && netRes.headers.get("Content-Type")) || "";
+        const text = await netRes.text();
+        if (netRes.ok && text && !looksLikeHtmlError(text)) {
+          await saveCache(key, text, ct);
+          // Optional event (doesn't alter UI unless listened to)
+          window.dispatchEvent(new CustomEvent("swr-cache-updated", { detail: { key } }));
+        }
+      }catch(_){ /* keep stale */ }
+    })();
+
+    // Serve stale instantly if available
+    return (async () => {
+      const cached = await getCache(key);
+      if (cached){
+        try{ return buildResponseFromCache(cached); }catch(_){ /* fallthrough */ }
+      }
+      // No cache -> network with timeout, also try to cache
+      const res = await fetchWithTimeout(resource, options);
+      try{
+        const ct = (res.headers && res.headers.get && res.headers.get("Content-Type")) || "";
+        const text = await res.clone().text();
+        if (res.ok && text && !looksLikeHtmlError(text)) {
+          await saveCache(key, text, ct);
+        }
+      }catch(_){}
+      return res;
+    })();
+  };
+})();
+</script>
+
+
+
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
