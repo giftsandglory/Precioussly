@@ -3440,7 +3440,7 @@ Promise.all(
           price: Number(row["Selling Price"] || 0),
           mrp: Number(row["MRP"] || 0),
           image: row["photo 1"] || row["Photo 1"] || "",
-          page: cat.page,
+          page: (String(row["Page Link"] || "").trim() || cat.page),
           from: cat.name
         }));
       return items;
