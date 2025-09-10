@@ -105,7 +105,15 @@ button, .btn-copy { user-select:none; }
   .value{ font-size:14.5px; color:#252a31; line-height:1.35; word-break:break-word; user-select:text; }
 
   .thumbs{ display:flex; gap:8px; flex-wrap:wrap; }
-  .thumbs img{ width:76px; height:76px; object-fit:cover; border-radius:10px; border:1px solid #eef0f4; cursor:zoom-in; }
+  .thumbs img,
+.thumbs video {
+  width:76px;
+  height:76px;
+  object-fit:cover;
+  border-radius:10px;
+  border:1px solid #eef0f4;
+}
+
 
   .details{ display:grid; gap:10px; }
   .details .row{ display:block; color:#252a31; font-weight:500; }
@@ -143,7 +151,13 @@ button, .btn-copy { user-select:none; }
   /* LIGHTBOX */
   .lightbox{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(10,14,20,.86); z-index:60; }
   .lightbox.show{ display:flex; }
-  .lightbox img{ max-width:92vw; max-height:86vh; width:auto; height:auto; border-radius:18px; box-shadow:0 18px 60px rgba(0,0,0,.45); transform:translateY(-160px); }
+.lightbox img,
+.lightbox video{
+  max-width:92vw; max-height:86vh; width:auto; height:auto;
+  border-radius:18px; box-shadow:0 18px 60px rgba(0,0,0,.45);
+  transform:translateY(-160px);
+}
+
   
   .lightbox .lb-close:active{ transform:scale(.96) }
 </style>
@@ -162,9 +176,10 @@ button, .btn-copy { user-select:none; }
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <!-- Lightbox root -->
   <div id="lightbox" class="lightbox" aria-hidden="true">
-    
-    <img id="lightboxImg" alt="Preview">
-  </div>
+  <img id="lightboxImg" alt="Preview" />
+  <video id="lightboxVideo" playsinline controls style="display:none"></video>
+</div>
+
 
 <script>
 // ====== CONFIG ======
@@ -275,7 +290,14 @@ function cardHTML(o, idx){
 
 function modalHTML(o, idx){
   const images = (o["Item Image URLs"] || "").split("|").map(s => s.trim()).filter(Boolean);
-  const thumbs = images.map(src => `<img class="thumb" src="${src}" data-full="${src}" alt="Item image">`).join("");
+  const thumbs = images.map(src => {
+  if (isVideoUrl(src)) {
+    return `<video class="thumb" src="${src}" muted autoplay loop playsinline></video>`;
+  } else {
+    return `<img class="thumb" src="${src}" data-full="${src}" alt="Item image">`;
+  }
+}).join("");
+
 
   const field = (label, value, wide=false) => `
     <div class="field" ${wide ? 'style="grid-column:1/-1"' : ""}>
@@ -425,6 +447,66 @@ function closeLightbox(){
   lb.setAttribute('aria-hidden','true');
   document.body.classList.remove('no-scroll');
 }
+
+
+function isVideoUrl(url){
+  if (!url) return false;
+  url = String(url).split('?')[0].split('#')[0].trim().toLowerCase();
+  return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg');
+}
+const lb = document.getElementById('lightbox');
+const lbImg = document.getElementById('lightboxImg');
+const lbVid = document.getElementById('lightboxVideo');
+
+function openLightbox(url){
+  if (isVideoUrl(url)) {
+    // video dikhana hai
+    lbImg.style.display = 'none';
+    lbVid.style.display = '';
+    lbVid.src = url;
+    lbVid.muted = false;       // audio allowed
+    lbVid.autoplay = true;     // auto play
+    lbVid.currentTime = 0;     // shuru se play
+  } else {
+    // image dikhana hai
+    lbVid.pause();
+    lbVid.removeAttribute('src');
+    lbVid.style.display = 'none';
+    lbImg.style.display = '';
+    lbImg.src = url;
+  }
+  lb.classList.add('show');  // popup open karo
+}
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (!t.classList.contains('thumb')) return;
+
+  // agar img hai to t.dataset.full ya t.src lo, 
+  // agar video hai to t.currentSrc use karo
+  const url = t.dataset.full || t.currentSrc || t.src;
+  if (url) openLightbox(url);
+});
+function closeLightbox(){
+  const lb = document.getElementById('lightbox');
+  const lbVid = document.getElementById('lightboxVideo');
+  if (!lb) return;
+  lb.classList.remove('show');
+  if (lbVid) {
+    lbVid.pause();
+    lbVid.removeAttribute('src');
+  }
+}
+
+// click outside media to close
+document.getElementById('lightbox').addEventListener('click', (e)=>{
+  if (e.target.id === 'lightbox') closeLightbox();
+});
+
+// ESC key se close
+document.addEventListener('keydown', (e)=>{
+  if (e.key === 'Escape') closeLightbox();
+});
+
 
 // ====== INTERACTION ======
 function attachHandlers(){
