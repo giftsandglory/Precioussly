@@ -184,7 +184,7 @@ body {
   gap: 10px;
 }
 
-.item img {
+.item img, .item video {
   width: 80px;
   height: 80px;
   object-fit: cover;
@@ -1163,6 +1163,18 @@ button.remove-btn:hover {
 <!-- END: Summary and Pay Section -->
   </div>
 
+
+<script>
+function isVideoUrl(url){
+  if (!url) return false;
+  try {
+    url = String(url).split('?')[0].split('#')[0].trim().toLowerCase();
+  } catch(_) { return false; }
+  return url.endswith ? (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg')) :
+         (url.indexOf('.mp4')>-1 || url.indexOf('.webm')>-1 || url.indexOf('.ogg')>-1) ||
+         url.includes('=video') || url.includes('/video/');
+}
+</script>
 <script>
   const shippingAddress = localStorage.getItem("shippingAddress") || "";
 
@@ -1180,7 +1192,7 @@ button.remove-btn:hover {
       const div = document.createElement("div");
       div.className = "item";
       div.innerHTML = `
-        <img src="${item.photo}" />
+        ${isVideoUrl(item.photo) ? "<video src=\""+item.photo+"\" muted autoplay loop playsinline preload=\"metadata\" style=\"width:80px;height:80px;object-fit:cover;border-radius:12px;background:#000;display:block;\"></video>" : "<img src=\""+item.photo+"\" alt=\""+(item.name||\"item\")+"\" />"}
         <div class="item-info">
   <div class="item-name">${item.name}</div>
   <div class="item-price">₹${item.price}</div>
@@ -1554,7 +1566,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const div = document.createElement("div");
     div.className = "item cart-item-animate";
     div.innerHTML = `
-      <img src="${item.photo}" />
+      ${isVideoUrl(item.photo) ? "<video src=\""+item.photo+"\" muted autoplay loop playsinline preload=\"metadata\" style=\"width:80px;height:80px;object-fit:cover;border-radius:12px;background:#000;display:block;\"></video>" : "<img src=\""+item.photo+"\" alt=\""+(item.name||\"item\")+"\" />"}
       <div class="item-info">
   <div class="item-name">${item.name}</div>
   <div class="item-price">₹${item.price}</div>
@@ -1714,7 +1726,7 @@ function renderCart() {
     const div = document.createElement("div");
     div.className = "item cart-item-animate";
     div.innerHTML = `
-      <img src="${item.photo}" />
+      ${isVideoUrl(item.photo) ? "<video src=\""+item.photo+"\" muted autoplay loop playsinline preload=\"metadata\" style=\"width:80px;height:80px;object-fit:cover;border-radius:12px;background:#000;display:block;\"></video>" : "<img src=\""+item.photo+"\" alt=\""+(item.name||\"item\")+"\" />"}
       <div class="item-info">
         <div class="item-name">${item.name}</div>
         <div class="item-price">₹${item.price}</div>
