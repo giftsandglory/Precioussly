@@ -2695,8 +2695,7 @@ if (couponToUse && document.getElementById("couponInput")) {
        localStorage.TG_BOT_TOKEN = "123:ABC..."
        localStorage.TG_CHAT_ID   = "792731562"
   */
-  const TG_BOT  = (window.TELEGRAM_BOT_TOKEN || localStorage.getItem("TG_BOT_TOKEN") || "").trim();
-  const TG_CHAT = (window.TELEGRAM_CHAT_ID  || localStorage.getItem("TG_CHAT_ID")  || "").trim();
+  
 
   function openCOD95Popup(){
     var el = document.getElementById('cod95Popup');
@@ -2987,97 +2986,7 @@ function saveOrderToGoogleSheet(order) {
   } catch (e) { /* ignore silently */ }
 }
 </script>
-<!-- ======= Telegram Order Notifier (auto-inserted) ======= -->
-<script>
-const TG_BOT_TOKEN = "8338453495:AAGlEj98SoocsWjT2qa6FRo6qjHInDafqfA";
-const TG_CHAT_ID   = "792731562";
 
-/* Build the exact text we send to Telegram */
-function formatOrderForTelegram(order){
-  try{
-    const when = new Date(order.createdAt || Date.now())
-      .toLocaleString("en-IN", { day: "2-digit", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
-
-    const a = order.amounts || {};
-    const isCOD = /cod/i.test(String(order.displayMethod || order.method || ""));
-
-    const lines = [];
-    lines.push(`🧾 <b>New Order</b>  <code>${order.id || ""}</code>`);
-    lines.push(`💳 Method: <b>${order.displayMethod || order.method || "-"}</b>`);
-    lines.push(`⏱️ Time: ${when}`);
-    lines.push(``);
-    lines.push(`<b>Items:</b>`);
-
-    (order.items || []).forEach((it, idx) => {
-      const qty   = Number(it.qty)   || 1;
-      const price = Number(it.price) || 0;
-      lines.push(`${idx+1}) ${it.name || "Item"} × ${qty} — ₹${price * qty}`);
-    });
-
-    lines.push(``);
-    // Totals section
-    if (a.itemsTotal != null) lines.push(`Item Total: ₹${a.itemsTotal}`);
-
-    // Delivery: hide on COD, otherwise show "Free Delivery" when 0
-    if (!isCOD && a.deliveryFee != null) {
-      lines.push(`Delivery: ${Number(a.deliveryFee) === 0 ? "Free Delivery" : `₹${a.deliveryFee}`}`);
-    }
-
-    // COD charges: show only when present (>0)
-    const codFeeNum = Number(a.codFee || 0);
-    if (codFeeNum > 0) {
-      lines.push(`COD Charges: ₹${codFeeNum}`);
-    }
-
-    if (Number(a.discount || 0) > 0) {
-      const couponTag = order.coupon ? ` (${order.coupon})` : "";
-      lines.push(`Coupon${couponTag}: -₹${a.discount}`);
-    }
-
-    if (a.grandTotal != null) lines.push(`<b>Order Total: ₹${a.grandTotal}</b>`);
-
-    if (order.coupon) lines.push(`Coupon: ${order.coupon}`);
-
-    lines.push(``);
-    lines.push(`<b>Shipping Address</b>`);
-    lines.push(order.address ? String(order.address).replace(/<br\s*\/?>(\n)?/gi, "\n") : "(not provided)");
-
-    // Optional product photos
-    const photos = (order.items || [])
-      .map(i => i.photo)
-      .filter(u => typeof u === "string" && /^https?:\/\//i.test(u));
-    if (photos.length){ lines.push(`\nPhotos:\n` + photos.join("\n")); }
-
-    return lines.join("\n");
-  }catch(e){
-    try{ return JSON.stringify(order,null,2); }catch(_){ return "New order"; }
-  }
-}
-
-/* Send the message */
-async function sendOrderToTelegram(order){
-  try{
-    const url  = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`;
-    const text = formatOrderForTelegram(order);
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({
-        chat_id: TG_CHAT_ID,
-        text,
-        parse_mode: "HTML",
-        disable_web_page_preview: true
-      })
-    });
-    if (!res.ok){
-      const t = await res.text().catch(()=> "");
-      console.warn("Telegram send failed", res.status, t);
-    }
-  } catch(err){
-    console.warn("Telegram send error", err);
-  }
-}
-</script>
 <!-- PRE-PAY Telegram helpers: paste AFTER formatOrderForTelegram, BEFORE sendOrderToTelegram -->
 <script>
   // Build a consistent order snapshot (used for the pre-payment ping)
