@@ -3407,129 +3407,377 @@ document.addEventListener('DOMContentLoaded', function() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 </script>
+♥️♥️♥️♥️
 <script>
-/* ===== Multi-page Search Setup (index.html) =====
-   - Do NOT change the two SHEET URLs below; ye wahi hain jo aap pages me use karte ho.
-   - Resin Necklace sheet (target page: /resin-necklace/)
-   - Hello sheet (target page: /hello/)  ← agar aapka actual path /hello.html hai to isey '/hello.html' kar dein.
+/* =============================================================================
+   Multi-page Search Setup (index.html) — with:
+     • Multiple Google Sheets per catalog
+     • AUTO Google link → opensheet.elk.sh (when Tab is provided)
+     • GVIZ fallback
+     • AUTO video detection + muted autoplay previews (mp4/webm/mov + YouTube)
+     • NEW: Per-sheet ROUTE path to generate shareable links like:
+         https://precioussly.com/resin-jewelry/resin-necklace?p=car%20Keychain
+   ========================================================================== */
+
+/* ========= Configure your catalogs and sources here =========
+   For each sheet source, fill these 💀 markers:
+
+   {
+     sheetUrl: "💀 Insert Google Sheets URL here",
+     tab     : "💀 Insert Tab Name here",             // Google Sheet tab (e.g., Sheet1)
+     route   : "💀 Insert Route Path here"            // site path WITHOUT domain, e.g. resin-jewelry/resin-necklace
+   },
+
+   Tip: If you already pasted an opensheet URL with /<TAB>, tab is still fine to keep.
 */
 const CATALOGS = [
   {
     name: "Resin Necklace",
-    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
-    page : "/resin-necklace/"
+    page: "/resin-necklace/", // fallback route if a sheet doesn't provide its own `route`
+    sheets: [
+      { sheetUrl: "💀 Insert Google Sheets URL here", tab: "💀 Insert Tab Name here", route: "💀 Insert Route Path here" },
+      { sheetUrl: "💀 Insert Google Sheets URL here", tab: "💀 Insert Tab Name here", route: "💀 Insert Route Path here" },
+      // { sheetUrl: "💀 Insert opensheet.elk.sh OR .../gviz/tq?gid=...", tab: "💀 Insert Tab Name here", route: "💀 resin-jewelry/resin-necklace" },
+    ]
   },
   {
     name: "Hello",
-    sheet: "https://opensheet.elk.sh/1Y5ZgzCKg9DTAQbPBLwQ3F-BSp06QfIRJCizMQFO6dPg/Sheet1",
-    page : "/hello/"
+    page: "/hello/",
+    sheets: [
+      { sheetUrl: "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk", tab: "Sheet1", route: "resin-jewelry/resin-necklace" },
+      // { sheetUrl: "💀 Insert opensheet.elk.sh OR .../gviz/tq?gid=...", tab: "💀 Insert Tab Name here", route: "💀 hello" },
+    ]
   }
 ];
 
-// Global merged list
+/* ========= Helpers to detect/convert URLs ========= */
+function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url); }
+function isGviz(url){ return /\/gviz\/tq\?/i.test(url); }
+function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url); }
+
+function parseGoogleSheetDoc(url){
+  try{
+    const u = new URL(url, location.origin);
+    const m = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/i);
+    const sheetId = m ? m[1] : "";
+    const gid = u.searchParams.get("gid") || "";
+    return { sheetId, gid };
+  }catch{ return { sheetId: "", gid: "" }; }
+}
+
+function buildOpenSheetUrl(sheetUrl, tab){
+  if (isOpenSheet(sheetUrl)){
+    try{
+      const u = new URL(sheetUrl, location.origin);
+      const parts = u.pathname.split('/').filter(Boolean);
+      if (parts.length >= 3) return u.toString(); // already /<ID>/<TAB>
+      if (tab){
+        if (!u.pathname.endsWith('/')) u.pathname += '/';
+        u.pathname += encodeURIComponent(tab);
+      }
+      return u.toString();
+    }catch{
+      return tab ? sheetUrl.replace(/\/?$/,'/') + encodeURIComponent(tab) : sheetUrl;
+    }
+  }
+  if (isGoogleDocSheet(sheetUrl) && tab){
+    const { sheetId } = parseGoogleSheetDoc(sheetUrl);
+    if (sheetId){
+      return `https://opensheet.elk.sh/${encodeURIComponent(sheetId)}/${encodeURIComponent(tab)}`;
+    }
+  }
+  return sheetUrl;
+}
+
+function parseGviz(text){
+  const match = text.match(/setResponse\(([\s\S]*?)\);?/);
+  if(!match) return [];
+  try{
+    const json = JSON.parse(match[1]);
+    const table = json && json.table;
+    if(!table || !table.cols || !table.rows) return [];
+    const headers = table.cols.map(c => (c && (c.label || c.id)) || "");
+    return table.rows.map(r => {
+      const obj = {};
+      (r.c || []).forEach((cell, i) => {
+        const key = headers[i] || `Col${i+1}`;
+        obj[key] = cell && (cell.v != null ? cell.v : cell.f) || "";
+      });
+      return obj;
+    });
+  }catch{ return []; }
+}
+
+function buildGvizFromDoc(sheetUrl){
+  const { sheetId, gid } = parseGoogleSheetDoc(sheetUrl);
+  if (!sheetId) return "";
+  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
+}
+
+async function fetchRowsFromSource(source){
+  const { sheetUrl, tab } = source || {};
+  if(!sheetUrl) return [];
+
+  // Prefer opensheet if possible
+  const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
+  if (isOpenSheet(openUrl)){
+    try{
+      const r = await fetch(openUrl, { cache: "no-store" });
+      if (r.ok) return await r.json();
+    }catch{}
+  }
+
+  // GVIZ fallback
+  let gvizUrl = "";
+  if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
+  else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
+
+  if (gvizUrl){
+    try{
+      const r = await fetch(gvizUrl, { cache: "no-store" });
+      if (r.ok) return parseGviz(await r.text());
+    }catch{}
+  }
+
+  // Last resort
+  try{
+    const r = await fetch(sheetUrl, { cache: "no-store" });
+    if(!r.ok) return [];
+    const txt = await r.text();
+    try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
+  }catch{ return []; }
+}
+
+/* ========= Media detection (image / direct video / YouTube) ========= */
+const VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i;
+function isDirectVideo(url){ return VIDEO_EXT_RE.test(url || ""); }
+function isYouTube(url){ return /(youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\/)/i.test(url || ""); }
+function toYouTubeEmbed(url){
+  try{
+    const u = new URL(url);
+    let id = "";
+    if (u.hostname.includes("youtu.be")) id = u.pathname.slice(1);
+    else if (u.pathname.includes("/shorts/")) id = u.pathname.split("/shorts/")[1].split(/[/?#]/)[0];
+    else id = u.searchParams.get("v") || "";
+    if (!id) return "";
+    return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&modestbranding=1&playsinline=1`;
+  }catch{ return ""; }
+}
+
+/* ========= Row normalization ========= */
+function valFrom(row, keys){
+  const map = {};
+  Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
+  for(const key of keys){
+    const real = map[key.toLowerCase()];
+    if (real && row[real] != null && String(row[real]).trim() !== "") return row[real];
+  }
+  return "";
+}
+
+function rowToItem(row, cat, routeFromSource){
+  const name  = String(valFrom(row, ["Product Name","Name","Title"])).trim();
+  if(!name) return null;
+
+  const price = Number(valFrom(row, ["Selling Price","Price","Sale Price","Offer Price","₹","INR"])) || 0;
+  const mrp   = Number(valFrom(row, ["MRP","List Price","Max Retail Price"])) || 0;
+
+  // media columns
+  const videoCandidate = String(valFrom(row, ["Video","Video URL","video url","video","MP4","WebM","Clip","Reel","Shorts"])).trim();
+  const mediaPrimary   = String(valFrom(row, ["photo 1","Photo 1","Image 1","Primary Image","Image","IMG","Picture","Pic 1","Thumbnail","Thumb"])).trim();
+
+  let mediaType = "image";
+  let mediaUrl  = mediaPrimary || "";
+  let poster    = "";
+
+  if (videoCandidate){ mediaUrl = videoCandidate; }
+  if (isDirectVideo(mediaUrl)){
+    mediaType = "video";
+    if (mediaPrimary && mediaPrimary !== mediaUrl && !isDirectVideo(mediaPrimary) && !isYouTube(mediaPrimary)){
+      poster = mediaPrimary;
+    }
+  } else if (isYouTube(mediaUrl)){
+    mediaType = "youtube";
+  } else if (isDirectVideo(mediaPrimary)){
+    mediaType = "video"; mediaUrl = mediaPrimary;
+  } else if (isYouTube(mediaPrimary)){
+    mediaType = "youtube"; mediaUrl = mediaPrimary;
+  } else {
+    mediaType = "image";
+    mediaUrl  = mediaPrimary || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
+  }
+
+  // final route (sheet.route > catalog.page)
+  let route = (routeFromSource || "").trim();
+  if (route && !route.startsWith("/")) route = "/" + route;
+  if (!route) route = (cat.page || "/").trim();
+
+  return {
+    name, price, mrp,
+    mediaType, mediaUrl, poster,
+    route,           // <-- used to build the shareable link
+    from : cat.name
+  };
+}
+
+/* ========= Load everything ========= */
 window.allProducts = [];
 
-// Load all catalogs
-Promise.all(
-  CATALOGS.map(cat =>
-    fetch(cat.sheet).then(r => r.json()).then(rows => {
-      const items = rows
-        .filter(row => (row["Product Name"] || "").trim())
-        .map(row => ({
-          name: String(row["Product Name"]).trim(),
-          price: Number(row["Selling Price"] || 0),
-          mrp: Number(row["MRP"] || 0),
-          image: row["photo 1"] || row["Photo 1"] || "",
-          page: cat.page,
-          from: cat.name
-        }));
-      return items;
-    })
-  )
-).then(listOfLists => {
-  window.allProducts = listOfLists.flat();
-}).catch(()=>{});
+(async function loadAllCatalogs(){
+  try{
+    const perCatalog = await Promise.all(CATALOGS.map(async (cat) => {
+      const sources = Array.isArray(cat.sheets) ? cat.sheets : [];
+      // fetch each source and map rows with its own route
+      const lists = await Promise.all(sources.map(async (src) => {
+        const rows = await fetchRowsFromSource(src).catch(()=>[]);
+        const route = (src && src.route) ? src.route : "";
+        return rows.map(r => rowToItem(r, cat, route)).filter(Boolean);
+      }));
+      return lists.flat();
+    }));
+    window.allProducts = perCatalog.flat();
+  }catch{
+    window.allProducts = [];
+  }
+})();
 
-/* ========== UI wiring ========== */
-const inputEl   = document.getElementById('headerSearchInput');
-const boxEl     = document.getElementById('headerSearchResults');
+/* ========= URL builder & UI ========= */
+function makeProductURL(routePath, productName){
+  const base = location.origin;                        // e.g., https://precioussly.com
+  const route = routePath.startsWith("/") ? routePath : "/" + routePath;
+  return `${base}${route}?p=${encodeURIComponent(productName)}`;
+}
+
+const inputEl = document.getElementById('headerSearchInput');
+const boxEl   = document.getElementById('headerSearchResults');
 
 function openHeaderSearch(){
   const header = document.querySelector('.site-header');
-  header.classList.add('searching');
-  header.classList.remove('header-hidden');
+  header && header.classList.add('searching');
+  header && header.classList.remove('header-hidden');
   if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
   hideSuggest();
 }
 function closeHeaderSearch(){
   const header = document.querySelector('.site-header');
-  header.classList.remove('searching');
+  header && header.classList.remove('searching');
   const bar = document.getElementById('headerSearchBar');
-if (bar) bar.setAttribute('hidden','');
+  if (bar) bar.setAttribute('hidden','');
   hideSuggest();
 }
-function hideSuggest(){ if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; } }
+function hideSuggest(){
+  if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
+}
 
-/* Filter + render */
+/** media thumb (video muted autoplay, YT iframe autoplay, or image) */
+function renderThumb(p){
+  if (p.mediaType === "video"){
+    const posterAttr = p.poster ? ` poster="${p.poster.replace(/"/g,'&quot;')}"` : "";
+    return `<video class="thumb" muted autoplay loop playsinline${posterAttr}><source src="${p.mediaUrl}"/></video>`;
+  }
+  if (p.mediaType === "youtube"){
+    const embed = toYouTubeEmbed(p.mediaUrl);
+    if (embed){
+      return `<iframe class="thumb" src="${embed}" title="preview" frameborder="0" allow="autoplay; fullscreen; clipboard-write" allowfullscreen></iframe>`;
+    }
+  }
+  const imgSrc = p.mediaUrl || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
+  return `<img class="thumb" src="${imgSrc}" alt="">`;
+}
+
 function renderSuggestions(q){
   const ql = (q||"").toLowerCase().trim();
   if(!ql){ hideSuggest(); return; }
 
   const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
-  const top = list.slice(0, 12); // max 12 items
-
+  const top = list.slice(0, 12);
   if(!top.length){ hideSuggest(); return; }
 
-  // Build rows
-  boxEl.innerHTML = top.map(p => `
-    <div class="header-suggest" onclick="goToProduct('${p.page}', '${p.name.replace(/'/g,"\\'")}')">
-      <img src="${p.image || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
-      <div>
-        <div class="name">${p.name}</div>
-        <div class="price">₹${p.price || '-'}</div>
-      </div></div>
-  `).join('');
+  boxEl.innerHTML = top.map(p => {
+    const url = makeProductURL(p.route, p.name);  // <-- shareable link
+    const safeName = p.name.replace(/'/g,"\\'");
+    return `
+      <a class="header-suggest" href="${url}" onclick="return goToProduct('${p.route}','${safeName}')">
+        <div class="thumb-wrap">${renderThumb(p)}</div>
+        <div>
+          <div class="name">${p.name}</div>
+          <div class="price">₹${p.price || '-'}</div>
+          <div class="mini-link">${url}</div>
+        </div>
+      </a>
+    `;
+  }).join('');
 
+  if (!document.getElementById('search-thumb-inline-style')){
+    const style = document.createElement('style');
+    style.id = 'search-thumb-inline-style';
+    style.textContent = `
+      #headerSearchResults a.header-suggest { text-decoration:none; color:inherit; }
+      .header-suggest { display:flex; gap:.75rem; align-items:center; padding:.5rem; border-radius:10px; }
+      .header-suggest:hover { background:#f7f7f7; }
+      .header-suggest .thumb-wrap { width:56px; height:56px; flex:0 0 56px; overflow:hidden; border-radius:8px; background:#f1f1f1; }
+      .header-suggest .thumb-wrap img,
+      .header-suggest .thumb-wrap video,
+      .header-suggest .thumb-wrap iframe { width:100%; height:100%; object-fit:cover; display:block; }
+      .header-suggest .name { font-weight:600; text-transform:capitalize; }
+      .header-suggest .price { opacity:.8; }
+      .header-suggest .mini-link { font-size:.72rem; opacity:.7; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60vw; }
+    `;
+    document.head.appendChild(style);
+  }
 
   boxEl.style.display = 'block';
 }
 
-/* Navigate to correct page and auto-open popup there via ?p=
-   (Your product pages already re-open popup from ?p=... on load) */
-function goToProduct(pagePath, productName){
-  const base = location.origin;
-  location.href = `${base}${pagePath}?p=${encodeURIComponent(productName)}`;
+/* On click navigate using our builder (and still works as <a> link for copy/share) */
+function goToProduct(routePath, productName){
+  const url = makeProductURL(routePath, productName);
+  location.href = url;
+  return false; // prevent default <a> navigation race (not required but clean)
 }
 
-/* On typing → live suggestions */
+/* Input wiring */
 if (inputEl){
   inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
   inputEl.addEventListener('keydown', e => {
     if(e.key === 'Enter'){
       const typed = (inputEl.value||'').trim();
       if(!typed){ closeHeaderSearch(); return; }
-      // If suggestions are visible, pick the first result; otherwise fall back to best match
       const list = (window.allProducts || [])
         .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
-      const chosen = list[0] ||
-        (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase()) ||
-        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase())) ||
-        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      const chosen = list[0]
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase())
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase()))
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
       if (chosen){
-        goToProduct(chosen.page, chosen.name);
+        goToProduct(chosen.route, chosen.name);
       } else {
-        // default: Resin Necklace page search
-        goToProduct('/resin-necklace/', typed);
+        // fallback: use first catalog's fallback page if nothing matches
+        const fallbackRoute = (CATALOGS[0]?.page) || "/resin-necklace/";
+        goToProduct(fallbackRoute, typed);
       }
     }
   });
 }
 
-// Expose for inline onclick in HTML we rendered
+/* expose */
 window.goToProduct = goToProduct;
-window.openHeaderSearch = openHeaderSearch;
-window.closeHeaderSearch = closeHeaderSearch;
+window.openHeaderSearch = function(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.add('searching');
+  header && header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+};
+window.closeHeaderSearch = function(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+  if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
+};
 </script>
+♥️♥️♥️♥️
 <footer aria-label="Site footer" id="siteFooter">
 <div class="brand">© <span id="footerYear"></span> Precioussly. All rights reserved.</div>
 <nav aria-label="Policies" class="links">
