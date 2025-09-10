@@ -3500,40 +3500,105 @@ window.closeHeaderSearch = closeHeaderSearch;
 </script>
 <!-- ===== Payment Result Popups (Success / Failed) ===== -->
 <style>
-  .paypop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:99999;}
-  .paypop{ margin: 0 10px;width:min(520px,88vw);background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);padding:22px 20px 18px;text-align:center;font-family:'Roboto Slab',serif;border:1px solid #e5e7eb;}
-  .paypop h3{font-size:22px;line-height:1.35;margin:0 0 8px;font-weight:800;color:#111;}
-  .paypop p{font-size:15px;color:#374151;margin:0 0 18px;line-height:1.55;}
-  .paypop .primary{display:inline-flex;gap:10px;align-items:center;justify-content:center;width:100%;padding:12px 16px;border-radius:12px;border:none;background:#2874f0;color:#fff;font-size:16px;cursor:pointer}
-  .paypop .ghost{margin-top:10px;width:100%;padding:11px 16px;border-radius:12px;background:#fff;border:1.4px solid #000;color:#000;font-size:16px;cursor:pointer}
-  .paypop .icon{font-size:28px;margin-bottom:6px}
+  .paypop-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.45);
+    display:none; align-items:center; justify-content:center;
+    z-index:99999;
+  }
+  .paypop{
+    margin:0 10px; width:min(520px,88vw); background:#fff;
+    border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,.25);
+    padding:22px 20px 18px; text-align:center; font-family:'Roboto Slab',serif;
+    border:1px solid #e5e7eb;
+  }
+  .paypop h3{font-size:22px; line-height:1.35; margin:0 0 8px; font-weight:800; color:#111;}
+  .paypop p{font-size:15px; color:#374151; margin:0 0 18px; line-height:1.55;}
+  .paypop .primary{
+    display:inline-flex; gap:10px; align-items:center; justify-content:center;
+    width:100%; padding:12px 16px; border-radius:12px; border:none;
+    background:#2874f0; color:#fff; font-size:16px; cursor:pointer
+  }
+  .paypop .ghost{
+    margin-top:10px; width:100%; padding:11px 16px; border-radius:12px;
+    background:#fff; border:1.4px solid #000; color:#000; font-size:16px; cursor:pointer
+  }
+  .paypop .icon{font-size:28px; margin-bottom:6px}
+  body.no-scroll{overflow:hidden}
 </style>
-<div class="icon-container">
-  <svg viewBox="0 0 120 120" width="90" height="90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <!-- static circle & tick -->
-    <circle cx="60" cy="60" r="50" fill="none" stroke="#16a34a" stroke-width="6"/>
-    <path d="M40 62 L56 78 L84 42" fill="none" stroke="#16a34a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
 
-    <!-- looping halo -->
-    <circle cx="60" cy="60" r="50" fill="none" stroke="#16a34a" stroke-width="4" opacity="0.2">
-      <animate attributeName="r" values="50;60;50" dur="1.8s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.25;0;0.25" dur="1.8s" repeatCount="indefinite"/>
-    </circle>
-  </svg>
-</div>
-    <h3>Order Confirmed!</h3>
+<!-- Success -->
+<div id="paySuccess" class="paypop-overlay" role="dialog" aria-modal="true" aria-labelledby="paySuccessTitle">
+  <div class="paypop" role="document">
+    <div class="icon" aria-hidden="true">
+      <svg viewBox="0 0 120 120" width="90" height="90" xmlns="http://www.w3.org/2000/svg">
+        <!-- static circle & tick -->
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#16a34a" stroke-width="6"/>
+        <path d="M40 62 L56 78 L84 42" fill="none" stroke="#16a34a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- looping halo -->
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#16a34a" stroke-width="4" opacity="0.2">
+          <animate attributeName="r" values="50;60;50" dur="1.8s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.25;0;0.25" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+    </div>
+    <h3 id="paySuccessTitle">Order Confirmed!</h3>
     <p>Your order has been successfully confirmed. Thank you for choosing Precioussly.</p>
     <button class="primary" onclick="paypopBack()">Back</button>
   </div>
 </div>
-<div id="payFailed" class="paypop-overlay" role="dialog" aria-modal="true">
-  <div class="paypop">
-    <div class="icon">❌</div>
-    <h3>Payment Failed</h3>
+
+<!-- Failed -->
+<div id="payFailed" class="paypop-overlay" role="dialog" aria-modal="true" aria-labelledby="payFailedTitle">
+  <div class="paypop" role="document">
+    <div class="icon" aria-hidden="true">❌</div>
+    <h3 id="payFailedTitle">Payment Failed</h3>
     <p>The payment didn’t complete. You can try again or go back.</p>
     <button class="primary" onclick="paypopBack()">Back</button>
   </div>
 </div>
+
+<script>
+  // Helpers to show/hide
+  const showPaySuccess = () => openPaypop('paySuccess');
+  const showPayFailed  = () => openPaypop('payFailed');
+
+  function openPaypop(id){
+    closePaypops(); // ensure only one
+    const el = document.getElementById(id);
+    if (el){ el.style.display = 'flex'; document.body.classList.add('no-scroll'); }
+  }
+
+  function paypopBack(){
+    closePaypops();
+    // Add your navigation here if needed, e.g.: window.history.back();
+  }
+
+  function closePaypops(){
+    ['paySuccess','payFailed'].forEach(k=>{
+      const el = document.getElementById(k);
+      if (el) el.style.display = 'none';
+    });
+    document.body.classList.remove('no-scroll');
+  }
+
+  // close when clicking outside dialog
+  ['paySuccess','payFailed'].forEach(id=>{
+    const overlay = document.getElementById(id);
+    if (overlay){
+      overlay.addEventListener('click', (e)=>{
+        if (e.target === overlay) paypopBack();
+      });
+    }
+  });
+
+  // close on Escape
+  document.addEventListener('keydown', (e)=>{
+    if (e.key === 'Escape') paypopBack();
+  });
+
+  // Example usage after real payment:
+  // if (paymentSuccess) showPaySuccess(); else showPayFailed();
+</script>
 <script>
   function openPayPopup(id){
     try{ document.getElementById(id).style.display='flex'; document.body.style.overflow='hidden'; }catch(_){}
