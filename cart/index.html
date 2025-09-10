@@ -184,12 +184,13 @@ body {
   gap: 10px;
 }
 
-.item img {
+.item img, .item video {
   width: 80px;
   height: 80px;
   object-fit: cover;
   border-radius: 12px;
 }
+
 
 .item-info {
   flex: 1;
@@ -1162,6 +1163,14 @@ button.remove-btn:hover {
 </div>
 <!-- END: Summary and Pay Section -->
   </div>
+<script>
+  function isVideoUrl(url){
+    if (!url) return false;
+    url = String(url).split('?')[0].split('#')[0].trim().toLowerCase();
+    return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg')
+           || url.includes('=video') || url.includes('/video/');
+  }
+</script>
 
 <script>
   const shippingAddress = localStorage.getItem("shippingAddress") || "";
@@ -1179,66 +1188,71 @@ button.remove-btn:hover {
       total += item.price * item.qty;
       const div = document.createElement("div");
       div.className = "item";
+
+      // Check if item.photo is a video
+      const mediaHTML = isVideoUrl(item.photo)
+        ? `<video src="${item.photo}" muted autoplay loop playsinline preload="metadata"></video>`
+        : `<img src="${item.photo}" />`;
+
       div.innerHTML = `
-        <img src="${item.photo}" />
+        ${mediaHTML}
         <div class="item-info">
-  <div class="item-name">${item.name}</div>
-  <div class="item-price">₹${item.price}</div>
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
-    <div class="quantity-bar" style="margin:0;">
-      <button onclick="decrease(${index})">
-        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-          <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-      <div id="qty-${index}" class="quantity-display">${item.qty}</div>
-      <button onclick="increase(${index})">
-        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-          <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-    </div>
-    <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
-  </div>
-</div>
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">₹${item.price}</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+            <div class="quantity-bar" style="margin:0;">
+              <button onclick="decrease(${index})">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                  <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+              <button onclick="increase(${index})">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                  <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+          </div>
+        </div>
       `;
       container.appendChild(div);
     });
 
-    
-
     if (cartData.length === 0) {
-  container.innerHTML = `
-    <div style="text-align:center; margin-top: 30px;">
-      <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
-      <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
-      <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
-    </div>
-  `;
-  document.getElementById("summaryBox").innerHTML = "";
-  document.getElementById("bottomBox").style.display = "none";
-  document.getElementById("paymentMethodBox").style.display = "none";
-}
+      container.innerHTML = `
+        <div style="text-align:center; margin-top: 30px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" class="empty-cart-img" />
+          <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+          <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+        </div>
+      `;
+      document.getElementById("summaryBox").innerHTML = "";
+      document.getElementById("bottomBox").style.display = "none";
+      document.getElementById("paymentMethodBox").style.display = "none";
+    }
   });
 
-function updateSummary() {
-  let total = 0;
-  cartData.forEach(item => total += item.price * item.qty);
+  function updateSummary() {
+    let total = 0;
+    cartData.forEach(item => total += item.price * item.qty);
 
-  const fee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+    const fee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
 
-  const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee
-  try { syncCouponInput(); } catch(e){}
-}</span>`;
+    const feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">${fee === 0 ? 'Free Delivery' : '₹' + fee}</span>`;
 
-  document.getElementById("summaryBox").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;">
-      <span>Order Total</span><span>₹${total + fee}</span>
-    </div>
-  `;
-}
+    document.getElementById("summaryBox").innerHTML = `
+      <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+      <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+      <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+        <span>Order Total</span><span>₹${total + fee}</span>
+      </div>
+    `;
+
+    try { syncCouponInput(); } catch(e){}
+  }
+
   function updateCartBadge() {
     const items = JSON.parse(localStorage.getItem("cartItems")) || [];
     let count = 0;
@@ -1248,7 +1262,15 @@ function updateSummary() {
   }
 
   updateCartBadge();
+
+  // Helper function for videos
+  function isVideoUrl(url){
+    if (!url) return false;
+    url = String(url).split('?')[0].split('#')[0].trim().toLowerCase();
+    return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg');
+  }
 </script>
+
 
 
 <!-- MODERN ADDRESS POPUP START -->
@@ -1535,80 +1557,96 @@ updateCODPrepaidUI();
 
 </script>
 <script>
-window.codCharge = 95; // default until sheet loads
-window.codPrepaid = 95; // default COD prepaid until sheet loads
-window.cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  window.codCharge = 95; // default until sheet loads
+  window.codPrepaid = 95; // default COD prepaid until sheet loads
+  window.cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
 
-document.addEventListener("DOMContentLoaded", () => {
-  const shippingAddress = localStorage.getItem("shippingAddress") || "";
-
-  if (shippingAddress) {
-    document.getElementById("displayAddress").innerHTML = shippingAddress;
+  // Helper: detect video URLs
+  function isVideoUrl(url) {
+    if (!url) return false;
+    url = String(url).split("?")[0].split("#")[0].trim().toLowerCase();
+    return url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".ogg");
   }
 
-  const container = document.getElementById("cartItems");
-  let total = 0;
+  document.addEventListener("DOMContentLoaded", () => {
+    const shippingAddress = localStorage.getItem("shippingAddress") || "";
 
-  window.cartData.forEach((item, index) => {
-    total += item.price * item.qty;
-    const div = document.createElement("div");
-    div.className = "item cart-item-animate";
-    div.innerHTML = `
-      <img src="${item.photo}" />
-      <div class="item-info">
-  <div class="item-name">${item.name}</div>
-  <div class="item-price">₹${item.price}</div>
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
-    <div class="quantity-bar" style="margin:0;">
-      <button onclick="decrease(${index})">
-        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-          <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-      <div id="qty-${index}" class="quantity-display">${item.qty}</div>
-      <button onclick="increase(${index})">
-        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-          <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-    </div>
-    <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
-  </div>
-</div>
-    `;
-    container.appendChild(div);
-  });
+    if (shippingAddress) {
+      document.getElementById("displayAddress").innerHTML = shippingAddress;
+    }
 
-  // If cart is empty
-  if (window.cartData.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center; margin-top: 30px;">
-        <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" />
-        <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
-        <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+    const container = document.getElementById("cartItems");
+    let total = 0;
+
+    window.cartData.forEach((item, index) => {
+      total += item.price * item.qty;
+      const div = document.createElement("div");
+      div.className = "item cart-item-animate";
+
+      // Decide whether to render video or image
+      const mediaHTML = isVideoUrl(item.photo)
+        ? `<video src="${item.photo}" muted autoplay loop playsinline preload="metadata"></video>`
+        : `<img src="${item.photo}" />`;
+
+      div.innerHTML = `
+        ${mediaHTML}
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">₹${item.price}</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;">
+            <div class="quantity-bar" style="margin:0;">
+              <button onclick="decrease(${index})">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                  <path d="M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <div id="qty-${index}" class="quantity-display">${item.qty}</div>
+              <button onclick="increase(${index})">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                  <path d="M12 6v12M6 12h12" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+
+    // If cart is empty
+    if (window.cartData.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; margin-top: 30px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" style="width: 80px; opacity: 0.5;" />
+          <p style="font-size: 16px; color: #555;">Your cart is empty.</p>
+          <button onclick="window.location.href='https://precioussly.com/'" style="margin-top: 20px; background: #2874f0; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-size: 15px; font-family: 'Roboto Slab', serif; cursor: pointer;">Continue Shopping</button>
+        </div>
+      `;
+      document.getElementById("summaryBox").innerHTML = "";
+      document.getElementById("bottomBox").style.display = "none";
+      document.getElementById("paymentMethodBox").style.display = "none";
+      return;
+    }
+
+    document.getElementById("paymentMethodBox").style.display = "block";
+
+    // Summary section
+    let deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+    const feeText = deliveryFee === 0
+      ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
+      : `₹${deliveryFee}`;
+
+    document.getElementById("summaryBox").innerHTML = `
+      <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
+      <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
+      <div class="summary-row" style="font-weight: bold; font-size: 18px;">
+        <span>Order Total</span><span>₹${total + deliveryFee}</span>
       </div>
     `;
-    document.getElementById("summaryBox").innerHTML = "";
-    document.getElementById("bottomBox").style.display = "none";
-  document.getElementById("paymentMethodBox").style.display = "none";
-    return;
-  }
-
-  document.getElementById("paymentMethodBox").style.display = "block";
-
-  // Summary section
-  let deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
-  const feeText = deliveryFee === 0
-    ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
-    : `₹${deliveryFee}`;
-
-  document.getElementById("summaryBox").innerHTML = `
-    <div class="summary-row"><span>Item Total</span><span>₹${total}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-    <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${total + deliveryFee}</span></div>
-  `;
-});
+  });
 </script>
+
 <script>
 function increase(index) {
   const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
