@@ -3498,7 +3498,14 @@ function renderSuggestions(q){
    (Your product pages already re-open popup from ?p=... on load) */
 function goToProduct(pagePath, productName){
   const base = location.origin;
-  location.href = `${base}${pagePath}?p=${encodeURIComponent(productName)}`;
+  // Insert parent segment for resin pages, e.g. "/resin-necklace/" -> "/resin-jewelry/resin-necklace/"
+  let finalPath = pagePath || '/';
+  if (/^\/resin-/.test(finalPath) && !finalPath.startsWith('/resin-jewelry/')) {
+    finalPath = '/resin-jewelry' + (finalPath.startsWith('/') ? finalPath : '/' + finalPath);
+  }
+  // Ensure no double slashes
+  finalPath = finalPath.replace(/\/+/g, '/').replace(/^\/(?=http)/, '');
+  location.href = `${base}${finalPath}?p=${encodeURIComponent(productName)}`;
 }
 
 /* On typing → live suggestions */
