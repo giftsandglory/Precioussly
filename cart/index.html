@@ -1016,7 +1016,13 @@ button.remove-btn:hover {
   box-sizing: border-box !important;
 }
 </style>
-
+<style id="cart-no-anim">
+  /* Turn off ALL cart item animations/transitions */
+  .item,
+  .cart-item-animate { animation: none !important; transition: none !important; }
+  /* Optional: stop empty cart image pulsing too */
+  .empty-cart-img { animation: none !important; }
+</style>
 </head>
 <body>
 <!-- 👇 Resin-style MENU -->
@@ -1569,7 +1575,7 @@ updateCODPrepaidUI();
     window.cartData.forEach((item, index) => {
       total += item.price * item.qty;
       const div = document.createElement("div");
-      div.className = "item cart-item-animate";
+      div.className = "item";
 
       // Decide whether to render video or image
       const mediaHTML = isVideoUrl(item.photo)
@@ -1595,7 +1601,7 @@ updateCODPrepaidUI();
                 </svg>
               </button>
             </div>
-            <button class="remove-btn" onclick="removeItem(${index})" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
+            <button type="button" class="remove-btn" onclick="removeItem(${index}, event)" style="padding:6px 12px; font-family:'Roboto Slab', serif; font-size:13px; background:transparent; border:1px solid #2874f0; color:#2874f0; border-radius:6px;">Remove</button>
           </div>
         </div>
       `;
