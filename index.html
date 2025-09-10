@@ -3410,43 +3410,26 @@ document.addEventListener('DOMContentLoaded', function() {
 ♥️♥️♥️♥️
 <script>
 /* =============================================================================
-   Multi-page Search Setup (index.html) — with:
-     • Multiple Google Sheets per catalog
-     • AUTO Google link → opensheet.elk.sh (when Tab is provided)
+   Multi-page Search Setup (index.html) — TAB = ROUTE
+     • Multiple Google Sheets
+     • AUTO Google link → opensheet.elk.sh (uses Tab)
      • GVIZ fallback
      • AUTO video detection + muted autoplay previews (mp4/webm/mov + YouTube)
-     • Per-sheet ROUTE path for links like:
-         https://precioussly.com/resin-jewelry/resin-necklace?p=car%20Keychain
-   ── Update: URL text is HIDDEN in suggestions (no link shown under product).
+     • The Tab name itself is used as the route path:
+         route = "/" + <Tab>   (e.g., "resin-jewelry/resin-necklace")
    ========================================================================== */
 
-/* ========= Configure your catalogs and sources here =========
-   For each sheet source, fill these 💀 markers:
-
+/* ========= Configure your sheet sources here =========
+   Fill the 💀 markers. Tab will also be used as the route path.
    {
      sheetUrl: "💀 Insert Google Sheets URL here",
-     tab     : "💀 Insert Tab Name here",             // Google Sheet tab (e.g., Sheet1)
-     route   : "💀 Insert Route Path here"            // site path WITHOUT domain, e.g. resin-jewelry/resin-necklace
-   },
+     tab     : "💀 Insert Tab Name here"   // also becomes the route path
+   }
 */
-const CATALOGS = [
-  {
-    name: "Resin Necklace",
-    page: "/resin-necklace/",
-    sheets: [
-      { sheetUrl: "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk", tab: "Sheet1", route: "resin-jewelry/resin-necklace" },
-      { sheetUrl: "💀 Insert Google Sheets URL here", tab: "💀 Insert Tab Name here", route: "💀 Insert Route Path here" },
-      // { sheetUrl: "💀 Insert opensheet.elk.sh OR .../gviz/tq?gid=...", tab: "💀 Insert Tab Name here", route: "💀 resin-jewelry/resin-necklace" },
-    ]
-  },
-  {
-    name: "Hello",
-    page: "/hello/",
-    sheets: [
-      { sheetUrl: "💀 Insert Google Sheets URL here", tab: "💀 Insert Tab Name here", route: "💀 Insert Route Path here" },
-      // { sheetUrl: "💀 Insert opensheet.elk.sh OR .../gviz/tq?gid=...", tab: "💀 Insert Tab Name here", route: "💀 hello" },
-    ]
-  }
+const SOURCES = [
+  { sheetUrl: "💀 Insert Google Sheets URL here", tab: "💀 Insert Tab Name here" },
+  { sheetUrl: "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk", tab: "resin-jewelry/resin-necklace" },
+  // { sheetUrl: "💀 Insert opensheet.elk.sh OR .../gviz/tq?gid=...", tab: "💀 resin-jewelry/resin-necklace" },
 ];
 
 /* ========= Helpers to detect/convert URLs ========= */
@@ -3513,6 +3496,7 @@ function buildGvizFromDoc(sheetUrl){
   return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
 }
 
+/* ========= Fetching ========= */
 async function fetchRowsFromSource(source){
   const { sheetUrl, tab } = source || {};
   if(!sheetUrl) return [];
@@ -3574,7 +3558,14 @@ function valFrom(row, keys){
   return "";
 }
 
-function rowToItem(row, cat, routeFromSource){
+function tabToRoute(tab){
+  let route = String(tab || "").trim();
+  if (!route) return "/";
+  if (!route.startsWith("/")) route = "/" + route;
+  return route;
+}
+
+function rowToItem(row, tabForRoute){
   const name  = String(valFrom(row, ["Product Name","Name","Title"])).trim();
   if(!name) return null;
 
@@ -3606,34 +3597,24 @@ function rowToItem(row, cat, routeFromSource){
     mediaUrl  = mediaPrimary || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
   }
 
-  // route (sheet.route > catalog.page)
-  let route = (routeFromSource || "").trim();
-  if (route && !route.startsWith("/")) route = "/" + route;
-  if (!route) route = (cat.page || "/").trim();
-
   return {
     name, price, mrp,
     mediaType, mediaUrl, poster,
-    route,
-    from : cat.name
+    route: tabToRoute(tabForRoute)   // <-- TAB used as route
   };
 }
 
 /* ========= Load everything ========= */
 window.allProducts = [];
 
-(async function loadAllCatalogs(){
+(async function loadAllSources(){
   try{
-    const perCatalog = await Promise.all(CATALOGS.map(async (cat) => {
-      const sources = Array.isArray(cat.sheets) ? cat.sheets : [];
-      const lists = await Promise.all(sources.map(async (src) => {
-        const rows = await fetchRowsFromSource(src).catch(()=>[]);
-        const route = (src && src.route) ? src.route : "";
-        return rows.map(r => rowToItem(r, cat, route)).filter(Boolean);
-      }));
-      return lists.flat();
+    const lists = await Promise.all(SOURCES.map(async (src) => {
+      const rows = await fetchRowsFromSource(src).catch(()=>[]);
+      const tabRoute = src?.tab || "/";
+      return rows.map(r => rowToItem(r, tabRoute)).filter(Boolean);
     }));
-    window.allProducts = perCatalog.flat();
+    window.allProducts = lists.flat();
   }catch{
     window.allProducts = [];
   }
@@ -3691,7 +3672,7 @@ function renderSuggestions(q){
   const top = list.slice(0, 12);
   if(!top.length){ hideSuggest(); return; }
 
-  // URL text REMOVED under each product (as requested)
+  // No URL text shown
   boxEl.innerHTML = top.map(p => {
     const safeName = p.name.replace(/'/g,"\\'");
     const url = makeProductURL(p.route, p.name);
@@ -3749,7 +3730,8 @@ if (inputEl){
       if (chosen){
         goToProduct(chosen.route, chosen.name);
       } else {
-        const fallbackRoute = (CATALOGS[0]?.page) || "/resin-necklace/";
+        // fallback: use the first source tab as route or "/"
+        const fallbackRoute = SOURCES[0]?.tab ? tabToRoute(SOURCES[0].tab) : "/";
         goToProduct(fallbackRoute, typed);
       }
     }
