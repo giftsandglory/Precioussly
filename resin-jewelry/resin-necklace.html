@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 
-<!-- Resilient Google Sheets Fetch v2 (SWR + 7s timeout + IndexedDB fallback) -->
+<!-- Resilient Google Sheets Fetch v3 (SWR + 7s timeout + IDB fallback + session-frozen responses) -->
 <script>
 (function(){
   const MATCHERS = [
@@ -43,7 +43,7 @@
     },
     async get(key){
       const db = await this.ready();
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         const tx = db.transaction("entries", "readonly");
         const store = tx.objectStore("entries");
         const req = store.get(key);
@@ -53,7 +53,7 @@
     },
     async set(key, val){
       const db = await this.ready();
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         const tx = db.transaction("entries", "readwrite");
         const store = tx.objectStore("entries");
         const req = store.put(val, key);
@@ -112,19 +112,21 @@
     await storageSet(key, entry);
   }
 
-  async function getCache(key){
-    return await storageGet(key);
-  }
+  async function getCache(key){ return await storageGet(key); }
 
   async function fetchWithTimeout(resource, options){
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try{
       return await origFetch(resource, { ...(options||{}), signal: controller.signal });
-    } finally {
-      clearTimeout(id);
-    }
+    } finally { clearTimeout(id); }
   }
+
+  // ---------- Session-freeze to avoid UI toggling ----------
+  // We cache the FIRST seen value for a URL in-memory for this page session.
+  // Subsequent fetches for the same URL during this session will always return
+  // that same content, even if background refresh updates persistent cache.
+  const SESSION_FROZEN = new Map(); // key -> entry
 
   // ---------- Monkey-patch fetch ----------
   window.fetch = function(resource, options){
@@ -134,7 +136,7 @@
 
     const key = cacheKey(resource);
 
-    // Start background refresh immediately (SWR)
+    // Start background refresh (updates persistent cache ONLY)
     (async () => {
       try{
         const netRes = await fetchWithTimeout(resource, options);
@@ -142,32 +144,51 @@
         const text = await netRes.text();
         if (netRes.ok && text && !looksLikeHtmlError(text)) {
           await saveCache(key, text, ct);
-          // Optional event (doesn't alter UI unless listened to)
+          // Optional: broadcast an event for advanced users; we do not auto-apply to UI.
           window.dispatchEvent(new CustomEvent("swr-cache-updated", { detail: { key } }));
         }
       }catch(_){ /* keep stale */ }
     })();
 
-    // Serve stale instantly if available
+    // Serve from session-frozen if present
+    if (SESSION_FROZEN.has(key)) {
+      try {
+        return Promise.resolve(buildResponseFromCache(SESSION_FROZEN.get(key)));
+      } catch(_) { /* fallthrough to below */ }
+    }
+
+    // Otherwise load from persistent cache or network, and freeze it for this session
     return (async () => {
-      const cached = await getCache(key);
-      if (cached){
-        try{ return buildResponseFromCache(cached); }catch(_){ /* fallthrough */ }
-      }
-      // No cache -> network with timeout, also try to cache
-      const res = await fetchWithTimeout(resource, options);
-      try{
-        const ct = (res.headers && res.headers.get && res.headers.get("Content-Type")) || "";
-        const text = await res.clone().text();
-        if (res.ok && text && !looksLikeHtmlError(text)) {
-          await saveCache(key, text, ct);
+      let entry = await getCache(key);
+      if (!entry) {
+        try{
+          const res = await fetchWithTimeout(resource, options);
+          const ct = (res.headers && res.headers.get && res.headers.get("Content-Type")) || "";
+          const text = await res.clone().text();
+          if (res.ok && text && !looksLikeHtmlError(text)) {
+            entry = { body: text, contentType: ct, ts: Date.now() };
+            // Save to persistent cache for next load
+            await saveCache(key, text, ct);
+          }
+          // Return live response even if not cacheable
+          SESSION_FROZEN.set(key, entry || null);
+          return res;
+        }catch(err){
+          // No cache, network failed -> bubble error
+          SESSION_FROZEN.set(key, null);
+          throw err;
         }
-      }catch(_){}
-      return res;
+      } else {
+        // Freeze and serve
+        SESSION_FROZEN.set(key, entry);
+        return buildResponseFromCache(entry);
+      }
     })();
   };
 })();
 </script>
+
+
 
 
 
