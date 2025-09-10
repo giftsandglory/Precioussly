@@ -3415,8 +3415,9 @@ document.addEventListener('DOMContentLoaded', function() {
      • AUTO Google link → opensheet.elk.sh (when Tab is provided)
      • GVIZ fallback
      • AUTO video detection + muted autoplay previews (mp4/webm/mov + YouTube)
-     • NEW: Per-sheet ROUTE path to generate shareable links like:
+     • Per-sheet ROUTE path for links like:
          https://precioussly.com/resin-jewelry/resin-necklace?p=car%20Keychain
+   ── Update: URL text is HIDDEN in suggestions (no link shown under product).
    ========================================================================== */
 
 /* ========= Configure your catalogs and sources here =========
@@ -3427,15 +3428,13 @@ document.addEventListener('DOMContentLoaded', function() {
      tab     : "💀 Insert Tab Name here",             // Google Sheet tab (e.g., Sheet1)
      route   : "💀 Insert Route Path here"            // site path WITHOUT domain, e.g. resin-jewelry/resin-necklace
    },
-
-   Tip: If you already pasted an opensheet URL with /<TAB>, tab is still fine to keep.
 */
 const CATALOGS = [
   {
     name: "Resin Necklace",
-    page: "/resin-necklace/", // fallback route if a sheet doesn't provide its own `route`
+    page: "/resin-necklace/",
     sheets: [
-      { sheetUrl: "💀 Insert Google Sheets URL here", tab: "💀 Insert Tab Name here", route: "💀 Insert Route Path here" },
+      { sheetUrl: "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk", tab: "Sheet1", route: "resin-jewelry/resin-necklace" },
       { sheetUrl: "💀 Insert Google Sheets URL here", tab: "💀 Insert Tab Name here", route: "💀 Insert Route Path here" },
       // { sheetUrl: "💀 Insert opensheet.elk.sh OR .../gviz/tq?gid=...", tab: "💀 Insert Tab Name here", route: "💀 resin-jewelry/resin-necklace" },
     ]
@@ -3444,7 +3443,7 @@ const CATALOGS = [
     name: "Hello",
     page: "/hello/",
     sheets: [
-      { sheetUrl: "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk", tab: "Sheet1", route: "resin-jewelry/resin-necklace" },
+      { sheetUrl: "💀 Insert Google Sheets URL here", tab: "💀 Insert Tab Name here", route: "💀 Insert Route Path here" },
       // { sheetUrl: "💀 Insert opensheet.elk.sh OR .../gviz/tq?gid=...", tab: "💀 Insert Tab Name here", route: "💀 hello" },
     ]
   }
@@ -3607,7 +3606,7 @@ function rowToItem(row, cat, routeFromSource){
     mediaUrl  = mediaPrimary || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
   }
 
-  // final route (sheet.route > catalog.page)
+  // route (sheet.route > catalog.page)
   let route = (routeFromSource || "").trim();
   if (route && !route.startsWith("/")) route = "/" + route;
   if (!route) route = (cat.page || "/").trim();
@@ -3615,7 +3614,7 @@ function rowToItem(row, cat, routeFromSource){
   return {
     name, price, mrp,
     mediaType, mediaUrl, poster,
-    route,           // <-- used to build the shareable link
+    route,
     from : cat.name
   };
 }
@@ -3627,7 +3626,6 @@ window.allProducts = [];
   try{
     const perCatalog = await Promise.all(CATALOGS.map(async (cat) => {
       const sources = Array.isArray(cat.sheets) ? cat.sheets : [];
-      // fetch each source and map rows with its own route
       const lists = await Promise.all(sources.map(async (src) => {
         const rows = await fetchRowsFromSource(src).catch(()=>[]);
         const route = (src && src.route) ? src.route : "";
@@ -3693,16 +3691,16 @@ function renderSuggestions(q){
   const top = list.slice(0, 12);
   if(!top.length){ hideSuggest(); return; }
 
+  // URL text REMOVED under each product (as requested)
   boxEl.innerHTML = top.map(p => {
-    const url = makeProductURL(p.route, p.name);  // <-- shareable link
     const safeName = p.name.replace(/'/g,"\\'");
+    const url = makeProductURL(p.route, p.name);
     return `
       <a class="header-suggest" href="${url}" onclick="return goToProduct('${p.route}','${safeName}')">
         <div class="thumb-wrap">${renderThumb(p)}</div>
         <div>
           <div class="name">${p.name}</div>
           <div class="price">₹${p.price || '-'}</div>
-          <div class="mini-link">${url}</div>
         </div>
       </a>
     `;
@@ -3721,7 +3719,6 @@ function renderSuggestions(q){
       .header-suggest .thumb-wrap iframe { width:100%; height:100%; object-fit:cover; display:block; }
       .header-suggest .name { font-weight:600; text-transform:capitalize; }
       .header-suggest .price { opacity:.8; }
-      .header-suggest .mini-link { font-size:.72rem; opacity:.7; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60vw; }
     `;
     document.head.appendChild(style);
   }
@@ -3729,11 +3726,11 @@ function renderSuggestions(q){
   boxEl.style.display = 'block';
 }
 
-/* On click navigate using our builder (and still works as <a> link for copy/share) */
+/* On click navigate using our builder (still an <a> for long-press copy) */
 function goToProduct(routePath, productName){
   const url = makeProductURL(routePath, productName);
   location.href = url;
-  return false; // prevent default <a> navigation race (not required but clean)
+  return false;
 }
 
 /* Input wiring */
@@ -3752,7 +3749,6 @@ if (inputEl){
       if (chosen){
         goToProduct(chosen.route, chosen.name);
       } else {
-        // fallback: use first catalog's fallback page if nothing matches
         const fallbackRoute = (CATALOGS[0]?.page) || "/resin-necklace/";
         goToProduct(fallbackRoute, typed);
       }
