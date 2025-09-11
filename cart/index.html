@@ -3264,129 +3264,781 @@ function buildCODPreview() {
   };
 }
 </script>
-<script>
-/* ===== Multi-Page Search Setup =====
-   👉 "CATALOGS" me jitne pages/sheets chahen add kijiye.
-   ✅ page ko safest tarike se current page path par set kiya (location.pathname),
-      taaki yahin ka popup ?p= se open ho (aapka maybeOpenFromURL already handle karta hai).
-*/
-const CATALOGS = [
-  {
-    name: "Resin Necklace",
-    sheet: "https://opensheet.elk.sh/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/Sheet1",
-    page : location.pathname            // e.g. "/resin-necklace/" or "/Resin Necklace.html"
-  },
-  // { name:"Hello", sheet:"https://opensheet.elk.sh/XXXX/Sheet1", page:"/hello.html" },
-  // { name:"Rings", sheet:"https://opensheet.elk.sh/YYYY/Sheet1", page:"/rings/" },
-];
 
-// Global merged list
+
+
+<script>
+/* =============================================================================
+   Multi-page Search Setup (index.html)
+   • Sources auto-load from a CONFIG SHEET with columns: "Sheet Url" | "Tab"
+   • No manual edits in code—add/remove rows in the config sheet only.
+   • TAB text itself is used as the route path (e.g., "resin-jewelry/resin-necklace")
+   • Supports: opensheet.elk.sh, Google Docs link (auto → OpenSheet), or GVIZ.
+   • Auto video detection + muted autoplay previews (mp4/webm/mov + YouTube)
+   ========================================================================== */
+
+/* ========= 1) CONFIG SHEET URL (only thing hardcoded once) ========= */
+const CONFIG_SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
+
+/* ========= Helpers to detect/convert URLs ========= */
+function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url || ""); }
+function isGviz(url){ return /\/gviz\/tq\?/i.test(url || ""); }
+function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url || ""); }
+
+function parseGoogleSheetDoc(url){
+  try{
+    const u = new URL(url, location.origin);
+    const m = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/i);
+    const sheetId = m ? m[1] : "";
+    const gid = u.searchParams.get("gid") || "";
+    return { sheetId, gid };
+  }catch{ return { sheetId: "", gid: "" }; }
+}
+
+function buildOpenSheetUrl(sheetUrl, tab){
+  if (!sheetUrl) return "";
+  if (isOpenSheet(sheetUrl)){
+    // If already an opensheet link: ensure /<TAB> is appended (if missing)
+    try{
+      const u = new URL(sheetUrl, location.origin);
+      const parts = u.pathname.split('/').filter(Boolean);
+      if (parts.length >= 3) return u.toString(); // already /<ID>/<TAB>
+      if (tab){
+        if (!u.pathname.endsWith('/')) u.pathname += '/';
+        u.pathname += encodeURIComponent(tab);
+      }
+      return u.toString();
+    }catch{
+      return tab ? sheetUrl.replace(/\/?$/,'/') + encodeURIComponent(tab) : sheetUrl;
+    }
+  }
+  if (isGoogleDocSheet(sheetUrl) && tab){
+    const { sheetId } = parseGoogleSheetDoc(sheetUrl);
+    if (sheetId){
+      return `https://opensheet.elk.sh/${encodeURIComponent(sheetId)}/${encodeURIComponent(tab)}`;
+    }
+  }
+  return sheetUrl;
+}
+
+function buildGvizFromDoc(sheetUrl){
+  const { sheetId, gid } = parseGoogleSheetDoc(sheetUrl);
+  if (!sheetId) return "";
+  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
+}
+
+/* ========= GVIZ parser (used for both data sheets and config sheet) ========= */
+function parseGviz(text){
+  const match = text.match(/setResponse\(([\s\S]*?)\);?/);
+  if(!match) return [];
+  try{
+    const json = JSON.parse(match[1]);
+    const table = json && json.table;
+    if(!table || !table.cols || !table.rows) return [];
+    const headers = table.cols.map(c => (c && (c.label || c.id)) || "");
+    return table.rows.map(r => {
+      const obj = {};
+      (r.c || []).forEach((cell, i) => {
+        const key = headers[i] || `Col${i+1}`;
+        obj[key] = cell && (cell.v != null ? cell.v : cell.f) || "";
+      });
+      return obj;
+    });
+  }catch{ return []; }
+}
+
+/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
+async function fetchRowsFromSource(source){
+  const { sheetUrl, tab } = source || {};
+  if(!sheetUrl) return [];
+
+  // Prefer opensheet — either given or auto-built from Google Doc link
+  const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
+  if (isOpenSheet(openUrl)){
+    try{
+      const r = await fetch(openUrl, { cache: "no-store" });
+      if (r.ok) return await r.json();
+    }catch{}
+  }
+
+  // GVIZ fallback
+  let gvizUrl = "";
+  if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
+  else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
+
+  if (gvizUrl){
+    try{
+      const r = await fetch(gvizUrl, { cache: "no-store" });
+      if (r.ok) return parseGviz(await r.text());
+    }catch{}
+  }
+
+  // Last resort: try raw URL JSON or GVIZ text in response
+  try{
+    const r = await fetch(sheetUrl, { cache: "no-store" });
+    if(!r.ok) return [];
+    const txt = await r.text();
+    try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
+  }catch{ return []; }
+}
+
+/* ========= Read CONFIG SHEET and produce SOURCES ========= */
+function valFrom(row, keys){
+  const map = {};
+  Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
+  for(const key of keys){
+    const real = map[key.toLowerCase()];
+    if (real && row[real] != null && String(row[real]).trim() !== "") return row[real];
+  }
+  return "";
+}
+
+async function loadSourcesFromConfig(){
+  // We accept: opensheet config, Google Doc (auto-GVIZ), or GVIZ URL
+  let rows = [];
+  const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1"); // will be ignored if already has TAB
+  if (isOpenSheet(asOpen)){
+    try{
+      const r = await fetch(asOpen, { cache: "no-store" });
+      if (r.ok) rows = await r.json();
+    }catch{}
+  }
+  if (!rows.length){
+    let gvizUrl = isGviz(CONFIG_SHEET_URL)
+      ? CONFIG_SHEET_URL
+      : (isGoogleDocSheet(CONFIG_SHEET_URL) ? buildGvizFromDoc(CONFIG_SHEET_URL) : "");
+    if (gvizUrl){
+      try{
+        const r = await fetch(gvizUrl, { cache: "no-store" });
+        if (r.ok) rows = parseGviz(await r.text());
+      }catch{}
+    }
+  }
+
+  // Map to SOURCES
+  const sources = (rows || []).map(r => {
+    const sheetUrl = String(valFrom(r, ["Sheet Url","SheetURL","Sheet","URL","Link"])).trim();
+    const tab      = String(valFrom(r, ["Tab","Route","Path"])).trim();
+    if (!sheetUrl || !tab) return null;
+    return { sheetUrl, tab };
+  }).filter(Boolean);
+
+  return sources;
+}
+
+/* ========= Media detection (image / direct video / YouTube) ========= */
+const VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i;
+function isDirectVideo(url){ return VIDEO_EXT_RE.test(url || ""); }
+function isYouTube(url){ return /(youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\/)/i.test(url || ""); }
+function toYouTubeEmbed(url){
+  try{
+    const u = new URL(url);
+    let id = "";
+    if (u.hostname.includes("youtu.be")) id = u.pathname.slice(1);
+    else if (u.pathname.includes("/shorts/")) id = u.pathname.split("/shorts/")[1].split(/[/?#]/)[0];
+    else id = u.searchParams.get("v") || "";
+    if (!id) return "";
+    return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&modestbranding=1&playsinline=1`;
+  }catch{ return ""; }
+}
+
+/* ========= Route + row normalization ========= */
+function tabToRoute(tab){
+  let route = String(tab || "").trim();
+  if (!route) return "/";
+  if (!route.startsWith("/")) route = "/" + route;
+  return route;
+}
+
+function rowToItem(row, tabForRoute){
+  const name  = String(valFrom(row, ["Product Name","Name","Title"])).trim();
+  if(!name) return null;
+
+  const price = Number(valFrom(row, ["Selling Price","Price","Sale Price","Offer Price","₹","INR"])) || 0;
+  const mrp   = Number(valFrom(row, ["MRP","List Price","Max Retail Price"])) || 0;
+
+  const videoCandidate = String(valFrom(row, ["Video","Video URL","video url","video","MP4","WebM","Clip","Reel","Shorts"])).trim();
+  const mediaPrimary   = String(valFrom(row, ["photo 1","Photo 1","Image 1","Primary Image","Image","IMG","Picture","Pic 1","Thumbnail","Thumb"])).trim();
+
+  let mediaType = "image";
+  let mediaUrl  = mediaPrimary || "";
+  let poster    = "";
+
+  if (videoCandidate){ mediaUrl = videoCandidate; }
+  if (isDirectVideo(mediaUrl)){
+    mediaType = "video";
+    if (mediaPrimary && mediaPrimary !== mediaUrl && !isDirectVideo(mediaPrimary) && !isYouTube(mediaPrimary)){
+      poster = mediaPrimary;
+    }
+  } else if (isYouTube(mediaUrl)){
+    mediaType = "youtube";
+  } else if (isDirectVideo(mediaPrimary)){
+    mediaType = "video"; mediaUrl = mediaPrimary;
+  } else if (isYouTube(mediaPrimary)){
+    mediaType = "youtube"; mediaUrl = mediaPrimary;
+  } else {
+    mediaType = "image";
+    mediaUrl  = mediaPrimary || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
+  }
+
+  return { name, price, mrp, mediaType, mediaUrl, poster, route: tabToRoute(tabForRoute) };
+}
+
+/* ========= Load everything ========= */
 window.allProducts = [];
 
-// Load all catalogs from Google Sheets
-Promise.all(
-  CATALOGS.map(cat =>
-    fetch(cat.sheet).then(r => r.json()).then(rows => {
-      const items = rows
-        .filter(row => (row["Product Name"] || "").trim())
-        .map(row => ({
-          name: String(row["Product Name"]).trim(),
-          price: Number(row["Selling Price"] || 0),
-          mrp: Number(row["MRP"] || 0),
-          image: row["photo 1"] || row["Photo 1"] || "",
-          page: cat.page,
-          from: cat.name
-        }));
-      return items;
-    })
-  )
-).then(listOfLists => {
-  window.allProducts = listOfLists.flat();
-}).catch(()=>{ /* ignore */ });
+(async function bootstrap(){
+  // 1) Read SOURCES from config
+  let SOURCES = [];
+  try{ SOURCES = await loadSourcesFromConfig(); }catch{ SOURCES = []; }
 
-/* ========== UI wiring ========== */
+  // If config is empty, you still get an empty product list (no crash)
+  try{
+    const lists = await Promise.all((SOURCES || []).map(async (src) => {
+      const rows = await fetchRowsFromSource(src).catch(()=>[]);
+      const tabRoute = src?.tab || "/";
+      return rows.map(r => rowToItem(r, tabRoute)).filter(Boolean);
+    }));
+    window.allProducts = lists.flat();
+  }catch{
+    window.allProducts = [];
+  }
+})();
+
+/* ========= URL builder & UI ========= */
+/* Rule: if product name is a single word (no spaces), append a trailing space before encoding.
+   Example: "Red" -> encode("Red ") -> "Red%20"
+*/
+function isSingleWord(str){
+  return !!str && str.trim().split(/\s+/).length === 1;
+}
+function buildParamValue(productName){
+  const raw = String(productName || "").trim();
+  const toEncode = isSingleWord(raw) ? (raw + " ") : raw;
+  return encodeURIComponent(toEncode);
+}
+function makeProductURL(routePath, productName){
+  const base = location.origin;                        // e.g., https://precioussly.com
+  const route = routePath.startsWith("/") ? routePath : "/" + routePath;
+  return `${base}${route}?p=${buildParamValue(productName)}`;
+}
+
 const inputEl = document.getElementById('headerSearchInput');
 const boxEl   = document.getElementById('headerSearchResults');
 
 function openHeaderSearch(){
   const header = document.querySelector('.site-header');
-  if(header) header.classList.add('searching');
+  header && header.classList.add('searching');
+  header && header.classList.remove('header-hidden');
   if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
   hideSuggest();
 }
 function closeHeaderSearch(){
   const header = document.querySelector('.site-header');
-  if(header) header.classList.remove('searching');
+  header && header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+  if (bar) bar.setAttribute('hidden','');
   hideSuggest();
 }
 function hideSuggest(){
   if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
 }
 
-/* Filter + render suggestions below the bar */
+/** media thumb (video muted autoplay, YT iframe autoplay, or image) */
+function renderThumb(p){
+  if (p.mediaType === "video"){
+    const posterAttr = p.poster ? ` poster="${p.poster.replace(/"/g,'&quot;')}"` : "";
+    return `<video class="thumb" muted autoplay loop playsinline${posterAttr}><source src="${p.mediaUrl}"/></video>`;
+  }
+  if (p.mediaType === "youtube"){
+    const embed = toYouTubeEmbed(p.mediaUrl);
+    if (embed){
+      return `<iframe class="thumb" src="${embed}" title="preview" frameborder="0" allow="autoplay; fullscreen; clipboard-write" allowfullscreen></iframe>`;
+    }
+  }
+  const imgSrc = p.mediaUrl || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
+  return `<img class="thumb" src="${imgSrc}" alt="">`;
+}
+
 function renderSuggestions(q){
   const ql = (q||"").toLowerCase().trim();
   if(!ql){ hideSuggest(); return; }
 
   const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
-  const top  = list.slice(0, 12); // max 12 items
-
+  const top = list.slice(0, 12);
   if(!top.length){ hideSuggest(); return; }
 
-  boxEl.innerHTML = top.map(p => `
-    <div class="header-suggest" onclick="goToProduct('${p.page}', '${(p.name||"").replace(/'/g,"\\'")}')">
-      <img src="${p.image || 'https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png'}" alt="">
-      <div>
-        <div class="name">${p.name}</div>
-        <div class="price">₹${p.price || '-'}</div>
-      </div></div>
-  `).join('');
+  boxEl.innerHTML = top.map(p => {
+    const safeName = p.name.replace(/'/g,"\\'");
+    const url = makeProductURL(p.route, p.name);
+    return `
+      <a class="header-suggest" href="${url}" onclick="return goToProduct('${p.route}','${safeName}')">
+        <div class="thumb-wrap">${renderThumb(p)}</div>
+        <div>
+          <div class="name">${p.name}</div>
+          <div class="price">₹${p.price || '-'}</div>
+        </div>
+      </a>
+    `;
+  }).join('');
+
+  if (!document.getElementById('search-thumb-inline-style')){
+    const style = document.createElement('style');
+    style.id = 'search-thumb-inline-style';
+    style.textContent = `
+      #headerSearchResults a.header-suggest { text-decoration:none; color:inherit; }
+      .header-suggest { display:flex; gap:.75rem; align-items:center; padding:.5rem; border-radius:10px; }
+      .header-suggest:hover { background:#f7f7f7; }
+      .header-suggest .thumb-wrap { width:56px; height:56px; flex:0 0 56px; overflow:hidden; border-radius:8px; background:#f1f1f1; }
+      .header-suggest .thumb-wrap img,
+      .header-suggest .thumb-wrap video,
+      .header-suggest .thumb-wrap iframe { width:100%; height:100%; object-fit:cover; display:block; }
+      .header-suggest .name { font-weight:600; text-transform:capitalize; }
+      .header-suggest .price { opacity:.8; }
+    `;
+    document.head.appendChild(style);
+  }
 
   boxEl.style.display = 'block';
 }
 
-/* Go to that page and auto-open the product popup via ?p= */
-function goToProduct(pagePath, productName){
-  // Agar pagePath current file hi hai to same-page URL banega
-  const base = location.origin;
-  location.href = `${base}${pagePath}?p=${encodeURIComponent(productName)}`;
+/* On click navigate using our builder (still an <a> for long-press copy) */
+function goToProduct(routePath, productName){
+  const url = makeProductURL(routePath, productName);
+  location.href = url;
+  return false;
 }
 
-/* Typing events */
+/* Input wiring */
 if (inputEl){
   inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
-
-  // Enter: first best match open, bina kisi unwanted redirect ke
   inputEl.addEventListener('keydown', e => {
     if(e.key === 'Enter'){
-      e.preventDefault();
       const typed = (inputEl.value||'').trim();
       if(!typed){ closeHeaderSearch(); return; }
-
       const list = (window.allProducts || [])
         .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
-
-      const chosen =
-        list[0] ||
-        (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase()) ||
-        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase())) ||
-        (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
-
+      const chosen = list[0]
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase())
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase()))
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
       if (chosen){
-        goToProduct(chosen.page, chosen.name);
+        goToProduct(chosen.route, chosen.name);
       } else {
-        // Fallback: isi page par typed name ke saath popup kholne ki koshish
-        goToProduct(location.pathname, typed);
+        // fallback: first configured route or "/"
+        const fallbackRoute = (window.allProducts[0] && window.allProducts[0].route) || "/";
+        goToProduct(fallbackRoute, typed);
       }
     }
   });
 }
 
-// Expose for inline onclick
+/* expose */
 window.goToProduct = goToProduct;
-window.openHeaderSearch = openHeaderSearch;
-window.closeHeaderSearch = closeHeaderSearch;
+window.openHeaderSearch = function(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.add('searching');
+  header && header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+};
+window.closeHeaderSearch = function(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+  if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
+};
 </script>
+
+
+
+<script>
+/* =============================================================================
+   Multi-page Search Setup (index.html)
+   • Sources auto-load from a CONFIG SHEET with columns: "Sheet Url" | "Tab"
+   • No manual edits in code—add/remove rows in the config sheet only.
+   • TAB text itself is used as the route path (e.g., "resin-jewelry/resin-necklace")
+   • Supports: opensheet.elk.sh, Google Docs link (auto → OpenSheet), or GVIZ.
+   • Auto video detection + muted autoplay previews (mp4/webm/mov + YouTube)
+   ========================================================================== */
+
+/* ========= 1) CONFIG SHEET URL (only thing hardcoded once) ========= */
+const CONFIG_SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
+
+/* ========= Helpers to detect/convert URLs ========= */
+function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url || ""); }
+function isGviz(url){ return /\/gviz\/tq\?/i.test(url || ""); }
+function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url || ""); }
+
+function parseGoogleSheetDoc(url){
+  try{
+    const u = new URL(url, location.origin);
+    const m = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/i);
+    const sheetId = m ? m[1] : "";
+    const gid = u.searchParams.get("gid") || "";
+    return { sheetId, gid };
+  }catch{ return { sheetId: "", gid: "" }; }
+}
+
+function buildOpenSheetUrl(sheetUrl, tab){
+  if (!sheetUrl) return "";
+  if (isOpenSheet(sheetUrl)){
+    // If already an opensheet link: ensure /<TAB> is appended (if missing)
+    try{
+      const u = new URL(sheetUrl, location.origin);
+      const parts = u.pathname.split('/').filter(Boolean);
+      if (parts.length >= 3) return u.toString(); // already /<ID>/<TAB>
+      if (tab){
+        if (!u.pathname.endsWith('/')) u.pathname += '/';
+        u.pathname += encodeURIComponent(tab);
+      }
+      return u.toString();
+    }catch{
+      return tab ? sheetUrl.replace(/\/?$/,'/') + encodeURIComponent(tab) : sheetUrl;
+    }
+  }
+  if (isGoogleDocSheet(sheetUrl) && tab){
+    const { sheetId } = parseGoogleSheetDoc(sheetUrl);
+    if (sheetId){
+      return `https://opensheet.elk.sh/${encodeURIComponent(sheetId)}/${encodeURIComponent(tab)}`;
+    }
+  }
+  return sheetUrl;
+}
+
+function buildGvizFromDoc(sheetUrl){
+  const { sheetId, gid } = parseGoogleSheetDoc(sheetUrl);
+  if (!sheetId) return "";
+  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
+}
+
+/* ========= GVIZ parser (used for both data sheets and config sheet) ========= */
+function parseGviz(text){
+  const match = text.match(/setResponse\(([\s\S]*?)\);?/);
+  if(!match) return [];
+  try{
+    const json = JSON.parse(match[1]);
+    const table = json && json.table;
+    if(!table || !table.cols || !table.rows) return [];
+    const headers = table.cols.map(c => (c && (c.label || c.id)) || "");
+    return table.rows.map(r => {
+      const obj = {};
+      (r.c || []).forEach((cell, i) => {
+        const key = headers[i] || `Col${i+1}`;
+        obj[key] = cell && (cell.v != null ? cell.v : cell.f) || "";
+      });
+      return obj;
+    });
+  }catch{ return []; }
+}
+
+/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
+async function fetchRowsFromSource(source){
+  const { sheetUrl, tab } = source || {};
+  if(!sheetUrl) return [];
+
+  // Prefer opensheet — either given or auto-built from Google Doc link
+  const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
+  if (isOpenSheet(openUrl)){
+    try{
+      const r = await fetch(openUrl, { cache: "no-store" });
+      if (r.ok) return await r.json();
+    }catch{}
+  }
+
+  // GVIZ fallback
+  let gvizUrl = "";
+  if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
+  else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
+
+  if (gvizUrl){
+    try{
+      const r = await fetch(gvizUrl, { cache: "no-store" });
+      if (r.ok) return parseGviz(await r.text());
+    }catch{}
+  }
+
+  // Last resort: try raw URL JSON or GVIZ text in response
+  try{
+    const r = await fetch(sheetUrl, { cache: "no-store" });
+    if(!r.ok) return [];
+    const txt = await r.text();
+    try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
+  }catch{ return []; }
+}
+
+/* ========= Read CONFIG SHEET and produce SOURCES ========= */
+function valFrom(row, keys){
+  const map = {};
+  Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
+  for(const key of keys){
+    const real = map[key.toLowerCase()];
+    if (real && row[real] != null && String(row[real]).trim() !== "") return row[real];
+  }
+  return "";
+}
+
+async function loadSourcesFromConfig(){
+  // We accept: opensheet config, Google Doc (auto-GVIZ), or GVIZ URL
+  let rows = [];
+  const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1"); // will be ignored if already has TAB
+  if (isOpenSheet(asOpen)){
+    try{
+      const r = await fetch(asOpen, { cache: "no-store" });
+      if (r.ok) rows = await r.json();
+    }catch{}
+  }
+  if (!rows.length){
+    let gvizUrl = isGviz(CONFIG_SHEET_URL)
+      ? CONFIG_SHEET_URL
+      : (isGoogleDocSheet(CONFIG_SHEET_URL) ? buildGvizFromDoc(CONFIG_SHEET_URL) : "");
+    if (gvizUrl){
+      try{
+        const r = await fetch(gvizUrl, { cache: "no-store" });
+        if (r.ok) rows = parseGviz(await r.text());
+      }catch{}
+    }
+  }
+
+  // Map to SOURCES
+  const sources = (rows || []).map(r => {
+    const sheetUrl = String(valFrom(r, ["Sheet Url","SheetURL","Sheet","URL","Link"])).trim();
+    const tab      = String(valFrom(r, ["Tab","Route","Path"])).trim();
+    if (!sheetUrl || !tab) return null;
+    return { sheetUrl, tab };
+  }).filter(Boolean);
+
+  return sources;
+}
+
+/* ========= Media detection (image / direct video / YouTube) ========= */
+const VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i;
+function isDirectVideo(url){ return VIDEO_EXT_RE.test(url || ""); }
+function isYouTube(url){ return /(youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\/)/i.test(url || ""); }
+function toYouTubeEmbed(url){
+  try{
+    const u = new URL(url);
+    let id = "";
+    if (u.hostname.includes("youtu.be")) id = u.pathname.slice(1);
+    else if (u.pathname.includes("/shorts/")) id = u.pathname.split("/shorts/")[1].split(/[/?#]/)[0];
+    else id = u.searchParams.get("v") || "";
+    if (!id) return "";
+    return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&modestbranding=1&playsinline=1`;
+  }catch{ return ""; }
+}
+
+/* ========= Route + row normalization ========= */
+function tabToRoute(tab){
+  let route = String(tab || "").trim();
+  if (!route) return "/";
+  if (!route.startsWith("/")) route = "/" + route;
+  return route;
+}
+
+function rowToItem(row, tabForRoute){
+  const name  = String(valFrom(row, ["Product Name","Name","Title"])).trim();
+  if(!name) return null;
+
+  const price = Number(valFrom(row, ["Selling Price","Price","Sale Price","Offer Price","₹","INR"])) || 0;
+  const mrp   = Number(valFrom(row, ["MRP","List Price","Max Retail Price"])) || 0;
+
+  const videoCandidate = String(valFrom(row, ["Video","Video URL","video url","video","MP4","WebM","Clip","Reel","Shorts"])).trim();
+  const mediaPrimary   = String(valFrom(row, ["photo 1","Photo 1","Image 1","Primary Image","Image","IMG","Picture","Pic 1","Thumbnail","Thumb"])).trim();
+
+  let mediaType = "image";
+  let mediaUrl  = mediaPrimary || "";
+  let poster    = "";
+
+  if (videoCandidate){ mediaUrl = videoCandidate; }
+  if (isDirectVideo(mediaUrl)){
+    mediaType = "video";
+    if (mediaPrimary && mediaPrimary !== mediaUrl && !isDirectVideo(mediaPrimary) && !isYouTube(mediaPrimary)){
+      poster = mediaPrimary;
+    }
+  } else if (isYouTube(mediaUrl)){
+    mediaType = "youtube";
+  } else if (isDirectVideo(mediaPrimary)){
+    mediaType = "video"; mediaUrl = mediaPrimary;
+  } else if (isYouTube(mediaPrimary)){
+    mediaType = "youtube"; mediaUrl = mediaPrimary;
+  } else {
+    mediaType = "image";
+    mediaUrl  = mediaPrimary || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
+  }
+
+  return { name, price, mrp, mediaType, mediaUrl, poster, route: tabToRoute(tabForRoute) };
+}
+
+/* ========= Load everything ========= */
+window.allProducts = [];
+
+(async function bootstrap(){
+  // 1) Read SOURCES from config
+  let SOURCES = [];
+  try{ SOURCES = await loadSourcesFromConfig(); }catch{ SOURCES = []; }
+
+  // If config is empty, you still get an empty product list (no crash)
+  try{
+    const lists = await Promise.all((SOURCES || []).map(async (src) => {
+      const rows = await fetchRowsFromSource(src).catch(()=>[]);
+      const tabRoute = src?.tab || "/";
+      return rows.map(r => rowToItem(r, tabRoute)).filter(Boolean);
+    }));
+    window.allProducts = lists.flat();
+  }catch{
+    window.allProducts = [];
+  }
+})();
+
+/* ========= URL builder & UI ========= */
+/* Rule: if product name is a single word (no spaces), append a trailing space before encoding.
+   Example: "Red" -> encode("Red ") -> "Red%20"
+*/
+function isSingleWord(str){
+  return !!str && str.trim().split(/\s+/).length === 1;
+}
+function buildParamValue(productName){
+  const raw = String(productName || "").trim();
+  const toEncode = isSingleWord(raw) ? (raw + " ") : raw;
+  return encodeURIComponent(toEncode);
+}
+function makeProductURL(routePath, productName){
+  const base = location.origin;                        // e.g., https://precioussly.com
+  const route = routePath.startsWith("/") ? routePath : "/" + routePath;
+  return `${base}${route}?p=${buildParamValue(productName)}`;
+}
+
+const inputEl = document.getElementById('headerSearchInput');
+const boxEl   = document.getElementById('headerSearchResults');
+
+function openHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.add('searching');
+  header && header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+  if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
+}
+function hideSuggest(){
+  if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
+}
+
+/** media thumb (video muted autoplay, YT iframe autoplay, or image) */
+function renderThumb(p){
+  if (p.mediaType === "video"){
+    const posterAttr = p.poster ? ` poster="${p.poster.replace(/"/g,'&quot;')}"` : "";
+    return `<video class="thumb" muted autoplay loop playsinline${posterAttr}><source src="${p.mediaUrl}"/></video>`;
+  }
+  if (p.mediaType === "youtube"){
+    const embed = toYouTubeEmbed(p.mediaUrl);
+    if (embed){
+      return `<iframe class="thumb" src="${embed}" title="preview" frameborder="0" allow="autoplay; fullscreen; clipboard-write" allowfullscreen></iframe>`;
+    }
+  }
+  const imgSrc = p.mediaUrl || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
+  return `<img class="thumb" src="${imgSrc}" alt="">`;
+}
+
+function renderSuggestions(q){
+  const ql = (q||"").toLowerCase().trim();
+  if(!ql){ hideSuggest(); return; }
+
+  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
+  const top = list.slice(0, 12);
+  if(!top.length){ hideSuggest(); return; }
+
+  boxEl.innerHTML = top.map(p => {
+    const safeName = p.name.replace(/'/g,"\\'");
+    const url = makeProductURL(p.route, p.name);
+    return `
+      <a class="header-suggest" href="${url}" onclick="return goToProduct('${p.route}','${safeName}')">
+        <div class="thumb-wrap">${renderThumb(p)}</div>
+        <div>
+          <div class="name">${p.name}</div>
+          <div class="price">₹${p.price || '-'}</div>
+        </div>
+      </a>
+    `;
+  }).join('');
+
+  if (!document.getElementById('search-thumb-inline-style')){
+    const style = document.createElement('style');
+    style.id = 'search-thumb-inline-style';
+    style.textContent = `
+      #headerSearchResults a.header-suggest { text-decoration:none; color:inherit; }
+      .header-suggest { display:flex; gap:.75rem; align-items:center; padding:.5rem; border-radius:10px; }
+      .header-suggest:hover { background:#f7f7f7; }
+      .header-suggest .thumb-wrap { width:56px; height:56px; flex:0 0 56px; overflow:hidden; border-radius:8px; background:#f1f1f1; }
+      .header-suggest .thumb-wrap img,
+      .header-suggest .thumb-wrap video,
+      .header-suggest .thumb-wrap iframe { width:100%; height:100%; object-fit:cover; display:block; }
+      .header-suggest .name { font-weight:600; text-transform:capitalize; }
+      .header-suggest .price { opacity:.8; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  boxEl.style.display = 'block';
+}
+
+/* On click navigate using our builder (still an <a> for long-press copy) */
+function goToProduct(routePath, productName){
+  const url = makeProductURL(routePath, productName);
+  location.href = url;
+  return false;
+}
+
+/* Input wiring */
+if (inputEl){
+  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
+  inputEl.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      const typed = (inputEl.value||'').trim();
+      if(!typed){ closeHeaderSearch(); return; }
+      const list = (window.allProducts || [])
+        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      const chosen = list[0]
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase())
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase()))
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      if (chosen){
+        goToProduct(chosen.route, chosen.name);
+      } else {
+        // fallback: first configured route or "/"
+        const fallbackRoute = (window.allProducts[0] && window.allProducts[0].route) || "/";
+        goToProduct(fallbackRoute, typed);
+      }
+    }
+  });
+}
+
+/* expose */
+window.goToProduct = goToProduct;
+window.openHeaderSearch = function(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.add('searching');
+  header && header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+};
+window.closeHeaderSearch = function(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+  if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
+};
+</script>
+
 <script>
 // ========== Address Validation Logic (warnings + enable Confirm) ==========
 (function(){
