@@ -1531,6 +1531,7 @@ body.horizontal-mode .product-grid{
 /* Ensure dots stay on-media */
 .popup-media{ position: relative !important; }
 </style>
+
 </head>
 <body>
 <header class="site-header">
@@ -1626,6 +1627,66 @@ body.horizontal-mode .product-grid{
 
 
 <div id="content"></div>
+<script id="swr-fetch-interceptor">
+(() => {
+  const ORIG = window.fetch.bind(window);
+  const MATCH = /(opensheet\.elk\.sh|\/spreadsheets\/.*gviz\/tq\?)/i; // OpenSheet & GViz
+
+  const key = (u) => "swr:" + u;
+  const read = (u) => {
+    try { return JSON.parse(localStorage.getItem(key(u)) || ""); } catch { return null; }
+  };
+  const write = (u, body, ct) => {
+    try {
+      const prev = read(u);
+      const changed = !prev || prev.body !== body;
+      localStorage.setItem(key(u), JSON.stringify({ body, ct: ct || "", t: Date.now() }));
+      if (changed) {
+        window.dispatchEvent(new CustomEvent("swr:update", { detail: { url: u, cacheKey: key(u) } }));
+      }
+    } catch {}
+  };
+
+  window.fetch = async (input, init) => {
+    const url = typeof input === "string" ? input : (input && input.url) || "";
+    if (!MATCH.test(url)) return ORIG(input, init);
+
+    const cached = read(url);
+    if (cached) {
+      // Revalidate in background
+      ORIG(input, init).then(async (r) => {
+        if (!r.ok) return;
+        const txt = await r.clone().text();
+        write(url, txt, r.headers.get("Content-Type") || "");
+      }).catch(()=>{});
+      return new Response(cached.body, {
+        status: 200,
+        headers: { "Content-Type": cached.ct || "application/json" }
+      });
+    }
+
+    // No cache yet → network, then cache
+    const r = await ORIG(input, init);
+    if (!r.ok) return r;
+    const txt = await r.clone().text();
+    write(url, txt, r.headers.get("Content-Type") || "");
+    return new Response(txt, { status: r.status, headers: { "Content-Type": r.headers.get("Content-Type") || "application/json" } });
+  };
+})();
+</script>
+<script>
+  // Boot-time: apply last mode so refresh doesn't change layout
+  (function () {
+    const saved = Number(localStorage.getItem("boxDirectionMode") || "0");
+    document.body.classList.remove("horizontal-mode", "small-cards");
+    if (saved === 2) {
+      document.body.classList.add("horizontal-mode");
+    } else if (saved === 3) {
+      document.body.classList.add("horizontal-mode", "small-cards");
+    }
+    // if 0/1, leave body as normal grid
+  })();
+</script>
 <script>
 // === PASTE YOUR GOOGLE SHEET LINK + TAB NAME HERE ===😎😎😎😎
   const PASTED_SHEET_LINK =
@@ -3104,24 +3165,35 @@ window.closeHeaderSearch = function(){
 /* Reads A2 ("Box Direction") from the sheet rows.
    If it's 2 -> set <body class="horizontal-mode"> */
 
-function applyDirectionFromSheet(rows){
-  try{
-    const first = rows?.[0] || {};
-    const key = Object.keys(first).find(k => k.trim().toLowerCase() === "box direction");
-    const value = Number(first[key] || first["Box Direction"] || 1);
 
-    // Reset classes first
-    document.body.classList.remove("horizontal-mode","small-cards");
+  /* Reads A2 "Box Direction" from the sheet.
+     Persists value in localStorage so refresh keeps the same layout.
+     Only changes classes if the sheet value is different than last time. */
+  function applyDirectionFromSheet(rows) {
+    try {
+      const first = rows?.[0] || {};
+      const key = Object.keys(first).find(k => k && k.trim().toLowerCase() === "box direction");
+      const sheetValue = Number(first[key] ?? first["Box Direction"] ?? 1);
 
-    if (value === 2){
-      // Mode 2: horizontal swipe (default card size)
-      document.body.classList.add("horizontal-mode");
-    } else if (value === 3){
-      // Mode 3: horizontal swipe + smaller cards
-      document.body.classList.add("horizontal-mode","small-cards");
-    } // value === 1 -> normal grid (no extra class)
-  }catch(e){}
-}
+      const prev = Number(localStorage.getItem("boxDirectionMode") || "0");
+
+      // If nothing changed, keep whatever we already applied at boot
+      if (sheetValue === prev) return;
+
+      // Update classes based on the latest sheet value
+      document.body.classList.remove("horizontal-mode", "small-cards");
+      if (sheetValue === 2) {
+        document.body.classList.add("horizontal-mode");
+      } else if (sheetValue === 3) {
+        document.body.classList.add("horizontal-mode", "small-cards");
+      }
+      // Save for next refresh
+      localStorage.setItem("boxDirectionMode", String(sheetValue));
+    } catch (e) {
+      console.warn("applyDirectionFromSheet error", e);
+    }
+  }
+
 
 </script>
 <!-- 🟣 Instagram banner: EXACTLY below the pink certified-strip -->
@@ -3803,10 +3875,120 @@ if (popup){
   });
 })();
 </script>
+<script id="swr-auto-refresh">
+(() => {
+  // ------- helpers you already have; safe guards if not present -------
+  const noop = () => {};
+  const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
-</body>
-</html>
+  // Your existing entry points to (re)load data/render UI.
+  // Adjust names ONLY if your project uses different ones.
+  const reloadData = (window.loadAllData || window.initProducts || window.renderAll || noop);
 
+  // --- Preserve Box Direction (classes + inline style) ---
+  function snapshotBoxDirection() {
+    // Tries common selectors. If your element has a known id/class, add it here.
+    const el = document.querySelector('[data-box-direction], #boxDirection, .box-direction, .product-grid, #products');
+    if (!el) return null;
+    const style = el.getAttribute('style') || '';
+    const cls = el.getAttribute('class') || '';
+    const dir = getComputedStyle(el).flexDirection; // fallback if needed later
+    return { selector: getUniqueSelector(el), style, cls, dir };
+  }
+
+  function restoreBoxDirection(snap) {
+    if (!snap) return;
+    const el = document.querySelector(snap.selector) ||
+               document.querySelector('[data-box-direction], #boxDirection, .box-direction, .product-grid, #products');
+    if (!el) return;
+    // Restore exactly what user had before refresh
+    if (snap.cls) el.setAttribute('class', snap.cls);
+    else el.removeAttribute('class');
+    if (snap.style) el.setAttribute('style', snap.style);
+    else el.removeAttribute('style');
+
+    // Hard-guard: if render code changed flex-direction, force it back
+    try { el.style.flexDirection = snap.dir; } catch {}
+  }
+
+  // Creates a unique-ish selector for the element so we can find it again
+  function getUniqueSelector(el) {
+    if (el.id) return '#' + el.id;
+    const name = el.className && typeof el.className === 'string'
+      ? '.' + el.className.trim().split(/\s+/).join('.')
+      : el.tagName.toLowerCase();
+    const parent = el.parentElement;
+    if (!parent) return name;
+    const index = Array.from(parent.children).indexOf(el) + 1;
+    return getUniqueSelector(parent) + '>' + name + `:nth-child(${index})`;
+  }
+
+  // Soft repaint: refresh data only, keep Box Direction intact
+  async function softRepaint() {
+    const snap = snapshotBoxDirection();
+    try {
+      // Kick your re-render/data reload (no full page reload)
+      await Promise.resolve(reloadData());
+      // Give the DOM a tick to update, then restore
+      await delay(0);
+    } catch {}
+    restoreBoxDirection(snap);
+  }
+
+  // When sheet cache updates, just repaint the data
+  window.addEventListener("swr:update", () => {
+    // Debounce multiple updates into one repaint
+    if (softRepaint._pending) return;
+    softRepaint._pending = true;
+    setTimeout(async () => { await softRepaint(); softRepaint._pending = false; }, 100);
+  });
+
+  // ---- Light polling to trigger background revalidation (unchanged idea) ----
+  async function collectWatchUrls() {
+    const urls = new Set();
+
+    try {
+      // Config sheet (OpenSheet + GViz)
+      if (typeof buildOpenSheetUrl === 'function' && typeof CONFIG_SHEET_URL !== 'undefined') {
+        const openCfg = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1");
+        if (openCfg) urls.add(openCfg);
+      }
+      if (typeof CONFIG_SHEET_URL !== 'undefined') {
+        const gvCfg = (typeof isGviz === 'function' && isGviz(CONFIG_SHEET_URL)) ? CONFIG_SHEET_URL
+                  : (typeof isGoogleDocSheet === 'function' && isGoogleDocSheet(CONFIG_SHEET_URL) && typeof buildGvizFromDoc === 'function'
+                     ? buildGvizFromDoc(CONFIG_SHEET_URL) : "");
+        if (gvCfg) urls.add(gvCfg);
+      }
+    } catch {}
+
+    try {
+      const srcs = (typeof loadSourcesFromConfig === 'function')
+        ? await loadSourcesFromConfig().catch(() => [])
+        : [];
+      (srcs || []).forEach(s => {
+        if (typeof buildOpenSheetUrl === 'function') {
+          const open = buildOpenSheetUrl(s.sheetUrl, s.tab || "");
+          if (open) urls.add(open);
+        }
+        const gv = (typeof isGviz === 'function' && isGviz(s.sheetUrl)) ? s.sheetUrl
+               : (typeof isGoogleDocSheet === 'function' && isGoogleDocSheet(s.sheetUrl) && typeof buildGvizFromDoc === 'function'
+                  ? buildGvizFromDoc(s.sheetUrl) : "");
+        if (gv) urls.add(gv);
+      });
+    } catch {}
+
+    return Array.from(urls);
+  }
+
+  (async () => {
+    const WATCH = await collectWatchUrls();
+    const ping = () => WATCH.forEach(u => { try { fetch(u, { cache: "no-store" }); } catch {} });
+    // Warm + poll every 60s
+    ping();
+    setInterval(ping, 60000);
+  })();
+})();
+</script>
 </body>
 </html>
 
