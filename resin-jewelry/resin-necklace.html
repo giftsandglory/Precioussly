@@ -2868,7 +2868,7 @@ function closePopup() {
     if (e.target !== card) return;
     popup.style.display = "none";
     try { popup.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; }); } catch(e){}
-  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  try { history.replaceState && history.replaceState(null, "", location.href); } catch (e) {}
     card.removeEventListener("transitionend", onDone);
   };
   card.addEventListener("transitionend", onDone);
@@ -3407,7 +3407,7 @@ window.allProducts = [];
       } catch(e){}
       // Fallback: hide right away
       hideInstant();
-      try { history.replaceState(null, "", location.pathname); } catch(e) {}
+      try { history.replaceState && history.replaceState(null, "", location.href); } catch(e) {}
     };
 
     // 1) Push a history state whenever the popup becomes visible
@@ -3431,7 +3431,7 @@ window.allProducts = [];
         // We're popping the popup state -> hide instantly
         hideInstant();
         // Restore clean URL (remove ?p= if any)
-        try { history.replaceState(null, "", location.pathname); } catch(e) {}
+        try { history.replaceState && history.replaceState(null, "", location.href); } catch(e) {}
       } else if (isVisible) {
         // Safety: if user pressed back and popup visible but no state, hide it
         hideInstant();
