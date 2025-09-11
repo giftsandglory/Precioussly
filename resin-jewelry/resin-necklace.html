@@ -4073,6 +4073,22 @@ if (popup){
   })();
 })();
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const pname = params.get("p");
+  if (pname) {
+    // find the product card by name text
+    const cards = document.querySelectorAll(".product-card"); 
+    cards.forEach(card => {
+      const title = (card.querySelector(".product-name")?.innerText || "").trim();
+      if (title === pname) {
+        card.click(); // simulate a click -> your existing code will call openPopup
+      }
+    });
+  }
+});
+</script>
 </body>
 </html>
 
