@@ -2258,11 +2258,24 @@ function renderProducts(data){
     const info=document.createElement("div");
     info.className="product-info";
     let priceHTML="";
-    if(item["MRP"]&&item["Selling Price"]){
-      priceHTML=`<div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;">
-        <span>₹${item["Selling Price"]}</span>
-        <s style="color:#999;font-weight:normal;">₹${item["MRP"]}</s>
+    const mrpVal = Number(item["MRP"]) || 0;
+    const priceVal = Number(item["Selling Price"]) || 0;
+
+    if (priceVal && mrpVal) {
+      priceHTML = `<div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;">
+        <span>₹${priceVal}</span>
+        <s style="color:#999;font-weight:normal;">₹${mrpVal}</s>
       </div>`;
+    } else if (priceVal) {
+      priceHTML = `<div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;">
+        <span>₹${priceVal}</span>
+      </div>`;
+    } else if (mrpVal) {
+      priceHTML = `<div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;">
+        <span>₹${mrpVal}</span>
+      </div>`;
+    } else {
+      priceHTML = ``;
     }
 
     if(+item["in stock"]===0){
