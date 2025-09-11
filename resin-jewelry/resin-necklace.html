@@ -1531,6 +1531,30 @@ body.horizontal-mode .product-grid{
 /* Ensure dots stay on-media */
 .popup-media{ position: relative !important; }
 </style>
+<style id="plain-desc-css">
+/* ===== Plain Description (refined, no underline) ===== */
+.desc-section{
+  margin: 8px 8px 0;
+  text-align: center;
+  background: transparent;
+}
+.desc-title{
+  font-weight: 700;
+  font-size: 13.5px;
+  line-height: 1.2;
+  margin: 2px 0 4px;
+  letter-spacing: .2px;
+  color: #111;
+}
+.desc-content{
+  font-size: 12.5px;
+  line-height: 1.55;
+  height:auto; overflow:visible;
+  padding: 0 4px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+</style>
 
 </head>
 <body>
@@ -1627,698 +1651,364 @@ body.horizontal-mode .product-grid{
 
 
 <div id="content"></div>
-<script id="swr-fetch-interceptor">
-(() => {
-  const ORIG = window.fetch.bind(window);
-  const MATCH = /(opensheet\.elk\.sh|\/spreadsheets\/.*gviz\/tq\?)/i; // OpenSheet & GViz
-
-  const key = (u) => "swr:" + u;
-  const read = (u) => {
-    try { return JSON.parse(localStorage.getItem(key(u)) || ""); } catch { return null; }
-  };
-  const write = (u, body, ct) => {
-    try {
-      const prev = read(u);
-      const changed = !prev || prev.body !== body;
-      localStorage.setItem(key(u), JSON.stringify({ body, ct: ct || "", t: Date.now() }));
-      if (changed) {
-        window.dispatchEvent(new CustomEvent("swr:update", { detail: { url: u, cacheKey: key(u) } }));
-      }
-    } catch {}
-  };
-
-  window.fetch = async (input, init) => {
-    const url = typeof input === "string" ? input : (input && input.url) || "";
-    if (!MATCH.test(url)) return ORIG(input, init);
-
-    const cached = read(url);
-    if (cached) {
-      // Revalidate in background
-      ORIG(input, init).then(async (r) => {
-        if (!r.ok) return;
-        const txt = await r.clone().text();
-        write(url, txt, r.headers.get("Content-Type") || "");
-      }).catch(()=>{});
-      return new Response(cached.body, {
-        status: 200,
-        headers: { "Content-Type": cached.ct || "application/json" }
-      });
-    }
-
-    // No cache yet → network, then cache
-    const r = await ORIG(input, init);
-    if (!r.ok) return r;
-    const txt = await r.clone().text();
-    write(url, txt, r.headers.get("Content-Type") || "");
-    return new Response(txt, { status: r.status, headers: { "Content-Type": r.headers.get("Content-Type") || "application/json" } });
-  };
-})();
-</script>
 <script>
-/* =============================================================================
-   Multi-page Search Setup (index.html)
-   • Sources auto-load from a CONFIG SHEET with columns: "Sheet Url" | "Tab"
-   • Only the CONFIG_SHEET_URL is hardcoded below.
-   • TAB text is used as the route path (e.g., "resin-jewelry/resin-necklace")
-   • Supports: opensheet.elk.sh, Google Docs link (auto → OpenSheet), or GVIZ.
-   • Auto video detection + muted autoplay previews (mp4/webm/mov + YouTube)
-   • Product click builds links like:
-       https://<origin>/<TAB>?p=<kebab-product-name>
-     Examples:
-       car keychain → ?p=car-keychain
-       blue         → ?p=blue
-   ========================================================================== */
+// === PASTE YOUR GOOGLE SHEET LINK + TAB NAME HERE ===😎😎😎😎
+  const PASTED_SHEET_LINK =
+    "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
+  const TAB_NAME = "resin-jewelry/resin-necklace"; // 👈 Yahan apna tab name likho (e.g. "Products", "Necklace")😎😎😎😎
 
-/* ========= 1) CONFIG SHEET URL (only thing hardcoded once) ========= */
-const CONFIG_SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
-
-/* ========= Helpers to detect/convert URLs ========= */
-function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url || ""); }
-function isGviz(url){ return /\/gviz\/tq\?/i.test(url || ""); }
-function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url || ""); }
-
-function parseGoogleSheetDoc(url){
-  try{
-    const u = new URL(url, location.origin);
-    const m = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/i);
-    const sheetId = m ? m[1] : "";
-    const gid = u.searchParams.get("gid") || "";
-    return { sheetId, gid };
-  }catch{ return { sheetId: "", gid: "" }; }
-}
-
-function buildOpenSheetUrl(sheetUrl, tab){
-  if (!sheetUrl) return "";
-  if (isOpenSheet(sheetUrl)){
-    // If already an opensheet link: ensure /<TAB> is appended (if missing)
-    try{
-      const u = new URL(sheetUrl, location.origin);
-      const parts = u.pathname.split('/').filter(Boolean);
-      if (parts.length >= 3) return u.toString(); // already /<ID>/<TAB>
-      if (tab){
-        if (!u.pathname.endsWith('/')) u.pathname += '/';
-        u.pathname += encodeURIComponent(tab);
-      }
-      return u.toString();
-    }catch{
-      return tab ? sheetUrl.replace(/\/?$/,'/') + encodeURIComponent(tab) : sheetUrl;
-    }
+  // --- extract spreadsheet ID ---
+  const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (!idMatch) {
+    console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
   }
-  if (isGoogleDocSheet(sheetUrl) && tab){
-    const { sheetId } = parseGoogleSheetDoc(sheetUrl);
-    if (sheetId){
-      return `https://opensheet.elk.sh/${encodeURIComponent(sheetId)}/${encodeURIComponent(tab)}`;
-    }
-  }
-  return sheetUrl;
-}
+  const sheetId = idMatch ? idMatch[1] : "";
 
-function buildGvizFromDoc(sheetUrl){
-  const { sheetId, gid } = parseGoogleSheetDoc(sheetUrl);
-  if (!sheetId) return "";
-  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
-}
+  // --- final opensheet URL ---
+  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(TAB_NAME)}`;
+  console.log("✅ Final working Sheet URL:", DATA_URL);
 
-/* ========= GVIZ parser (used for both data sheets and config sheet) ========= */
-function parseGviz(text){
-  const match = text.match(/setResponse\(([\s\S]*?)\);?/);
-  if(!match) return [];
-  try{
-    const json = JSON.parse(match[1]);
-    const table = json && json.table;
-    if(!table || !table.cols || !table.rows) return [];
-    const headers = table.cols.map(c => (c && (c.label || c.id)) || "");
-    return table.rows.map(r => {
-      const obj = {};
-      (r.c || []).forEach((cell, i) => {
-        const key = headers[i] || `Col${i+1}`;
-        obj[key] = cell && (cell.v != null ? cell.v : cell.f) || "";
-      });
-      return obj;
-    });
-  }catch{ return []; }
-}
-
-/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
-async function fetchRowsFromSource(source){
-  const { sheetUrl, tab } = source || {};
-  if(!sheetUrl) return [];
-
-  // Prefer opensheet — either given or auto-built from Google Doc link
-  const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
-  if (isOpenSheet(openUrl)){
-    try{
-      const r = await fetch(openUrl, { cache: "no-store" });
-      if (r.ok) return await r.json();
-    }catch{}
-  }
-
-  // GVIZ fallback
-  let gvizUrl = "";
-  if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
-  else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
-
-  if (gvizUrl){
-    try{
-      const r = await fetch(gvizUrl, { cache: "no-store" });
-      if (r.ok) return parseGviz(await r.text());
-    }catch{}
-  }
-
-  // Last resort: try raw URL JSON or GVIZ text in response
-  try{
-    const r = await fetch(sheetUrl, { cache: "no-store" });
-    if(!r.ok) return [];
-    const txt = await r.text();
-    try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
-  }catch{ return []; }
-}
-
-/* ========= Read CONFIG SHEET and produce SOURCES ========= */
-function valFrom(row, keys){
-  const map = {};
-  Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
-  for(const key of keys){
-    const real = map[key.toLowerCase()];
-    if (real && row[real] != null && String(row[real]).trim() !== "") return row[real];
-  }
-  return "";
-}
-
-async function loadSourcesFromConfig(){
-  // Accepts: opensheet config, Google Doc (auto-GVIZ), or GVIZ URL
-  let rows = [];
-  const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1"); // ignored if already has TAB
-  if (isOpenSheet(asOpen)){
-    try{
-      const r = await fetch(asOpen, { cache: "no-store" });
-      if (r.ok) rows = await r.json();
-    }catch{}
-  }
-  if (!rows.length){
-    let gvizUrl = isGviz(CONFIG_SHEET_URL)
-      ? CONFIG_SHEET_URL
-      : (isGoogleDocSheet(CONFIG_SHEET_URL) ? buildGvizFromDoc(CONFIG_SHEET_URL) : "");
-    if (gvizUrl){
-      try{
-        const r = await fetch(gvizUrl, { cache: "no-store" });
-        if (r.ok) rows = parseGviz(await r.text());
-      }catch{}
-    }
-  }
-
-  // Map to SOURCES
-  const sources = (rows || []).map(r => {
-    const sheetUrl = String(valFrom(r, ["Sheet Url","SheetURL","Sheet","URL","Link"])).trim();
-    const tab      = String(valFrom(r, ["Tab","Route","Path"])).trim();
-    if (!sheetUrl || !tab) return null;
-    return { sheetUrl, tab };
-  }).filter(Boolean);
-
-  return sources;
-}
-
-/* ========= Media detection (image / direct video / YouTube) ========= */
-const VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i;
-function isDirectVideo(url){ return VIDEO_EXT_RE.test(url || ""); }
-function isYouTube(url){ return /(youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\/)/i.test(url || ""); }
-function toYouTubeEmbed(url){
-  try{
-    const u = new URL(url);
-    let id = "";
-    if (u.hostname.includes("youtu.be")) id = u.pathname.slice(1);
-    else if (u.pathname.includes("/shorts/")) id = u.pathname.split("/shorts/")[1].split(/[/?#]/)[0];
-    else id = u.searchParams.get("v") || "";
-    if (!id) return "";
-    return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&modestbranding=1&playsinline=1`;
-  }catch{ return ""; }
-}
-
-/* ========= Route + row normalization ========= */
-function tabToRoute(tab){
-  let route = String(tab || "").trim();
-  if (!route) return "/";
-  if (!route.startsWith("/")) route = "/" + route;
-  return route;
-}
-
-function rowToItem(row, tabForRoute){
-  const name  = String(valFrom(row, ["Product Name","Name","Title"])).trim();
-  if(!name) return null;
-
-  const price = Number(valFrom(row, ["Selling Price","Price","Sale Price","Offer Price","₹","INR"])) || 0;
-  const mrp   = Number(valFrom(row, ["MRP","List Price","Max Retail Price"])) || 0;
-
-  const videoCandidate = String(valFrom(row, ["Video","Video URL","video url","video","MP4","WebM","Clip","Reel","Shorts"])).trim();
-  const mediaPrimary   = String(valFrom(row, ["photo 1","Photo 1","Image 1","Primary Image","Image","IMG","Picture","Pic 1","Thumbnail","Thumb"])).trim();
-
-  let mediaType = "image";
-  let mediaUrl  = mediaPrimary || "";
-  let poster    = "";
-
-  if (videoCandidate){ mediaUrl = videoCandidate; }
-  if (isDirectVideo(mediaUrl)){
-    mediaType = "video";
-    if (mediaPrimary && mediaPrimary !== mediaUrl && !isDirectVideo(mediaPrimary) && !isYouTube(mediaPrimary)){
-      poster = mediaPrimary;
-    }
-  } else if (isYouTube(mediaUrl)){
-    mediaType = "youtube";
-  } else if (isDirectVideo(mediaPrimary)){
-    mediaType = "video"; mediaUrl = mediaPrimary;
-  } else if (isYouTube(mediaPrimary)){
-    mediaType = "youtube"; mediaUrl = mediaPrimary;
-  } else {
-    mediaType = "image";
-    mediaUrl  = mediaPrimary || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
-  }
-
-  return { name, price, mrp, mediaType, mediaUrl, poster, route: tabToRoute(tabForRoute) };
-}
-
-/* ========= Load everything ========= */
-window.allProducts = [];
-
-(async function bootstrap(){
-  // 1) Read SOURCES from config
-  let SOURCES = [];
-  try{ SOURCES = await loadSourcesFromConfig(); }catch{ SOURCES = []; }
-
-  // If config is empty, you still get an empty product list (no crash)
-  try{
-    const lists = await Promise.all((SOURCES || []).map(async (src) => {
-      const rows = await fetchRowsFromSource(src).catch(()=>[]);
-      const tabRoute = src?.tab || "/";
-      return rows.map(r => rowToItem(r, tabRoute)).filter(Boolean);
-    }));
-    window.allProducts = lists.flat();
-  }catch{
-    window.allProducts = [];
-  }
-})();
-
-/* ========= URL builder & UI ========= */
-/* Build p=<kebab-case> EXACTLY as required:
-   - Lowercase
-   - Non-letters/numbers → "-"
-   - Collapse multiple "-" and trim leading/trailing "-"
-*/
-function slugify(str){
-  const s = String(str || "").trim().toLowerCase();
-  const slug = s
-    .replace(/[^a-z0-9]+/gi, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  // If slug becomes empty (rare), fall back to encoded original
-  return slug || encodeURIComponent(s);
-}
-
-function buildParamValue(productName){
-  return slugify(productName);
-}
-
-function makeProductURL(routePath, productName){
-  const base = location.origin; // e.g., https://precioussly.com
-  const route = routePath.startsWith("/") ? routePath : "/" + routePath;
-  const p = buildParamValue(productName);
-  return `${base}${route}?p=${p}`;
-}
-
-const inputEl = document.getElementById('headerSearchInput');
-const boxEl   = document.getElementById('headerSearchResults');
-
-function openHeaderSearch(){
-  const header = document.querySelector('.site-header');
-  header && header.classList.add('searching');
-  header && header.classList.remove('header-hidden');
-  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
-  hideSuggest();
-}
-function closeHeaderSearch(){
-  const header = document.querySelector('.site-header');
-  header && header.classList.remove('searching');
-  const bar = document.getElementById('headerSearchBar');
-  if (bar) bar.setAttribute('hidden','');
-  hideSuggest();
-}
-function hideSuggest(){
-  if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
-}
-
-/** media thumb (video muted autoplay, YT iframe autoplay, or image) */
-function renderThumb(p){
-  if (p.mediaType === "video"){
-    const posterAttr = p.poster ? ` poster="${p.poster.replace(/"/g,'&quot;')}"` : "";
-    return `<video class="thumb" muted autoplay loop playsinline${posterAttr}><source src="${p.mediaUrl}"/></video>`;
-  }
-  if (p.mediaType === "youtube"){
-    const embed = toYouTubeEmbed(p.mediaUrl);
-    if (embed){
-      return `<iframe class="thumb" src="${embed}" title="preview" frameborder="0" allow="autoplay; fullscreen; clipboard-write" allowfullscreen></iframe>`;
-    }
-  }
-  const imgSrc = p.mediaUrl || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
-  return `<img class="thumb" src="${imgSrc}" alt="">`;
-}
-
-function renderSuggestions(q){
-  const ql = (q||"").toLowerCase().trim();
-  if(!ql){ hideSuggest(); return; }
-
-  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
-  const top = list.slice(0, 12);
-  if(!top.length){ hideSuggest(); return; }
-
-  boxEl.innerHTML = top.map(p => {
-    const safeName = p.name.replace(/'/g,"\\'");
-    const url = makeProductURL(p.route, p.name);
-    return `
-      <a class="header-suggest" href="${url}" onclick="return goToProduct('${p.route}','${safeName}')">
-        <div class="thumb-wrap">${renderThumb(p)}</div>
-        <div>
-          <div class="name">${p.name}</div>
-          <div class="price">₹${p.price || '-'}</div>
-        </div>
-      </a>
-    `;
-  }).join('');
-
-  if (!document.getElementById('search-thumb-inline-style')){
-    const style = document.createElement('style');
-    style.id = 'search-thumb-inline-style';
-    style.textContent = `
-      #headerSearchResults a.header-suggest { text-decoration:none; color:inherit; }
-      .header-suggest { display:flex; gap:.75rem; align-items:center; padding:.5rem; border-radius:10px; }
-      .header-suggest:hover { background:#f7f7f7; }
-      .header-suggest .thumb-wrap { width:56px; height:56px; flex:0 0 56px; overflow:hidden; border-radius:8px; background:#f1f1f1; }
-      .header-suggest .thumb-wrap img,
-      .header-suggest .thumb-wrap video,
-      .header-suggest .thumb-wrap iframe { width:100%; height:100%; object-fit:cover; display:block; }
-      .header-suggest .name { font-weight:600; text-transform:capitalize; }
-      .header-suggest .price { opacity:.8; }
-    `;
-    document.head.appendChild(style);
-  }
-
-  boxEl.style.display = 'block';
-}
-
-/* On click navigate using our builder (still an <a> for long-press copy) */
-function goToProduct(routePath, productName){
-  const url = makeProductURL(routePath, productName);
-  location.href = url;
-  return false;
-}
-
-/* Input wiring */
-if (inputEl){
-  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
-  inputEl.addEventListener('keydown', e => {
-    if(e.key === 'Enter'){
-      const typed = (inputEl.value||'').trim();
-      if(!typed){ closeHeaderSearch(); return; }
-      const list = (window.allProducts || [])
-        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
-      const chosen = list[0]
-        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase())
-        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase()))
-        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
-      if (chosen){
-        goToProduct(chosen.route, chosen.name);
-      } else {
-        // fallback: first configured route or "/"
-        const fallbackRoute = (window.allProducts[0] && window.allProducts[0].route) || "/";
-        goToProduct(fallbackRoute, typed); // typed will be slugified by builder
-      }
-    }
-  });
-}
-
-/* expose */
-window.goToProduct = goToProduct;
-window.openHeaderSearch = function(){
-  const header = document.querySelector('.site-header');
-  header && header.classList.add('searching');
-  header && header.classList.remove('header-hidden');
-  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
-  hideSuggest();
-};
-window.closeHeaderSearch = function(){
-  const header = document.querySelector('.site-header');
-  header && header.classList.remove('searching');
-  const bar = document.getElementById('headerSearchBar');
-  if (bar) bar.setAttribute('hidden','');
-  hideSuggest();
-};
-</script>
-<script>
-  // Boot-time: apply last mode so refresh doesn't change layout
-  (function () {
-    const saved = Number(localStorage.getItem("boxDirectionMode") || "0");
-    document.body.classList.remove("horizontal-mode", "small-cards");
-    if (saved === 2) {
-      document.body.classList.add("horizontal-mode");
-    } else if (saved === 3) {
-      document.body.classList.add("horizontal-mode", "small-cards");
-    }
-    // if 0/1, leave body as normal grid
-  })();
-</script>
-
-
-<script>
-/* =============================================================================
-   Product Grid (robust loader, no loading text, no retry button)
-   - Tries GViz first (Google) -> fallback OpenSheet
-   - Timeout + retry so page never hangs
-   - If data not loaded → page blank (no message shown)
-   ========================================================================== */
-
-/* === 1) YOUR SHEET LINK + TAB NAME (edit only these two) ================== */
-const PASTED_SHEET_LINK =
-  "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
-const TAB_NAME = "resin-jewelry/resin-necklace";
-
-/* === Helpers =============================================================== */
-function getSheetIdFromLink(link){
-  const m = String(link||"").match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  return m ? m[1] : "";
-}
-const SHEET_ID = getSheetIdFromLink(PASTED_SHEET_LINK);
-
-function buildGVizUrl(sheetId, tab){
-  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tab)}`;
-}
-function buildOpenSheetUrl(sheetId, tab){
-  return `https://opensheet.elk.sh/${encodeURIComponent(sheetId)}/${encodeURIComponent(tab)}`;
-}
-
-function parseGViz(txt){
-  try{
-    const json = JSON.parse(txt.substring(txt.indexOf("{"), txt.lastIndexOf("}")+1));
-    const cols = (json.table.cols||[]).map(c => (c && (c.label || c.id)) || "");
-    return (json.table.rows||[]).map(r => {
-      const obj = {};
-      (r.c||[]).forEach((cell,i)=>obj[cols[i]||`Col${i+1}`]=cell?(cell.v??cell.f??""):"");
-      return obj;
-    });
-  }catch{ return []; }
-}
-
-function isVideoUrl(u){ return /\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i.test(u||""); }
-
-/* visibility */
+  // Use this in the app:
+  const SHEET_URL = DATA_URL;
+// === Visibility control from Google Sheet ===
+// If the "visibility" cell contains the word "hide" (any case), the product is hidden.
+// If the cell is blank (or anything else), the product is shown.
 function isHidden(row){
-  const keys=["visibility","Visibility","Visible","Show/Hide","Show"];
-  for(const k of keys){
-    if(row && row[k]!=null){
-      const v=String(row[k]).trim().toLowerCase();
-      if(v.includes("hide")) return true;
-      if(v.length) return false;
+  const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
+  for (const k of keys){
+    if (row.hasOwnProperty(k) && row[k] != null){
+      const v = String(row[k]).trim().toLowerCase();
+      if (v.includes("hide")) return true;   // ✅ hide when cell contains "hide"
+      // return false on any other non-empty value – requirement only mentions "hide"
+      if (v.length) return false;
     }
   }
-  return false;
+  return false; // blank means show
 }
+
+// Robust: read "Description" even if header has spaces/case variants
 function getSheetDescription(row){
-  const keys=["Description","description","Desc","Product Description"];
-  for(const k of keys){ if(row[k] && String(row[k]).trim()) return String(row[k]); }
+  const keys = [
+    "Description","description","Desc","desc","Product Description","product description",
+    "Description ", " Description", "DESCRIPTION"
+  ];
+  for (const k of keys){
+    if (row[k] && String(row[k]).trim()) return String(row[k]);
+  }
   return "";
 }
 
-/* Networking with timeout */
-function fetchWithTimeout(url,opt={},ms=10000){
-  return new Promise((resolve,reject)=>{
-    const ac=new AbortController();
-    const t=setTimeout(()=>{ac.abort();reject(new Error("timeout"));},ms);
-    fetch(url,{...opt,signal:ac.signal})
-      .then(r=>{clearTimeout(t);resolve(r);})
-      .catch(e=>{clearTimeout(t);reject(e);});
-  });
-}
 
-async function tryLoadRows(){
-  const gviz=buildGVizUrl(SHEET_ID,TAB_NAME);
-  try{
-    const r=await fetchWithTimeout(gviz,{cache:"no-store"});
-    if(r.ok){
-      const rows=parseGViz(await r.text());
-      if(rows.length) return rows;
+
+(async function () {
+  try {
+    // Directly read from the single sheet URL
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+
+    if (typeof applyDirectionFromSheet === "function") {
+      applyDirectionFromSheet(data);
     }
-  }catch{}
 
-  const open=buildOpenSheetUrl(SHEET_ID,TAB_NAME);
-  try{
-    const r=await fetchWithTimeout(open,{cache:"no-store"});
-    if(r.ok){
-      const rows=await r.json();
-      if(rows.length) return rows;
-    }
-  }catch{}
-  return [];
-}
+    window.catalogData = data;
 
-/* Rendering */
-function ensureContainer(){
-  let el=document.getElementById("content");
-  if(el) return el;
-  el=document.createElement("div");
-  el.id="content";
-  document.body.appendChild(el);
-  return el;
-}
-function renderProducts(data){
-  const content=ensureContainer();
-  content.innerHTML="";
-  if(!Array.isArray(data)||!data.length){ return; } // ❌ no retry / no message
+    const content = document.getElementById("content");
+    let currentSection = "";
+    let sectionWrapper;
+    let currentSectionHidden = false;
 
-  let currentSection="",sectionWrapper=null,currentSectionHidden=false;
-  data.forEach(item=>{
-    if(item["Section"]){
-      currentSection=item["Section"];
-      currentSectionHidden=String(item["visibility"]||"").toLowerCase().includes("hide");
-      if(currentSectionHidden){sectionWrapper=null;return;}
-      const st=document.createElement("div");
-      st.className="section-title"; st.innerText=currentSection;
-      content.appendChild(st);
-      sectionWrapper=document.createElement("div");
-      sectionWrapper.className="product-grid";
-      content.appendChild(sectionWrapper);
-      return;
-    }
-    if(currentSectionHidden) return;
-    if(isHidden(item)) return;
-    if(!item["Product Name"]) return;
+    data.forEach((item) => {
+      if (item["Section"]) {
+        currentSection = item["Section"];
+        const secVis = String(item["visibility"] || item["Visibility"] || "")
+          .trim()
+          .toLowerCase();
+        currentSectionHidden = secVis.includes("hide");
+        if (currentSectionHidden) {
+          sectionWrapper = null;
+          return;
+        }
 
-    const product=document.createElement("div");
-    product.className="product";
+        const sectionTitle = document.createElement("div");
+        sectionTitle.className = "section-title";
+        sectionTitle.innerText = currentSection;
+        content.appendChild(sectionTitle);
 
-    product.addEventListener("click",(e)=>{
-      if(e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-      const photos=[item["photo 1"],item["photo 2"],item["photo 3"],item["photo 4"]].filter(Boolean);
-      if(typeof openPopup==="function"){
-        openPopup(photos,item["Product Name"],item["MRP"],item["Selling Price"],item["in stock"],getSheetDescription(item));
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+
+        return;
       }
+
+      if (currentSectionHidden) return;
+      if (!item["Product Name"]) return;
+
+      const product = document.createElement("div");
+      product.className = "product";
+
+      product.addEventListener("click", (e) => {
+        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+        const allPhotos = [
+          item["photo 1"],
+          item["photo 2"],
+          item["photo 3"],
+          item["photo 4"],
+        ].filter(Boolean);
+        openPopup(
+          allPhotos,
+          item["Product Name"],
+          item["MRP"],
+          item["Selling Price"],
+          item["in stock"],
+          getSheetDescription(item)
+        );
+      });
+
+      
+// Media (photo or video)
+(function(){
+  const url1 = (item["photo 1"] || "").trim();
+  let el;
+  if (isVideoUrl(url1)) {
+    const v = document.createElement("video");
+    v.src = url1;
+    v.muted = true;
+    v.autoplay = true;
+    v.loop = true;
+    v.playsInline = true;
+    v.preload = "metadata";
+    v.style.width = "100%";
+    v.style.height = "100%";
+    v.style.objectFit = "cover";
+    v.disablePictureInPicture = true;
+    v.setAttribute("muted","");
+    v.setAttribute("webkit-playsinline","true");
+    v.setAttribute("playsinline","true");
+    v.style.pointerEvents = "none"; // allow card click to bubble
+    v.style.cursor = "default";
+    v.style.display = "block";
+    v.style.width = "100%";
+    v.style.height = "100%"; v.style.aspectRatio = "1 / 1";
+    v.style.objectFit = "contain";
+    el = v;
+  } else {
+    const img = document.createElement("img");
+    img.src = url1;
+    img.alt = item["Product Name"];
+    img.style.pointerEvents = "none";
+    img.style.cursor = "default";
+    el = img;
+  }
+  const wrap = document.createElement('div');
+wrap.className = 'media-square';
+wrap.appendChild(el);
+product.appendChild(wrap);
+})();
+
+
+      if (item["Badge"]) {
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.innerText = item["Badge"];
+        product.appendChild(badge);
+      }
+
+      const infoWrapper = document.createElement("div");
+      infoWrapper.style.padding = "0 6px";
+
+      const title = document.createElement("div");
+      title.className = "product-title";
+      title.style.fontSize = "14px";
+      title.style.textAlign = "left";
+      title.style.marginTop = "8px";
+      title.innerText = item["Product Name"];
+      infoWrapper.appendChild(title);
+
+      const info = document.createElement("div");
+      info.className = "product-info";
+
+      let priceHTML = "";
+      if (item["MRP"] && item["Selling Price"]) {
+        priceHTML = `
+          <div style="
+            text-align:left;
+            font-size:14px;
+            font-weight:bold;
+            display:flex;
+            gap:6px;
+            align-items:center;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+          ">
+            <span>₹${item["Selling Price"]}</span>
+            <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+          </div>
+        `;
+      }
+
+      if (+item["in stock"] === 0) {
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
+        `;
+      } else {
+        const productData = {
+          photo: item["photo 1"],
+          name: item["Product Name"],
+          mrp: item["MRP"],
+          price: item["Selling Price"],
+        };
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(
+            productData
+          )})'>Add to Cart</button>
+        `;
+      }
+
+      infoWrapper.appendChild(info);
+      product.appendChild(infoWrapper);
+
+      if (!sectionWrapper) {
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+      }
+      sectionWrapper.appendChild(product);
     });
 
-    (function(){
-      const url1=(item["photo 1"]||"").trim();
-      let el;
-      if(isVideoUrl(url1)){
-        const v=document.createElement("video");
-        v.src=url1;v.muted=true;v.autoplay=true;v.loop=true;v.playsInline=true;
-        v.disablePictureInPicture=true;v.setAttribute("muted","");
-        v.style.width="100%";v.style.height="100%";v.style.objectFit="cover";
-        v.style.pointerEvents="none";el=v;
-      }else{
-        const img=document.createElement("img");
-        img.src=url1;img.alt=item["Product Name"];
-        img.style.pointerEvents="none";el=img;
+    if (typeof maybeOpenFromURL === "function") {
+      maybeOpenFromURL();
+    }
+  } catch (err) {
+    console.error("Failed to load products:", err);
+  }
+
+    // A2_DIRECTION_TOGGLE :: call
+applyDirectionFromSheet(data);
+    window.catalogData = data;
+    const content = document.getElementById('content');
+    let currentSection = '';
+    let sectionWrapper;
+    let currentSectionHidden = false;
+
+    data.forEach(item => {
+        // --- Section header row handling (section-level hide support) ---
+        if (item["Section"]) {
+          currentSection = item["Section"];
+          const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
+          currentSectionHidden = secVis.includes("hide");
+          if (currentSectionHidden) { sectionWrapper = null; return; }
+          const sectionTitle = document.createElement('div');
+sectionTitle.className = 'section-title';
+        sectionTitle.innerText = currentSection;
+        content.appendChild(sectionTitle);
+
+        sectionWrapper = document.createElement('div');
+        sectionWrapper.className = 'product-grid';
+        content.appendChild(sectionWrapper);
       }
-      const wrap=document.createElement("div");
-      wrap.className="media-square";wrap.appendChild(el);
-      product.appendChild(wrap);
-    })();
 
-    if(item["Badge"]){
-      const badge=document.createElement("div");
-      badge.className="badge"; badge.innerText=item["Badge"];
-      product.appendChild(badge);
-    }
+      if (currentSectionHidden) return;
+      if (isHidden(item)) return;
+      if (!item["Product Name"]) return;
 
-    const infoWrapper=document.createElement("div");
-    infoWrapper.style.padding="0 6px";
+      const product = document.createElement('div');
+      product.className = 'product';
+      // ✅ Open popup when clicking anywhere on the product card (except buttons/qty areas)
+      product.addEventListener('click', (e) => {
+        if (e.target.closest('.add-to-cart, .quantity-bar, button')) return; // ignore interactive controls
+        const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
+        openPopup(allPhotos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"], getSheetDescription(item));
+      });
 
-    const title=document.createElement("div");
-    title.className="product-title";
-    title.style.fontSize="14px"; title.style.textAlign="left"; title.style.marginTop="8px";
-    title.innerText=item["Product Name"];
-    infoWrapper.appendChild(title);
 
-    const info=document.createElement("div");
-    info.className="product-info";
-    let priceHTML="";
-    const mrpVal = Number(item["MRP"]) || 0;
-    const priceVal = Number(item["Selling Price"]) || 0;
+      const img = document.createElement('img');
+      img.src = item["photo 1"];
+      img.alt = item["Product Name"];
+      // 🚫 Make the grid photo non-clickable
+      img.style.pointerEvents = "none";
+      img.style.cursor = "default";
 
-    if (priceVal && mrpVal) {
-      priceHTML = `<div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;">
-        <span>₹${priceVal}</span>
-        <s style="color:#999;font-weight:normal;">₹${mrpVal}</s>
-      </div>`;
-    } else if (priceVal) {
-      priceHTML = `<div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;">
-        <span>₹${priceVal}</span>
-      </div>`;
-    } else if (mrpVal) {
-      priceHTML = `<div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;">
-        <span>₹${mrpVal}</span>
-      </div>`;
-    } else {
-      priceHTML = ``;
-    }
+      const wrap2 = document.createElement('div');
+wrap2.className = 'media-square';
+wrap2.appendChild(img);
+product.appendChild(wrap2);
 
-    if(+item["in stock"]===0){
-      info.innerHTML=`${priceHTML}
-        <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>`;
-    }else{
-      const productData={photo:item["photo 1"],name:item["Product Name"],mrp:item["MRP"],price:item["Selling Price"]};
-      info.innerHTML=`${priceHTML}
-        <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>`;
-    }
+      const infoWrapper = document.createElement('div');
+infoWrapper.style.padding = "0 6px"; // This adds left-right padding
 
-    infoWrapper.appendChild(info);
-    product.appendChild(infoWrapper);
+const title = document.createElement('div');
+title.className = 'product-title';
+title.style.fontSize = "14px";
+title.style.textAlign = "left";
+title.style.marginTop = "8px";
+title.innerText = item["Product Name"];
+infoWrapper.appendChild(title);
 
-    if(!sectionWrapper){
-      sectionWrapper=document.createElement("div");
-      sectionWrapper.className="product-grid";
-      content.appendChild(sectionWrapper);
-    }
-    sectionWrapper.appendChild(product);
-  });
+      if (item["Badge"]) {
+        const badge = document.createElement('div');
+        badge.className = 'badge';
+        badge.innerText = item["Badge"];
+        product.appendChild(badge);
+      }
 
-  if(typeof maybeOpenFromURL==="function") maybeOpenFromURL();
+      const info = document.createElement('div');
+      info.className = 'product-info';
+
+      let priceHTML = "";
+if (item["MRP"] && item["Selling Price"]) {
+  const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
+  priceHTML = `
+    <div style="
+       text-align:left;
+       font-size:14px;
+       font-weight:bold;
+       display:flex;
+       gap:6px;
+       align-items:center;
+       white-space:nowrap;
+       overflow:hidden;
+       text-overflow:ellipsis;
+    ">
+      <span>₹${item["Selling Price"]}</span>
+      <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+    </div>
+  `;
 }
+      if (+item["in stock"] === 0) {
+  info.innerHTML = `
+    ${priceHTML}
+    <button class="add-btn" disabled style="
+      background: #f1f1f1;
+      color: #888;
+      border: 1px solid #ccc;
+    ">Out of Stock</button>
+  `;
+      } else {
+        const productData = {
+          photo: item["photo 1"],
+          name: item["Product Name"],
+          mrp: item["MRP"],
+          price: item["Selling Price"]
+        };
 
-/* Bootstrap */
-window.catalogData=[];
-(async function(){
-  try{
-    const rows=await tryLoadRows();
-    window.catalogData=rows;
-    if(typeof applyDirectionFromSheet==="function"){ try{applyDirectionFromSheet(rows);}catch{} }
-    renderProducts(rows);
-  }catch(e){ console.error(e); }
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>
+        `;
+      }
+
+      infoWrapper.appendChild(info);
+product.appendChild(infoWrapper);
+      sectionWrapper.appendChild(product);
+    });
+    
+    maybeOpenFromURL();
 })();
 </script>
-<script>
-window.addEventListener("pageshow", () => {
-  if (typeof maybeOpenFromURL === "function") {
-    requestAnimationFrame(() => maybeOpenFromURL());
-  }
-});
-</script>
+
+
 
 <script>
   function getParam(name) {
@@ -2874,7 +2564,7 @@ function closePopup() {
     if (e.target !== card) return;
     popup.style.display = "none";
     try { popup.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; }); } catch(e){}
-  try { history.replaceState && history.replaceState(null, "", location.href); } catch (e) {}
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
     card.removeEventListener("transitionend", onDone);
   };
   card.addEventListener("transitionend", onDone);
@@ -3053,16 +2743,18 @@ else document.addEventListener("DOMContentLoaded", updateCartBadge);
 <script>
 /* =============================================================================
    Multi-page Search Setup (index.html)
-   • Reads CONFIG SHEET with columns: "Sheet Url" | "Tab"
-   • Auto supports Google Docs link, opensheet.elk.sh, GViz API
-   • Tries GViz first (stable), fallback to OpenSheet
+   • Sources auto-load from a CONFIG SHEET with columns: "Sheet Url" | "Tab"
+   • No manual edits in code—add/remove rows in the config sheet only.
+   • TAB text itself is used as the route path (e.g., "resin-jewelry/resin-necklace")
+   • Supports: opensheet.elk.sh, Google Docs link (auto → OpenSheet), or GVIZ.
+   • Auto video detection + muted autoplay previews (mp4/webm/mov + YouTube)
    ========================================================================== */
 
-/* ========= 1) CONFIG SHEET URL ========= */
+/* ========= 1) CONFIG SHEET URL (only thing hardcoded once) ========= */
 const CONFIG_SHEET_URL =
   "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
 
-/* ========= Helpers ========= */
+/* ========= Helpers to detect/convert URLs ========= */
 function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url || ""); }
 function isGviz(url){ return /\/gviz\/tq\?/i.test(url || ""); }
 function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url || ""); }
@@ -3080,10 +2772,11 @@ function parseGoogleSheetDoc(url){
 function buildOpenSheetUrl(sheetUrl, tab){
   if (!sheetUrl) return "";
   if (isOpenSheet(sheetUrl)){
+    // If already an opensheet link: ensure /<TAB> is appended (if missing)
     try{
       const u = new URL(sheetUrl, location.origin);
       const parts = u.pathname.split('/').filter(Boolean);
-      if (parts.length >= 3) return u.toString(); 
+      if (parts.length >= 3) return u.toString(); // already /<ID>/<TAB>
       if (tab){
         if (!u.pathname.endsWith('/')) u.pathname += '/';
         u.pathname += encodeURIComponent(tab);
@@ -3102,16 +2795,18 @@ function buildOpenSheetUrl(sheetUrl, tab){
   return sheetUrl;
 }
 
-function buildGvizFromDoc(sheetUrl, tab=""){
+function buildGvizFromDoc(sheetUrl){
   const { sheetId, gid } = parseGoogleSheetDoc(sheetUrl);
   if (!sheetId) return "";
-  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tab)}`;
+  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
 }
 
-/* ========= GVIZ parser ========= */
+/* ========= GVIZ parser (used for both data sheets and config sheet) ========= */
 function parseGviz(text){
+  const match = text.match(/setResponse\(([\s\S]*?)\);?/);
+  if(!match) return [];
   try{
-    const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
+    const json = JSON.parse(match[1]);
     const table = json && json.table;
     if(!table || !table.cols || !table.rows) return [];
     const headers = table.cols.map(c => (c && (c.label || c.id)) || "");
@@ -3126,36 +2821,42 @@ function parseGviz(text){
   }catch{ return []; }
 }
 
-/* ========= Fetch any sheet (GVIZ first, then OpenSheet) ========= */
+/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
 async function fetchRowsFromSource(source){
   const { sheetUrl, tab } = source || {};
   if(!sheetUrl) return [];
 
-  // Try GViz first
-  if (isGoogleDocSheet(sheetUrl)){
-    const gvizUrl = buildGvizFromDoc(sheetUrl, tab || "");
-    try{
-      const r = await fetch(gvizUrl, { cache: "no-store" });
-      if (r.ok){
-        const rows = parseGviz(await r.text());
-        if (rows.length) return rows;
-      }
-    }catch{}
-  }
-
-  // Fallback OpenSheet
+  // Prefer opensheet — either given or auto-built from Google Doc link
   const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
-  if (openUrl){
+  if (isOpenSheet(openUrl)){
     try{
       const r = await fetch(openUrl, { cache: "no-store" });
       if (r.ok) return await r.json();
     }catch{}
   }
 
-  return [];
+  // GVIZ fallback
+  let gvizUrl = "";
+  if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
+  else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
+
+  if (gvizUrl){
+    try{
+      const r = await fetch(gvizUrl, { cache: "no-store" });
+      if (r.ok) return parseGviz(await r.text());
+    }catch{}
+  }
+
+  // Last resort: try raw URL JSON or GVIZ text in response
+  try{
+    const r = await fetch(sheetUrl, { cache: "no-store" });
+    if(!r.ok) return [];
+    const txt = await r.text();
+    try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
+  }catch{ return []; }
 }
 
-/* ========= Read CONFIG SHEET ========= */
+/* ========= Read CONFIG SHEET and produce SOURCES ========= */
 function valFrom(row, keys){
   const map = {};
   Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
@@ -3167,32 +2868,39 @@ function valFrom(row, keys){
 }
 
 async function loadSourcesFromConfig(){
+  // We accept: opensheet config, Google Doc (auto-GVIZ), or GVIZ URL
   let rows = [];
-  // try GViz
-  let gvizUrl = buildGvizFromDoc(CONFIG_SHEET_URL, "Sheet1");
-  try{
-    const r = await fetch(gvizUrl, { cache: "no-store" });
-    if (r.ok) rows = parseGviz(await r.text());
-  }catch{}
-
-  // fallback OpenSheet
-  if (!rows.length){
-    const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1");
+  const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1"); // will be ignored if already has TAB
+  if (isOpenSheet(asOpen)){
     try{
       const r = await fetch(asOpen, { cache: "no-store" });
       if (r.ok) rows = await r.json();
     }catch{}
   }
+  if (!rows.length){
+    let gvizUrl = isGviz(CONFIG_SHEET_URL)
+      ? CONFIG_SHEET_URL
+      : (isGoogleDocSheet(CONFIG_SHEET_URL) ? buildGvizFromDoc(CONFIG_SHEET_URL) : "");
+    if (gvizUrl){
+      try{
+        const r = await fetch(gvizUrl, { cache: "no-store" });
+        if (r.ok) rows = parseGviz(await r.text());
+      }catch{}
+    }
+  }
 
-  return (rows || []).map(r => {
+  // Map to SOURCES
+  const sources = (rows || []).map(r => {
     const sheetUrl = String(valFrom(r, ["Sheet Url","SheetURL","Sheet","URL","Link"])).trim();
     const tab      = String(valFrom(r, ["Tab","Route","Path"])).trim();
     if (!sheetUrl || !tab) return null;
     return { sheetUrl, tab };
   }).filter(Boolean);
+
+  return sources;
 }
 
-/* ========= Media detection ========= */
+/* ========= Media detection (image / direct video / YouTube) ========= */
 const VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i;
 function isDirectVideo(url){ return VIDEO_EXT_RE.test(url || ""); }
 function isYouTube(url){ return /(youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\/)/i.test(url || ""); }
@@ -3223,8 +2931,8 @@ function rowToItem(row, tabForRoute){
   const price = Number(valFrom(row, ["Selling Price","Price","Sale Price","Offer Price","₹","INR"])) || 0;
   const mrp   = Number(valFrom(row, ["MRP","List Price","Max Retail Price"])) || 0;
 
-  const videoCandidate = String(valFrom(row, ["Video","Video URL"])).trim();
-  const mediaPrimary   = String(valFrom(row, ["photo 1","Image"])).trim();
+  const videoCandidate = String(valFrom(row, ["Video","Video URL","video url","video","MP4","WebM","Clip","Reel","Shorts"])).trim();
+  const mediaPrimary   = String(valFrom(row, ["photo 1","Photo 1","Image 1","Primary Image","Image","IMG","Picture","Pic 1","Thumbnail","Thumb"])).trim();
 
   let mediaType = "image";
   let mediaUrl  = mediaPrimary || "";
@@ -3238,6 +2946,10 @@ function rowToItem(row, tabForRoute){
     }
   } else if (isYouTube(mediaUrl)){
     mediaType = "youtube";
+  } else if (isDirectVideo(mediaPrimary)){
+    mediaType = "video"; mediaUrl = mediaPrimary;
+  } else if (isYouTube(mediaPrimary)){
+    mediaType = "youtube"; mediaUrl = mediaPrimary;
   } else {
     mediaType = "image";
     mediaUrl  = mediaPrimary || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
@@ -3250,53 +2962,191 @@ function rowToItem(row, tabForRoute){
 window.allProducts = [];
 
 (async function bootstrap(){
+  // 1) Read SOURCES from config
+  let SOURCES = [];
+  try{ SOURCES = await loadSourcesFromConfig(); }catch{ SOURCES = []; }
+
+  // If config is empty, you still get an empty product list (no crash)
   try{
-    const SOURCES = await loadSourcesFromConfig();
     const lists = await Promise.all((SOURCES || []).map(async (src) => {
       const rows = await fetchRowsFromSource(src).catch(()=>[]);
-      return rows.map(r => rowToItem(r, src.tab)).filter(Boolean);
+      const tabRoute = src?.tab || "/";
+      return rows.map(r => rowToItem(r, tabRoute)).filter(Boolean);
     }));
     window.allProducts = lists.flat();
   }catch{
     window.allProducts = [];
   }
 })();
-</script>
 
+/* ========= URL builder & UI ========= */
+/* Rule: if product name is a single word (no spaces), append a trailing space before encoding.
+   Example: "Red" -> encode("Red ") -> "Red%20"
+*/
+function isSingleWord(str){
+  return !!str && str.trim().split(/\s+/).length === 1;
+}
+function buildParamValue(productName){
+  const raw = String(productName || "").trim();
+  const toEncode = isSingleWord(raw) ? (raw + " ") : raw;
+  return encodeURIComponent(toEncode);
+}
+function makeProductURL(routePath, productName){
+  const base = location.origin;                        // e.g., https://precioussly.com
+  const route = routePath.startsWith("/") ? routePath : "/" + routePath;
+  return `${base}${route}?p=${buildParamValue(productName)}`;
+}
+
+const inputEl = document.getElementById('headerSearchInput');
+const boxEl   = document.getElementById('headerSearchResults');
+
+function openHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.add('searching');
+  header && header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+  if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
+}
+function hideSuggest(){
+  if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
+}
+
+/** media thumb (video muted autoplay, YT iframe autoplay, or image) */
+function renderThumb(p){
+  if (p.mediaType === "video"){
+    const posterAttr = p.poster ? ` poster="${p.poster.replace(/"/g,'&quot;')}"` : "";
+    return `<video class="thumb" muted autoplay loop playsinline${posterAttr}><source src="${p.mediaUrl}"/></video>`;
+  }
+  if (p.mediaType === "youtube"){
+    const embed = toYouTubeEmbed(p.mediaUrl);
+    if (embed){
+      return `<iframe class="thumb" src="${embed}" title="preview" frameborder="0" allow="autoplay; fullscreen; clipboard-write" allowfullscreen></iframe>`;
+    }
+  }
+  const imgSrc = p.mediaUrl || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
+  return `<img class="thumb" src="${imgSrc}" alt="">`;
+}
+
+function renderSuggestions(q){
+  const ql = (q||"").toLowerCase().trim();
+  if(!ql){ hideSuggest(); return; }
+
+  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
+  const top = list.slice(0, 12);
+  if(!top.length){ hideSuggest(); return; }
+
+  boxEl.innerHTML = top.map(p => {
+    const safeName = p.name.replace(/'/g,"\\'");
+    const url = makeProductURL(p.route, p.name);
+    return `
+      <a class="header-suggest" href="${url}" onclick="return goToProduct('${p.route}','${safeName}')">
+        <div class="thumb-wrap">${renderThumb(p)}</div>
+        <div>
+          <div class="name">${p.name}</div>
+          <div class="price">₹${p.price || '-'}</div>
+        </div>
+      </a>
+    `;
+  }).join('');
+
+  if (!document.getElementById('search-thumb-inline-style')){
+    const style = document.createElement('style');
+    style.id = 'search-thumb-inline-style';
+    style.textContent = `
+      #headerSearchResults a.header-suggest { text-decoration:none; color:inherit; }
+      .header-suggest { display:flex; gap:.75rem; align-items:center; padding:.5rem; border-radius:10px; }
+      .header-suggest:hover { background:#f7f7f7; }
+      .header-suggest .thumb-wrap { width:56px; height:56px; flex:0 0 56px; overflow:hidden; border-radius:8px; background:#f1f1f1; }
+      .header-suggest .thumb-wrap img,
+      .header-suggest .thumb-wrap video,
+      .header-suggest .thumb-wrap iframe { width:100%; height:100%; object-fit:cover; display:block; }
+      .header-suggest .name { font-weight:600; text-transform:capitalize; }
+      .header-suggest .price { opacity:.8; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  boxEl.style.display = 'block';
+}
+
+/* On click navigate using our builder (still an <a> for long-press copy) */
+function goToProduct(routePath, productName){
+  const url = makeProductURL(routePath, productName);
+  location.href = url;
+  return false;
+}
+
+/* Input wiring */
+if (inputEl){
+  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
+  inputEl.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      const typed = (inputEl.value||'').trim();
+      if(!typed){ closeHeaderSearch(); return; }
+      const list = (window.allProducts || [])
+        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      const chosen = list[0]
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase())
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase()))
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      if (chosen){
+        goToProduct(chosen.route, chosen.name);
+      } else {
+        // fallback: first configured route or "/"
+        const fallbackRoute = (window.allProducts[0] && window.allProducts[0].route) || "/";
+        goToProduct(fallbackRoute, typed);
+      }
+    }
+  });
+}
+
+/* expose */
+window.goToProduct = goToProduct;
+window.openHeaderSearch = function(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.add('searching');
+  header && header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+};
+window.closeHeaderSearch = function(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+  if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
+};
+</script>
 <!-- A2_DIRECTION_TOGGLE :: JS helper -->
 <script>
 /* Reads A2 ("Box Direction") from the sheet rows.
    If it's 2 -> set <body class="horizontal-mode"> */
 
+function applyDirectionFromSheet(rows){
+  try{
+    const first = rows?.[0] || {};
+    const key = Object.keys(first).find(k => k.trim().toLowerCase() === "box direction");
+    const value = Number(first[key] || first["Box Direction"] || 1);
 
-  /* Reads A2 "Box Direction" from the sheet.
-     Persists value in localStorage so refresh keeps the same layout.
-     Only changes classes if the sheet value is different than last time. */
-  function applyDirectionFromSheet(rows) {
-    try {
-      const first = rows?.[0] || {};
-      const key = Object.keys(first).find(k => k && k.trim().toLowerCase() === "box direction");
-      const sheetValue = Number(first[key] ?? first["Box Direction"] ?? 1);
+    // Reset classes first
+    document.body.classList.remove("horizontal-mode","small-cards");
 
-      const prev = Number(localStorage.getItem("boxDirectionMode") || "0");
-
-      // If nothing changed, keep whatever we already applied at boot
-      if (sheetValue === prev) return;
-
-      // Update classes based on the latest sheet value
-      document.body.classList.remove("horizontal-mode", "small-cards");
-      if (sheetValue === 2) {
-        document.body.classList.add("horizontal-mode");
-      } else if (sheetValue === 3) {
-        document.body.classList.add("horizontal-mode", "small-cards");
-      }
-      // Save for next refresh
-      localStorage.setItem("boxDirectionMode", String(sheetValue));
-    } catch (e) {
-      console.warn("applyDirectionFromSheet error", e);
-    }
-  }
-
+    if (value === 2){
+      // Mode 2: horizontal swipe (default card size)
+      document.body.classList.add("horizontal-mode");
+    } else if (value === 3){
+      // Mode 3: horizontal swipe + smaller cards
+      document.body.classList.add("horizontal-mode","small-cards");
+    } // value === 1 -> normal grid (no extra class)
+  }catch(e){}
+}
 
 </script>
 <!-- 🟣 Instagram banner: EXACTLY below the pink certified-strip -->
@@ -3413,7 +3263,7 @@ window.allProducts = [];
       } catch(e){}
       // Fallback: hide right away
       hideInstant();
-      try { history.replaceState && history.replaceState(null, "", location.href); } catch(e) {}
+      try { history.replaceState(null, "", location.pathname); } catch(e) {}
     };
 
     // 1) Push a history state whenever the popup becomes visible
@@ -3437,7 +3287,7 @@ window.allProducts = [];
         // We're popping the popup state -> hide instantly
         hideInstant();
         // Restore clean URL (remove ?p= if any)
-        try { history.replaceState && history.replaceState(null, "", location.href); } catch(e) {}
+        try { history.replaceState(null, "", location.pathname); } catch(e) {}
       } else if (isVisible) {
         // Safety: if user pressed back and popup visible but no state, hide it
         hideInstant();
@@ -3978,124 +3828,12 @@ if (popup){
   });
 })();
 </script>
-<script id="swr-auto-refresh">
-(() => {
-  // ------- helpers you already have; safe guards if not present -------
-  const noop = () => {};
-  const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
-  // Your existing entry points to (re)load data/render UI.
-  // Adjust names ONLY if your project uses different ones.
-  const reloadData = (window.loadAllData || window.initProducts || window.renderAll || noop);
+</body>
+</html>
 
-  // --- Preserve Box Direction (classes + inline style) ---
-  function snapshotBoxDirection() {
-    // Tries common selectors. If your element has a known id/class, add it here.
-    const el = document.querySelector('[data-box-direction], #boxDirection, .box-direction, .product-grid, #products');
-    if (!el) return null;
-    const style = el.getAttribute('style') || '';
-    const cls = el.getAttribute('class') || '';
-    const dir = getComputedStyle(el).flexDirection; // fallback if needed later
-    return { selector: getUniqueSelector(el), style, cls, dir };
-  }
-
-  function restoreBoxDirection(snap) {
-    if (!snap) return;
-    const el = document.querySelector(snap.selector) ||
-               document.querySelector('[data-box-direction], #boxDirection, .box-direction, .product-grid, #products');
-    if (!el) return;
-    // Restore exactly what user had before refresh
-    if (snap.cls) el.setAttribute('class', snap.cls);
-    else el.removeAttribute('class');
-    if (snap.style) el.setAttribute('style', snap.style);
-    else el.removeAttribute('style');
-
-    // Hard-guard: if render code changed flex-direction, force it back
-    try { el.style.flexDirection = snap.dir; } catch {}
-  }
-
-  // Creates a unique-ish selector for the element so we can find it again
-  function getUniqueSelector(el) {
-    if (el.id) return '#' + el.id;
-    const name = el.className && typeof el.className === 'string'
-      ? '.' + el.className.trim().split(/\s+/).join('.')
-      : el.tagName.toLowerCase();
-    const parent = el.parentElement;
-    if (!parent) return name;
-    const index = Array.from(parent.children).indexOf(el) + 1;
-    return getUniqueSelector(parent) + '>' + name + `:nth-child(${index})`;
-  }
-
-  // Soft repaint: refresh data only, keep Box Direction intact
-  async function softRepaint() {
-    const snap = snapshotBoxDirection();
-    try {
-      // Kick your re-render/data reload (no full page reload)
-      await Promise.resolve(reloadData());
-      // Give the DOM a tick to update, then restore
-      await delay(0);
-    } catch {}
-    restoreBoxDirection(snap);
-  }
-
-  // When sheet cache updates, just repaint the data
-  window.addEventListener("swr:update", () => {
-    // Debounce multiple updates into one repaint
-    if (softRepaint._pending) return;
-    softRepaint._pending = true;
-    setTimeout(async () => { await softRepaint(); softRepaint._pending = false; }, 100);
-  });
-
-  // ---- Light polling to trigger background revalidation (unchanged idea) ----
-  async function collectWatchUrls() {
-    const urls = new Set();
-
-    try {
-      // Config sheet (OpenSheet + GViz)
-      if (typeof buildOpenSheetUrl === 'function' && typeof CONFIG_SHEET_URL !== 'undefined') {
-        const openCfg = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1");
-        if (openCfg) urls.add(openCfg);
-      }
-      if (typeof CONFIG_SHEET_URL !== 'undefined') {
-        const gvCfg = (typeof isGviz === 'function' && isGviz(CONFIG_SHEET_URL)) ? CONFIG_SHEET_URL
-                  : (typeof isGoogleDocSheet === 'function' && isGoogleDocSheet(CONFIG_SHEET_URL) && typeof buildGvizFromDoc === 'function'
-                     ? buildGvizFromDoc(CONFIG_SHEET_URL) : "");
-        if (gvCfg) urls.add(gvCfg);
-      }
-    } catch {}
-
-    try {
-      const srcs = (typeof loadSourcesFromConfig === 'function')
-        ? await loadSourcesFromConfig().catch(() => [])
-        : [];
-      (srcs || []).forEach(s => {
-        if (typeof buildOpenSheetUrl === 'function') {
-          const open = buildOpenSheetUrl(s.sheetUrl, s.tab || "");
-          if (open) urls.add(open);
-        }
-        const gv = (typeof isGviz === 'function' && isGviz(s.sheetUrl)) ? s.sheetUrl
-               : (typeof isGoogleDocSheet === 'function' && isGoogleDocSheet(s.sheetUrl) && typeof buildGvizFromDoc === 'function'
-                  ? buildGvizFromDoc(s.sheetUrl) : "");
-        if (gv) urls.add(gv);
-      });
-    } catch {}
-
-    return Array.from(urls);
-  }
-
-  (async () => {
-    const WATCH = await collectWatchUrls();
-    const ping = () => WATCH.forEach(u => { try { fetch(u, { cache: "no-store" }); } catch {} });
-    // Warm + poll every 60s
-    ping();
-    setInterval(ping, 60000);
-  })();
-})();
-</script>
 </body>
 </html>
 
 
 
-
-<!-- Updated by ChatGPT on 2025-09-11 06:58:48 IST -->
