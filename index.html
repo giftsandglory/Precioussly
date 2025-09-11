@@ -3410,32 +3410,22 @@ document.addEventListener('DOMContentLoaded', function() {
 ♥️♥️♥️♥️
 <script>
 /* =============================================================================
-   Multi-page Search Setup (index.html) — TAB = ROUTE
-     • Multiple Google Sheets
-     • AUTO Google link → opensheet.elk.sh (uses Tab)
-     • GVIZ fallback
-     • AUTO video detection + muted autoplay previews (mp4/webm/mov + YouTube)
-     • The Tab name itself is used as the route path:
-         route = "/" + <Tab>   (e.g., "resin-jewelry/resin-necklace")
+   Multi-page Search Setup (index.html)
+   • Sources auto-load from a CONFIG SHEET with columns: "Sheet Url" | "Tab"
+   • No manual edits in code—add/remove rows in the config sheet only.
+   • TAB text itself is used as the route path (e.g., "resin-jewelry/resin-necklace")
+   • Supports: opensheet.elk.sh, Google Docs link (auto → OpenSheet), or GVIZ.
+   • Auto video detection + muted autoplay previews (mp4/webm/mov + YouTube)
    ========================================================================== */
 
-/* ========= Configure your sheet sources here =========
-   Fill the 💀 markers. Tab will also be used as the route path.
-   {
-     sheetUrl: "💀 Insert Google Sheets URL here",
-     tab     : "💀 Insert Tab Name here"   // also becomes the route path
-   }
-*/
-const SOURCES = [
-  { sheetUrl: "💀 Insert Google Sheets URL here", tab: "💀 Insert Tab Name here" },
-  { sheetUrl: "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk", tab: "resin-jewelry/resin-necklace" },
-  // { sheetUrl: "💀 Insert opensheet.elk.sh OR .../gviz/tq?gid=...", tab: "💀 resin-jewelry/resin-necklace" },
-];
+/* ========= 1) CONFIG SHEET URL (only thing hardcoded once) ========= */
+const CONFIG_SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
 
 /* ========= Helpers to detect/convert URLs ========= */
-function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url); }
-function isGviz(url){ return /\/gviz\/tq\?/i.test(url); }
-function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url); }
+function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url || ""); }
+function isGviz(url){ return /\/gviz\/tq\?/i.test(url || ""); }
+function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url || ""); }
 
 function parseGoogleSheetDoc(url){
   try{
@@ -3448,7 +3438,9 @@ function parseGoogleSheetDoc(url){
 }
 
 function buildOpenSheetUrl(sheetUrl, tab){
+  if (!sheetUrl) return "";
   if (isOpenSheet(sheetUrl)){
+    // If already an opensheet link: ensure /<TAB> is appended (if missing)
     try{
       const u = new URL(sheetUrl, location.origin);
       const parts = u.pathname.split('/').filter(Boolean);
@@ -3471,6 +3463,13 @@ function buildOpenSheetUrl(sheetUrl, tab){
   return sheetUrl;
 }
 
+function buildGvizFromDoc(sheetUrl){
+  const { sheetId, gid } = parseGoogleSheetDoc(sheetUrl);
+  if (!sheetId) return "";
+  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
+}
+
+/* ========= GVIZ parser (used for both data sheets and config sheet) ========= */
 function parseGviz(text){
   const match = text.match(/setResponse\(([\s\S]*?)\);?/);
   if(!match) return [];
@@ -3490,18 +3489,12 @@ function parseGviz(text){
   }catch{ return []; }
 }
 
-function buildGvizFromDoc(sheetUrl){
-  const { sheetId, gid } = parseGoogleSheetDoc(sheetUrl);
-  if (!sheetId) return "";
-  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
-}
-
-/* ========= Fetching ========= */
+/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
 async function fetchRowsFromSource(source){
   const { sheetUrl, tab } = source || {};
   if(!sheetUrl) return [];
 
-  // Prefer opensheet if possible
+  // Prefer opensheet — either given or auto-built from Google Doc link
   const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
   if (isOpenSheet(openUrl)){
     try{
@@ -3522,13 +3515,57 @@ async function fetchRowsFromSource(source){
     }catch{}
   }
 
-  // Last resort
+  // Last resort: try raw URL JSON or GVIZ text in response
   try{
     const r = await fetch(sheetUrl, { cache: "no-store" });
     if(!r.ok) return [];
     const txt = await r.text();
     try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
   }catch{ return []; }
+}
+
+/* ========= Read CONFIG SHEET and produce SOURCES ========= */
+function valFrom(row, keys){
+  const map = {};
+  Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
+  for(const key of keys){
+    const real = map[key.toLowerCase()];
+    if (real && row[real] != null && String(row[real]).trim() !== "") return row[real];
+  }
+  return "";
+}
+
+async function loadSourcesFromConfig(){
+  // We accept: opensheet config, Google Doc (auto-GVIZ), or GVIZ URL
+  let rows = [];
+  const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1"); // will be ignored if already has TAB
+  if (isOpenSheet(asOpen)){
+    try{
+      const r = await fetch(asOpen, { cache: "no-store" });
+      if (r.ok) rows = await r.json();
+    }catch{}
+  }
+  if (!rows.length){
+    let gvizUrl = isGviz(CONFIG_SHEET_URL)
+      ? CONFIG_SHEET_URL
+      : (isGoogleDocSheet(CONFIG_SHEET_URL) ? buildGvizFromDoc(CONFIG_SHEET_URL) : "");
+    if (gvizUrl){
+      try{
+        const r = await fetch(gvizUrl, { cache: "no-store" });
+        if (r.ok) rows = parseGviz(await r.text());
+      }catch{}
+    }
+  }
+
+  // Map to SOURCES
+  const sources = (rows || []).map(r => {
+    const sheetUrl = String(valFrom(r, ["Sheet Url","SheetURL","Sheet","URL","Link"])).trim();
+    const tab      = String(valFrom(r, ["Tab","Route","Path"])).trim();
+    if (!sheetUrl || !tab) return null;
+    return { sheetUrl, tab };
+  }).filter(Boolean);
+
+  return sources;
 }
 
 /* ========= Media detection (image / direct video / YouTube) ========= */
@@ -3547,17 +3584,7 @@ function toYouTubeEmbed(url){
   }catch{ return ""; }
 }
 
-/* ========= Row normalization ========= */
-function valFrom(row, keys){
-  const map = {};
-  Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
-  for(const key of keys){
-    const real = map[key.toLowerCase()];
-    if (real && row[real] != null && String(row[real]).trim() !== "") return row[real];
-  }
-  return "";
-}
-
+/* ========= Route + row normalization ========= */
 function tabToRoute(tab){
   let route = String(tab || "").trim();
   if (!route) return "/";
@@ -3572,7 +3599,6 @@ function rowToItem(row, tabForRoute){
   const price = Number(valFrom(row, ["Selling Price","Price","Sale Price","Offer Price","₹","INR"])) || 0;
   const mrp   = Number(valFrom(row, ["MRP","List Price","Max Retail Price"])) || 0;
 
-  // media columns
   const videoCandidate = String(valFrom(row, ["Video","Video URL","video url","video","MP4","WebM","Clip","Reel","Shorts"])).trim();
   const mediaPrimary   = String(valFrom(row, ["photo 1","Photo 1","Image 1","Primary Image","Image","IMG","Picture","Pic 1","Thumbnail","Thumb"])).trim();
 
@@ -3597,19 +3623,20 @@ function rowToItem(row, tabForRoute){
     mediaUrl  = mediaPrimary || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
   }
 
-  return {
-    name, price, mrp,
-    mediaType, mediaUrl, poster,
-    route: tabToRoute(tabForRoute)   // <-- TAB used as route
-  };
+  return { name, price, mrp, mediaType, mediaUrl, poster, route: tabToRoute(tabForRoute) };
 }
 
 /* ========= Load everything ========= */
 window.allProducts = [];
 
-(async function loadAllSources(){
+(async function bootstrap(){
+  // 1) Read SOURCES from config
+  let SOURCES = [];
+  try{ SOURCES = await loadSourcesFromConfig(); }catch{ SOURCES = []; }
+
+  // If config is empty, you still get an empty product list (no crash)
   try{
-    const lists = await Promise.all(SOURCES.map(async (src) => {
+    const lists = await Promise.all((SOURCES || []).map(async (src) => {
       const rows = await fetchRowsFromSource(src).catch(()=>[]);
       const tabRoute = src?.tab || "/";
       return rows.map(r => rowToItem(r, tabRoute)).filter(Boolean);
@@ -3622,8 +3649,7 @@ window.allProducts = [];
 
 /* ========= URL builder & UI ========= */
 /* Rule: if product name is a single word (no spaces), append a trailing space before encoding.
-   Example: "Red"  -> encode("Red ") -> "Red%20"
-            "Red Rose" -> encode("Red Rose") -> "Red%20Rose"
+   Example: "Red" -> encode("Red ") -> "Red%20"
 */
 function isSingleWord(str){
   return !!str && str.trim().split(/\s+/).length === 1;
@@ -3633,7 +3659,6 @@ function buildParamValue(productName){
   const toEncode = isSingleWord(raw) ? (raw + " ") : raw;
   return encodeURIComponent(toEncode);
 }
-
 function makeProductURL(routePath, productName){
   const base = location.origin;                        // e.g., https://precioussly.com
   const route = routePath.startsWith("/") ? routePath : "/" + routePath;
@@ -3685,7 +3710,6 @@ function renderSuggestions(q){
   const top = list.slice(0, 12);
   if(!top.length){ hideSuggest(); return; }
 
-  // No URL text shown
   boxEl.innerHTML = top.map(p => {
     const safeName = p.name.replace(/'/g,"\\'");
     const url = makeProductURL(p.route, p.name);
@@ -3743,8 +3767,8 @@ if (inputEl){
       if (chosen){
         goToProduct(chosen.route, chosen.name);
       } else {
-        // fallback: use the first source tab as route or "/"
-        const fallbackRoute = SOURCES[0]?.tab ? tabToRoute(SOURCES[0].tab) : "/";
+        // fallback: first configured route or "/"
+        const fallbackRoute = (window.allProducts[0] && window.allProducts[0].route) || "/";
         goToProduct(fallbackRoute, typed);
       }
     }
@@ -3768,7 +3792,6 @@ window.closeHeaderSearch = function(){
   hideSuggest();
 };
 </script>
-
 ♥️♥️♥️♥️
 <footer aria-label="Site footer" id="siteFooter">
 <div class="brand">© <span id="footerYear"></span> Precioussly. All rights reserved.</div>
