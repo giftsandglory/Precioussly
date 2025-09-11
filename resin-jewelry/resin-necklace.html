@@ -1984,23 +1984,38 @@ product.appendChild(infoWrapper);
 </script>
 
 
+
 <script>
   function getParam(name) {
     const u = new URLSearchParams(location.search);
     return u.get(name);
   }
+
+  // ✅ New: consistent URL slug
+  function slugify(s) {
+    return String(s || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_]+/g, '-')      // spaces/underscores → hyphen
+      .replace(/[^a-z0-9-]/g, '');  // remove other symbols
+  }
+
   function maybeOpenFromURL() {
     const wanted = getParam('p');
     if (!wanted || !window.catalogData) return;
-    const wantedLower = decodeURIComponent(wanted).toLowerCase();
+
+    // ✅ Match by slug so it works for "car Keychain", "car-Keychain", or "car%20Keychain"
+    const wantedSlug = slugify(decodeURIComponent(wanted));
     const item = window.catalogData.find(row =>
-      (row["Product Name"] || "").toLowerCase() === wantedLower
+      slugify(row["Product Name"]) === wantedSlug
     );
     if (!item) return;
+
     const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
     openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]), getSheetDescription(item));
   }
 </script>
+
 
 <div id="productPopup">
   <div class="popup-card" onclick="event.stopPropagation()">
@@ -3341,7 +3356,8 @@ function applyDirectionFromSheet(rows){
     images = okImages(images);
     try {
       // Share link
-      var shareUrl = location.origin + location.pathname + "?p=" + encodeURIComponent(name || "");
+      var shareUrl = location.origin + location.pathname + "?p=" + slugify(name || "");
+
 var imageUrl = (images && images[0]) ? String(images[0]) : "";
 var line1 = "Check this on Precioussly: " + (name || "") + " — ₹" + (price || "");
 var wh = $("whShare");
