@@ -1732,14 +1732,33 @@ function isVideoUrl(u=""){
   return url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".mov");
 }
 
-// Optional helper guards (only call if defined)
-function safeApplyDirection(data){ if (typeof applyDirectionFromSheet === "function") applyDirectionFromSheet(data); }
-function safeMaybeOpenFromURL(){ if (typeof maybeOpenFromURL === "function") maybeOpenFromURL(); }
-function safeOpenPopup(...args){ if (typeof openPopup === "function") return openPopup(...args); }
-function safeAddToCartFromGrid(btn, payload){
-  if (typeof addToCartFromGrid === "function") return addToCartFromGrid(btn, payload);
+// Optional helper guards (only call if the target function is defined)
+
+function safeApplyDirection(data) {
+  if (typeof applyDirectionFromSheet === "function") {
+    applyDirectionFromSheet(data);
+  }
+}
+
+function safeMaybeOpenFromURL() {
+  if (typeof maybeOpenFromURL === "function") {
+    maybeOpenFromURL();
+  }
+}
+
+function safeOpenPopup(...args) {
+  if (typeof openPopup === "function") {
+    return openPopup(...args);
+  }
+}
+
+function safeAddToCartFromGrid(btn, payload) {
+  if (typeof addToCartFromGrid === "function") {
+    return addToCartFromGrid(btn, payload);
+  }
   console.warn("addToCartFromGrid not defined", payload);
 }
+
 
 // Build a single product card (DocumentFragment)
 function renderProductCard(item){
@@ -1945,19 +1964,26 @@ function scheduleCommit(){
 /* =========================
    FETCH / CACHE / SWR LOOP
    ========================= */
-async function loadFromCacheAndShow(){
+
+async function loadFromCacheAndShow() {
   try {
     const raw = localStorage.getItem(cacheKey);
     if (!raw) return;
+
     const { data, h } = JSON.parse(raw);
     if (Array.isArray(data)) {
       State.liveData = data;
       State.liveHash = h || checksum(data);
-      // initial direction toggles from sheet (if you use that)
+
+      // Initial direction toggles from sheet (if you use that)
       safeApplyDirection(data);
+
+      // Render cached data immediately
       commitRender(data);
     }
-  } catch {}
+  } catch (e) {
+    console.error("loadFromCacheAndShow error:", e);
+  }
 }
 
 async function fetchSheetAndStage(){
@@ -3268,34 +3294,60 @@ window.closeHeaderSearch = function(){
 </script>
 <!-- A2_DIRECTION_TOGGLE :: JS helper -->
 <script>
-/* Reads A2 ("Box Direction") from the sheet rows.
-   If it's 2 -> set <body class="horizontal-mode"> */
+/* Apply saved layout early (before sheet loads) */
+(function () {
+  try {
+    var v = localStorage.getItem("ui:lastBoxDirection");
+    if (v === "2") {
+      document.body.classList.add("horizontal-mode");
+    } else if (v === "3") {
+      document.body.classList.add("horizontal-mode", "small-cards");
+    }
+  } catch (e) {
+    console.error("pre-apply direction error:", e);
+  }
+})();
 
-function applyDirectionFromSheet(rows){
-  try{
+/* Reads A2 ("Box Direction") from the sheet rows.
+   If it's 2 -> set <body class="horizontal-mode">
+   If it's 3 -> set <body class="horizontal-mode small-cards">
+   If it's 1 -> normal grid (no extra class)
+*/
+function applyDirectionFromSheet(rows) {
+  try {
     const first = rows?.[0] || {};
-    const key = Object.keys(first).find(k => k.trim().toLowerCase() === "box direction");
+    const key = Object.keys(first).find(
+      k => k.trim().toLowerCase() === "box direction"
+    );
     const value = Number(first[key] || first["Box Direction"] || 1);
 
     // Reset classes first
-    document.body.classList.remove("horizontal-mode","small-cards");
+    document.body.classList.remove("horizontal-mode", "small-cards");
 
-    if (value === 2){
+    if (value === 2) {
       // Mode 2: horizontal swipe (default card size)
       document.body.classList.add("horizontal-mode");
-    } else if (value === 3){
+    } else if (value === 3) {
       // Mode 3: horizontal swipe + smaller cards
-      document.body.classList.add("horizontal-mode","small-cards");
-    } // value === 1 -> normal grid (no extra class)
-  }catch(e){}
-}
+      document.body.classList.add("horizontal-mode", "small-cards");
+    }
+    // value === 1 -> normal grid (no extra class)
 
+    // ✅ Save for next reload
+    localStorage.setItem("ui:lastBoxDirection", String(value));
+  } catch (e) {
+    console.error("applyDirectionFromSheet error:", e);
+  }
+}
 </script>
+
+
 <!-- 🟣 Instagram banner: EXACTLY below the pink certified-strip -->
 <section class="ig-banner-wrap" id="igFollowBanner">
 <div aria-label="Instagram updates banner" class="ig-banner">
 <p>Stay connected with us for updates,<br/>offers &amp; behind-the-scenes ✨</p>
 <a aria-label="Open our Instagram profile" class="ig-link" href="https://www.instagram.com/precioussly_" rel="noopener noreferrer" target="_blank">
+  
 <img alt="Instagram" class="ig-icon" src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"/>
 </a>
 </div>
