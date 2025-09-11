@@ -1916,9 +1916,19 @@ product.appendChild(wrap);
     if (typeof maybeOpenFromURL === "function") {
       maybeOpenFromURL();
     }
-  } catch (err) {
-    console.error("Failed to load products:", err);
+} catch (err) {
+  console.error("Failed to load products:", err);
+
+  const content = document.getElementById('content');
+  if (content && !content.children.length) {
+    content.innerHTML = `
+      <div style="padding:18px;text-align:center;color:#555;">
+        Couldn’t load products. 
+        <button style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;" 
+                onclick="location.reload()">Retry</button>
+      </div>`;
   }
+}
 
     // A2_DIRECTION_TOGGLE :: call
 applyDirectionFromSheet(data);
