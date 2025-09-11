@@ -543,16 +543,19 @@ body.horizontal-mode .product{
 }
 
 /* Product image */
-body.horizontal-mode .product video {
+body.horizontal-mode .product img{
   width: 100% !important;
-  height: 100% !important;
   aspect-ratio: 1 / 1 !important;
-  object-fit: contain !important;
-  border-radius: 12px !important;
-  background: #000 !important;
+  height: auto !important;
+  object-fit: cover !important;
+  border-radius: 10px !important; /* sleeker corners */
+  display: block !important;
 }
-
-
+\1height: 100% !important; aspect-ratio: 1 / 1 !important;
+  object-fit:contain;
+  border-radius:12px;
+  background:#000;
+}
 
 
 /* Flexible content */
@@ -1648,70 +1651,42 @@ body.horizontal-mode .product-grid{
 
 
 <div id="content"></div>
-
-
 <script>
-/* =========================
-   GOOGLE SHEET → OPENSHEET
-   ========================= */
-const PASTED_SHEET_LINK = "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
-const TAB_NAME          = "resin-jewelry/resin-necklace"; // e.g. "Products" or "Necklace"
+// === PASTE YOUR GOOGLE SHEET LINK + TAB NAME HERE ===😎😎😎😎
+  const PASTED_SHEET_LINK =
+    "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
+  const TAB_NAME = "resin-jewelry/resin-necklace"; // 👈 Yahan apna tab name likho (e.g. "Products", "Necklace")😎😎😎😎
 
-/* =========================
-   CONFIG (tweak if needed)
-   ========================= */
-const REFRESH_INTERVAL_MS = 60_000; // background refresh every 60s
-const FETCH_TIMEOUT_MS    = 20_000; // individual fetch timeout
-const CACHE_NAMESPACE     = "catalogCache/v1"; // bump if schema changes
-const CONTENT_EL_ID       = "content"; // your grid container
+  // --- extract spreadsheet ID ---
+  const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (!idMatch) {
+    console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
+  }
+  const sheetId = idMatch ? idMatch[1] : "";
 
-/* =========================
-   HELPERS
-   ========================= */
-// Extract spreadsheet id
-const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-if (!idMatch) console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
-const sheetId = idMatch ? idMatch[1] : "";
-const SHEET_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(TAB_NAME)}`;
-console.log("✅ Final working Sheet URL:", SHEET_URL);
+  // --- final opensheet URL ---
+  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(TAB_NAME)}`;
+  console.log("✅ Final working Sheet URL:", DATA_URL);
 
-// Key for localStorage cache (isolate per sheet+tab)
-const cacheKey = `${CACHE_NAMESPACE}:${sheetId}:${TAB_NAME}`;
-
-// Abortable fetch with timeout
-function fetchWithTimeout(url, {timeout = FETCH_TIMEOUT_MS, ...opts} = {}) {
-  const ctrl = new AbortController();
-  const id = setTimeout(() => ctrl.abort(), timeout);
-  return fetch(url, {signal: ctrl.signal, ...opts})
-    .finally(() => clearTimeout(id));
-}
-
-// very small checksum to detect changes without huge cost
-function checksum(obj) {
-  try {
-    const s = JSON.stringify(obj);
-    let h = 0;
-    for (let i = 0; i < s.length; i++) {
-      h = (h * 31 + s.charCodeAt(i)) | 0;
-    }
-    return String(h);
-  } catch { return Math.random().toString(36).slice(2); }
-}
-
-// Google Sheet "visibility" handling
+  // Use this in the app:
+  const SHEET_URL = DATA_URL;
+// === Visibility control from Google Sheet ===
+// If the "visibility" cell contains the word "hide" (any case), the product is hidden.
+// If the cell is blank (or anything else), the product is shown.
 function isHidden(row){
   const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
   for (const k of keys){
     if (row.hasOwnProperty(k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
-      if (v.includes("hide")) return true;   // hide when cell contains "hide"
-      if (v.length) return false;            // any other non-empty = show
+      if (v.includes("hide")) return true;   // ✅ hide when cell contains "hide"
+      // return false on any other non-empty value – requirement only mentions "hide"
+      if (v.length) return false;
     }
   }
   return false; // blank means show
 }
 
-// Robust Description getter
+// Robust: read "Description" even if header has spaces/case variants
 function getSheetDescription(row){
   const keys = [
     "Description","description","Desc","desc","Product Description","product description",
@@ -1723,56 +1698,78 @@ function getSheetDescription(row){
   return "";
 }
 
-// Simple video URL check
-function isVideoUrl(u=""){
-  const url = String(u).trim().toLowerCase();
-  return url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".mov");
-}
-
-// Optional helper guards (only call if the target function is defined)
-
-function safeApplyDirection(data) {
-  if (typeof applyDirectionFromSheet === "function") {
-    applyDirectionFromSheet(data);
-  }
-}
-
-function safeMaybeOpenFromURL() {
-  if (typeof maybeOpenFromURL === "function") {
-    maybeOpenFromURL();
-  }
-}
-
-function safeOpenPopup(...args) {
-  if (typeof openPopup === "function") {
-    return openPopup(...args);
-  }
-}
-
-function safeAddToCartFromGrid(btn, payload) {
-  if (typeof addToCartFromGrid === "function") {
-    return addToCartFromGrid(btn, payload);
-  }
-  console.warn("addToCartFromGrid not defined", payload);
-}
 
 
-// Build a single product card (DocumentFragment)
-function renderProductCard(item){
-  const product = document.createElement("div");
-  product.className = "product";
+(async function () {
+  try {
+    // Directly read from the single sheet URL
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
 
-  product.addEventListener("click", (e) => {
-    if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-    const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-    safeOpenPopup(allPhotos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"], getSheetDescription(item));
-  });
+    if (typeof applyDirectionFromSheet === "function") {
+      applyDirectionFromSheet(data);
+    }
 
-  // Media (photo or video) inside a square wrapper
-  const wrap = document.createElement("div");
-  wrap.className = "media-square";
+    window.catalogData = data;
 
+    const content = document.getElementById("content");
+    let currentSection = "";
+    let sectionWrapper;
+    let currentSectionHidden = false;
+
+    data.forEach((item) => {
+      if (item["Section"]) {
+        currentSection = item["Section"];
+        const secVis = String(item["visibility"] || item["Visibility"] || "")
+          .trim()
+          .toLowerCase();
+        currentSectionHidden = secVis.includes("hide");
+        if (currentSectionHidden) {
+          sectionWrapper = null;
+          return;
+        }
+
+        const sectionTitle = document.createElement("div");
+        sectionTitle.className = "section-title";
+        sectionTitle.innerText = currentSection;
+        content.appendChild(sectionTitle);
+
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+
+        return;
+      }
+
+      if (currentSectionHidden) return;
+      if (!item["Product Name"]) return;
+
+      const product = document.createElement("div");
+      product.className = "product";
+
+      product.addEventListener("click", (e) => {
+        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+        const allPhotos = [
+          item["photo 1"],
+          item["photo 2"],
+          item["photo 3"],
+          item["photo 4"],
+        ].filter(Boolean);
+        openPopup(
+          allPhotos,
+          item["Product Name"],
+          item["MRP"],
+          item["Selling Price"],
+          item["in stock"],
+          getSheetDescription(item)
+        );
+      });
+
+      
+// Media (photo or video)
+(function(){
   const url1 = (item["photo 1"] || "").trim();
+  let el;
   if (isVideoUrl(url1)) {
     const v = document.createElement("video");
     v.src = url1;
@@ -1781,272 +1778,235 @@ function renderProductCard(item){
     v.loop = true;
     v.playsInline = true;
     v.preload = "metadata";
+    v.style.width = "100%";
+    v.style.height = "100%";
+    v.style.objectFit = "cover";
     v.disablePictureInPicture = true;
     v.setAttribute("muted","");
     v.setAttribute("webkit-playsinline","true");
     v.setAttribute("playsinline","true");
-    v.style.pointerEvents = "none";
+    v.style.pointerEvents = "none"; // allow card click to bubble
     v.style.cursor = "default";
     v.style.display = "block";
     v.style.width = "100%";
-    v.style.height = "100%";
-    v.style.aspectRatio = "1 / 1";
+    v.style.height = "100%"; v.style.aspectRatio = "1 / 1";
     v.style.objectFit = "contain";
-    wrap.appendChild(v);
+    el = v;
   } else {
     const img = document.createElement("img");
     img.src = url1;
-    img.alt = item["Product Name"] || "";
+    img.alt = item["Product Name"];
     img.style.pointerEvents = "none";
     img.style.cursor = "default";
-    wrap.appendChild(img);
+    el = img;
   }
-  product.appendChild(wrap);
+  const wrap = document.createElement('div');
+wrap.className = 'media-square';
+wrap.appendChild(el);
+product.appendChild(wrap);
+})();
 
-  if (item["Badge"]) {
-    const badge = document.createElement("div");
-    badge.className = "badge";
-    badge.innerText = item["Badge"];
-    product.appendChild(badge);
-  }
 
-  const infoWrapper = document.createElement("div");
-  infoWrapper.style.padding = "0 6px";
+      if (item["Badge"]) {
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.innerText = item["Badge"];
+        product.appendChild(badge);
+      }
 
-  const title = document.createElement("div");
-  title.className = "product-title";
-  title.style.fontSize = "14px";
-  title.style.textAlign = "left";
-  title.style.marginTop = "8px";
-  title.innerText = item["Product Name"] || "";
-  infoWrapper.appendChild(title);
+      const infoWrapper = document.createElement("div");
+      infoWrapper.style.padding = "0 6px";
 
-  const info = document.createElement("div");
-  info.className = "product-info";
+      const title = document.createElement("div");
+      title.className = "product-title";
+      title.style.fontSize = "14px";
+      title.style.textAlign = "left";
+      title.style.marginTop = "8px";
+      title.innerText = item["Product Name"];
+      infoWrapper.appendChild(title);
 
-  let priceHTML = "";
-  if (item["MRP"] && item["Selling Price"]) {
-    priceHTML = `
-      <div style="
-        text-align:left; font-size:14px; font-weight:bold;
-        display:flex; gap:6px; align-items:center;
-        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      ">
-        <span>₹${item["Selling Price"]}</span>
-        <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-      </div>
-    `;
-  }
+      const info = document.createElement("div");
+      info.className = "product-info";
 
-  if (+item["in stock"] === 0) {
-    info.innerHTML = `
-      ${priceHTML}
-      <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">
-        Out of Stock
-      </button>
-    `;
-  } else {
-    const productData = {
-      photo: item["photo 1"],
-      name: item["Product Name"],
-      mrp: item["MRP"],
-      price: item["Selling Price"]
-    };
-    info.innerHTML = `
-      ${priceHTML}
-      <button class="add-btn" onclick='(${safeAddToCartFromGrid})(this, ${JSON.stringify(productData)})'>
-        Add to Cart
-      </button>
-    `;
-  }
+      let priceHTML = "";
+      if (item["MRP"] && item["Selling Price"]) {
+        priceHTML = `
+          <div style="
+            text-align:left;
+            font-size:14px;
+            font-weight:bold;
+            display:flex;
+            gap:6px;
+            align-items:center;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+          ">
+            <span>₹${item["Selling Price"]}</span>
+            <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+          </div>
+        `;
+      }
 
-  infoWrapper.appendChild(info);
-  product.appendChild(infoWrapper);
-  return product;
-}
+      if (+item["in stock"] === 0) {
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
+        `;
+      } else {
+        const productData = {
+          photo: item["photo 1"],
+          name: item["Product Name"],
+          mrp: item["MRP"],
+          price: item["Selling Price"],
+        };
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(
+            productData
+          )})'>Add to Cart</button>
+        `;
+      }
 
-// Build entire grid from data into a DocumentFragment
-function buildGrid(data) {
-  const frag = document.createDocumentFragment();
-  let currentSection = "";
-  let sectionWrapper = null;
-  let currentSectionHidden = false;
+      infoWrapper.appendChild(info);
+      product.appendChild(infoWrapper);
 
-  (data || []).forEach(item => {
-    // Section header row
-    if (item["Section"]) {
-      currentSection = item["Section"];
-      const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
-      currentSectionHidden = secVis.includes("hide");
-      if (currentSectionHidden) { sectionWrapper = null; return; }
+      if (!sectionWrapper) {
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+      }
+      sectionWrapper.appendChild(product);
+    });
 
-      const sectionTitle = document.createElement("div");
-      sectionTitle.className = "section-title";
-      sectionTitle.innerText = currentSection;
-      frag.appendChild(sectionTitle);
-
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      frag.appendChild(sectionWrapper);
-      return;
+    if (typeof maybeOpenFromURL === "function") {
+      maybeOpenFromURL();
     }
-
-    if (currentSectionHidden) return;
-    if (isHidden(item)) return;
-    if (!item["Product Name"]) return;
-
-    // Ensure sectionWrapper exists (in case products appear before any section)
-    if (!sectionWrapper) {
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      frag.appendChild(sectionWrapper);
-    }
-
-    sectionWrapper.appendChild(renderProductCard(item));
-  });
-
-  return frag;
-}
-
-/* =========================
-   STATE & RENDER PIPELINE
-   ========================= */
-const State = {
-  // last successfully rendered data
-  liveData: null,
-  liveHash: null,
-
-  // newest fetched data (not yet committed)
-  pendingData: null,
-  pendingHash: null,
-
-  fetching: false,
-  contentEl: null,
-  initialized: false,
-};
-
-// Render commit (swap DOM with no flicker using a detached fragment)
-function commitRender(data){
-  const el = State.contentEl || (State.contentEl = document.getElementById(CONTENT_EL_ID));
-  if (!el) {
-    console.error(`❌ Container #${CONTENT_EL_ID} not found.`);
-    return;
+  } catch (err) {
+    console.error("Failed to load products:", err);
   }
 
-  // Build once in memory, then swap
-  const frag = buildGrid(data);
-  el.replaceChildren(frag);
+    // A2_DIRECTION_TOGGLE :: call
+applyDirectionFromSheet(data);
+    window.catalogData = data;
+    const content = document.getElementById('content');
+    let currentSection = '';
+    let sectionWrapper;
+    let currentSectionHidden = false;
 
-  // Call optional hooks
-  safeMaybeOpenFromURL();
+    data.forEach(item => {
+        // --- Section header row handling (section-level hide support) ---
+        if (item["Section"]) {
+          currentSection = item["Section"];
+          const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
+          currentSectionHidden = secVis.includes("hide");
+          if (currentSectionHidden) { sectionWrapper = null; return; }
+          const sectionTitle = document.createElement('div');
+sectionTitle.className = 'section-title';
+        sectionTitle.innerText = currentSection;
+        content.appendChild(sectionTitle);
+
+        sectionWrapper = document.createElement('div');
+        sectionWrapper.className = 'product-grid';
+        content.appendChild(sectionWrapper);
+      }
+
+      if (currentSectionHidden) return;
+      if (isHidden(item)) return;
+      if (!item["Product Name"]) return;
+
+      const product = document.createElement('div');
+      product.className = 'product';
+      // ✅ Open popup when clicking anywhere on the product card (except buttons/qty areas)
+      product.addEventListener('click', (e) => {
+        if (e.target.closest('.add-to-cart, .quantity-bar, button')) return; // ignore interactive controls
+        const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
+        openPopup(allPhotos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"], getSheetDescription(item));
+      });
+
+
+      const img = document.createElement('img');
+      img.src = item["photo 1"];
+      img.alt = item["Product Name"];
+      // 🚫 Make the grid photo non-clickable
+      img.style.pointerEvents = "none";
+      img.style.cursor = "default";
+
+      const wrap2 = document.createElement('div');
+wrap2.className = 'media-square';
+wrap2.appendChild(img);
+product.appendChild(wrap2);
+
+      const infoWrapper = document.createElement('div');
+infoWrapper.style.padding = "0 6px"; // This adds left-right padding
+
+const title = document.createElement('div');
+title.className = 'product-title';
+title.style.fontSize = "14px";
+title.style.textAlign = "left";
+title.style.marginTop = "8px";
+title.innerText = item["Product Name"];
+infoWrapper.appendChild(title);
+
+      if (item["Badge"]) {
+        const badge = document.createElement('div');
+        badge.className = 'badge';
+        badge.innerText = item["Badge"];
+        product.appendChild(badge);
+      }
+
+      const info = document.createElement('div');
+      info.className = 'product-info';
+
+      let priceHTML = "";
+if (item["MRP"] && item["Selling Price"]) {
+  const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
+  priceHTML = `
+    <div style="
+       text-align:left;
+       font-size:14px;
+       font-weight:bold;
+       display:flex;
+       gap:6px;
+       align-items:center;
+       white-space:nowrap;
+       overflow:hidden;
+       text-overflow:ellipsis;
+    ">
+      <span>₹${item["Selling Price"]}</span>
+      <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+    </div>
+  `;
 }
+      if (+item["in stock"] === 0) {
+  info.innerHTML = `
+    ${priceHTML}
+    <button class="add-btn" disabled style="
+      background: #f1f1f1;
+      color: #888;
+      border: 1px solid #ccc;
+    ">Out of Stock</button>
+  `;
+      } else {
+        const productData = {
+          photo: item["photo 1"],
+          name: item["Product Name"],
+          mrp: item["MRP"],
+          price: item["Selling Price"]
+        };
 
-// Debounced commit so rapid updates don’t thrash layout
-let renderTimer = null;
-function scheduleCommit(){
-  if (renderTimer) cancelAnimationFrame(renderTimer);
-  renderTimer = requestAnimationFrame(() => {
-    if (State.pendingData && State.pendingHash !== State.liveHash) {
-      State.liveData = State.pendingData;
-      State.liveHash = State.pendingHash;
-      commitRender(State.liveData);
-      // cache after successful render
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), h: State.liveHash, data: State.liveData }));
-      } catch (e) { /* storage may be full */ }
-    }
-  });
-}
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>
+        `;
+      }
 
-/* =========================
-   FETCH / CACHE / SWR LOOP
-   ========================= */
-
-async function loadFromCacheAndShow() {
-  try {
-    const raw = localStorage.getItem(cacheKey);
-    if (!raw) return;
-
-    const { data, h } = JSON.parse(raw);
-    if (Array.isArray(data)) {
-      State.liveData = data;
-      State.liveHash = h || checksum(data);
-
-      // Initial direction toggles from sheet (if you use that)
-      safeApplyDirection(data);
-
-      // Render cached data immediately
-      commitRender(data);
-    }
-  } catch (e) {
-    console.error("loadFromCacheAndShow error:", e);
-  }
-}
-
-async function fetchSheetAndStage(){
-  if (State.fetching) return;
-  State.fetching = true;
-  try {
-    const res = await fetchWithTimeout(SHEET_URL);
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error("Data is not an array");
-
-    // optional: apply any RTL/LTR or direction toggles if you use them
-    safeApplyDirection(data);
-
-    const h = checksum(data);
-    State.pendingData = data;
-    State.pendingHash = h;
-
-    // If we have nothing on screen yet, show immediately
-    if (!State.initialized || !State.liveData) {
-      State.liveData = data;
-      State.liveHash = h;
-      commitRender(data);
-      // cache
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), h, data }));
-      } catch {}
-    } else {
-      // Otherwise, swap in the background only when ready (now)
-      scheduleCommit();
-    }
-  } catch (e) {
-    console.warn("Background refresh failed:", e?.message || e);
-  } finally {
-    State.fetching = false;
-    State.initialized = true;
-  }
-}
-
-function startRefreshLoop(){
-  // Interval
-  setInterval(fetchSheetAndStage, REFRESH_INTERVAL_MS);
-
-  // When tab becomes visible again
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") fetchSheetAndStage();
-  });
-
-  // When network returns
-  window.addEventListener("online", fetchSheetAndStage);
-}
-
-/* =========================
-   BOOT
-   ========================= */
-(async function boot(){
-  // 1) show cached (if any) for instant paint
-  await loadFromCacheAndShow();
-
-  // 2) always do a fresh fetch in background
-  await fetchSheetAndStage();
-
-  // 3) start periodic SWR loop
-  startRefreshLoop();
+      infoWrapper.appendChild(info);
+product.appendChild(infoWrapper);
+      sectionWrapper.appendChild(product);
+    });
+    
+    maybeOpenFromURL();
 })();
 </script>
-
 
 
 
@@ -2543,175 +2503,50 @@ if (existing) {
 }
 </script>
 <script>
-/* ================================
-   ANNOUNCEMENT BAR (SWR + CACHING)
-   ================================ */
-const ANNOUNCE_SHEET_ID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
-const ANNOUNCE_TAB     = "Sheet1";
-const ANNOUNCE_URL     = `https://opensheet.elk.sh/${ANNOUNCE_SHEET_ID}/${encodeURIComponent(ANNOUNCE_TAB)}`;
+  // Announcement Bar from Google Sheet
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
 
-const ANNOUNCE_CACHE_KEY   = `announceCache/v1:${ANNOUNCE_SHEET_ID}:${ANNOUNCE_TAB}`;
-const ANNOUNCE_TIMEOUT_MS  = 15_000;  // network timeout
-const ANNOUNCE_REFRESH_MS  = 60_000;  // background refresh interval
-
-// Small checksum to detect changes
-function smallHash(s) {
-  s = String(s || "");
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return String(h);
-}
-
-// Abortable fetch with timeout
-function fetchWithTimeout(url, ms = ANNOUNCE_TIMEOUT_MS) {
-  const ctrl = new AbortController();
-  const id = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(id));
-}
-
-// Safely get element
-function $id(id) { return document.getElementById(id); }
-
-// Extract text from first non-empty row
-function getAnnouncementText(rows) {
-  if (!Array.isArray(rows) || rows.length === 0) return "";
-  // Primary key used by your sheet
-  const key = "(announcement_text)";
-  const r0 = rows[0] || {};
-  // Try exact first
-  if (r0[key] && String(r0[key]).trim()) return String(r0[key]).trim();
-
-  // Fallbacks (case / space variants)
-  const variants = [
-    "(announcement_text)", "(Announcement_Text)", "(ANNOUNCEMENT_TEXT)",
-    "announcement_text", "Announcement Text", "announcement", "Announcement"
-  ];
-  for (const k of variants) {
-    if (r0[k] && String(r0[k]).trim()) return String(r0[k]).trim();
-  }
-  return "";
-}
-
-// Render announcement into the bar (no flicker)
-function renderAnnouncement(text) {
-  const el = $id("announcementBar");
-  if (!el) return;
-  // Only update DOM if changed
-  if (el.innerText !== text) el.innerText = text;
-}
-
-// Load cached immediately (if any) for instant paint
-function loadAnnouncementFromCache() {
-  try {
-    const raw = localStorage.getItem(ANNOUNCE_CACHE_KEY);
-    if (!raw) return false;
-    const { text } = JSON.parse(raw);
-    if (typeof text === "string" && text.length) {
-      renderAnnouncement(text);
-      return true;
-    }
-  } catch {}
-  return false;
-}
-
-// Fetch, stage, and commit if changed
-async function refreshAnnouncementInBackground() {
-  try {
-    const res = await fetchWithTimeout(ANNOUNCE_URL);
-    const rows = await res.json();
-    const text = getAnnouncementText(rows);
-    const newHash = smallHash(text);
-
-    // Compare with cache
-    const cached = (() => {
-      try { return JSON.parse(localStorage.getItem(ANNOUNCE_CACHE_KEY) || "null"); } catch { return null; }
-    })();
-    const oldHash = cached?.hash;
-
-    if (text && newHash !== oldHash) {
-      // Commit
-      renderAnnouncement(text);
-      // Cache
-      try {
-        localStorage.setItem(ANNOUNCE_CACHE_KEY, JSON.stringify({
-          t: Date.now(),
-          hash: newHash,
-          text
-        }));
-      } catch {}
-    }
-  } catch (e) {
-    // Silent failure keeps previous text on screen
-    // console.warn("Announcement refresh failed:", e?.message || e);
-  }
-}
-
-// Boot SWR for announcement bar
-(function initAnnouncementSWR(){
-  // 1) Instant paint from cache (if present)
-  loadAnnouncementFromCache();
-  // 2) Always try a fresh background fetch
-  refreshAnnouncementInBackground();
-  // 3) Keep it fresh on an interval, tab visible, or online
-  setInterval(refreshAnnouncementInBackground, ANNOUNCE_REFRESH_MS);
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") refreshAnnouncementInBackground();
-  });
-  window.addEventListener("online", refreshAnnouncementInBackground);
-})();
-
-/* =======================
-   CART BADGE (RESILIENT)
-   ======================= */
-function updateCartBadge(animate = true) {
-  const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+  
+  function updateCartBadge(animate = true) {
+  const items = JSON.parse(localStorage.getItem("cartItems")) || [];
   let count = 0;
-  for (const it of items) {
-    const n = Number(it?.qty || 0);
-    if (!Number.isNaN(n) && n > 0) count += n;
-  }
+  items.forEach(item => count += item.qty);
 
-  const badge = $id("cartCountBadge");
+  const badge = document.getElementById("cartCountBadge");
   if (!badge) return;
 
   const prev = Number(badge.dataset.count || 0);
 
   if (count > 0) {
-    badge.innerText = String(count);
+    badge.innerText = count;
     badge.style.display = "flex";
 
     if (animate && count !== prev) {
       badge.classList.remove("bounce-badge");
-      void badge.offsetWidth; // reflow to restart animation
+      void badge.offsetWidth;             // reflow
       badge.classList.add("bounce-badge");
       badge.addEventListener("animationend", () => {
         badge.classList.remove("bounce-badge");
       }, { once: true });
     }
   } else {
-    badge.innerText = "";     // no “0”
-    badge.style.display = "none";
+    badge.innerText = "";                  // ✅ no “0”
+    badge.style.display = "none";          // ✅ hide when empty
   }
 
-  badge.dataset.count = String(count);
+  badge.dataset.count = count;
 }
 
-// Initial paint (no bounce on load)
-updateCartBadge(false);
-
-// Keep badge in sync across tabs / code paths
-window.addEventListener("storage", (e) => {
-  if (e.key === "cartItems") updateCartBadge(false);
-});
-
-// Optional: refresh when tab becomes visible or network returns
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") updateCartBadge(false);
-});
-window.addEventListener("online", () => updateCartBadge(false));
-
+updateCartBadge(false); // ✅ no bounce on refresh
 </script>
-
 
 <script>
 function closePopup() {
@@ -3291,60 +3126,34 @@ window.closeHeaderSearch = function(){
 </script>
 <!-- A2_DIRECTION_TOGGLE :: JS helper -->
 <script>
-/* Apply saved layout early (before sheet loads) */
-(function () {
-  try {
-    var v = localStorage.getItem("ui:lastBoxDirection");
-    if (v === "2") {
-      document.body.classList.add("horizontal-mode");
-    } else if (v === "3") {
-      document.body.classList.add("horizontal-mode", "small-cards");
-    }
-  } catch (e) {
-    console.error("pre-apply direction error:", e);
-  }
-})();
-
 /* Reads A2 ("Box Direction") from the sheet rows.
-   If it's 2 -> set <body class="horizontal-mode">
-   If it's 3 -> set <body class="horizontal-mode small-cards">
-   If it's 1 -> normal grid (no extra class)
-*/
-function applyDirectionFromSheet(rows) {
-  try {
+   If it's 2 -> set <body class="horizontal-mode"> */
+
+function applyDirectionFromSheet(rows){
+  try{
     const first = rows?.[0] || {};
-    const key = Object.keys(first).find(
-      k => k.trim().toLowerCase() === "box direction"
-    );
+    const key = Object.keys(first).find(k => k.trim().toLowerCase() === "box direction");
     const value = Number(first[key] || first["Box Direction"] || 1);
 
     // Reset classes first
-    document.body.classList.remove("horizontal-mode", "small-cards");
+    document.body.classList.remove("horizontal-mode","small-cards");
 
-    if (value === 2) {
+    if (value === 2){
       // Mode 2: horizontal swipe (default card size)
       document.body.classList.add("horizontal-mode");
-    } else if (value === 3) {
+    } else if (value === 3){
       // Mode 3: horizontal swipe + smaller cards
-      document.body.classList.add("horizontal-mode", "small-cards");
-    }
-    // value === 1 -> normal grid (no extra class)
-
-    // ✅ Save for next reload
-    localStorage.setItem("ui:lastBoxDirection", String(value));
-  } catch (e) {
-    console.error("applyDirectionFromSheet error:", e);
-  }
+      document.body.classList.add("horizontal-mode","small-cards");
+    } // value === 1 -> normal grid (no extra class)
+  }catch(e){}
 }
+
 </script>
-
-
 <!-- 🟣 Instagram banner: EXACTLY below the pink certified-strip -->
 <section class="ig-banner-wrap" id="igFollowBanner">
 <div aria-label="Instagram updates banner" class="ig-banner">
 <p>Stay connected with us for updates,<br/>offers &amp; behind-the-scenes ✨</p>
 <a aria-label="Open our Instagram profile" class="ig-link" href="https://www.instagram.com/precioussly_" rel="noopener noreferrer" target="_blank">
-  
 <img alt="Instagram" class="ig-icon" src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"/>
 </a>
 </div>
@@ -4019,6 +3828,10 @@ if (popup){
   });
 })();
 </script>
+
+</body>
+</html>
+
 </body>
 </html>
 
