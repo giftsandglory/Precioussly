@@ -4211,5 +4211,108 @@ function buildRazorpayNotes(){
 }
 </script>
 
+
+<!-- === Patch: Keep <video> after re-render & force autoplay === -->
+<script>
+(function(){
+  // Single canonical helper
+  function isVideoUrl(url){
+    if(!url) return false;
+    url = String(url).split("?")[0].split("#")[0].toLowerCase().trim();
+    return url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".ogg") || url.includes("=video") || url.includes("/video/");
+  }
+
+  function forceAutoplay(video){
+    try {
+      video.muted = true;
+      video.autoplay = true;
+      video.loop = true;
+      video.playsInline = true;
+      // in case browser paused it on DOM swap
+      const p = video.play();
+      if (p && typeof p.then === "function") {
+        p.catch(function(){ /* ignore user gesture errors */ });
+      }
+    } catch(e){}
+  }
+
+  // Replace any <img> using a video URL with a proper <video>, and (re)autoplay all videos
+  function repairMediaCards(){
+    try {
+      const container = document.getElementById("cartItems");
+      if(!container) return;
+
+      // 1) upgrade images that actually point to a video file
+      container.querySelectorAll("img").forEach(function(img){
+        const src = img.getAttribute("src") || "";
+        if (isVideoUrl(src)) {
+          const v = document.createElement("video");
+          v.src = src;
+          v.setAttribute("muted","");
+          v.setAttribute("autoplay","");
+          v.setAttribute("loop","");
+          v.setAttribute("playsinline","");
+          v.setAttribute("preload","metadata");
+          // carry over classes/styles so sizing stays identical
+          v.className = img.className;
+          v.style.cssText = img.style.cssText;
+          img.replaceWith(v);
+        }
+      });
+
+      // 2) (re)autoplay ANY videos in the cart list
+      container.querySelectorAll("video").forEach(forceAutoplay);
+    } catch(e){}
+  }
+
+  // --- Hook into existing renderCart if present so future re-renders keep videos ---
+  var hooked = false;
+  function hookRender(){
+    if (hooked) return;
+    hooked = true;
+    var original = window.renderCart;
+    if (typeof original === "function") {
+      window.renderCart = function(){
+        var r = original.apply(this, arguments);
+        // After DOM was rebuilt, fix media and autoplay
+        repairMediaCards();
+        return r;
+      };
+    }
+  }
+
+  // Run now (for already-rendered content), and on future renders
+  document.addEventListener("DOMContentLoaded", function(){
+    hookRender();
+    // initial pass after page paints
+    setTimeout(repairMediaCards, 0);
+  });
+
+  // In case renderCart is defined later, keep trying briefly
+  var tries = 0;
+  var iv = setInterval(function(){
+    if (typeof window.renderCart === "function" || tries > 50) {
+      clearInterval(iv);
+      hookRender();
+      repairMediaCards();
+    }
+    tries++;
+  }, 100);
+
+  // Also repair after any remove/increase/decrease actions trigger reflows
+  ["click","change"].forEach(function(evt){
+    document.addEventListener(evt, function(ev){
+      // only if action was inside cart items region
+      if (ev.target && document.getElementById("cartItems")?.contains(ev.target)) {
+        setTimeout(repairMediaCards, 0);
+      }
+    }, true);
+  });
+
+  // Expose for manual use if needed
+  window.repairCartVideos = repairMediaCards;
+})();
+</script>
+
 </body>
 </html>
