@@ -3784,19 +3784,49 @@ function hideSuggest(){
 
 /** media thumb (video muted autoplay, YT iframe autoplay, or image) */
 function renderThumb(p){
+  // Normalize mediaUrl once
+  const mediaUrl = p?.mediaUrl || "";
+  
   if (p.mediaType === "video"){
+    // 😎 Use direct <video src> (no nested <source>) so DOM diffing doesn't recreate the element unnecessarily
+    // 😎 Preload aggressively + keep autoplaying inline on mobile
+    // 😎 Add data-media-url to help any diff/patch code decide whether to swap or keep the current element
     const posterAttr = p.poster ? ` poster="${p.poster.replace(/"/g,'&quot;')}"` : "";
-    return `<video class="thumb" muted autoplay loop playsinline${posterAttr}><source src="${p.mediaUrl}"/></video>`;
+    return `<video class="thumb"
+                   src="${mediaUrl}"
+                   muted autoplay loop playsinline preload="auto" ${posterAttr}
+                   disablepictureinpicture controlslist="nodownload noplaybackrate"
+                   data-media-url="${mediaUrl}"></video>`;
   }
+
   if (p.mediaType === "youtube"){
-    const embed = toYouTubeEmbed(p.mediaUrl);
+    // Convert to embed and force silent autoplay
+    const embed = toYouTubeEmbed(mediaUrl);
     if (embed){
-      return `<iframe class="thumb" src="${embed}" title="preview" frameborder="0" allow="autoplay; fullscreen; clipboard-write" allowfullscreen></iframe>`;
+      // 😎 Force autoplay+mute+loop+inline+clean UI on YouTube iframes
+      const join = embed.includes("?") ? "&" : "?";
+      // (Optional) If you pass p.youtubeId, we’ll use it for true looping via playlist param
+      // 😎 Playlist trick keeps loop reliable for single videos
+      const playlistParam = p.youtubeId ? `&playlist=${encodeURIComponent(p.youtubeId)}` : "";
+      const src = `${embed}${join}autoplay=1&mute=1&playsinline=1&loop=1&controls=0&modestbranding=1${playlistParam}`;
+      return `<iframe class="thumb"
+                      src="${src}"
+                      title="preview"
+                      frameborder="0"
+                      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; fullscreen"
+                      allowfullscreen
+                      referrerpolicy="origin-when-cross-origin"
+                      loading="lazy"
+                      data-media-url="${mediaUrl}"></iframe>`;
     }
   }
-  const imgSrc = p.mediaUrl || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
-  return `<img class="thumb" src="${imgSrc}" alt="">`;
+
+  // Fallback: image
+  const imgSrc = mediaUrl || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
+  // 😎 Lazy + async decode; keep data-media-url for stable diffs
+  return `<img class="thumb" src="${imgSrc}" alt="" loading="lazy" decoding="async" data-media-url="${imgSrc}">`;
 }
+
 
 function renderSuggestions(q){
   const ql = (q||"").toLowerCase().trim();
