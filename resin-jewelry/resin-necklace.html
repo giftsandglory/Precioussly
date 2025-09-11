@@ -2116,43 +2116,85 @@ product.appendChild(infoWrapper);
   <span style="line-height: 1;">Item added to cart</span>
 </div>
 <script>
+/* =========================================================
+   ULTRA-STABLE MEDIA + SILENT LIVE REFRESH (1000% FIX)
+   - All videos keep playing continuously (no pauses).
+   - No blank/vanishing videos during background data refresh.
+   - Reuses existing <video> nodes across re-renders to avoid resets.
+   - Hot-pulls Google Sheet updates (if your fetch/render exist).
+   ========================================================= */
 
 /* ====== SETTINGS ====== */
 const WHATSAPP_NUMBER = "8586057887";
 const BRAND_NAME = "precioussly";
 
-/* ====== Description Generator ====== */
-function generateSeoDescription(name) {
-  const lower = (name || "").toLowerCase();
-  const colors = ["red","blue","green","pink","black","white","purple","yellow","gold","silver","beige","brown","orange"];
-  const colorFound = colors.find(c => lower.includes(c));
-  const categories = [
-    { keys:["necklace","pendant","locket"], label:"necklace", use:"daily wear, parties and gifting" },
-    { keys:["ring"], label:"ring", use:"everyday elegance and special moments" },
-    { keys:["bracelet","bangle"], label:"bracelet", use:"stacking or solo style" },
-    { keys:["earring","stud","jhumka"], label:"earrings", use:"casual to festive looks" },
-    { keys:["keychain","key ring","key-ring"], label:"keychain", use:"bag charm or keys" },
-    { keys:["car","toy"], label:"mini collectible", use:"desk decor or gifting" },
-  ];
-  let cat = { label: "handmade piece", use: "gifting and everyday use" };
-  for (const c of categories) {
-    if (c.keys.some(k => lower.includes(k))) { cat = c; break; }
-  }
-  const niceName = name || "Beautiful Piece";
-  const colorTxt = colorFound ? `${colorFound} ` : "";
-  const line1 = `Premium ${colorTxt}${cat.label} — crafted for comfort and long-lasting shine.`;
-  const line2 = `Perfect for ${cat.use}.`;
-  const line3 = `Want a custom version? Message us on WhatsApp: ${WHATSAPP_NUMBER}.`;
-  const line4 = BRAND_NAME;
-  const sentence = `${niceName}: a premium ${colorTxt}${cat.label} designed for ${cat.use}. Lightweight, comfortable and gift-ready.`;
-  return { bullets: [line1, line2, line3, line4], sentence };
-}
-
-// --- Media helpers ---
+/* ====== Media helpers ====== */
 function isVideoUrl(url){
   if (!url) return false;
   url = String(url).split('?')[0].split('#')[0].trim().toLowerCase();
-  return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg') || url.includes('=video') || url.includes('/video/');
+  return (
+    url.endsWith('.mp4') ||
+    url.endsWith('.webm') ||
+    url.endsWith('.ogg') ||
+    url.includes('=video') ||
+    url.includes('/video/')
+  );
+}
+
+/* ====== Keep videos alive & always playing ====== */
+const _videoKeepAlive = new WeakSet();
+
+function keepAliveVideo(v){
+  if (!v || _videoKeepAlive.has(v)) return v;
+
+  // Essential attributes for uninterrupted autoplay
+  v.muted = true;                 // mobile autoplay
+  v.autoplay = true;
+  v.loop = true;
+  v.playsInline = true;
+  v.setAttribute("playsinline", "");
+  v.preload = "auto";
+  v.disablePictureInPicture = true;
+
+  // Aggressive re-play helper
+  const forcePlay = () => {
+    const p = v.play?.();
+    if (p && typeof p.then === "function") {
+      p.catch(() => {
+        // Retry shortly if browser momentarily blocks play
+        setTimeout(() => v.play?.().catch(()=>{}), 120);
+      });
+    }
+  };
+
+  // (Re)start whenever possible
+  v.addEventListener("loadeddata", forcePlay);
+  v.addEventListener("canplay", forcePlay);
+  v.addEventListener("stalled", forcePlay);
+  v.addEventListener("waiting", forcePlay);
+  v.addEventListener("emptied", forcePlay);
+  v.addEventListener("suspend", forcePlay);
+
+  // If something pauses it (layout/refresh), resume
+  v.addEventListener("pause", forcePlay);
+
+  // When tab becomes visible, resume
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") forcePlay();
+  });
+
+  // Lightweight watchdog to guarantee continuity
+  const watchdog = setInterval(() => {
+    if (v.isConnected === false) { clearInterval(watchdog); return; }
+    if (v.paused || v.readyState < 2) forcePlay();
+  }, 1500);
+
+  // Mark as set up
+  _videoKeepAlive.add(v);
+
+  // Kickstart immediately
+  forcePlay();
+  return v;
 }
 
 /* ====== Inject JSON-LD Product schema (SEO) ====== */
@@ -2190,12 +2232,16 @@ function injectProductSchema({name, price, mrp, image, description}) {
 
 let selectedProduct = null;
 
-// Open popup with product details
+/* ====== OPEN POPUP (stable slider, videos never pause) ====== */
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
-  selectedProduct = { image: images[0], name, mrp, price };
+  selectedProduct = { image: images?.[0], name, mrp, price };
+
   // Build a shareable link that re-opens this popup
-  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
-  
+  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name || "")}`;
+
+  // WhatsApp share (stable variables)
+  const imageUrl = images?.[0] || "";
+  const line1 = `${name || ""} ${price ? "₹"+price : ""}`.trim();
 
   const whEl = document.getElementById('whShare');
   if (whEl) {
@@ -2211,77 +2257,83 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   document.getElementById("popupQty").innerText = "1";
 
   // Inject product name and price
-  document.getElementById("popupName").innerText = name;
+  const nmEl = document.getElementById("popupName");
+  if (nmEl) nmEl.innerText = name || "";
 
   let priceHTML = "";
   if (mrp && price) {
-  const discount = Math.round(((mrp - price) / mrp) * 100);
-  priceHTML = `
-    <div style="font-size:14px; display:flex; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-      <b>₹${price}</b>
-      <s style="color:#999;">₹${mrp}</s>
-      <span style="color:green; font-size:13px;">${discount}% off</span>
-    </div>`;
+    const discount = Math.round(((mrp - price) / mrp) * 100);
+    priceHTML = `
+      <div style="font-size:14px; display:flex; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+        <b>₹${price}</b>
+        <s style="color:#999;">₹${mrp}</s>
+        <span style="color:green; font-size:13px;">${discount}% off</span>
+      </div>`;
   } else if (price) {
     priceHTML = `<b>₹${price}</b>`;
   } else {
     priceHTML = `<span style="color:#999;">Price not available</span>`;
   }
+  const priceEl = document.getElementById("popupPrice");
+  if (priceEl) priceEl.innerHTML = priceHTML;
 
-  document.getElementById("popupPrice").innerHTML = priceHTML;
-// === Build description from Google Sheet (hide section if empty) ===
-const descWrap = document.getElementById("popupDesc");
-const descText = document.getElementById("popupDescText");
-const fromSheet = (sheetDesc || "").trim();
+  // === Build description from Google Sheet (hide section if empty) ===
+  const descWrap = document.getElementById("popupDesc");
+  const descText = document.getElementById("popupDescText");
+  const fromSheet = (sheetDesc || "").trim();
 
-// Reset state (in case previous product had a description)
-if (descText) descText.textContent = "";
-
-// Show only if non-empty
-if (fromSheet.length > 0) {
-  if (descWrap) descWrap.style.display = "block";
-  if (descText) descText.textContent = fromSheet;
-} else {
-  if (descWrap) descWrap.style.display = "none";
-}
-
-// unified scroll handled by CSS on .popup-card
-
-
-// ✅ SEO schema: use sheet description if present, else empty
-injectProductSchema({
-  name,
-  price,
-  mrp,
-  image: images[0],
-  description: fromSheet
-});
-// Add to cart button
-  const popupBtn = document.getElementById("popupAddBtn");
-  if (+stock === 0) {
-    popupBtn.disabled = true;
-    popupBtn.innerHTML = "Out of Stock";
+  if (descText) descText.textContent = "";
+  if (fromSheet.length > 0) {
+    if (descWrap) descWrap.style.display = "block";
+    if (descText) descText.textContent = fromSheet;
   } else {
-    popupBtn.disabled = false;
-    popupBtn.innerHTML = "Add to Cart";
-    popupBtn.onclick = function () {
-  addToCartFromGrid(popupBtn, {
-    photo: images[0],
-    name,
-    mrp,
-    price,
-    qty: parseInt(document.getElementById("popupQty").innerText) || 1
-  });
-};
+    if (descWrap) descWrap.style.display = "none";
   }
 
-// Inject slider images (LIVE DRAG)
+  // ✅ SEO schema: use sheet description if present, else empty
+  injectProductSchema({
+    name,
+    price,
+    mrp,
+    image: images?.[0],
+    description: fromSheet
+  });
+
+  // Add to cart button
+  const popupBtn = document.getElementById("popupAddBtn");
+  if (popupBtn) {
+    if (+stock === 0) {
+      popupBtn.disabled = true;
+      popupBtn.innerHTML = "Out of Stock";
+    } else {
+      popupBtn.disabled = false;
+      popupBtn.innerHTML = "Add to Cart";
+      popupBtn.onclick = function () {
+        addToCartFromGrid(popupBtn, {
+          photo: images?.[0],
+          name,
+          mrp,
+          price,
+          qty: parseInt(document.getElementById("popupQty").innerText) || 1
+        });
+      };
+    }
+  }
+
+  // ===== Slider (LIVE, NO-PAUSE VIDEOS) =====
   const slider = document.getElementById("popupSlider");
   const dotsContainer = document.getElementById("popupDots");
+  if (!slider) return;
+
+  // Capture existing video nodes to REUSE (preserve playback position)
+  const existingBySrc = new Map();
+  slider.querySelectorAll("video.popup-slide[src]").forEach(v => {
+    existingBySrc.set(v.currentSrc || v.getAttribute("src"), v);
+  });
+
   slider.innerHTML = "";
   if (dotsContainer) dotsContainer.innerHTML = "";
 
-  // Build track + slides
   const track = document.createElement("div");
   track.className = "popup-track";
   slider.appendChild(track);
@@ -2290,50 +2342,44 @@ injectProductSchema({
   const slides = [];
   const dots = [];
 
-  
+  (images || []).forEach((url, i) => {
+    const clean = (url || "").trim();
+    let el;
 
-images.forEach((url, i) => {
-  const clean = (url || "").trim();
-  let el;
+    if (isVideoUrl(clean)) {
+      // Reuse existing node if available
+      const reuse = existingBySrc.get(clean);
+      if (reuse) {
+        el = reuse;
+      } else {
+        const v = document.createElement("video");
+        v.className = "popup-slide";
+        v.src = clean;
+        keepAliveVideo(v); // <-- ensures nonstop playback
+        el = v;
+      }
+      // Guarantee keep-alive in case of reused node
+      keepAliveVideo(el);
+    } else {
+      const img = document.createElement("img");
+      img.className = "popup-slide";
+      img.src = clean;
+      img.alt = (name || "product");
+      el = img;
+    }
 
-  if (isVideoUrl(clean)) {
-    const v = document.createElement("video");
-    v.className = "popup-slide";
-    v.src = clean;                       // ✅ set video source
-    v.muted = true;                      // ✅ allow autoplay on mobile
-    v.autoplay = true;
-    v.loop = true;
-    v.playsInline = true;
-    v.preload = "metadata";
-    v.disablePictureInPicture = true;
+    track.appendChild(el);
+    slides.push(el);
 
-    // start/pause based on visibility
-    v.addEventListener("loadeddata", () => {
-      if (i === 0) v.play();
-      else v.pause();
-    });
-
-    el = v;
-  } else {
-    const img = document.createElement("img");
-    img.className = "popup-slide";
-    img.src = clean;
-    img.alt = (name || "product");
-    el = img;
-  }
-
-  track.appendChild(el);
-  slides.push(el);
-
-  // dots
-  if (dotsContainer) {
-    const d = document.createElement("div");
-    d.className = "popup-dot" + (i === 0 ? " active" : "");
-    d.addEventListener("click", () => goTo(i));
-    dotsContainer.appendChild(d);
-    dots.push(d);
-  }
-});
+    // dots
+    if (dotsContainer) {
+      const d = document.createElement("div");
+      d.className = "popup-dot" + (i === 0 ? " active" : "");
+      d.addEventListener("click", () => goTo(i));
+      dotsContainer.appendChild(d);
+      dots.push(d);
+    }
+  });
 
   // Hide dots if single or zero images; show otherwise
   if (dotsContainer){
@@ -2353,27 +2399,24 @@ images.forEach((url, i) => {
     if (!slides.length) return;
     if (i < 0) i = 0;
     if (i > slides.length - 1) i = slides.length - 1;
-    
+
     const prevIndex = currentIndex;
-currentIndex = i;
-const dist = Math.max(1, Math.abs(prevIndex - currentIndex));
-const base = 1400; // base ms (slower than before)
-const extra = 200 * (dist - 1); // if jumping more than 1 slide
-let dur = base + extra;
-// Trim duration a bit for very fast swipes
-if (window.__fastSwipe) dur = Math.max(420, base - 120);
-track.style.transition = animate ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
+    currentIndex = i;
+    const dist = Math.max(1, Math.abs(prevIndex - currentIndex));
+    const base = 1400; // base ms (slower)
+    const extra = 200 * (dist - 1);
+    let dur = base + extra;
+    if (window.__fastSwipe) dur = Math.max(420, base - 120);
+
+    track.style.transition = animate ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
     track.style.transform = `translateX(${-i * width()}px)`;
     setActiveDot(i);
-    // Play/pause videos: only current slide plays
-    slides.forEach((el, idx) => {
-      if (el && el.tagName === 'VIDEO') {
-        try { if (idx === i) { el.play(); } else { el.pause(); } } catch(e){}
-      }
-    });
+
+    // ❌ DO NOT PAUSE OTHER VIDEOS — keep them running continuously
+    // (No play/pause logic here by design)
   }
 
-  // Init position
+  // Init position (no pause)
   goTo(0, false);
 
   // Drag logic
@@ -2420,9 +2463,9 @@ track.style.transition = animate ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)
     else if (dx > threshold || (fast && dx > 0)) target = currentIndex - 1;
 
     window.__fastSwipe = fast;
-goTo(target, true);
+    goTo(target, true);
     setTimeout(() => { window.__fastSwipe = false; }, 50);
-slider.releasePointerCapture?.(e.pointerId);
+    slider.releasePointerCapture?.(e.pointerId);
   };
 
   slider.addEventListener("pointerdown", onPointerDown, { passive: true });
@@ -2440,25 +2483,22 @@ slider.releasePointerCapture?.(e.pointerId);
   });
 
   // Show popup (ultra smooth)
-
-// Show popup (ultra smooth)
-const popup = document.getElementById("productPopup");
-const card  = popup.querySelector(".popup-card");
-
-popup.style.display = "flex";      // mount
-// next frame -> add classes so transition runs
-requestAnimationFrame(() => {
-  popup.classList.add("is-open");
-  card.classList.remove("leave");
-  card.classList.add("enter");
-});
-document.body.classList.add("noscroll");
-
-// Close popup
-;
-  card.addEventListener("transitionend", onDone);
+  const popup = document.getElementById("productPopup");
+  if (popup) {
+    const card  = popup.querySelector(".popup-card");
+    popup.style.display = "flex";      // mount
+    requestAnimationFrame(() => {
+      popup.classList.add("is-open");
+      if (card) {
+        card.classList.remove("leave");
+        card.classList.add("enter");
+      }
+    });
+    document.body.classList.add("noscroll");
+  }
 }
-// ✅ Quantity bar increase/decrease logic
+
+/* ====== Quantity bar increase/decrease logic ====== */
 function changePopupQty(change) {
   const qtyElement = document.getElementById("popupQty");
   let current = parseInt(qtyElement.innerText);
@@ -2467,7 +2507,8 @@ function changePopupQty(change) {
   if (current > 99) current = 99;
   qtyElement.innerText = current;
 }
-// Add to cart logic
+
+/* ====== Add to cart logic ====== */
 function addToCartFromGrid(button, product) {
   const originalHTML = button.innerHTML;
   button.disabled = true;
@@ -2480,27 +2521,85 @@ function addToCartFromGrid(button, product) {
     // Add item to cart
     let cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
     const existing = cartItems.find(i => i.name === product.name);
-if (existing) {
-  existing.qty += product.qty || 1;  // ✅ Add correct qty if already exists
-} else {
-  cartItems.push({ ...product, qty: product.qty || 1 }); // ✅ Store correct qty
-}
+    if (existing) {
+      existing.qty += product.qty || 1;  // ✅ Add correct qty if already exists
+    } else {
+      cartItems.push({ ...product, qty: product.qty || 1 }); // ✅ Store correct qty
+    }
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
-    updateCartBadge();
+    updateCartBadge?.();
 
     // Show toast
     const toast = document.getElementById("addedToast");
-    toast.innerHTML = `
-  <img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
-  <span style="line-height:1;">Item added to cart</span>
-`;
-    toast.style.display = "flex";
-    setTimeout(() => {
-      toast.style.display = "none";
-    }, 2000);
+    if (toast) {
+      toast.innerHTML = `
+        <img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+        <span style="line-height:1;">Item added to cart</span>
+      `;
+      toast.style.display = "flex";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 2000);
+    }
   }, 1000);
 }
+
+/* =========================================================
+   SILENT LIVE REFRESH FROM GOOGLE SHEET (No visual reset)
+   - If your page defines fetchSheetData(), PASTED_SHEET_LINK, TAB_NAME
+     and renderProducts(), this will poll & update in-place.
+   - Videos stay intact; we DO NOT reload the page.
+   ========================================================= */
+(function setupLiveSheetSync(){
+  const canFetch = typeof window.fetchSheetData === "function" &&
+                   typeof window.PASTED_SHEET_LINK === "string" &&
+                   typeof window.TAB_NAME === "string";
+  const canRender = typeof window.renderProducts === "function";
+
+  if (!canFetch || !canRender) return; // integrate only when your hooks exist
+
+  let lastJSON = "";
+  let inflight = false;
+
+  const tick = async () => {
+    if (inflight) return;
+    inflight = true;
+    try {
+      const data = await window.fetchSheetData(window.PASTED_SHEET_LINK, window.TAB_NAME);
+      const nowJSON = JSON.stringify(data || []);
+      if (nowJSON !== lastJSON) {
+        lastJSON = nowJSON;
+
+        // Render NEW DATA without nuking existing video nodes when possible.
+        // Assumption: your renderProducts smartly updates DOM; if it clears,
+        // our keepAliveVideo will re-stabilize playback on recreated nodes.
+        window.renderProducts(data);
+
+        // Re-apply keepAlive on any product videos just in case.
+        document.querySelectorAll("video").forEach(keepAliveVideo);
+      }
+    } catch(e) {
+      // fail silently (no UX impact)
+    } finally {
+      inflight = false;
+    }
+  };
+
+  // Initial & interval polling
+  tick();
+  setInterval(tick, 10000); // every 10s; adjust if needed
+})();
+
+/* =========================================================
+   SAFETY NET: Ensure any existing videos on page never stop
+   ========================================================= */
+window.addEventListener("pageshow", () => {
+  document.querySelectorAll("video").forEach(keepAliveVideo);
+});
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("video").forEach(keepAliveVideo);
+});
 </script>
 <script>
   // Announcement Bar from Google Sheet
