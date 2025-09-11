@@ -3376,7 +3376,8 @@ const a = document.createElement("a");
 
 async function loadCategories(){
   try{
-    const res = await fetch(categorySheetURL);
+    const res = await fetch(categorySheetURL, { cache: "no-store" });
+
     const rows = await res.json();
     renderCategories(rows);
   }catch(e){
@@ -5154,9 +5155,6 @@ try {
 
   
 </script>
-
-</body>
-</html>
 <script>
 // Safety: ensure the hero counter updates at least once even if the observer misses early paints.
 (function(){
@@ -5176,3 +5174,6 @@ try {
   }, 200);
 })();
 </script>
+</body>
+</html>
+
