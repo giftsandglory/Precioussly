@@ -1654,18 +1654,26 @@ body.horizontal-mode .product-grid{
 
 <script>
 /* ===========================================================
-   CATALOG LOADER (Master Sheet → many product tabs)
-   Master sheet columns (exact names):
-   - "Sheet Url"
-   - "Tab"
+   CATALOG LOADER 2.0 — Stale-While-Revalidate (SWR)
+   - Master sheet drives many product tabs.
+   - Renders immediately from cache (if available).
+   - Refreshes in background; swaps in new DOM atomically.
+   - Keeps previous UI visible until new data is ready.
    =========================================================== */
 
+/* ---------- CONFIG ---------- */
 const MASTER_SHEET_URL = "https://docs.google.com/spreadsheets/d/1ehaO9wptGfqHZVs46JJNUe8Ji_xR_YnWYwykhgiObs0/edit?usp=drivesdk";
-const MASTER_TAB       = "Sheet1";   // 👈 your master tab name
+const MASTER_TAB       = "Sheet1";          // your master tab name
+const REFRESH_MS       = 60_000;            // background refresh interval (ms)
+const FETCH_TIMEOUT_MS = 25_000;            // per-request timeout
+const CACHE_KEY        = "catalogCache_v2"; // localStorage key
+const DEBUG_LOGS       = false;             // set true to see timings in console
 
 /* ---------- tiny utils ---------- */
 const $ = (sel) => document.querySelector(sel);
 const contentEl = document.getElementById("content");
+
+function log(...a){ if (DEBUG_LOGS) console.log("[CATALOG]", ...a); }
 
 function extractSheetId(gsheetUrl) {
   const m = String(gsheetUrl || "").match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
@@ -1674,10 +1682,28 @@ function extractSheetId(gsheetUrl) {
 function opensheetUrl(sheetId, tabName) {
   return `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(String(tabName || "").trim())}`;
 }
-async function loadJSON(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`Fetch failed ${r.status}: ${url}`);
-  return r.json();
+
+async function loadJSON(url, timeoutMs = FETCH_TIMEOUT_MS) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort("timeout"), timeoutMs);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+    if (!r.ok) throw new Error(`Fetch failed ${r.status}: ${url}`);
+    return r.json();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+function safeParse(json, fallback){
+  try { return JSON.parse(json); } catch { return fallback; }
+}
+
+function hashString(s){
+  // Tiny non-crypto hash, good enough for change detection.
+  let h = 2166136261;
+  for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h += (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); }
+  return (h >>> 0).toString(36);
 }
 
 /* ---------- sheet header helpers ---------- */
@@ -1704,7 +1730,7 @@ function getSheetDescription(row){
 }
 function isVideoUrl(u=""){
   const s = String(u).toLowerCase();
-  return /\.(mp4|webm|mov|m4v)$/.test(s) || s.includes("googleusercontent.com") && s.includes("video");
+  return /\.(mp4|webm|mov|m4v)$/.test(s) || (s.includes("googleusercontent.com") && s.includes("video"));
 }
 
 /* ---------- deep-link open (?p=slug) ---------- */
@@ -1719,36 +1745,47 @@ function getParam(name) {
   const u = new URLSearchParams(location.search);
   return u.get(name);
 }
-function maybeOpenFromURL() {
+function maybeOpenFromURL(catalogData) {
   const wanted = getParam('p');
-  if (!wanted || !window.catalogData) return;
+  if (!wanted || !catalogData) return;
 
   const wantedSlug = slugify(decodeURIComponent(wanted));
-  const item = window.catalogData.find(row => slugify(row["Product Name"]) === wantedSlug);
+  const item = catalogData.find(row => slugify(row["Product Name"]) === wantedSlug);
   if (!item) return;
 
   const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
   // openPopup(...) must exist in your page already
-  openPopup(images,
-            item["Product Name"],
-            Number(item["MRP"]),
-            Number(item["Selling Price"]),
-            Number(item["in stock"]),
-            getSheetDescription(item));
+  try {
+    openPopup(
+      images,
+      item["Product Name"],
+      Number(item["MRP"]),
+      Number(item["Selling Price"]),
+      Number(item["in stock"]),
+      getSheetDescription(item)
+    );
+  } catch(err){
+    console.error("openPopup(...) not found or failed:", err);
+  }
 }
 
 /* ---------- DOM builders ---------- */
-function ensureGridUnder(content, titleText){
+function ensureGridUnder(container, titleText){
+  const wrap = document.createElement("div");
+  // Title
   const title = document.createElement("div");
   title.className = "section-title";
   title.innerText = titleText || "";
-  content.appendChild(title);
-
+  wrap.appendChild(title);
+  // Grid
   const grid = document.createElement("div");
   grid.className = "product-grid";
-  content.appendChild(grid);
+  wrap.appendChild(grid);
+
+  container.appendChild(wrap);
   return grid;
 }
+
 function renderProductCard(item, grid){
   if (!item || !item["Product Name"]) return;
   if (isHidden(item)) return;
@@ -1760,13 +1797,18 @@ function renderProductCard(item, grid){
   product.addEventListener("click", (e) => {
     if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
     const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-    openPopup(allPhotos,
-      item["Product Name"],
-      item["MRP"],
-      item["Selling Price"],
-      item["in stock"],
-      getSheetDescription(item)
-    );
+    try{
+      openPopup(
+        allPhotos,
+        item["Product Name"],
+        item["MRP"],
+        item["Selling Price"],
+        item["in stock"],
+        getSheetDescription(item)
+      );
+    } catch (err) {
+      console.error("openPopup(...) not found or failed:", err);
+    }
   });
 
   // Media (photo or video) wrapped to maintain 1:1
@@ -1792,6 +1834,8 @@ function renderProductCard(item, grid){
       const img = document.createElement("img");
       img.src = url1;
       img.alt = item["Product Name"];
+      img.loading = "lazy";
+      img.decoding = "async";
       img.style.pointerEvents = "none";
       img.style.cursor = "default";
       el = img;
@@ -1857,92 +1901,200 @@ function renderProductCard(item, grid){
   grid.appendChild(product);
 }
 
-/* ---------- main: load master → load all tabs ---------- */
-(async function initCatalog() {
-  try {
-    // 1) read master list
-    const masterId = extractSheetId(MASTER_SHEET_URL);
-    if (!masterId) {
-      console.error("❌ Invalid Master Google Sheet URL:", MASTER_SHEET_URL);
-      return;
-    }
-    const masterURL = opensheetUrl(masterId, MASTER_TAB);
-    const masterRows = await loadJSON(masterURL);
+/* ---------- RENDER PIPELINE ---------- */
+function buildCatalogFragment(allSheets){
+  // Returns a DocumentFragment with fully-built DOM for flicker-free swap.
+  const frag = document.createDocumentFragment();
+  const container = document.createElement("div");
 
-    // rows => [{sheetId, tab, url}]
-    const jobs = masterRows
-      .map(r => {
-        const url = r["Sheet Url"] || r["sheet url"] || r["SHEET URL"];
-        const tab = r["Tab"] || r["TAB"] || r["tab"];
-        const sid = extractSheetId(url);
-        if (!sid || !tab) return null;
-        return { sheetId: sid, tabName: String(tab), src: url };
-      })
-      .filter(Boolean);
+  const catalogData = [];
 
-    if (!jobs.length) {
-      console.warn("⚠️ Master sheet is empty or has wrong column names (need 'Sheet Url' & 'Tab').");
-      return;
+  for (const sheet of allSheets) {
+    const data = Array.isArray(sheet.rows) ? sheet.rows : [];
+    const hasExplicitSectionRows = data.some(r => r["Section"]);
+    // If the sheet itself should get a heading, show its tab name:
+    // (skip if sheet uses its own "Section" rows)
+    let gridForSection = null;
+    let currentSectionHidden = false;
+
+    if (!hasExplicitSectionRows) {
+      gridForSection = ensureGridUnder(container, sheet.meta.tabName);
     }
 
-    // 2) fetch all tabs in parallel
-    const fetches = jobs.map(async (j) => {
-      const url = opensheetUrl(j.sheetId, j.tabName);
-      const rows = await loadJSON(url);
-      return { meta: j, rows };
-    });
-    const allSheets = await Promise.all(fetches);
-
-    // 3) Optional: let a direction/app toggle sheet drive UI (safe-guarded)
-    if (typeof applyDirectionFromSheet === "function") {
-      // merge first sheet’s data for direction if you use it; or pass master:
-      try { applyDirectionFromSheet(allSheets[0]?.rows || []); } catch {}
-    }
-
-    // 4) render each sheet in sequence (keeps section headings inside sheets)
-    window.catalogData = [];  // used for deep-link search later
-
-    for (const sheet of allSheets) {
-      const data = Array.isArray(sheet.rows) ? sheet.rows : [];
-
-      // If the sheet itself should get a heading, show its tab name:
-      // (skip if sheet uses its own "Section" rows)
-      const hasExplicitSectionRows = data.some(r => r["Section"]);
-      if (!hasExplicitSectionRows) {
-        ensureGridUnder(contentEl, sheet.meta.tabName);
+    data.forEach(item => {
+      // New section header row
+      if (item["Section"]) {
+        const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
+        currentSectionHidden = secVis.includes("hide");
+        if (currentSectionHidden) { gridForSection = null; return; }
+        gridForSection = ensureGridUnder(container, item["Section"]);
+        return;
       }
 
-      let currentSectionHidden = false;
-      let gridForSection = hasExplicitSectionRows ? null : contentEl.querySelector(".product-grid:last-of-type");
+      if (currentSectionHidden) return;
 
-      data.forEach(item => {
-        // New section header row
-        if (item["Section"]) {
-          const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
-          currentSectionHidden = secVis.includes("hide");
-          if (currentSectionHidden) { gridForSection = null; return; }
-          gridForSection = ensureGridUnder(contentEl, item["Section"]);
-          return;
-        }
+      // Ensure there is a grid to append into
+      if (!gridForSection) gridForSection = ensureGridUnder(container, sheet.meta.tabName);
 
-        if (currentSectionHidden) return;
-
-        // Ensure there is a grid to append into
-        if (!gridForSection) gridForSection = ensureGridUnder(contentEl, sheet.meta.tabName);
-
-        renderProductCard(item, gridForSection);
-        window.catalogData.push(item);
-      });
-    }
-
-    // 5) open deep-linked product if present
-    maybeOpenFromURL();
-
-  } catch (err) {
-    console.error("Failed to load catalog:", err);
+      renderProductCard(item, gridForSection);
+      catalogData.push(item);
+    });
   }
+
+  frag.appendChild(container);
+  return { frag, catalogData };
+}
+
+function swapCatalogDOM(frag){
+  // Atomic swap without layout thrash: replace children of #content.
+  // Create a shadow wrapper so we can do minimal replacements.
+  const tempHost = document.createElement("div");
+  tempHost.appendChild(frag);
+  // Replace contentEl children
+  contentEl.innerHTML = "";
+  // Move children from tempHost -> contentEl (one reflow)
+  while (tempHost.firstChild) {
+    contentEl.appendChild(tempHost.firstChild);
+  }
+}
+
+/* ---------- FETCH PIPELINE ---------- */
+async function fetchAllSheets(){
+  // 1) read master list
+  const masterId = extractSheetId(MASTER_SHEET_URL);
+  if (!masterId) throw new Error("Invalid Master Google Sheet URL");
+
+  const masterURL = opensheetUrl(masterId, MASTER_TAB);
+  const masterRows = await loadJSON(masterURL);
+
+  // rows => [{sheetId, tab, url}]
+  const jobs = masterRows
+    .map(r => {
+      const url = r["Sheet Url"] || r["sheet url"] || r["SHEET URL"];
+      const tab = r["Tab"] || r["TAB"] || r["tab"];
+      const sid = extractSheetId(url);
+      if (!sid || !tab) return null;
+      return { sheetId: sid, tabName: String(tab), src: url };
+    })
+    .filter(Boolean);
+
+  if (!jobs.length) {
+    throw new Error("Master sheet empty or wrong column names (need 'Sheet Url' & 'Tab').");
+  }
+
+  // 2) fetch all tabs in parallel
+  const fetches = jobs.map(async (j) => {
+    const url = opensheetUrl(j.sheetId, j.tabName);
+    const rows = await loadJSON(url);
+    return { meta: j, rows };
+  });
+  const allSheets = await Promise.all(fetches);
+
+  return allSheets;
+}
+
+/* ---------- CACHE LAYER (SWR) ---------- */
+function readCache(){
+  const raw = localStorage.getItem(CACHE_KEY);
+  if (!raw) return null;
+  const obj = safeParse(raw, null);
+  if (!obj || !obj.payload || !obj.hash) return null;
+  return obj;
+}
+function writeCache(payload){
+  const json = JSON.stringify(payload);
+  const hash = hashString(json);
+  const entry = { hash, ts: Date.now(), payload };
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(entry)); } catch {}
+  return entry;
+}
+
+
+/* ---------- DIRECTION SHEET HOOK ---------- */
+async function tryApplyDirection() {
+  try {
+    const masterId  = extractSheetId(MASTER_SHEET_URL);
+    if (!masterId) return;
+    const masterURL = opensheetUrl(masterId, MASTER_TAB);
+    const masterRows = await loadJSON(masterURL);
+    if (typeof applyDirectionFromSheet === "function") {
+      applyDirectionFromSheet(masterRows || []);
+    }
+  } catch (e) { console.warn("Direction load failed", e); }
+}
+
+/* ---------- MAIN (SWR) ---------- */
+let isRefreshing = false;
+let lastRenderedHash = null;
+
+async function revalidateInBackground(){
+  if (isRefreshing) return;
+  isRefreshing = true;
+  const t0 = performance.now();
+
+  try {
+    const allSheets = await fetchAllSheets();
+    const payload = { allSheets }; // keep payload shape extensible
+    const json = JSON.stringify(payload);
+    const freshHash = hashString(json);
+
+    // Only update UI & cache if changed
+    if (freshHash !== lastRenderedHash) {
+      log("Change detected, rebuilding DOM...");
+      tryApplyDirection(allSheets);
+      const { frag, catalogData } = buildCatalogFragment(allSheets);
+      swapCatalogDOM(frag);
+      lastRenderedHash = freshHash;
+
+      // Store globally for deep link compatibility and other scripts
+      window.catalogData = catalogData;
+
+      // After DOM swap, open deep-linked product (if any)
+      maybeOpenFromURL(catalogData);
+
+      // Write cache after successful render to avoid bad cache
+      writeCache(payload);
+    } else {
+      log("No changes detected; keeping current UI.");
+      // Still refresh cache timestamp so next load is "warm"
+      writeCache(payload);
+    }
+    const t1 = performance.now();
+    log(`Background refresh completed in ${(t1 - t0).toFixed(0)}ms`);
+  } catch (err) {
+    console.error("Background refresh failed:", err);
+  } finally {
+    isRefreshing = false;
+  }
+}
+
+(async function initCatalogSWR(){
+  // 1) Attempt to render from cache immediately (fast path)
+  const cached = readCache();
+  if (cached?.payload?.allSheets?.length) {
+    log("Rendering from cache...");
+    tryApplyDirection(cached.payload.allSheets);
+    const { frag, catalogData } = buildCatalogFragment(cached.payload.allSheets);
+    swapCatalogDOM(frag);
+    window.catalogData = catalogData;
+    maybeOpenFromURL(catalogData);
+    lastRenderedHash = cached.hash;
+  } else {
+    // Show nothing yet; will render after first live fetch completes.
+    log("No cache found; will render after first fetch.");
+  }
+
+  // 2) Kick off background revalidation right away
+  revalidateInBackground();
+
+  // 3) Poll on interval for silent refreshes
+  const iv = setInterval(revalidateInBackground, REFRESH_MS);
+
+  // Optional: cleanup on SPA navigations
+  window.addEventListener("beforeunload", () => clearInterval(iv));
 })();
 </script>
+
 
 
 
@@ -2439,19 +2591,131 @@ if (existing) {
 }
 </script>
 <script>
-  // Announcement Bar from Google Sheet
-  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
-  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+/* ===========================================================
+   Announcement Bar (SWR: stale-while-revalidate)
+   - Shows last good text instantly from localStorage.
+   - Refreshes silently in background; swaps when fresh arrives.
+   - Keeps old text visible until new data is ready.
+   =========================================================== */
 
-  fetch(announceURL)
-    .then(res => res.json())
-    .then(data => {
-      if (data.length > 0 && data[0]["(announcement_text)"]) {
-        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
-      }
-    });
-  
-  function updateCartBadge(animate = true) {
+/* ---- Config ---- */
+const ANNOUNCE_SHEET_ID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+const ANNOUNCE_TAB      = "Sheet1";
+const ANNOUNCE_URL      = `https://opensheet.elk.sh/${ANNOUNCE_SHEET_ID}/${encodeURIComponent(ANNOUNCE_TAB)}`;
+const ANNOUNCE_COL      = "(announcement_text)"; // exact column name in your sheet
+const REFRESH_MS        = 60_000;                // background refresh cadence
+const FETCH_TIMEOUT_MS  = 20_000;                // per-request timeout
+const CACHE_KEY         = "announcementBar_v1";  // localStorage cache key
+const DEBUG_ANN         = false;                 // toggle console logs
+
+function aLog(...args){ if (DEBUG_ANN) console.log("[ANNOUNCE]", ...args); }
+
+/* ---- tiny utils ---- */
+function withTimeout(promise, ms){
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort("timeout"), ms);
+  return Promise.race([
+    fetch(ANNOUNCE_URL, { signal: ctrl.signal, cache: "no-store" }),
+    new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))
+  ]).finally(() => clearTimeout(t));
+}
+function safeJSON(s, fb){ try { return JSON.parse(s); } catch { return fb; } }
+function hashString(s){
+  // simple non-crypto hash for change detection
+  let h = 2166136261; for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h += (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); }
+  return (h>>>0).toString(36);
+}
+
+/* ---- cache ---- */
+function readCache(){
+  const raw = localStorage.getItem(CACHE_KEY);
+  if (!raw) return null;
+  const obj = safeJSON(raw, null);
+  if (!obj || typeof obj.text !== "string") return null;
+  return obj; // { text, hash, ts }
+}
+function writeCache(text){
+  const entry = { text, hash: hashString(text), ts: Date.now() };
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(entry)); } catch {}
+  return entry;
+}
+
+/* ---- DOM render ---- */
+function renderAnnouncement(text){
+  const el = document.getElementById("announcementBar");
+  if (!el) return;
+  // Only update if changed to avoid layout thrash
+  if (el.innerText !== text) el.innerText = text;
+}
+
+/* ---- find the first non-empty announcement cell ---- */
+function pickAnnouncement(rows){
+  if (!Array.isArray(rows)) return "";
+  for (const r of rows){
+    const v = r?.[ANNOUNCE_COL];
+    if (v && String(v).trim()) return String(v).trim();
+  }
+  return "";
+}
+
+/* ---- background revalidate ---- */
+let lastRenderedHash = null;
+async function revalidateAnnouncement(){
+  try {
+    aLog("fetching live…");
+    const res = await withTimeout(fetch(ANNOUNCE_URL, { cache: "no-store" }), FETCH_TIMEOUT_MS);
+    // If withTimeout already returns a fetch Response, use it directly
+    const response = res instanceof Response ? res : await withTimeout(fetch(ANNOUNCE_URL, { cache: "no-store" }), FETCH_TIMEOUT_MS);
+    if (!response.ok) throw new Error("HTTP "+response.status);
+    const data = await response.json();
+
+    const nextText = pickAnnouncement(data) || "";
+    const nextHash = hashString(nextText);
+
+    if (!nextText) {
+      aLog("empty announcement from sheet, keeping current UI");
+      return; // keep stale UI
+    }
+
+    if (nextHash !== lastRenderedHash) {
+      aLog("change detected → swapping");
+      renderAnnouncement(nextText);
+      const entry = writeCache(nextText);
+      lastRenderedHash = entry.hash;
+    } else {
+      aLog("no change; refresh cache timestamp");
+      writeCache(nextText); // refresh ts so warm cache persists
+    }
+  } catch (err) {
+    console.warn("Announcement refresh failed:", err);
+    // keep stale UI; do nothing
+  }
+}
+
+/* ---- init (SWR) ---- */
+(function initAnnouncementSWR(){
+  // 1) render from cache instantly (if any)
+  const cached = readCache();
+  if (cached?.text) {
+    aLog("rendering from cache");
+    renderAnnouncement(cached.text);
+    lastRenderedHash = cached.hash;
+  } else {
+    aLog("no cache; will render after first live fetch");
+  }
+
+  // 2) kick off live revalidation now
+  revalidateAnnouncement();
+
+  // 3) periodic background refresh
+  const iv = setInterval(revalidateAnnouncement, REFRESH_MS);
+  window.addEventListener("beforeunload", () => clearInterval(iv));
+})();
+
+/* ===========================================================
+   Cart Badge (unchanged; uses localStorage and animates on change)
+   =========================================================== */
+function updateCartBadge(animate = true) {
   const items = JSON.parse(localStorage.getItem("cartItems")) || [];
   let count = 0;
   items.forEach(item => count += item.qty);
@@ -2467,22 +2731,23 @@ if (existing) {
 
     if (animate && count !== prev) {
       badge.classList.remove("bounce-badge");
-      void badge.offsetWidth;             // reflow
+      void badge.offsetWidth;             // reflow to restart animation
       badge.classList.add("bounce-badge");
       badge.addEventListener("animationend", () => {
         badge.classList.remove("bounce-badge");
       }, { once: true });
     }
   } else {
-    badge.innerText = "";                  // ✅ no “0”
-    badge.style.display = "none";          // ✅ hide when empty
+    badge.innerText = "";   // no “0”
+    badge.style.display = "none";
   }
 
   badge.dataset.count = count;
 }
 
-updateCartBadge(false); // ✅ no bounce on refresh
+updateCartBadge(false); // no bounce on initial load
 </script>
+
 
 <script>
 function closePopup() {
@@ -3764,10 +4029,6 @@ if (popup){
   });
 })();
 </script>
-
-</body>
-</html>
-
 </body>
 </html>
 
