@@ -2655,9 +2655,22 @@ down-toggle {
   padding-right: 0 !important;
 }
 /* Ensure the square/circle media sits truly centered */
-.cat-card .square-mini,
-.cat-card .circle-mini,
-.cat-card .rect-img{
+/* For square items */
+.cat-card .square-mini {
+  margin-left: auto !important;   /* yahan -px, +px, 0px sab chalega */
+  margin-right: auto !important;  /* chahe to right side bhi negative rakh sakte ho */
+  display: block !important;
+}
+
+/* For circle items */
+.cat-card .circle-mini {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: block !important;
+}
+
+/* For rectangle images */
+.cat-card .rect-img {
   margin-left: auto !important;
   margin-right: auto !important;
   display: block !important;
@@ -2673,8 +2686,75 @@ down-toggle {
 }
 /* Defensive: kill any leftover text-indent or transforms */
 .cat-card .label{ text-indent: 0 !important; transform: none !important; }
-</style>
+/* === FINAL: Square strips = edge-to-edge with exact 1px side gap === */
 
+/* 1) Section ko viewport tak kheecho, lekin dono side 1px chhodo */
+#categorySection .cat-sec:has(.square-mini) {
+  margin-left: calc(50% - 50vw + 1px) !important;
+  margin-right: calc(50% - 50vw + 1px) !important;
+  width: calc(100vw - 2px) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* 2) Strip: koi extra padding nahi; items ke beech 1px gap */
+#categorySection .cat-sec:has(.square-mini) .cat-strip {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin: 0 !important;
+  gap: 1px !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: none !important;
+  justify-content: flex-start !important;
+}
+
+/* 3) Items: koi outer margin nahi; first/last flush; square ko margins 0 */
+#categorySection .cat-sec:has(.square-mini) .cat-card { 
+  margin: 0 !important; 
+  padding: 0 !important; 
+  flex: 0 0 auto; 
+}
+#categorySection .cat-sec:has(.square-mini) .cat-strip > *:first-child { margin-left: 12px !important; }
+#categorySection .cat-sec:has(.square-mini) .cat-strip > *:last-child  { margin-right: 12px !important; }
+#categorySection .cat-sec:has(.square-mini) .square-mini { 
+  display: block !important; 
+  margin: 0 !important;          /* <-- yeh ensure karta hai equal gap logic */
+}
+
+/* (optional) Name/label ko perfect center rakho */
+#categorySection .cat-sec:has(.square-mini) .label {
+  text-align: center !important;
+  display: block;
+  width: 100%;
+}
+</style>
+<style id="mobile-overscroll-hotfix">
+  /* Stop page from sliding sideways on mobile */
+  html, body { overflow-x: hidden; }
+
+  /* Make the “full-bleed” sections behave but still look edge-to-edge */
+  .cat-sec:has(.cat-strip .square-mini),
+  #happySection {
+    width: 100% !important;          /* not 100vw */
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Keep inner rows scrollable without causing page overflow */
+  .cat-sec:has(.cat-strip .square-mini) .cat-strip {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    overflow-x: auto !important;
+    scroll-snap-type: none !important;
+  }
+
+  #happySection .happy-row {
+    padding-left: 7px !important;
+    padding-right: 7px !important;
+    overflow-x: auto; /* if you’re using the horizontal row on mobile */
+  }
+</style>
 </head>
 <body>
   </div>
@@ -3407,7 +3487,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 </script>
-♥️♥️♥️♥️
+
+
 <script>
 /* =============================================================================
    Multi-page Search Setup (index.html)
@@ -3792,7 +3873,9 @@ window.closeHeaderSearch = function(){
   hideSuggest();
 };
 </script>
-♥️♥️♥️♥️
+
+
+
 <footer aria-label="Site footer" id="siteFooter">
 <div class="brand">© <span id="footerYear"></span> Precioussly. All rights reserved.</div>
 <nav aria-label="Policies" class="links">
