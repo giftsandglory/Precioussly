@@ -1651,364 +1651,425 @@ body.horizontal-mode .product-grid{
 
 
 <div id="content"></div>
+
 <script>
-// === PASTE YOUR GOOGLE SHEET LINK + TAB NAME HERE ===😎😎😎😎
-  const PASTED_SHEET_LINK =
-    "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
-  const TAB_NAME = "resin-jewelry/resin-necklace"; // 👈 Yahan apna tab name likho (e.g. "Products", "Necklace")😎😎😎😎
+/* ================================
+   SUPER-SMOOTH BACKGROUND REFRESH
+   Stale-While-Revalidate (SWR) Grid
+   --------------------------------
+   Paste this entire <script> just before </body>
+   ============================================ */
 
-  // --- extract spreadsheet ID ---
-  const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  if (!idMatch) {
-    console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
-  }
-  const sheetId = idMatch ? idMatch[1] : "";
+/* ====== CONFIG: YOUR SHEET ====== */
+const PASTED_SHEET_LINK =
+  "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
+const TAB_NAME = "resin-jewelry/resin-necklace";
 
-  // --- final opensheet URL ---
-  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(TAB_NAME)}`;
-  console.log("✅ Final working Sheet URL:", DATA_URL);
+/* ====== Refresh policy (tweak if needed) ====== */
+const REFRESH_INTERVAL_MS = 90_000;     // background poll every 90s
+const NETWORK_TIMEOUT_MS  = 12_000;     // network timeout per fetch
+const LOCAL_CACHE_TTL_MS  = 6 * 60 * 60 * 1000; // keep cached data for up to 6h
 
-  // Use this in the app:
-  const SHEET_URL = DATA_URL;
-// === Visibility control from Google Sheet ===
-// If the "visibility" cell contains the word "hide" (any case), the product is hidden.
-// If the cell is blank (or anything else), the product is shown.
+/* ====== Helpers: IDs, URLs ====== */
+const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+if (!idMatch) console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
+const sheetId = idMatch ? idMatch[1] : "";
+const SHEET_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(TAB_NAME)}`;
+
+const CACHE_KEY = `grid:${sheetId}:${TAB_NAME}:v3`;     // data cache
+const CACHE_META_KEY = `${CACHE_KEY}:meta`;             // {updatedAt, hash}
+
+/* ====== Optional: hooks already in your app (safe calls) ====== */
+const safeCall = (fnName, ...args) => {
+  try { if (typeof window[fnName] === "function") window[fnName](...args); } catch(_) {}
+};
+
+/* ====== General helpers ====== */
+function isVideoUrl(url){
+  if (!url) return false;
+  url = String(url).split('?')[0].split('#')[0].trim().toLowerCase();
+  return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg') || url.includes('=video') || url.includes('/video/');
+}
+
 function isHidden(row){
   const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
   for (const k of keys){
     if (row.hasOwnProperty(k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
-      if (v.includes("hide")) return true;   // ✅ hide when cell contains "hide"
-      // return false on any other non-empty value – requirement only mentions "hide"
-      if (v.length) return false;
+      if (v.includes("hide")) return true;      // only "hide" hides
+      if (v.length) return false;               // any other non-empty = show
     }
   }
   return false; // blank means show
 }
 
-// Robust: read "Description" even if header has spaces/case variants
 function getSheetDescription(row){
-  const keys = [
-    "Description","description","Desc","desc","Product Description","product description",
-    "Description ", " Description", "DESCRIPTION"
-  ];
+  const keys = ["Description","description","Desc","desc","Product Description","product description","Description "," Description","DESCRIPTION"];
   for (const k of keys){
     if (row[k] && String(row[k]).trim()) return String(row[k]);
   }
   return "";
 }
 
-
-
-(async function () {
-  try {
-    // Directly read from the single sheet URL
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
-
-    if (typeof applyDirectionFromSheet === "function") {
-      applyDirectionFromSheet(data);
-    }
-
-    window.catalogData = data;
-
-    const content = document.getElementById("content");
-    let currentSection = "";
-    let sectionWrapper;
-    let currentSectionHidden = false;
-
-    data.forEach((item) => {
-      if (item["Section"]) {
-        currentSection = item["Section"];
-        const secVis = String(item["visibility"] || item["Visibility"] || "")
-          .trim()
-          .toLowerCase();
-        currentSectionHidden = secVis.includes("hide");
-        if (currentSectionHidden) {
-          sectionWrapper = null;
-          return;
-        }
-
-        const sectionTitle = document.createElement("div");
-        sectionTitle.className = "section-title";
-        sectionTitle.innerText = currentSection;
-        content.appendChild(sectionTitle);
-
-        sectionWrapper = document.createElement("div");
-        sectionWrapper.className = "product-grid";
-        content.appendChild(sectionWrapper);
-
-        return;
-      }
-
-      if (currentSectionHidden) return;
-      if (!item["Product Name"]) return;
-
-      const product = document.createElement("div");
-      product.className = "product";
-
-      product.addEventListener("click", (e) => {
-        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-        const allPhotos = [
-          item["photo 1"],
-          item["photo 2"],
-          item["photo 3"],
-          item["photo 4"],
-        ].filter(Boolean);
-        openPopup(
-          allPhotos,
-          item["Product Name"],
-          item["MRP"],
-          item["Selling Price"],
-          item["in stock"],
-          getSheetDescription(item)
-        );
-      });
-
-      
-// Media (photo or video)
-(function(){
-  const url1 = (item["photo 1"] || "").trim();
-  let el;
-  if (isVideoUrl(url1)) {
-    const v = document.createElement("video");
-    v.src = url1;
-    v.muted = true;
-    v.autoplay = true;
-    v.loop = true;
-    v.playsInline = true;
-    v.preload = "metadata";
-    v.style.width = "100%";
-    v.style.height = "100%";
-    v.style.objectFit = "cover";
-    v.disablePictureInPicture = true;
-    v.setAttribute("muted","");
-    v.setAttribute("webkit-playsinline","true");
-    v.setAttribute("playsinline","true");
-    v.style.pointerEvents = "none"; // allow card click to bubble
-    v.style.cursor = "default";
-    v.style.display = "block";
-    v.style.width = "100%";
-    v.style.height = "100%"; v.style.aspectRatio = "1 / 1";
-    v.style.objectFit = "contain";
-    el = v;
-  } else {
-    const img = document.createElement("img");
-    img.src = url1;
-    img.alt = item["Product Name"];
-    img.style.pointerEvents = "none";
-    img.style.cursor = "default";
-    el = img;
-  }
-  const wrap = document.createElement('div');
-wrap.className = 'media-square';
-wrap.appendChild(el);
-product.appendChild(wrap);
-})();
-
-
-      if (item["Badge"]) {
-        const badge = document.createElement("div");
-        badge.className = "badge";
-        badge.innerText = item["Badge"];
-        product.appendChild(badge);
-      }
-
-      const infoWrapper = document.createElement("div");
-      infoWrapper.style.padding = "0 6px";
-
-      const title = document.createElement("div");
-      title.className = "product-title";
-      title.style.fontSize = "14px";
-      title.style.textAlign = "left";
-      title.style.marginTop = "8px";
-      title.innerText = item["Product Name"];
-      infoWrapper.appendChild(title);
-
-      const info = document.createElement("div");
-      info.className = "product-info";
-
-      let priceHTML = "";
-      if (item["MRP"] && item["Selling Price"]) {
-        priceHTML = `
-          <div style="
-            text-align:left;
-            font-size:14px;
-            font-weight:bold;
-            display:flex;
-            gap:6px;
-            align-items:center;
-            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-          ">
-            <span>₹${item["Selling Price"]}</span>
-            <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-          </div>
-        `;
-      }
-
-      if (+item["in stock"] === 0) {
-        info.innerHTML = `
-          ${priceHTML}
-          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
-        `;
-      } else {
-        const productData = {
-          photo: item["photo 1"],
-          name: item["Product Name"],
-          mrp: item["MRP"],
-          price: item["Selling Price"],
-        };
-        info.innerHTML = `
-          ${priceHTML}
-          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(
-            productData
-          )})'>Add to Cart</button>
-        `;
-      }
-
-      infoWrapper.appendChild(info);
-      product.appendChild(infoWrapper);
-
-      if (!sectionWrapper) {
-        sectionWrapper = document.createElement("div");
-        sectionWrapper.className = "product-grid";
-        content.appendChild(sectionWrapper);
-      }
-      sectionWrapper.appendChild(product);
-    });
-
-    if (typeof maybeOpenFromURL === "function") {
-      maybeOpenFromURL();
-    }
-  } catch (err) {
-    console.error("Failed to load products:", err);
-  }
-
-    // A2_DIRECTION_TOGGLE :: call
-applyDirectionFromSheet(data);
-    window.catalogData = data;
-    const content = document.getElementById('content');
-    let currentSection = '';
-    let sectionWrapper;
-    let currentSectionHidden = false;
-
-    data.forEach(item => {
-        // --- Section header row handling (section-level hide support) ---
-        if (item["Section"]) {
-          currentSection = item["Section"];
-          const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
-          currentSectionHidden = secVis.includes("hide");
-          if (currentSectionHidden) { sectionWrapper = null; return; }
-          const sectionTitle = document.createElement('div');
-sectionTitle.className = 'section-title';
-        sectionTitle.innerText = currentSection;
-        content.appendChild(sectionTitle);
-
-        sectionWrapper = document.createElement('div');
-        sectionWrapper.className = 'product-grid';
-        content.appendChild(sectionWrapper);
-      }
-
-      if (currentSectionHidden) return;
-      if (isHidden(item)) return;
-      if (!item["Product Name"]) return;
-
-      const product = document.createElement('div');
-      product.className = 'product';
-      // ✅ Open popup when clicking anywhere on the product card (except buttons/qty areas)
-      product.addEventListener('click', (e) => {
-        if (e.target.closest('.add-to-cart, .quantity-bar, button')) return; // ignore interactive controls
-        const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-        openPopup(allPhotos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"], getSheetDescription(item));
-      });
-
-
-      const img = document.createElement('img');
-      img.src = item["photo 1"];
-      img.alt = item["Product Name"];
-      // 🚫 Make the grid photo non-clickable
-      img.style.pointerEvents = "none";
-      img.style.cursor = "default";
-
-      const wrap2 = document.createElement('div');
-wrap2.className = 'media-square';
-wrap2.appendChild(img);
-product.appendChild(wrap2);
-
-      const infoWrapper = document.createElement('div');
-infoWrapper.style.padding = "0 6px"; // This adds left-right padding
-
-const title = document.createElement('div');
-title.className = 'product-title';
-title.style.fontSize = "14px";
-title.style.textAlign = "left";
-title.style.marginTop = "8px";
-title.innerText = item["Product Name"];
-infoWrapper.appendChild(title);
-
-      if (item["Badge"]) {
-        const badge = document.createElement('div');
-        badge.className = 'badge';
-        badge.innerText = item["Badge"];
-        product.appendChild(badge);
-      }
-
-      const info = document.createElement('div');
-      info.className = 'product-info';
-
-      let priceHTML = "";
-if (item["MRP"] && item["Selling Price"]) {
-  const discount = Math.round(((item["MRP"] - item["Selling Price"]) / item["MRP"]) * 100);
-  priceHTML = `
-    <div style="
-       text-align:left;
-       font-size:14px;
-       font-weight:bold;
-       display:flex;
-       gap:6px;
-       align-items:center;
-       white-space:nowrap;
-       overflow:hidden;
-       text-overflow:ellipsis;
-    ">
-      <span>₹${item["Selling Price"]}</span>
-      <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-    </div>
-  `;
+function hashString(str){
+  // fast non-crypto hash for change detection
+  let h = 0, i = 0, len = str.length;
+  while (i < len) { h = ((h << 5) - h + str.charCodeAt(i++)) | 0; }
+  return String(h >>> 0);
 }
-      if (+item["in stock"] === 0) {
-  info.innerHTML = `
-    ${priceHTML}
-    <button class="add-btn" disabled style="
-      background: #f1f1f1;
-      color: #888;
-      border: 1px solid #ccc;
-    ">Out of Stock</button>
-  `;
-      } else {
-        const productData = {
-          photo: item["photo 1"],
-          name: item["Product Name"],
-          mrp: item["MRP"],
-          price: item["Selling Price"]
-        };
 
-        info.innerHTML = `
-          ${priceHTML}
-          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>
-        `;
+function jsonHash(obj){
+  try{
+    // deterministic stringify (stable order) for consistent hashes
+    const stable = JSON.stringify(obj, Object.keys(obj[0]||{}).sort());
+    return hashString(stable);
+  } catch {
+    return hashString(JSON.stringify(obj || []));
+  }
+}
+
+function saveCache(data){
+  try{
+    const payload = JSON.stringify(data);
+    localStorage.setItem(CACHE_KEY, payload);
+    localStorage.setItem(CACHE_META_KEY, JSON.stringify({
+      updatedAt: Date.now(),
+      hash: jsonHash(data)
+    }));
+  }catch(e){ console.warn("Cache save failed", e); }
+}
+
+function loadCache(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY);
+    const metaRaw = localStorage.getItem(CACHE_META_KEY);
+    if (!raw || !metaRaw) return null;
+    const data = JSON.parse(raw);
+    const meta = JSON.parse(metaRaw);
+    // expire old cache softly (we still render, but mark stale)
+    const isExpired = Date.now() - (meta.updatedAt||0) > LOCAL_CACHE_TTL_MS;
+    return { data, meta, isExpired };
+  }catch(e){
+    console.warn("Cache load failed", e);
+    return null;
+  }
+}
+
+async function fetchWithTimeout(url, timeoutMs){
+  const ctrl = new AbortController();
+  const to = setTimeout(() => ctrl.abort(), timeoutMs);
+  try{
+    const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+    return res;
+  } finally {
+    clearTimeout(to);
+  }
+}
+
+/* ====== DOM: fast rendering w/ fragment + swap ====== */
+function renderGrid(data){
+  // Guard container
+  const content = document.getElementById("content");
+  if (!content){
+    console.warn("Missing #content container.");
+    return;
+  }
+
+  // Allow external consumers to inspect current dataset
+  window.catalogData = data;
+
+  // Optional: direction control sheet hook
+  safeCall("applyDirectionFromSheet", data);
+
+  // Build everything off-DOM for zero flicker
+  const frag = document.createDocumentFragment();
+
+  let currentSection = "";
+  let sectionWrapper = null;
+  let currentSectionHidden = false;
+
+  for (const item of data){
+    // Section header rows (support section-level hide via visibility)
+    if (item["Section"]){
+      currentSection = item["Section"];
+      const secVis = String(item["visibility"] || item["Visibility"] || "")
+        .trim().toLowerCase();
+      currentSectionHidden = secVis.includes("hide");
+      if (currentSectionHidden){
+        sectionWrapper = null;
+        continue;
       }
 
-      infoWrapper.appendChild(info);
-product.appendChild(infoWrapper);
-      sectionWrapper.appendChild(product);
+      const sectionTitle = document.createElement("div");
+      sectionTitle.className = "section-title";
+      sectionTitle.innerText = currentSection;
+      frag.appendChild(sectionTitle);
+
+      sectionWrapper = document.createElement("div");
+      sectionWrapper.className = "product-grid";
+      frag.appendChild(sectionWrapper);
+      continue;
+    }
+
+    if (currentSectionHidden) continue;
+    if (isHidden(item)) continue;
+    if (!item["Product Name"]) continue;
+
+    const product = document.createElement("div");
+    product.className = "product";
+
+    // Grid card click -> popup (ignore buttons/qty clicks)
+    product.addEventListener("click", (e) => {
+      if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+      const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
+      safeCall("openPopup",
+        allPhotos,
+        item["Product Name"],
+        item["MRP"],
+        item["Selling Price"],
+        item["in stock"],
+        getSheetDescription(item)
+      );
     });
-    
-    maybeOpenFromURL();
-})();
+
+    // Media
+    const url1 = (item["photo 1"] || "").trim();
+    const mediaWrap = document.createElement("div");
+    mediaWrap.className = "media-square";
+
+    if (isVideoUrl(url1)){
+      const v = document.createElement("video");
+      v.src = url1;
+      v.muted = true;
+      v.autoplay = true;
+      v.loop = true;
+      v.playsInline = true;
+      v.preload = "metadata";
+      v.disablePictureInPicture = true;
+      v.setAttribute("muted","");
+      v.setAttribute("webkit-playsinline","true");
+      v.setAttribute("playsinline","true");
+      // contain to square
+      v.style.width = "100%";
+      v.style.height = "100%";
+      v.style.aspectRatio = "1 / 1";
+      v.style.objectFit = "contain";
+      // ignore pointer so card handles click
+      v.style.pointerEvents = "none";
+      v.style.cursor = "default";
+      mediaWrap.appendChild(v);
+    } else {
+      const img = document.createElement("img");
+      img.src = url1;
+      img.alt = item["Product Name"];
+      img.style.pointerEvents = "none"; // pass clicks to card
+      img.style.cursor = "default";
+      mediaWrap.appendChild(img);
+    }
+    product.appendChild(mediaWrap);
+
+    // Badge
+    if (item["Badge"]){
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.innerText = item["Badge"];
+      product.appendChild(badge);
+    }
+
+    // Info
+    const infoWrapper = document.createElement("div");
+    infoWrapper.style.padding = "0 6px";
+
+    const title = document.createElement("div");
+    title.className = "product-title";
+    title.style.fontSize = "14px";
+    title.style.textAlign = "left";
+    title.style.marginTop = "8px";
+    title.innerText = item["Product Name"];
+    infoWrapper.appendChild(title);
+
+    const info = document.createElement("div");
+    info.className = "product-info";
+
+    let priceHTML = "";
+    const mrp = +item["MRP"] || null;
+    const sp  = +item["Selling Price"] || null;
+    if (mrp && sp){
+      priceHTML = `
+        <div style="
+          text-align:left;
+          font-size:14px;
+          font-weight:bold;
+          display:flex;
+          gap:6px;
+          align-items:center;
+          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+          <span>₹${sp}</span>
+          <s style="color:#999; font-weight:normal;">₹${mrp}</s>
+        </div>
+      `;
+    }
+
+    const inStock = +item["in stock"];
+    if (inStock === 0){
+      info.innerHTML = `
+        ${priceHTML}
+        <button class="add-btn" disabled
+          style="background:#f1f1f1;color:#888;border:1px solid #ccc;">
+          Out of Stock
+        </button>
+      `;
+    } else {
+      const productData = {
+        photo: item["photo 1"],
+        name: item["Product Name"],
+        mrp: item["MRP"],
+        price: item["Selling Price"]
+      };
+      info.innerHTML = `
+        ${priceHTML}
+        <button class="add-btn"
+          onclick='addToCartFromGrid && addToCartFromGrid(this, ${JSON.stringify(productData)})'>
+          Add to Cart
+        </button>
+      `;
+    }
+
+    infoWrapper.appendChild(info);
+    product.appendChild(infoWrapper);
+
+    // Ensure we have a wrapper (in case items start right away)
+    if (!sectionWrapper){
+      sectionWrapper = document.createElement("div");
+      sectionWrapper.className = "product-grid";
+      frag.appendChild(sectionWrapper);
+    }
+    sectionWrapper.appendChild(product);
+  }
+
+  // Smooth swap: fade new content in while keeping layout stable
+  const newContainer = document.createElement("div");
+  newContainer.style.opacity = "0";
+  newContainer.appendChild(frag);
+
+  // Replace children at once (no flicker)
+  // Using replaceChildren to keep the same #content node (listeners outside persist)
+  content.replaceChildren(...newContainer.childNodes);
+
+  // gentle fade-in on next frame
+  requestAnimationFrame(() => {
+    content.style.transition = "opacity 160ms ease";
+    content.style.opacity = "0";
+    requestAnimationFrame(() => {
+      content.style.opacity = "1";
+      // cleanup transition so future style changes aren't animated
+      setTimeout(() => { content.style.transition = ""; }, 200);
+    });
+  });
+
+  // Deep link opener if present
+  safeCall("maybeOpenFromURL");
+}
+
+/* ====== SEO JSON-LD (simple) ====== */
+function injectProductSchema(firstRow){
+  try{
+    const id = "product-jsonld";
+    const old = document.getElementById(id);
+    if (old) old.remove();
+    if (!firstRow) return;
+    const data = {
+      "@context":"https://schema.org",
+      "@type":"Product",
+      "name": firstRow["Product Name"] || "",
+      "image": [firstRow["photo 1"]].filter(Boolean),
+      "description": getSheetDescription(firstRow),
+      "brand": { "@type":"Brand", "name": "precioussly" },
+      "offers": {
+        "@type":"Offer",
+        "priceCurrency":"INR",
+        "price": String(firstRow["Selling Price"] || ""),
+        "availability": (+firstRow["in stock"] > 0) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+      }
+    };
+    const s = document.createElement("script");
+    s.id = id;
+    s.type = "application/ld+json";
+    s.textContent = JSON.stringify(data);
+    document.head.appendChild(s);
+  } catch(e){ /* ignore */ }
+}
+
+/* ====== SWR lifecycle ======
+   1) Try cache -> render instantly if found
+   2) In background, fetch network -> if changed, re-render
+   3) Keep polling on an interval + on visibility/online
+================================ */
+let inFlight = null;     // promise guard to avoid duplicate fetches
+let lastRenderedHash = ""; // skip re-render if data unchanged
+
+async function loadFromNetwork(){
+  if (inFlight) return inFlight;
+  inFlight = (async () => {
+    try{
+      const res = await fetchWithTimeout(SHEET_URL, NETWORK_TIMEOUT_MS);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      // If another part of the sheet is mixed into this tab, filter out empty rows
+      const cleaned = Array.isArray(data) ? data.filter(Boolean) : [];
+
+      const newHash = jsonHash(cleaned);
+      // Only swap UI if content actually changed
+      if (newHash !== lastRenderedHash){
+        renderGrid(cleaned);
+        injectProductSchema(cleaned[0]);
+        lastRenderedHash = newHash;
+        saveCache(cleaned);
+      }
+      return cleaned;
+    } catch (err){
+      console.warn("Network fetch failed (using cache if present):", err);
+      return null;
+    } finally {
+      inFlight = null;
+    }
+  })();
+  return inFlight;
+}
+
+function boot(){
+  // 1) Serve from cache instantly if available
+  const cached = loadCache();
+  if (cached?.data?.length){
+    lastRenderedHash = cached.meta?.hash || jsonHash(cached.data);
+    renderGrid(cached.data);
+    injectProductSchema(cached.data[0]);
+  }
+
+  // 2) Revalidate in background immediately
+  loadFromNetwork();
+
+  // 3) Poll quietly
+  setInterval(() => {
+    if (document.hidden) return; // skip when tab not active
+    loadFromNetwork();
+  }, REFRESH_INTERVAL_MS);
+
+  // Refresh when tab becomes visible or connection returns
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) loadFromNetwork();
+  });
+  window.addEventListener("online", () => loadFromNetwork());
+}
+
+// Kickoff after DOM ready
+if (document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
 </script>
-
-
 
 <script>
   function getParam(name) {
@@ -3927,10 +3988,6 @@ if (popup){
   });
 })();
 </script>
-
-</body>
-</html>
-
 </body>
 </html>
 
