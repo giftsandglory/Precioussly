@@ -1507,10 +1507,9 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
 <!-- 🔽 CATEGORY SCRIPT FROM SHEET — now with simple config -->
 <script>
   // ======================= EASY CONFIG (edit just these two) =======================
-  // 🔹 ❤️❤️❤️❤️Paste your Google Sheet link (the full URL) and tab name here:❤️❤️❤️❤️
-  const FULL_SHEET_URL = "https://docs.google.com/spreadsheets/d/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/edit?usp=drivesdk";   // ← e.g. https://docs.google.com/spreadsheets/d/1AbCdEfGh.../edit#gid=0 ----sheet here----
-  const SHEET_TAB_NAME = "Resin Jewelry"; 
-    // ← e.g. Sheet1 (tab name) ----sheet ----tab here----
+  // 🔹 ❤️❤️❤️ Paste your Google Sheet link (the full URL) and tab name here ❤️❤️❤️
+  const FULL_SHEET_URL = "https://docs.google.com/spreadsheets/d/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/edit?usp=drivesdk"; // ← full sheet URL OR bare ID
+  const SHEET_TAB_NAME = "Resin Jewelry"; // ← tab name exactly as shown in Google Sheets
 
   // ================= DO NOT EDIT BELOW THIS LINE (auto-generated) ==================
   // ⚡ Extract the Sheet ID from the full URL or accept a bare ID
@@ -1519,8 +1518,7 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
     const s = String(input).trim();
     const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
     if(m) return m[1];
-    // if user pasted only the ID
-    if (/^[a-zA-Z0-9-_]{20,}$/.test(s)) return s;
+    if (/^[a-zA-Z0-9-_]{20,}$/.test(s)) return s; // if user pasted only the ID
     return "";
   }
 
@@ -1551,7 +1549,118 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
   }
 
   // ================================================================================
-  // Render "Resin" style category grid (title pill + 2-column cards)
+  // Media helpers: detect/normalize video vs image (supports mp4/webm/mov + YT/Vimeo)
+  const VIDEO_EXT_RE = /\.(mp4|webm|mov|m4v|ogg|ogv)$/i;
+
+  function isYouTube(u){
+    try{
+      const url = new URL(u);
+      return /(^|\.)youtube\.com$/.test(url.hostname) || /(^|\.)youtu\.be$/.test(url.hostname);
+    }catch{ return false; }
+  }
+  function isVimeo(u){
+    try{
+      const url = new URL(u);
+      return /(^|\.)vimeo\.com$/.test(url.hostname);
+    }catch{ return false; }
+  }
+  function isDirectVideo(u){
+    return VIDEO_EXT_RE.test(String(u||"").split("?")[0]);
+  }
+  function isImage(u){
+    // very lightweight guess: treat as image if not recognized as video
+    // (common img extensions; else we'll still try <img>, which browsers can load or fail gracefully)
+    const IMG_EXT_RE = /\.(png|jpe?g|gif|webp|avif|svg)$/i;
+    return IMG_EXT_RE.test(String(u||"").split("?")[0]) && !isDirectVideo(u);
+  }
+
+  // Build embeddable URLs for YT/Vimeo with autoplay + loop + no controls
+  function toYouTubeEmbed(u){
+    try{
+      const url = new URL(u);
+      let id = "";
+      if (url.hostname.includes("youtu.be")){
+        id = url.pathname.slice(1);
+      } else {
+        id = url.searchParams.get("v") || "";
+      }
+      if(!id) return null;
+      // Loop on YT requires playlist=id; disable controls; autoplay muted; no related; playsinline
+      return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1`;
+    }catch{ return null; }
+  }
+  function toVimeoEmbed(u){
+    try{
+      const url = new URL(u);
+      const parts = url.pathname.split("/").filter(Boolean);
+      const id = parts[0];
+      if(!id || isNaN(Number(id))) return null;
+      // Vimeo: autoplay=1, muted=1, loop=1, background=1 hides controls & interaction
+      return `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&background=1&byline=0&title=0&portrait=0`;
+    }catch{ return null; }
+  }
+
+  // Render an <img>, <video>, or <iframe> (YT/Vimeo) with same rounded layout
+  function renderMediaHTML(url, altText){
+    const safeAlt = String(altText || "").replace(/"/g, "&quot;");
+    const baseStyle = "width:100%;border-radius:20px;object-fit:cover;display:block;";
+
+    // DIRECT VIDEO FILES
+    if (isDirectVideo(url)){
+      // No controls; loop; autoplay; muted; playsinline; block PiP & downloads
+      return `
+        <video
+          src="${url}"
+          style="${baseStyle}"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          disablepictureinpicture
+          controlslist="nodownload noplaybackrate nofullscreen noremoteplayback"
+          oncontextmenu="return false;"
+        ></video>`;
+    }
+
+    // YOUTUBE
+    if (isYouTube(url)){
+      const embed = toYouTubeEmbed(url);
+      if (embed){
+        // pointer-events:none prevents user pausing via taps; also no controls shown
+        return `
+          <iframe
+            src="${embed}"
+            style="${baseStyle}aspect-ratio:16/9;pointer-events:none;"
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+            referrerpolicy="no-referrer"
+          ></iframe>`;
+      }
+    }
+
+    // VIMEO
+    if (isVimeo(url)){
+      const embed = toVimeoEmbed(url);
+      if (embed){
+        return `
+          <iframe
+            src="${embed}"
+            style="${baseStyle}aspect-ratio:16/9;pointer-events:none;"
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+            referrerpolicy="no-referrer"
+          ></iframe>`;
+      }
+    }
+
+    // IMAGE (default)
+    // Use loading="lazy" for perf; referrerpolicy to avoid referrer leaks for CDNs
+    return `<img src="${url}" alt="${safeAlt}" style="${baseStyle}" loading="lazy" referrerpolicy="no-referrer">`;
+  }
+
+  // ================================================================================
+  // Render "Resin" style category grid (title pill + 2-column cards) with media
   (async function(){
     // If config is not set, fall back to previous sheet (keeps page working)
     const url = JSON_URL || "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
@@ -1577,12 +1686,12 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
         if (rowHasHideMarker(row)) return;
 
         const name = String(getCell(row, "Category Name") || "").trim();
-        const img  = String(getCell(row, "Category Image") || "").trim();
+        const media = String(getCell(row, "Category Image") || "").trim(); // can be image OR video URL (incl. YT/Vimeo)
         let link   = String(getCell(row, "Link") || "").trim();
-        if (!name || !img) return;
+        if (!name || !media) return;
 
         if (!grouped[currentSection]) grouped[currentSection] = [];
-        grouped[currentSection].push({ name, img, link: link || "#" });
+        grouped[currentSection].push({ name, media, link: link || "#" });
       });
 
       Object.entries(grouped).forEach(([section, items]) => {
@@ -1616,9 +1725,12 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
           box.href = item.link || "#";
           box.style.textDecoration = "none";
           box.style.color = "inherit";
+
+          const mediaHTML = renderMediaHTML(item.media, item.name);
+
           box.innerHTML = `
             <div style="text-align:center;">
-              <img src="${item.img}" alt="${item.name}" style="width:100%; border-radius:20px; object-fit:cover;">
+              ${mediaHTML}
               <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
             </div>`;
           grid.appendChild(box);
@@ -1631,6 +1743,7 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
     }
   })();
 </script>
+
 <script>
   // Announcement Bar from Google Sheet
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
