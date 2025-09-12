@@ -4314,5 +4314,55 @@ function buildRazorpayNotes(){
 })();
 </script>
 
+
+<!-- ====== COD + Delivery Fee Fix (override) ====== -->
+<script>
+(function(){
+  // Utility: read selected payment method
+  function getSelectedMethod(){
+    var sel = document.querySelector('input[name="paymentMethod"]:checked');
+    return sel ? sel.value : 'razorpay';
+  }
+
+  // Override updateSummary to include Delivery Fee + COD charges (when COD selected)
+  window.updateSummary = function(){
+    try{
+      var items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+      var total = 0;
+      items.forEach(function(it){ total += (Number(it.price)||0) * (Number(it.qty)||0); });
+
+      var fee = Number(window.deliveryFee || 0);
+      var cod = getSelectedMethod()==='cod' ? Number(window.codCharge || 0) : 0;
+
+      var feeText = (fee===0)
+        ? "<span style='color: green; font-family: \"Roboto Slab\", serif;'>Free Delivery</span>"
+        : "₹" + fee;
+
+      // Build rows
+      var rows = "";
+      rows += "<div class='summary-row'><span>Item Total</span><span>₹" + total + "</span></div>";
+      rows += "<div class='summary-row'><span>Delivery Fee</span><span>" + feeText + "</span></div>";
+      if (cod > 0){
+        rows += "<div class='summary-row'><span>COD Charges</span><span>₹" + cod + "</span></div>";
+      }
+      rows += "<div class='summary-row' style='font-weight:bold;font-size:18px;'><span>Order Total</span><span>₹" + (total + fee + cod) + "</span></div>";
+
+      var box = document.getElementById("summaryBox");
+      if (box) box.innerHTML = rows;
+    }catch(e){ /* silent */ }
+  };
+
+  // Called when switching radio buttons
+  window.updatePaymentMethod = function(){
+    try { window.updateSummary(); } catch(e){}
+  };
+
+  // Run once on load too (after fee & cod values may be set later, code elsewhere already calls updateSummary)
+  document.addEventListener("DOMContentLoaded", function(){
+    try { window.updateSummary(); } catch(e){}
+  });
+})();
+</script>
+
 </body>
 </html>
