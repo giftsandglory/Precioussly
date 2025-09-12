@@ -2755,6 +2755,30 @@ down-toggle {
     overflow-x: auto; /* if you’re using the horizontal row on mobile */
   }
 </style>
+
+<!-- === ChatGPT: Make Instagram username links look like normal text but clickable === -->
+<style id="happy-id-link-fix">
+  /* Target anchors with class 'happy-id' and also usernames wrapped inside a .happy-id container */
+  a.happy-id,
+  .happy-id a {
+    color: inherit !important;           /* no blue */
+    text-decoration: none !important;    /* no underline */
+    cursor: pointer;                     /* still looks tappable */
+    -webkit-tap-highlight-color: transparent;
+  }
+  a.happy-id:visited,
+  .happy-id a:visited,
+  a.happy-id:hover,
+  .happy-id a:hover,
+  a.happy-id:focus,
+  .happy-id a:focus,
+  a.happy-id:active,
+  .happy-id a:active {
+    color: inherit !important;
+    text-decoration: none !important;
+    outline: none !important;
+  }
+</style>
 </head>
 <body>
   </div>
