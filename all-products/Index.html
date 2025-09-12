@@ -4083,8 +4083,281 @@ if (popup){
 })();
 </script>
 
+
+<!-- ===== SWR Background Refresh (no flicker) ===== -->
+<script>
+(function(){
+  // --- Safe helpers: use existing if present, else define ---
+  const normalizeKey = (typeof window.normalizeKey === 'function') ? window.normalizeKey : function(k){
+    return String(k||"").toLowerCase().replace(/[\s\r\n\t]+/g,"").replace(/[^a-z0-9]/g,"");
+  };
+  const makeLooseRow = (typeof window.makeLooseRow === 'function') ? window.makeLooseRow : function(row){
+    const map = {}; for(const key of Object.keys(row||{})){ map[normalizeKey(key)] = row[key]; }
+    return new Proxy(row||{}, {
+      get(t,p){ if(p in t) return t[p]; const n=normalizeKey(p); return (n in map)? map[n] : undefined; },
+      has(t,p){ if(p in t) return true; return normalizeKey(p) in map; }
+    });
+  };
+  const pick = (typeof window.pick === 'function') ? window.pick : function(row, keys){
+    for(const k of keys){ const v = row[k]; if(v != null && String(v).trim() !== "") return v; } return "";
+  };
+  const getSheetDescription = (typeof window.getSheetDescription === 'function') ? window.getSheetDescription : function(row){
+    const R = makeLooseRow(row);
+    return R["Description"] || R["description"] || R["desc"] || R["productdescription"] || R["DESCRIPTION"] || R["Description "] || "";
+  };
+  const isHidden = (typeof window.isHidden === 'function') ? window.isHidden : function(row){
+    const R = makeLooseRow(row);
+    const vis = String(R["visibility"] || R["Visible"] || R["Show/Hide"] || R["showhide"] || "").trim().toLowerCase();
+    return vis.includes("hide");
+  };
+  const isVideoUrl = (typeof window.isVideoUrl === 'function') ? window.isVideoUrl : function(u){
+    u = String(u||"").trim().toLowerCase(); if(!u) return false;
+    return /\.(mp4|webm|mov|m4v)(\?|#|$)/.test(u) || u.includes("=media&video");
+  };
+  const buildOpenSheetUrl = (typeof window.buildOpenSheetUrl === 'function') ? window.buildOpenSheetUrl : function(googleLink, tabName){
+    const m = String(googleLink).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/); if(!m) return "";
+    const id = m[1]; return `https://opensheet.elk.sh/${id}/${encodeURIComponent(tabName)}`;
+  };
+  const applyBoxDirection = (typeof window.applyBoxDirection === 'function') ? window.applyBoxDirection : function(v){
+    v = String(v||"").trim().toLowerCase();
+    if(v === "rtl") document.documentElement.setAttribute("dir","rtl");
+    else if(v === "ltr") document.documentElement.setAttribute("dir","ltr");
+    document.body.classList.remove("dir-rtl","dir-ltr");
+    if(v === "rtl") document.body.classList.add("dir-rtl");
+    if(v === "ltr") document.body.classList.add("dir-ltr");
+  };
+
+  // --- Hash helper to detect changes ---
+  function hashRows(rows){
+    try{
+      const s = JSON.stringify(rows);
+      let h = 5381; for(let i=0;i<s.length;i++){ h = ((h<<5)+h) ^ s.charCodeAt(i); } // djb2 xor
+      return (h>>>0).toString(36);
+    }catch(e){ return String(Math.random()).slice(2); }
+  }
+
+  // --- Renderer: builds the same structure as the existing code ---
+  function renderProductsInto(container, rows){
+    const data = (rows||[]).map(makeLooseRow);
+    container.innerHTML = "";
+    let currentSectionHidden = false;
+    let sectionWrapper = null;
+
+    data.forEach((item) => {
+      const name = pick(item, ["Product Name","productname","name"]);
+      const sectionName = pick(item, ["Section","section"]);
+      const visibility = pick(item, ["visibility","Visible","Show/Hide","showhide"]);
+      const mrp = Number(pick(item, ["MRP","mrp"])) || 0;
+      const sp  = Number(pick(item, ["Selling Price","sellingprice","price"])) || 0;
+      const inStock = Number(pick(item, ["in stock","instock","stock"])) || 0;
+      const badge = pick(item, ["Badge","badge"]);
+      const p1 = pick(item, ["photo 1","photo1"]);
+      const p2 = pick(item, ["photo 2","photo2"]);
+      const p3 = pick(item, ["photo 3","photo3"]);
+      const p4 = pick(item, ["photo 4","photo4"]);
+
+      // Section handling
+      if (sectionName) {
+        const secVis = String(visibility || "").trim().toLowerCase();
+        currentSectionHidden = secVis.includes("hide");
+        if (currentSectionHidden) { sectionWrapper = null; return; }
+
+        const sectionTitle = document.createElement("div");
+        sectionTitle.className = "section-title";
+        sectionTitle.textContent = sectionName;
+        container.appendChild(sectionTitle);
+
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        container.appendChild(sectionWrapper);
+        return;
+      }
+
+      if (currentSectionHidden) return;
+      if (isHidden(item)) return;
+      if (!name) return;
+
+      const product = document.createElement("div");
+      product.className = "product";
+
+      product.addEventListener("click", (e) => {
+        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+        const allPhotos = [p1, p2, p3, p4].filter(Boolean);
+        if (typeof window.openPopup === "function") {
+          window.openPopup(allPhotos, name, mrp, sp, inStock, getSheetDescription(item));
+        }
+      });
+
+      // Media
+      (function(){
+        const url1 = String(p1||"").trim();
+        let el;
+        if (isVideoUrl(url1)) {
+          const v = document.createElement("video");
+          v.src = url1; v.muted = true; v.autoplay = true; v.loop = true;
+          v.playsInline = true; v.preload = "metadata"; v.disablePictureInPicture = true;
+          v.setAttribute("muted",""); v.setAttribute("webkit-playsinline","true"); v.setAttribute("playsinline","true");
+          v.style.pointerEvents = "none"; v.style.cursor = "default";
+          v.style.width="100%"; v.style.height="100%"; v.style.aspectRatio="1 / 1"; v.style.objectFit="contain";
+          el = v;
+        } else {
+          const img = document.createElement("img");
+          img.src = url1 || ""; img.alt = name; img.loading = "lazy"; img.decoding = "async";
+          img.style.pointerEvents = "none"; img.style.cursor = "default"; el = img;
+        }
+        const wrap = document.createElement("div"); wrap.className = "media-square"; wrap.appendChild(el);
+        product.appendChild(wrap);
+      })();
+
+      if (badge) {
+        const b = document.createElement("div"); b.className = "badge"; b.textContent = badge; product.appendChild(b);
+      }
+
+      const infoWrapper = document.createElement("div"); infoWrapper.style.padding = "0 6px";
+      const title = document.createElement("div"); title.className = "product-title"; title.style.fontSize = "14px";
+      title.style.textAlign = "left"; title.style.marginTop = "8px"; title.textContent = name; infoWrapper.appendChild(title);
+
+      const info = document.createElement("div"); info.className = "product-info";
+      let priceHTML = "";
+      if (mrp && sp){
+        priceHTML = `
+          <div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            <span>₹${sp}</span>
+            <s style="color:#999; font-weight:normal;">₹${mrp}</s>
+          </div>`;
+      }
+
+      if (inStock === 0) {
+        info.innerHTML = `${priceHTML}
+          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>`;
+      } else {
+        const productData = { photo: p1, name, mrp, price: sp };
+        info.innerHTML = `${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>`;
+      }
+
+      infoWrapper.appendChild(info);
+      product.appendChild(infoWrapper);
+
+      if (!sectionWrapper) {
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        container.appendChild(sectionWrapper);
+      }
+      sectionWrapper.appendChild(product);
+    });
+  }
+
+  // --- SWR engine ---
+  const CACHE_KEY = "all_html_products_cache_v1";
+  const CACHE_TIME_MS = 5 * 60 * 1000;  // keep for 5 min (warm start only)
+  const POLL_INTERVAL_MS = 45000;       // refresh every 45s
+
+  async function loadMaster(){
+    try {
+      const MASTER_SHEET_LINK = (typeof window.MASTER_SHEET_LINK !== 'undefined') ? window.MASTER_SHEET_LINK : null;
+      const MASTER_TAB_NAME  = (typeof window.MASTER_TAB_NAME  !== 'undefined') ? window.MASTER_TAB_NAME  : "Sheet1";
+      const masterURL = MASTER_SHEET_LINK ? buildOpenSheetUrl(MASTER_SHEET_LINK, MASTER_TAB_NAME) : null;
+      if(!masterURL) return null;
+      const r = await fetch(masterURL, {cache: "no-store"});
+      const rows = await r.json();
+      const L = rows.map(makeLooseRow);
+      let sheetUrl = "", tab = "", boxDirection = "";
+      for(const rr of L){
+        if(!sheetUrl) sheetUrl = String(rr["sheeturl"] || rr["sheeturlheading"] || rr["sheeturladdress"] || rr["sheeturl_"] || "").trim();
+        if(!tab)      tab      = String(rr["tab"] || rr["tabname"] || rr["sheettab"] || "").trim();
+        if(!boxDirection) boxDirection = String(rr["boxdirection"] || rr["direction"] || "").trim();
+        if(sheetUrl && tab) break;
+      }
+      if(!sheetUrl) sheetUrl = MASTER_SHEET_LINK || "";
+      if(!tab) tab = MASTER_TAB_NAME || "Sheet1";
+      return { sheetUrl, tab, boxDirection };
+    } catch(e){
+      console.warn("Master load failed:", e);
+      return null;
+    }
+  }
+
+  async function fetchDataOnce(){
+    const master = await loadMaster();
+    if(!master || !master.sheetUrl) return null;
+    applyBoxDirection(master.boxDirection);
+    const dataUrl = buildOpenSheetUrl(master.sheetUrl, master.tab);
+    if(!dataUrl) return null;
+    const res = await fetch(dataUrl, { cache: "no-store" });
+    const rows = await res.json();
+    return { rows, master, dataUrl };
+  }
+
+  function restoreFromCache(){
+    try{
+      const raw = localStorage.getItem(CACHE_KEY);
+      if(!raw) return null;
+      const o = JSON.parse(raw);
+      if(!o || !o.rows) return null;
+      if ((Date.now() - (o.ts||0)) > CACHE_TIME_MS) { /* stale ok */ }
+      return o;
+    }catch(e){ return null; }
+  }
+
+  function saveToCache(rows, meta){
+    try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ rows, ts: Date.now(), meta })); }catch(e){}
+  }
+
+  async function backgroundRefresh(){
+    try{
+      const result = await fetchDataOnce();
+      if(!result) return;
+      const { rows } = result;
+      const newHash = hashRows(rows);
+      const old = restoreFromCache();
+      const oldHash = old ? hashRows(old.rows) : null;
+
+      if(newHash !== oldHash){
+        // Update cache
+        saveToCache(rows, { updatedAt: new Date().toISOString() });
+
+        // Atomically render into a detached node, then swap
+        const oldContent = document.getElementById("content");
+        if(!oldContent) return;
+
+        const newContent = oldContent.cloneNode(false); // keeps id
+        renderProductsInto(newContent, rows);
+
+        // Fade swap (no flicker)
+        oldContent.style.opacity = "1";
+        newContent.style.opacity = "0.001";
+        oldContent.parentNode.insertBefore(newContent, oldContent.nextSibling);
+        requestAnimationFrame(()=>{
+          newContent.style.transition = "opacity 160ms ease";
+          newContent.style.opacity = "1";
+          oldContent.style.transition = "opacity 120ms ease";
+          oldContent.style.opacity = "0";
+          setTimeout(()=>{
+            if(oldContent && oldContent.parentNode){
+              oldContent.parentNode.removeChild(oldContent);
+            }
+          }, 200);
+        });
+
+        // Expose to deep-linking helpers
+        window.catalogData = rows;
+        if (typeof window.maybeOpenFromURL === "function"){
+          try{ window.maybeOpenFromURL(); } catch(e){ console.warn(e); }
+        }
+      }
+    }catch(e){
+      console.warn("Background refresh failed:", e);
+    }
+  }
+
+  try{ if (Array.isArray(window.catalogData)) { saveToCache(window.catalogData, { firstPaint: true, at: new Date().toISOString() }); } }catch(e){}
+
+  backgroundRefresh();
+  const _swr_timer = setInterval(backgroundRefresh, POLL_INTERVAL_MS);
+  window.__SWR_PRODUCTS_TIMER__ = _swr_timer;
+})();
+</script>
+
 </body>
 </html>
-
-
-
