@@ -3931,8 +3931,205 @@ if (popup){
 </body>
 </html>
 
+
+<!-- ===== Live Google Sheet Sync (ETag + background updates, no reload) ===== -->
+<script>
+(function(){
+  // Use existing constant if present
+  const SHEET = (typeof SHEET_URL !== 'undefined' && SHEET_URL) ? SHEET_URL
+               : (typeof DATA_URL !== 'undefined' && DATA_URL) ? DATA_URL
+               : null;
+  if (!SHEET) return;
+
+  let etag = null;
+  let jsonText = null;
+  let inflight = false;
+  const FAST = 5000;   // visible tab
+  const SLOW = 20000;  // hidden tab
+
+  function isVid(url){ return /\.(mp4|webm|ogg)(\?|$)/i.test(url||""); }
+
+  // Fallbacks to reuse your existing helpers if available
+  const isHidden = (window.isHidden) ? window.isHidden : function(row){
+    const v = (row.visibility || row.Visibility || "").toString().trim().toLowerCase();
+    return v.includes("hide");
+  };
+  const getSheetDescription = (window.getSheetDescription) ? window.getSheetDescription : function(row){
+    return row.Description || row.description || "";
+  };
+
+  function buildDOM(data){
+    const frag = document.createDocumentFragment();
+    const content = document.getElementById("content");
+    if (!content) return null;
+
+    let currentSection = "";
+    let sectionWrapper = null;
+    let currentSectionHidden = false;
+
+    (data || []).forEach((item)=>{
+      // Section row
+      if (item["Section"]) {
+        currentSection = item["Section"];
+        const secVis = (item.visibility || item.Visibility || "").toString().trim().toLowerCase();
+        currentSectionHidden = secVis.includes("hide");
+        if (currentSectionHidden){ sectionWrapper = null; return; }
+
+        const sectionTitle = document.createElement("div");
+        sectionTitle.className = "section-title";
+        sectionTitle.textContent = currentSection;
+        frag.appendChild(sectionTitle);
+
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        frag.appendChild(sectionWrapper);
+        return;
+      }
+
+      if (currentSectionHidden) return;
+      if (isHidden(item)) return;
+      if (!item["Product Name"]) return;
+
+      const product = document.createElement("div");
+      product.className = "product";
+      product.addEventListener("click", (e)=>{
+        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+        const photos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
+        if (window.openPopup) {
+          window.openPopup(photos, item["Product Name"], item["MRP"], item["Selling Price"], item["in stock"], getSheetDescription(item));
+        }
+      });
+
+      // Media square (image/video) 1:1
+      const wrap = document.createElement("div");
+      wrap.className = "media-square";
+      const url1 = (item["photo 1"] || "").trim();
+      let media;
+      if (isVid(url1)) {
+        media = document.createElement("video");
+        media.src = url1;
+        media.muted = true; media.autoplay = true; media.loop = true; media.playsInline = true;
+        media.setAttribute("muted",""); media.setAttribute("playsinline","true");
+      } else {
+        media = document.createElement("img");
+        media.src = url1; media.alt = item["Product Name"] || "";
+      }
+      wrap.appendChild(media);
+      product.appendChild(wrap);
+
+      if (item["Badge"]) {
+        const b = document.createElement("div");
+        b.className = "badge";
+        b.textContent = item["Badge"];
+        product.appendChild(b);
+      }
+
+      const infoWrap = document.createElement("div");
+      infoWrap.style.padding = "0 6px";
+
+      const title = document.createElement("div");
+      title.className = "product-title";
+      title.style.fontSize = "14px";
+      title.style.textAlign = "left";
+      title.style.marginTop = "8px";
+      title.textContent = item["Product Name"];
+      infoWrap.appendChild(title);
+
+      const info = document.createElement("div");
+      info.className = "product-info";
+
+      const mrp = Number(item["MRP"]);
+      const sp  = Number(item["Selling Price"]);
+      let priceHTML = "";
+      if (mrp && sp){
+        priceHTML = '<div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+                  +   '<span>₹' + sp + '</span>'
+                  +   '<s style="color:#999; font-weight:normal;">₹' + mrp + '</s>'
+                  + '</div>';
+      }
+
+      if (Number(item["in stock"]) === 0){
+        info.innerHTML = priceHTML + '<button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>';
+      } else {
+        const productData = { photo: item["photo 1"], name: item["Product Name"], mrp: item["MRP"], price: item["Selling Price"] };
+        info.innerHTML = priceHTML + '<button class="add-btn" onclick=\'addToCartFromGrid(this, ' + JSON.stringify(productData) + ')\'>Add to Cart</button>';
+      }
+
+      infoWrap.appendChild(info);
+      product.appendChild(infoWrap);
+
+      if (!sectionWrapper){
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        frag.appendChild(sectionWrapper);
+      }
+      sectionWrapper.appendChild(product);
+    });
+
+    return frag;
+  }
+
+  function smoothSwap(frag){
+    const mount = document.getElementById("content");
+    if (!mount || !frag) return;
+    // Swap in next frame to avoid layout jank
+    requestAnimationFrame(()=>{
+      mount.replaceChildren(frag);
+    });
+  }
+
+  async function tick(){
+    if (inflight) return;
+    inflight = true;
+    const ctl = new AbortController();
+    const to = setTimeout(()=>ctl.abort(), 9000);
+    try{
+      const headers = etag ? { "If-None-Match": etag } : {};
+      const res = await fetch(SHEET, { cache: "no-store", headers, signal: ctl.signal });
+      if (res.status === 304){ return; }
+      if (!res.ok){ return; }
+      const newETag = res.headers.get("ETag") || etag;
+      const text = await res.text();
+      if (text && text !== jsonText){
+        jsonText = text;
+        etag = newETag;
+        const data = JSON.parse(text);
+        // Persist latest data for other features
+        window.catalogData = data;
+        // Rebuild DOM with minimal jank
+        const frag = buildDOM(data);
+        smoothSwap(frag);
+      } else {
+        etag = newETag;
+      }
+    } catch(e){
+      // silent fail to keep UX smooth
+    } finally {
+      clearTimeout(to);
+      inflight = false;
+    }
+  }
+
+  let timer = null;
+  function isVisible(){ return !document.hidden; }
+  function start(){
+    if (timer) return;
+    tick();
+    timer = setInterval(tick, isVisible() ? FAST : SLOW);
+  }
+  function stop(){
+    if (timer){ clearInterval(timer); timer = null; }
+  }
+  document.addEventListener("visibilitychange", ()=>{ stop(); start(); });
+  window.addEventListener("online", ()=>{ stop(); start(); });
+
+  // Boot
+  start();
+
+  // Make debuggable
+  window.__liveSheetSync = { restart: ()=>{ stop(); start(); }, get etag(){ return etag; } };
+})();
+</script>
+
 </body>
 </html>
-
-
-
