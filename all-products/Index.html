@@ -1652,6 +1652,195 @@ body.horizontal-mode .product-grid{
 
 <div id="content"></div>
 <script>
+/* ===========================================
+   SWR FETCH INTERCEPTOR (for Google Sheets)
+   - Intercepts only:
+       • https://opensheet.elk.sh/...
+       • https://docs.google.com/spreadsheets/...
+   - Cache key: localStorage["swr:<url>"]
+   - Cache only OK, non-opaque, non-HTML (JSON/CSV/Plain Text)
+   - If cache exists: return cached Response immediately,
+     and revalidate in background (7s timeout).
+   - If no cache: do network (7s timeout), cache if valid, return.
+   - On network failure: fall back to cache if available.
+   - Non-matching requests: use original fetch as-is.
+   =========================================== */
+
+(function attachSWRInterceptor() {
+  const originalFetch = window.fetch.bind(window);
+
+  function isSheetsURL(url) {
+    try {
+      const u = new URL(url, location.href);
+      const host = u.hostname;
+      if (host === "opensheet.elk.sh") return true;
+      if (host === "docs.google.com" && u.pathname.startsWith("/spreadsheets/")) return true;
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  function isGET(init) {
+    const m = (init && init.method) || "GET";
+    return String(m).toUpperCase() === "GET";
+  }
+
+  function isAllowedContentType(ct = "") {
+    ct = String(ct).toLowerCase();
+    const base = ct.split(";")[0].trim();
+    return (
+      base === "application/json" ||
+      base === "text/plain" ||
+      base === "text/csv"
+    );
+  }
+
+  function shouldCacheResponse(res) {
+    try {
+      if (!res || !res.ok) return false;
+      if (res.type === "opaque") return false; // avoid opaque
+      const ct = res.headers.get("content-type") || "";
+      const base = ct.split(";")[0].trim().toLowerCase();
+      if (base === "text/html") return false; // avoid HTML error pages
+      return isAllowedContentType(ct);
+    } catch {
+      return false;
+    }
+  }
+
+  function cacheKeyFor(url) {
+    // normalize fully-resolved absolute URL to avoid duplicates
+    try {
+      const u = new URL(url, location.href).toString();
+      return "swr:" + u;
+    } catch {
+      return "swr:" + url;
+    }
+  }
+
+  function serializeHeaders(headers) {
+    const obj = {};
+    try {
+      headers.forEach((v, k) => {
+        obj[k] = v;
+      });
+    } catch {}
+    return obj;
+  }
+
+  function reconstructResponse(cacheObj) {
+    const body = cacheObj.body || "";
+    const status = cacheObj.status || 200;
+    const statusText = cacheObj.statusText || "OK";
+    const headers = new Headers(cacheObj.headers || {});
+    // Construct a fresh Response so .json()/.text() works normally.
+    return new Response(body, { status, statusText, headers });
+  }
+
+  function saveToCache(key, res, bodyText) {
+    const payload = {
+      status: res.status,
+      statusText: res.statusText,
+      headers: serializeHeaders(res.headers),
+      body: bodyText,
+      ts: Date.now()
+    };
+    try {
+      localStorage.setItem(key, JSON.stringify(payload));
+    } catch (e) {
+      // If quota exceeded, attempt a best-effort prune of swr:* entries (oldest first)
+      try {
+        const keys = Object.keys(localStorage).filter(k => k.startsWith("swr:"));
+        // Load with timestamps
+        const items = keys.map(k => {
+          try {
+            const v = JSON.parse(localStorage.getItem(k) || "{}");
+            return { k, ts: v.ts || 0 };
+          } catch {
+            return { k, ts: 0 };
+          }
+        }).sort((a, b) => a.ts - b.ts);
+        // Remove up to 3 oldest entries then retry once
+        for (let i = 0; i < Math.min(3, items.length); i++) {
+          localStorage.removeItem(items[i].k);
+        }
+        localStorage.setItem(key, JSON.stringify(payload));
+      } catch {}
+    }
+  }
+
+  function readCache(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (!obj || typeof obj !== "object") return null;
+      if (typeof obj.body !== "string") return null;
+      return obj;
+    } catch {
+      return null;
+    }
+  }
+
+  function timeoutFetch(resource, init, ms = 7000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), ms);
+    const merged = Object.assign({}, init, { signal: controller.signal });
+    return originalFetch(resource, merged).finally(() => clearTimeout(id));
+  }
+
+  async function swrFetch(resource, init) {
+    // Resolve URL string for keying, but keep original args for fetching
+    const urlStr = typeof resource === "string" ? resource : (resource && resource.url) || "";
+    // Only intercept GET requests to the target domains
+    if (!isGET(init) || !isSheetsURL(urlStr)) {
+      return originalFetch(resource, init);
+    }
+
+    const key = cacheKeyFor(urlStr);
+    const cached = readCache(key);
+
+    // If we have cache, return it immediately and revalidate in background
+    if (cached) {
+      // fire-and-forget revalidation
+      (async () => {
+        try {
+          const netRes = await timeoutFetch(resource, init, 7000);
+          if (shouldCacheResponse(netRes)) {
+            const bodyText = await netRes.clone().text();
+            saveToCache(key, netRes, bodyText);
+          }
+        } catch {
+          // ignore background errors
+        }
+      })();
+      return reconstructResponse(cached);
+    }
+
+    // No cache: go to network (with timeout), cache on success if allowed
+    try {
+      const res = await timeoutFetch(resource, init, 7000);
+      if (shouldCacheResponse(res)) {
+        const text = await res.clone().text();
+        saveToCache(key, res, text);
+      }
+      return res;
+    } catch (e) {
+      // Network failed; if any (stale) cache somehow exists, serve it; else bubble up
+      const stale = readCache(key);
+      if (stale) return reconstructResponse(stale);
+      throw e;
+    }
+  }
+
+  // Attach once
+  if (!window.__swr_fetch_patched__) {
+    window.__swr_fetch_patched__ = true;
+    window.fetch = swrFetch;
+  }
+})();
+
 /* ================================
    MASTER CONFIG (Hardcoded)
    ================================ */
