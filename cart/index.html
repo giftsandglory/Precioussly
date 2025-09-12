@@ -2958,10 +2958,8 @@ function buildSheetPayload(order) {
   if (isRazorpay) paymentStatus = 'Paid';
   else if (isCOD && Number(order.prepaidAmount || 0) > 0) paymentStatus = 'Prepaid-COD';
 
-  // Delivery fee label (hide for COD, else Free Delivery when 0)
-  const deliveryFeeText = isCOD
-    ? '' // COD flow me delivery fee line UI se hata rahe ho
-    : (Number(a.deliveryFee || 0) === 0 ? 'Free Delivery' : `₹${Number(a.deliveryFee || 0)}`);
+    // Delivery fee label (always show; 'Free Delivery' if 0)
+  const deliveryFeeText = (Number(a.deliveryFee || 0) === 0 ? 'Free Delivery' : `₹${Number(a.deliveryFee || 0)}`);
 
   const fullAddress = (function () {
     if (addr.address) {
