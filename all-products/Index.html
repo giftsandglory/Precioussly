@@ -1651,447 +1651,341 @@ body.horizontal-mode .product-grid{
 
 
 <div id="content"></div>
-
 <script>
-/* ===========================================================
-   CATALOG LOADER 2.0 — Stale-While-Revalidate (SWR)
-   - Master sheet drives many product tabs.
-   - Renders immediately from cache (if available).
-   - Refreshes in background; swaps in new DOM atomically.
-   - Keeps previous UI visible until new data is ready.
-   =========================================================== */
+/* ================================
+   MASTER CONFIG (Hardcoded)
+   ================================ */
+// 💀💀💀💀💀 FIX: Ab yeh "Master" Sheet link & tab hardcoded rahenge.
+// Is master ke Sheet1 me headings "Sheet URL", "Tab", "Box Direction" ke values read honge.
+const MASTER_SHEET_LINK =
+  "https://docs.google.com/spreadsheets/d/1ehaO9wptGfqHZVs46JJNUe8Ji_xR_YnWYwykhgiObs0/edit?usp=drivesdk"; // 💀💀💀💀💀
+const MASTER_TAB_NAME = "Sheet1"; // 💀💀💀💀💀
 
-/* ---------- CONFIG ---------- */
-const MASTER_SHEET_URL = "https://docs.google.com/spreadsheets/d/1ehaO9wptGfqHZVs46JJNUe8Ji_xR_YnWYwykhgiObs0/edit?usp=drivesdk";
-const MASTER_TAB       = "Sheet1";          // your master tab name
-const REFRESH_MS       = 60_000;            // background refresh interval (ms)
-const FETCH_TIMEOUT_MS = 25_000;            // per-request timeout
-const CACHE_KEY        = "catalogCache_v2"; // localStorage key
-const DEBUG_LOGS       = false;             // set true to see timings in console
+/* ================================
+   Helpers
+   ================================ */
 
-/* ---------- tiny utils ---------- */
-const $ = (sel) => document.querySelector(sel);
-const contentEl = document.getElementById("content");
-
-function log(...a){ if (DEBUG_LOGS) console.log("[CATALOG]", ...a); }
-
-function extractSheetId(gsheetUrl) {
-  const m = String(gsheetUrl || "").match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  return m ? m[1] : "";
-}
-function opensheetUrl(sheetId, tabName) {
-  return `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(String(tabName || "").trim())}`;
+// Normalize a header: lower-case, remove spaces, newlines, tabs, and non-alphanumerics
+function normalizeKey(k) {
+  return String(k || "")
+    .toLowerCase()
+    .replace(/[\s\r\n\t]+/g, "")   // remove all whitespace
+    .replace(/[^a-z0-9]/g, "");    // keep only a-z0-9
 }
 
-async function loadJSON(url, timeoutMs = FETCH_TIMEOUT_MS) {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort("timeout"), timeoutMs);
-  try {
-    const r = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
-    if (!r.ok) throw new Error(`Fetch failed ${r.status}: ${url}`);
-    return r.json();
-  } finally {
-    clearTimeout(t);
+// Create a proxy that lets us read row["Product Name"] or row.productname equivalently
+function makeLooseRow(row) {
+  const map = {};
+  for (const key of Object.keys(row)) {
+    map[normalizeKey(key)] = row[key];
   }
-}
-
-function safeParse(json, fallback){
-  try { return JSON.parse(json); } catch { return fallback; }
-}
-
-function hashString(s){
-  // Tiny non-crypto hash, good enough for change detection.
-  let h = 2166136261;
-  for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h += (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); }
-  return (h >>> 0).toString(36);
-}
-
-/* ---------- sheet header helpers ---------- */
-function isHidden(row){
-  const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
-  for (const k of keys){
-    if (row.hasOwnProperty(k) && row[k] != null){
-      const v = String(row[k]).trim().toLowerCase();
-      if (v.includes("hide")) return true;   // only "hide" hides
-      if (v.length) return false;            // any other non-empty shows
+  return new Proxy(row, {
+    get(target, prop) {
+      if (prop in target) return target[prop];
+      const norm = normalizeKey(prop);
+      if (norm in map) return map[norm];
+      return undefined;
+    },
+    has(target, prop) {
+      if (prop in target) return true;
+      return normalizeKey(prop) in map;
     }
-  }
-  return false; // blank means show
+  });
 }
-function getSheetDescription(row){
-  const keys = [
-    "Description","description","Desc","desc","Product Description","product description",
-    "Description "," Description","DESCRIPTION"
-  ];
-  for (const k of keys){
-    if (row[k] && String(row[k]).trim()) return String(row[k]);
+
+// Get first non-empty value from multiple possible headers
+function pick(row, keys) {
+  for (const k of keys) {
+    const v = row[k];
+    if (v != null && String(v).trim() !== "") return v;
   }
   return "";
 }
-function isVideoUrl(u=""){
-  const s = String(u).toLowerCase();
-  return /\.(mp4|webm|mov|m4v)$/.test(s) || (s.includes("googleusercontent.com") && s.includes("video"));
+
+// Description tolerant read
+function getSheetDescription(row) {
+  return pick(makeLooseRow(row), [
+    "Description","description","desc","productdescription","DESCRIPTION","Description "
+  ]) || "";
 }
 
-/* ---------- deep-link open (?p=slug) ---------- */
-function slugify(s) {
-  return String(s || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[\s_]+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
+// Visibility check (hide if contains 'hide')
+function isHidden(row) {
+  const R = makeLooseRow(row);
+  const vis = String(
+    R["visibility"] || R["Visible"] || R["Show/Hide"] || R["showhide"] || ""
+  ).trim().toLowerCase();
+  return vis.includes("hide");
 }
-function getParam(name) {
-  const u = new URLSearchParams(location.search);
-  return u.get(name);
+
+// Simple video URL detector
+function isVideoUrl(u = "") {
+  u = String(u).trim().toLowerCase();
+  if (!u) return false;
+  return /\.(mp4|webm|mov|m4v)(\?|#|$)/.test(u) || u.includes("=media&video");
 }
-function maybeOpenFromURL(catalogData) {
-  const wanted = getParam('p');
-  if (!wanted || !catalogData) return;
 
-  const wantedSlug = slugify(decodeURIComponent(wanted));
-  const item = catalogData.find(row => slugify(row["Product Name"]) === wantedSlug);
-  if (!item) return;
+// Build opensheet URL from Google Sheet link + Tab
+function buildOpenSheetUrl(googleLink, tabName) {
+  const m = String(googleLink).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (!m) return "";
+  const id = m[1];
+  return `https://opensheet.elk.sh/${id}/${encodeURIComponent(tabName)}`;
+}
 
-  const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-  // openPopup(...) must exist in your page already
+// Apply Box Direction → set dir or add a direction class
+function applyBoxDirection(dirValue) {
+  const v = String(dirValue || "").trim().toLowerCase();
+  // 💀💀💀💀💀 FIX: "Box Direction" support – 'rtl' ya 'ltr' ko body par apply.
+  if (v === "rtl") document.documentElement.setAttribute("dir", "rtl");
+  else if (v === "ltr") document.documentElement.setAttribute("dir", "ltr");
+  // (Optional) You can also add body class if your CSS relies on it:
+  document.body.classList.remove("dir-rtl", "dir-ltr");
+  if (v === "rtl") document.body.classList.add("dir-rtl");
+  if (v === "ltr") document.body.classList.add("dir-ltr");
+}
+
+/* ================================
+   MAIN FLOW
+   ================================ */
+(async function () {
   try {
-    openPopup(
-      images,
-      item["Product Name"],
-      Number(item["MRP"]),
-      Number(item["Selling Price"]),
-      Number(item["in stock"]),
-      getSheetDescription(item)
-    );
-  } catch(err){
-    console.error("openPopup(...) not found or failed:", err);
-  }
-}
+    // 1) Load MASTER sheet to read config
+    // 💀💀💀💀💀 FIX: Master Sheet se "Sheet URL", "Tab", "Box Direction" read karo.
+    const masterURL = buildOpenSheetUrl(MASTER_SHEET_LINK, MASTER_TAB_NAME);
+    if (!masterURL) throw new Error("Invalid MASTER_SHEET_LINK");
 
-/* ---------- DOM builders ---------- */
-function ensureGridUnder(container, titleText){
-  const wrap = document.createElement("div");
-  // Title
-  const title = document.createElement("div");
-  title.className = "section-title";
-  title.innerText = titleText || "";
-  wrap.appendChild(title);
-  // Grid
-  const grid = document.createElement("div");
-  grid.className = "product-grid";
-  wrap.appendChild(grid);
+    const masterRes = await fetch(masterURL);
+    const masterRowsRaw = await masterRes.json();
+    const masterRows = masterRowsRaw.map(makeLooseRow);
 
-  container.appendChild(wrap);
-  return grid;
-}
+    // Find config from the first non-empty row (or scan all until a value is found)
+    let config = { sheetUrl: "", tab: "", boxDirection: "" };
 
-function renderProductCard(item, grid){
-  if (!item || !item["Product Name"]) return;
-  if (isHidden(item)) return;
+    for (const r of masterRows) {
+      if (!config.sheetUrl) config.sheetUrl = String(
+        r["sheeturl"] || r["sheeturlheading"] || r["sheeturladdress"] || r["sheeturl_"] || ""
+      ).trim();
 
-  const product = document.createElement("div");
-  product.className = "product";
+      if (!config.tab) config.tab = String(
+        r["tab"] || r["tabname"] || r["sheettab"] || ""
+      ).trim();
 
-  // Whole card opens popup (except interactive controls)
-  product.addEventListener("click", (e) => {
-    if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-    const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-    try{
-      openPopup(
-        allPhotos,
-        item["Product Name"],
-        item["MRP"],
-        item["Selling Price"],
-        item["in stock"],
-        getSheetDescription(item)
-      );
-    } catch (err) {
-      console.error("openPopup(...) not found or failed:", err);
+      if (!config.boxDirection) config.boxDirection = String(
+        r["boxdirection"] || r["direction"] || ""
+      ).trim();
+
+      if (config.sheetUrl && config.tab) break;
     }
-  });
 
-  // Media (photo or video) wrapped to maintain 1:1
-  (function(){
-    const url1 = (item["photo 1"] || "").trim();
-    let el;
-    if (isVideoUrl(url1)) {
-      const v = document.createElement("video");
-      v.src = url1;
-      v.muted = true;
-      v.autoplay = true;
-      v.loop = true;
-      v.playsInline = true;
-      v.preload = "metadata";
-      v.disablePictureInPicture = true;
-      v.setAttribute("muted","");
-      v.setAttribute("webkit-playsinline","true");
-      v.setAttribute("playsinline","true");
-      v.style.pointerEvents = "none";
-      v.style.cursor = "default";
-      el = v;
-    } else {
-      const img = document.createElement("img");
-      img.src = url1;
-      img.alt = item["Product Name"];
-      img.loading = "lazy";
-      img.decoding = "async";
-      img.style.pointerEvents = "none";
-      img.style.cursor = "default";
-      el = img;
+    if (!config.sheetUrl) {
+      console.warn("⚠️ 'Sheet URL' not found in master. Using MASTER itself as data source.");
+      config.sheetUrl = MASTER_SHEET_LINK;
     }
-    const wrap = document.createElement("div");
-    wrap.className = "media-square";
-    wrap.appendChild(el);
-    product.appendChild(wrap);
-  })();
+    if (!config.tab) {
+      console.warn("⚠️ 'Tab' not found in master. Falling back to MASTER_TAB_NAME.");
+      config.tab = MASTER_TAB_NAME;
+    }
 
-  if (item["Badge"]) {
-    const badge = document.createElement("div");
-    badge.className = "badge";
-    badge.innerText = item["Badge"];
-    product.appendChild(badge);
-  }
+    // Apply Box Direction if present
+    applyBoxDirection(config.boxDirection);
 
-  const infoWrapper = document.createElement("div");
-  infoWrapper.style.padding = "0 6px";
+    // 2) Load PRODUCTS sheet based on config
+    // 💀💀💀💀💀 FIX: Ab yeh DATA_SHEET_URL dynamic hai (Master se aaya).
+    const DATA_SHEET_URL = buildOpenSheetUrl(config.sheetUrl, config.tab);
+    if (!DATA_SHEET_URL) throw new Error("Invalid DATA_SHEET_URL from config.");
 
-  const title = document.createElement("div");
-  title.className = "product-title";
-  title.style.fontSize = "14px";
-  title.style.textAlign = "left";
-  title.style.marginTop = "8px";
-  title.innerText = item["Product Name"];
-  infoWrapper.appendChild(title);
+    console.log("✅ Master config:", config);
+    console.log("✅ Final products Sheet URL:", DATA_SHEET_URL);
 
-  const info = document.createElement("div");
-  info.className = "product-info";
+    const res = await fetch(DATA_SHEET_URL);
+    const rawData = await res.json();
+    const data = rawData.map(makeLooseRow);
 
-  let priceHTML = "";
-  if (item["MRP"] && item["Selling Price"]) {
-    priceHTML = `
-      <div style="
-        text-align:left; font-size:14px; font-weight:bold;
-        display:flex; gap:6px; align-items:center;
-        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      ">
-        <span>₹${item["Selling Price"]}</span>
-        <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-      </div>`;
-  }
+    // Optional external hook
+    if (typeof applyDirectionFromSheet === "function") {
+      try { applyDirectionFromSheet(data); } catch (e) { console.warn(e); }
+    }
 
-  if (+item["in stock"] === 0) {
-    info.innerHTML = `${priceHTML}
-      <button class="add-btn" disabled
-        style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>`;
-  } else {
-    const productData = {
-      photo: item["photo 1"],
-      name: item["Product Name"],
-      mrp: item["MRP"],
-      price: item["Selling Price"]
-    };
-    info.innerHTML = `${priceHTML}
-      <button class="add-btn"
-        onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>`;
-  }
+    window.catalogData = rawData;
 
-  infoWrapper.appendChild(info);
-  product.appendChild(infoWrapper);
-  grid.appendChild(product);
-}
+    // Ensure #content exists
+    let content = document.getElementById("content");
+    if (!content) {
+      console.warn("ℹ️ No #content container found; creating one.");
+      content = document.createElement("div");
+      content.id = "content";
+      document.body.appendChild(content);
+    }
 
-/* ---------- RENDER PIPELINE ---------- */
-function buildCatalogFragment(allSheets){
-  // Returns a DocumentFragment with fully-built DOM for flicker-free swap.
-  const frag = document.createDocumentFragment();
-  const container = document.createElement("div");
-
-  const catalogData = [];
-
-  for (const sheet of allSheets) {
-    const data = Array.isArray(sheet.rows) ? sheet.rows : [];
-    const hasExplicitSectionRows = data.some(r => r["Section"]);
-    // If the sheet itself should get a heading, show its tab name:
-    // (skip if sheet uses its own "Section" rows)
-    let gridForSection = null;
+    let currentSection = "";
+    let sectionWrapper = null;
     let currentSectionHidden = false;
 
-    if (!hasExplicitSectionRows) {
-      gridForSection = ensureGridUnder(container, sheet.meta.tabName);
-    }
+    data.forEach((item) => {
+      // Flexible names
+      const name = pick(item, ["Product Name","productname","name"]);
+      const sectionName = pick(item, ["Section","section"]);
+      const visibility = pick(item, ["visibility","Visible","Show/Hide","showhide"]);
+      const mrp = Number(pick(item, ["MRP","mrp"])) || 0;
+      const sp  = Number(pick(item, ["Selling Price","sellingprice","price"])) || 0;
+      const inStock = Number(pick(item, ["in stock","instock","stock"])) || 0;
+      const badge = pick(item, ["Badge","badge"]);
+      const p1 = pick(item, ["photo 1","photo1"]);
+      const p2 = pick(item, ["photo 2","photo2"]);
+      const p3 = pick(item, ["photo 3","photo3"]);
+      const p4 = pick(item, ["photo 4","photo4"]);
 
-    data.forEach(item => {
-      // New section header row
-      if (item["Section"]) {
-        const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
+      // --- Section handling with section-level hide ---
+      if (sectionName) {
+        currentSection = sectionName;
+        const secVis = String(visibility || "").trim().toLowerCase();
         currentSectionHidden = secVis.includes("hide");
-        if (currentSectionHidden) { gridForSection = null; return; }
-        gridForSection = ensureGridUnder(container, item["Section"]);
+        if (currentSectionHidden) { sectionWrapper = null; return; }
+
+        const sectionTitle = document.createElement("div");
+        sectionTitle.className = "section-title";
+        sectionTitle.innerText = currentSection;
+        content.appendChild(sectionTitle);
+
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
         return;
       }
 
       if (currentSectionHidden) return;
+      if (isHidden(item)) return;
+      if (!name) return;
 
-      // Ensure there is a grid to append into
-      if (!gridForSection) gridForSection = ensureGridUnder(container, sheet.meta.tabName);
+      const product = document.createElement("div");
+      product.className = "product";
 
-      renderProductCard(item, gridForSection);
-      catalogData.push(item);
+      // Open popup on card click (ignore controls)
+      product.addEventListener("click", (e) => {
+        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+        const allPhotos = [p1, p2, p3, p4].filter(Boolean);
+        if (typeof openPopup === "function") {
+          openPopup(allPhotos, name, mrp, sp, inStock, getSheetDescription(item));
+        }
+      });
+
+      // --- Media (photo/video) ---
+      (function () {
+        const url1 = String(p1 || "").trim();
+        let el;
+        if (isVideoUrl(url1)) {
+          const v = document.createElement("video");
+          v.src = url1;
+          v.muted = true;
+          v.autoplay = true;
+          v.loop = true;
+          v.playsInline = true;
+          v.preload = "metadata";
+          v.disablePictureInPicture = true;
+          v.setAttribute("muted", "");
+          v.setAttribute("webkit-playsinline", "true");
+          v.setAttribute("playsinline", "true");
+          v.style.pointerEvents = "none";
+          v.style.cursor = "default";
+          v.style.display = "block";
+          v.style.width = "100%";
+          v.style.height = "100%";
+          v.style.aspectRatio = "1 / 1";
+          v.style.objectFit = "contain";
+          el = v;
+        } else {
+          const img = document.createElement("img");
+          img.src = url1 || "";
+          img.alt = name;
+          img.loading = "lazy";
+          img.decoding = "async";
+          img.style.pointerEvents = "none";
+          img.style.cursor = "default";
+          el = img;
+        }
+        const wrap = document.createElement("div");
+        wrap.className = "media-square";
+        wrap.appendChild(el);
+        product.appendChild(wrap);
+      })();
+
+      // Badge
+      if (badge) {
+        const b = document.createElement("div");
+        b.className = "badge";
+        b.innerText = badge;
+        product.appendChild(b);
+      }
+
+      // Info
+      const infoWrapper = document.createElement("div");
+      infoWrapper.style.padding = "0 6px";
+
+      const title = document.createElement("div");
+      title.className = "product-title";
+      title.style.fontSize = "14px";
+      title.style.textAlign = "left";
+      title.style.marginTop = "8px";
+      title.innerText = name;
+      infoWrapper.appendChild(title);
+
+      const info = document.createElement("div");
+      info.className = "product-info";
+
+      let priceHTML = "";
+      if (mrp && sp) {
+        priceHTML = `
+          <div style="
+            text-align:left;
+            font-size:14px;
+            font-weight:bold;
+            display:flex;
+            gap:6px;
+            align-items:center;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+          ">
+            <span>₹${sp}</span>
+            <s style="color:#999; font-weight:normal;">₹${mrp}</s>
+          </div>
+        `;
+      }
+
+      if (inStock === 0) {
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">
+            Out of Stock
+          </button>
+        `;
+      } else {
+        const productData = { photo: p1, name, mrp, price: sp };
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>
+            Add to Cart
+          </button>
+        `;
+      }
+
+      infoWrapper.appendChild(info);
+      product.appendChild(infoWrapper);
+
+      if (!sectionWrapper) {
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+      }
+      sectionWrapper.appendChild(product);
     });
-  }
 
-  frag.appendChild(container);
-  return { frag, catalogData };
-}
-
-function swapCatalogDOM(frag){
-  // Atomic swap without layout thrash: replace children of #content.
-  // Create a shadow wrapper so we can do minimal replacements.
-  const tempHost = document.createElement("div");
-  tempHost.appendChild(frag);
-  // Replace contentEl children
-  contentEl.innerHTML = "";
-  // Move children from tempHost -> contentEl (one reflow)
-  while (tempHost.firstChild) {
-    contentEl.appendChild(tempHost.firstChild);
-  }
-}
-
-/* ---------- FETCH PIPELINE ---------- */
-async function fetchAllSheets(){
-  // 1) read master list
-  const masterId = extractSheetId(MASTER_SHEET_URL);
-  if (!masterId) throw new Error("Invalid Master Google Sheet URL");
-
-  const masterURL = opensheetUrl(masterId, MASTER_TAB);
-  const masterRows = await loadJSON(masterURL);
-
-  // rows => [{sheetId, tab, url}]
-  const jobs = masterRows
-    .map(r => {
-      const url = r["Sheet Url"] || r["sheet url"] || r["SHEET URL"];
-      const tab = r["Tab"] || r["TAB"] || r["tab"];
-      const sid = extractSheetId(url);
-      if (!sid || !tab) return null;
-      return { sheetId: sid, tabName: String(tab), src: url };
-    })
-    .filter(Boolean);
-
-  if (!jobs.length) {
-    throw new Error("Master sheet empty or wrong column names (need 'Sheet Url' & 'Tab').");
-  }
-
-  // 2) fetch all tabs in parallel
-  const fetches = jobs.map(async (j) => {
-    const url = opensheetUrl(j.sheetId, j.tabName);
-    const rows = await loadJSON(url);
-    return { meta: j, rows };
-  });
-  const allSheets = await Promise.all(fetches);
-
-  return allSheets;
-}
-
-/* ---------- CACHE LAYER (SWR) ---------- */
-function readCache(){
-  const raw = localStorage.getItem(CACHE_KEY);
-  if (!raw) return null;
-  const obj = safeParse(raw, null);
-  if (!obj || !obj.payload || !obj.hash) return null;
-  return obj;
-}
-function writeCache(payload){
-  const json = JSON.stringify(payload);
-  const hash = hashString(json);
-  const entry = { hash, ts: Date.now(), payload };
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify(entry)); } catch {}
-  return entry;
-}
-
-
-/* ---------- DIRECTION SHEET HOOK ---------- */
-async function tryApplyDirection() {
-  try {
-    const masterId  = extractSheetId(MASTER_SHEET_URL);
-    if (!masterId) return;
-    const masterURL = opensheetUrl(masterId, MASTER_TAB);
-    const masterRows = await loadJSON(masterURL);
-    if (typeof applyDirectionFromSheet === "function") {
-      applyDirectionFromSheet(masterRows || []);
+    // Optional deep-link opener
+    if (typeof maybeOpenFromURL === "function") {
+      try { maybeOpenFromURL(); } catch (e) { console.warn(e); }
     }
-  } catch (e) { console.warn("Direction load failed", e); }
-}
-
-/* ---------- MAIN (SWR) ---------- */
-let isRefreshing = false;
-let lastRenderedHash = null;
-
-async function revalidateInBackground(){
-  if (isRefreshing) return;
-  isRefreshing = true;
-  const t0 = performance.now();
-
-  try {
-    const allSheets = await fetchAllSheets();
-    const payload = { allSheets }; // keep payload shape extensible
-    const json = JSON.stringify(payload);
-    const freshHash = hashString(json);
-
-    // Only update UI & cache if changed
-    if (freshHash !== lastRenderedHash) {
-      log("Change detected, rebuilding DOM...");
-      tryApplyDirection(allSheets);
-      const { frag, catalogData } = buildCatalogFragment(allSheets);
-      swapCatalogDOM(frag);
-      lastRenderedHash = freshHash;
-
-      // Store globally for deep link compatibility and other scripts
-      window.catalogData = catalogData;
-
-      // After DOM swap, open deep-linked product (if any)
-      maybeOpenFromURL(catalogData);
-
-      // Write cache after successful render to avoid bad cache
-      writeCache(payload);
-    } else {
-      log("No changes detected; keeping current UI.");
-      // Still refresh cache timestamp so next load is "warm"
-      writeCache(payload);
-    }
-    const t1 = performance.now();
-    log(`Background refresh completed in ${(t1 - t0).toFixed(0)}ms`);
   } catch (err) {
-    console.error("Background refresh failed:", err);
-  } finally {
-    isRefreshing = false;
+    console.error("Failed to load products:", err);
   }
-}
-
-(async function initCatalogSWR(){
-  // 1) Attempt to render from cache immediately (fast path)
-  const cached = readCache();
-  if (cached?.payload?.allSheets?.length) {
-    log("Rendering from cache...");
-    tryApplyDirection(cached.payload.allSheets);
-    const { frag, catalogData } = buildCatalogFragment(cached.payload.allSheets);
-    swapCatalogDOM(frag);
-    window.catalogData = catalogData;
-    maybeOpenFromURL(catalogData);
-    lastRenderedHash = cached.hash;
-  } else {
-    // Show nothing yet; will render after first live fetch completes.
-    log("No cache found; will render after first fetch.");
-  }
-
-  // 2) Kick off background revalidation right away
-  revalidateInBackground();
-
-  // 3) Poll on interval for silent refreshes
-  const iv = setInterval(revalidateInBackground, REFRESH_MS);
-
-  // Optional: cleanup on SPA navigations
-  window.addEventListener("beforeunload", () => clearInterval(iv));
 })();
 </script>
 
@@ -2204,43 +2098,85 @@ async function revalidateInBackground(){
   <span style="line-height: 1;">Item added to cart</span>
 </div>
 <script>
+/* =========================================================
+   ULTRA-STABLE MEDIA + SILENT LIVE REFRESH (1000% FIX)
+   - All videos keep playing continuously (no pauses).
+   - No blank/vanishing videos during background data refresh.
+   - Reuses existing <video> nodes across re-renders to avoid resets.
+   - Hot-pulls Google Sheet updates (if your fetch/render exist).
+   ========================================================= */
 
 /* ====== SETTINGS ====== */
 const WHATSAPP_NUMBER = "8586057887";
 const BRAND_NAME = "precioussly";
 
-/* ====== Description Generator ====== */
-function generateSeoDescription(name) {
-  const lower = (name || "").toLowerCase();
-  const colors = ["red","blue","green","pink","black","white","purple","yellow","gold","silver","beige","brown","orange"];
-  const colorFound = colors.find(c => lower.includes(c));
-  const categories = [
-    { keys:["necklace","pendant","locket"], label:"necklace", use:"daily wear, parties and gifting" },
-    { keys:["ring"], label:"ring", use:"everyday elegance and special moments" },
-    { keys:["bracelet","bangle"], label:"bracelet", use:"stacking or solo style" },
-    { keys:["earring","stud","jhumka"], label:"earrings", use:"casual to festive looks" },
-    { keys:["keychain","key ring","key-ring"], label:"keychain", use:"bag charm or keys" },
-    { keys:["car","toy"], label:"mini collectible", use:"desk decor or gifting" },
-  ];
-  let cat = { label: "handmade piece", use: "gifting and everyday use" };
-  for (const c of categories) {
-    if (c.keys.some(k => lower.includes(k))) { cat = c; break; }
-  }
-  const niceName = name || "Beautiful Piece";
-  const colorTxt = colorFound ? `${colorFound} ` : "";
-  const line1 = `Premium ${colorTxt}${cat.label} — crafted for comfort and long-lasting shine.`;
-  const line2 = `Perfect for ${cat.use}.`;
-  const line3 = `Want a custom version? Message us on WhatsApp: ${WHATSAPP_NUMBER}.`;
-  const line4 = BRAND_NAME;
-  const sentence = `${niceName}: a premium ${colorTxt}${cat.label} designed for ${cat.use}. Lightweight, comfortable and gift-ready.`;
-  return { bullets: [line1, line2, line3, line4], sentence };
-}
-
-// --- Media helpers ---
+/* ====== Media helpers ====== */
 function isVideoUrl(url){
   if (!url) return false;
   url = String(url).split('?')[0].split('#')[0].trim().toLowerCase();
-  return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg') || url.includes('=video') || url.includes('/video/');
+  return (
+    url.endsWith('.mp4') ||
+    url.endsWith('.webm') ||
+    url.endsWith('.ogg') ||
+    url.includes('=video') ||
+    url.includes('/video/')
+  );
+}
+
+/* ====== Keep videos alive & always playing ====== */
+const _videoKeepAlive = new WeakSet();
+
+function keepAliveVideo(v){
+  if (!v || _videoKeepAlive.has(v)) return v;
+
+  // Essential attributes for uninterrupted autoplay
+  v.muted = true;                 // mobile autoplay
+  v.autoplay = true;
+  v.loop = true;
+  v.playsInline = true;
+  v.setAttribute("playsinline", "");
+  v.preload = "auto";
+  v.disablePictureInPicture = true;
+
+  // Aggressive re-play helper
+  const forcePlay = () => {
+    const p = v.play?.();
+    if (p && typeof p.then === "function") {
+      p.catch(() => {
+        // Retry shortly if browser momentarily blocks play
+        setTimeout(() => v.play?.().catch(()=>{}), 120);
+      });
+    }
+  };
+
+  // (Re)start whenever possible
+  v.addEventListener("loadeddata", forcePlay);
+  v.addEventListener("canplay", forcePlay);
+  v.addEventListener("stalled", forcePlay);
+  v.addEventListener("waiting", forcePlay);
+  v.addEventListener("emptied", forcePlay);
+  v.addEventListener("suspend", forcePlay);
+
+  // If something pauses it (layout/refresh), resume
+  v.addEventListener("pause", forcePlay);
+
+  // When tab becomes visible, resume
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") forcePlay();
+  });
+
+  // Lightweight watchdog to guarantee continuity
+  const watchdog = setInterval(() => {
+    if (v.isConnected === false) { clearInterval(watchdog); return; }
+    if (v.paused || v.readyState < 2) forcePlay();
+  }, 1500);
+
+  // Mark as set up
+  _videoKeepAlive.add(v);
+
+  // Kickstart immediately
+  forcePlay();
+  return v;
 }
 
 /* ====== Inject JSON-LD Product schema (SEO) ====== */
@@ -2278,12 +2214,16 @@ function injectProductSchema({name, price, mrp, image, description}) {
 
 let selectedProduct = null;
 
-// Open popup with product details
+/* ====== OPEN POPUP (stable slider, videos never pause) ====== */
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
-  selectedProduct = { image: images[0], name, mrp, price };
+  selectedProduct = { image: images?.[0], name, mrp, price };
+
   // Build a shareable link that re-opens this popup
-  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name)}`;
-  
+  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name || "")}`;
+
+  // WhatsApp share (stable variables)
+  const imageUrl = images?.[0] || "";
+  const line1 = `${name || ""} ${price ? "₹"+price : ""}`.trim();
 
   const whEl = document.getElementById('whShare');
   if (whEl) {
@@ -2299,77 +2239,83 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   document.getElementById("popupQty").innerText = "1";
 
   // Inject product name and price
-  document.getElementById("popupName").innerText = name;
+  const nmEl = document.getElementById("popupName");
+  if (nmEl) nmEl.innerText = name || "";
 
   let priceHTML = "";
   if (mrp && price) {
-  const discount = Math.round(((mrp - price) / mrp) * 100);
-  priceHTML = `
-    <div style="font-size:14px; display:flex; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-      <b>₹${price}</b>
-      <s style="color:#999;">₹${mrp}</s>
-      <span style="color:green; font-size:13px;">${discount}% off</span>
-    </div>`;
+    const discount = Math.round(((mrp - price) / mrp) * 100);
+    priceHTML = `
+      <div style="font-size:14px; display:flex; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+        <b>₹${price}</b>
+        <s style="color:#999;">₹${mrp}</s>
+        <span style="color:green; font-size:13px;">${discount}% off</span>
+      </div>`;
   } else if (price) {
     priceHTML = `<b>₹${price}</b>`;
   } else {
     priceHTML = `<span style="color:#999;">Price not available</span>`;
   }
+  const priceEl = document.getElementById("popupPrice");
+  if (priceEl) priceEl.innerHTML = priceHTML;
 
-  document.getElementById("popupPrice").innerHTML = priceHTML;
-// === Build description from Google Sheet (hide section if empty) ===
-const descWrap = document.getElementById("popupDesc");
-const descText = document.getElementById("popupDescText");
-const fromSheet = (sheetDesc || "").trim();
+  // === Build description from Google Sheet (hide section if empty) ===
+  const descWrap = document.getElementById("popupDesc");
+  const descText = document.getElementById("popupDescText");
+  const fromSheet = (sheetDesc || "").trim();
 
-// Reset state (in case previous product had a description)
-if (descText) descText.textContent = "";
-
-// Show only if non-empty
-if (fromSheet.length > 0) {
-  if (descWrap) descWrap.style.display = "block";
-  if (descText) descText.textContent = fromSheet;
-} else {
-  if (descWrap) descWrap.style.display = "none";
-}
-
-// unified scroll handled by CSS on .popup-card
-
-
-// ✅ SEO schema: use sheet description if present, else empty
-injectProductSchema({
-  name,
-  price,
-  mrp,
-  image: images[0],
-  description: fromSheet
-});
-// Add to cart button
-  const popupBtn = document.getElementById("popupAddBtn");
-  if (+stock === 0) {
-    popupBtn.disabled = true;
-    popupBtn.innerHTML = "Out of Stock";
+  if (descText) descText.textContent = "";
+  if (fromSheet.length > 0) {
+    if (descWrap) descWrap.style.display = "block";
+    if (descText) descText.textContent = fromSheet;
   } else {
-    popupBtn.disabled = false;
-    popupBtn.innerHTML = "Add to Cart";
-    popupBtn.onclick = function () {
-  addToCartFromGrid(popupBtn, {
-    photo: images[0],
-    name,
-    mrp,
-    price,
-    qty: parseInt(document.getElementById("popupQty").innerText) || 1
-  });
-};
+    if (descWrap) descWrap.style.display = "none";
   }
 
-// Inject slider images (LIVE DRAG)
+  // ✅ SEO schema: use sheet description if present, else empty
+  injectProductSchema({
+    name,
+    price,
+    mrp,
+    image: images?.[0],
+    description: fromSheet
+  });
+
+  // Add to cart button
+  const popupBtn = document.getElementById("popupAddBtn");
+  if (popupBtn) {
+    if (+stock === 0) {
+      popupBtn.disabled = true;
+      popupBtn.innerHTML = "Out of Stock";
+    } else {
+      popupBtn.disabled = false;
+      popupBtn.innerHTML = "Add to Cart";
+      popupBtn.onclick = function () {
+        addToCartFromGrid(popupBtn, {
+          photo: images?.[0],
+          name,
+          mrp,
+          price,
+          qty: parseInt(document.getElementById("popupQty").innerText) || 1
+        });
+      };
+    }
+  }
+
+  // ===== Slider (LIVE, NO-PAUSE VIDEOS) =====
   const slider = document.getElementById("popupSlider");
   const dotsContainer = document.getElementById("popupDots");
+  if (!slider) return;
+
+  // Capture existing video nodes to REUSE (preserve playback position)
+  const existingBySrc = new Map();
+  slider.querySelectorAll("video.popup-slide[src]").forEach(v => {
+    existingBySrc.set(v.currentSrc || v.getAttribute("src"), v);
+  });
+
   slider.innerHTML = "";
   if (dotsContainer) dotsContainer.innerHTML = "";
 
-  // Build track + slides
   const track = document.createElement("div");
   track.className = "popup-track";
   slider.appendChild(track);
@@ -2378,50 +2324,44 @@ injectProductSchema({
   const slides = [];
   const dots = [];
 
-  
+  (images || []).forEach((url, i) => {
+    const clean = (url || "").trim();
+    let el;
 
-images.forEach((url, i) => {
-  const clean = (url || "").trim();
-  let el;
+    if (isVideoUrl(clean)) {
+      // Reuse existing node if available
+      const reuse = existingBySrc.get(clean);
+      if (reuse) {
+        el = reuse;
+      } else {
+        const v = document.createElement("video");
+        v.className = "popup-slide";
+        v.src = clean;
+        keepAliveVideo(v); // <-- ensures nonstop playback
+        el = v;
+      }
+      // Guarantee keep-alive in case of reused node
+      keepAliveVideo(el);
+    } else {
+      const img = document.createElement("img");
+      img.className = "popup-slide";
+      img.src = clean;
+      img.alt = (name || "product");
+      el = img;
+    }
 
-  if (isVideoUrl(clean)) {
-    const v = document.createElement("video");
-    v.className = "popup-slide";
-    v.src = clean;                       // ✅ set video source
-    v.muted = true;                      // ✅ allow autoplay on mobile
-    v.autoplay = true;
-    v.loop = true;
-    v.playsInline = true;
-    v.preload = "metadata";
-    v.disablePictureInPicture = true;
+    track.appendChild(el);
+    slides.push(el);
 
-    // start/pause based on visibility
-    v.addEventListener("loadeddata", () => {
-      if (i === 0) v.play();
-      else v.pause();
-    });
-
-    el = v;
-  } else {
-    const img = document.createElement("img");
-    img.className = "popup-slide";
-    img.src = clean;
-    img.alt = (name || "product");
-    el = img;
-  }
-
-  track.appendChild(el);
-  slides.push(el);
-
-  // dots
-  if (dotsContainer) {
-    const d = document.createElement("div");
-    d.className = "popup-dot" + (i === 0 ? " active" : "");
-    d.addEventListener("click", () => goTo(i));
-    dotsContainer.appendChild(d);
-    dots.push(d);
-  }
-});
+    // dots
+    if (dotsContainer) {
+      const d = document.createElement("div");
+      d.className = "popup-dot" + (i === 0 ? " active" : "");
+      d.addEventListener("click", () => goTo(i));
+      dotsContainer.appendChild(d);
+      dots.push(d);
+    }
+  });
 
   // Hide dots if single or zero images; show otherwise
   if (dotsContainer){
@@ -2441,27 +2381,24 @@ images.forEach((url, i) => {
     if (!slides.length) return;
     if (i < 0) i = 0;
     if (i > slides.length - 1) i = slides.length - 1;
-    
+
     const prevIndex = currentIndex;
-currentIndex = i;
-const dist = Math.max(1, Math.abs(prevIndex - currentIndex));
-const base = 1400; // base ms (slower than before)
-const extra = 200 * (dist - 1); // if jumping more than 1 slide
-let dur = base + extra;
-// Trim duration a bit for very fast swipes
-if (window.__fastSwipe) dur = Math.max(420, base - 120);
-track.style.transition = animate ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
+    currentIndex = i;
+    const dist = Math.max(1, Math.abs(prevIndex - currentIndex));
+    const base = 1400; // base ms (slower)
+    const extra = 200 * (dist - 1);
+    let dur = base + extra;
+    if (window.__fastSwipe) dur = Math.max(420, base - 120);
+
+    track.style.transition = animate ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
     track.style.transform = `translateX(${-i * width()}px)`;
     setActiveDot(i);
-    // Play/pause videos: only current slide plays
-    slides.forEach((el, idx) => {
-      if (el && el.tagName === 'VIDEO') {
-        try { if (idx === i) { el.play(); } else { el.pause(); } } catch(e){}
-      }
-    });
+
+    // ❌ DO NOT PAUSE OTHER VIDEOS — keep them running continuously
+    // (No play/pause logic here by design)
   }
 
-  // Init position
+  // Init position (no pause)
   goTo(0, false);
 
   // Drag logic
@@ -2508,9 +2445,9 @@ track.style.transition = animate ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)
     else if (dx > threshold || (fast && dx > 0)) target = currentIndex - 1;
 
     window.__fastSwipe = fast;
-goTo(target, true);
+    goTo(target, true);
     setTimeout(() => { window.__fastSwipe = false; }, 50);
-slider.releasePointerCapture?.(e.pointerId);
+    slider.releasePointerCapture?.(e.pointerId);
   };
 
   slider.addEventListener("pointerdown", onPointerDown, { passive: true });
@@ -2528,25 +2465,22 @@ slider.releasePointerCapture?.(e.pointerId);
   });
 
   // Show popup (ultra smooth)
-
-// Show popup (ultra smooth)
-const popup = document.getElementById("productPopup");
-const card  = popup.querySelector(".popup-card");
-
-popup.style.display = "flex";      // mount
-// next frame -> add classes so transition runs
-requestAnimationFrame(() => {
-  popup.classList.add("is-open");
-  card.classList.remove("leave");
-  card.classList.add("enter");
-});
-document.body.classList.add("noscroll");
-
-// Close popup
-;
-  card.addEventListener("transitionend", onDone);
+  const popup = document.getElementById("productPopup");
+  if (popup) {
+    const card  = popup.querySelector(".popup-card");
+    popup.style.display = "flex";      // mount
+    requestAnimationFrame(() => {
+      popup.classList.add("is-open");
+      if (card) {
+        card.classList.remove("leave");
+        card.classList.add("enter");
+      }
+    });
+    document.body.classList.add("noscroll");
+  }
 }
-// ✅ Quantity bar increase/decrease logic
+
+/* ====== Quantity bar increase/decrease logic ====== */
 function changePopupQty(change) {
   const qtyElement = document.getElementById("popupQty");
   let current = parseInt(qtyElement.innerText);
@@ -2555,7 +2489,8 @@ function changePopupQty(change) {
   if (current > 99) current = 99;
   qtyElement.innerText = current;
 }
-// Add to cart logic
+
+/* ====== Add to cart logic ====== */
 function addToCartFromGrid(button, product) {
   const originalHTML = button.innerHTML;
   button.disabled = true;
@@ -2568,154 +2503,100 @@ function addToCartFromGrid(button, product) {
     // Add item to cart
     let cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
     const existing = cartItems.find(i => i.name === product.name);
-if (existing) {
-  existing.qty += product.qty || 1;  // ✅ Add correct qty if already exists
-} else {
-  cartItems.push({ ...product, qty: product.qty || 1 }); // ✅ Store correct qty
-}
+    if (existing) {
+      existing.qty += product.qty || 1;  // ✅ Add correct qty if already exists
+    } else {
+      cartItems.push({ ...product, qty: product.qty || 1 }); // ✅ Store correct qty
+    }
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
-    updateCartBadge();
+    updateCartBadge?.();
 
     // Show toast
     const toast = document.getElementById("addedToast");
-    toast.innerHTML = `
-  <img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
-  <span style="line-height:1;">Item added to cart</span>
-`;
-    toast.style.display = "flex";
-    setTimeout(() => {
-      toast.style.display = "none";
-    }, 2000);
+    if (toast) {
+      toast.innerHTML = `
+        <img src="https://i.postimg.cc/hG9Y3dJs/logooo.jpg" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+        <span style="line-height:1;">Item added to cart</span>
+      `;
+      toast.style.display = "flex";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 2000);
+    }
   }, 1000);
 }
-</script>
-<script>
-/* ===========================================================
-   Announcement Bar (SWR: stale-while-revalidate)
-   - Shows last good text instantly from localStorage.
-   - Refreshes silently in background; swaps when fresh arrives.
-   - Keeps old text visible until new data is ready.
-   =========================================================== */
 
-/* ---- Config ---- */
-const ANNOUNCE_SHEET_ID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
-const ANNOUNCE_TAB      = "Sheet1";
-const ANNOUNCE_URL      = `https://opensheet.elk.sh/${ANNOUNCE_SHEET_ID}/${encodeURIComponent(ANNOUNCE_TAB)}`;
-const ANNOUNCE_COL      = "(announcement_text)"; // exact column name in your sheet
-const REFRESH_MS        = 60_000;                // background refresh cadence
-const FETCH_TIMEOUT_MS  = 20_000;                // per-request timeout
-const CACHE_KEY         = "announcementBar_v1";  // localStorage cache key
-const DEBUG_ANN         = false;                 // toggle console logs
+/* =========================================================
+   SILENT LIVE REFRESH FROM GOOGLE SHEET (No visual reset)
+   - If your page defines fetchSheetData(), PASTED_SHEET_LINK, TAB_NAME
+     and renderProducts(), this will poll & update in-place.
+   - Videos stay intact; we DO NOT reload the page.
+   ========================================================= */
+(function setupLiveSheetSync(){
+  const canFetch = typeof window.fetchSheetData === "function" &&
+                   typeof window.PASTED_SHEET_LINK === "string" &&
+                   typeof window.TAB_NAME === "string";
+  const canRender = typeof window.renderProducts === "function";
 
-function aLog(...args){ if (DEBUG_ANN) console.log("[ANNOUNCE]", ...args); }
+  if (!canFetch || !canRender) return; // integrate only when your hooks exist
 
-/* ---- tiny utils ---- */
-function withTimeout(promise, ms){
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort("timeout"), ms);
-  return Promise.race([
-    fetch(ANNOUNCE_URL, { signal: ctrl.signal, cache: "no-store" }),
-    new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))
-  ]).finally(() => clearTimeout(t));
-}
-function safeJSON(s, fb){ try { return JSON.parse(s); } catch { return fb; } }
-function hashString(s){
-  // simple non-crypto hash for change detection
-  let h = 2166136261; for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h += (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); }
-  return (h>>>0).toString(36);
-}
+  let lastJSON = "";
+  let inflight = false;
 
-/* ---- cache ---- */
-function readCache(){
-  const raw = localStorage.getItem(CACHE_KEY);
-  if (!raw) return null;
-  const obj = safeJSON(raw, null);
-  if (!obj || typeof obj.text !== "string") return null;
-  return obj; // { text, hash, ts }
-}
-function writeCache(text){
-  const entry = { text, hash: hashString(text), ts: Date.now() };
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify(entry)); } catch {}
-  return entry;
-}
+  const tick = async () => {
+    if (inflight) return;
+    inflight = true;
+    try {
+      const data = await window.fetchSheetData(window.PASTED_SHEET_LINK, window.TAB_NAME);
+      const nowJSON = JSON.stringify(data || []);
+      if (nowJSON !== lastJSON) {
+        lastJSON = nowJSON;
 
-/* ---- DOM render ---- */
-function renderAnnouncement(text){
-  const el = document.getElementById("announcementBar");
-  if (!el) return;
-  // Only update if changed to avoid layout thrash
-  if (el.innerText !== text) el.innerText = text;
-}
+        // Render NEW DATA without nuking existing video nodes when possible.
+        // Assumption: your renderProducts smartly updates DOM; if it clears,
+        // our keepAliveVideo will re-stabilize playback on recreated nodes.
+        window.renderProducts(data);
 
-/* ---- find the first non-empty announcement cell ---- */
-function pickAnnouncement(rows){
-  if (!Array.isArray(rows)) return "";
-  for (const r of rows){
-    const v = r?.[ANNOUNCE_COL];
-    if (v && String(v).trim()) return String(v).trim();
-  }
-  return "";
-}
-
-/* ---- background revalidate ---- */
-let lastRenderedHash = null;
-async function revalidateAnnouncement(){
-  try {
-    aLog("fetching live…");
-    const res = await withTimeout(fetch(ANNOUNCE_URL, { cache: "no-store" }), FETCH_TIMEOUT_MS);
-    // If withTimeout already returns a fetch Response, use it directly
-    const response = res instanceof Response ? res : await withTimeout(fetch(ANNOUNCE_URL, { cache: "no-store" }), FETCH_TIMEOUT_MS);
-    if (!response.ok) throw new Error("HTTP "+response.status);
-    const data = await response.json();
-
-    const nextText = pickAnnouncement(data) || "";
-    const nextHash = hashString(nextText);
-
-    if (!nextText) {
-      aLog("empty announcement from sheet, keeping current UI");
-      return; // keep stale UI
+        // Re-apply keepAlive on any product videos just in case.
+        document.querySelectorAll("video").forEach(keepAliveVideo);
+      }
+    } catch(e) {
+      // fail silently (no UX impact)
+    } finally {
+      inflight = false;
     }
+  };
 
-    if (nextHash !== lastRenderedHash) {
-      aLog("change detected → swapping");
-      renderAnnouncement(nextText);
-      const entry = writeCache(nextText);
-      lastRenderedHash = entry.hash;
-    } else {
-      aLog("no change; refresh cache timestamp");
-      writeCache(nextText); // refresh ts so warm cache persists
-    }
-  } catch (err) {
-    console.warn("Announcement refresh failed:", err);
-    // keep stale UI; do nothing
-  }
-}
-
-/* ---- init (SWR) ---- */
-(function initAnnouncementSWR(){
-  // 1) render from cache instantly (if any)
-  const cached = readCache();
-  if (cached?.text) {
-    aLog("rendering from cache");
-    renderAnnouncement(cached.text);
-    lastRenderedHash = cached.hash;
-  } else {
-    aLog("no cache; will render after first live fetch");
-  }
-
-  // 2) kick off live revalidation now
-  revalidateAnnouncement();
-
-  // 3) periodic background refresh
-  const iv = setInterval(revalidateAnnouncement, REFRESH_MS);
-  window.addEventListener("beforeunload", () => clearInterval(iv));
+  // Initial & interval polling
+  tick();
+  setInterval(tick, 10000); // every 10s; adjust if needed
 })();
 
-/* ===========================================================
-   Cart Badge (unchanged; uses localStorage and animates on change)
-   =========================================================== */
-function updateCartBadge(animate = true) {
+/* =========================================================
+   SAFETY NET: Ensure any existing videos on page never stop
+   ========================================================= */
+window.addEventListener("pageshow", () => {
+  document.querySelectorAll("video").forEach(keepAliveVideo);
+});
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("video").forEach(keepAliveVideo);
+});
+</script>
+<script>
+  // Announcement Bar from Google Sheet
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+  
+  function updateCartBadge(animate = true) {
   const items = JSON.parse(localStorage.getItem("cartItems")) || [];
   let count = 0;
   items.forEach(item => count += item.qty);
@@ -2731,23 +2612,22 @@ function updateCartBadge(animate = true) {
 
     if (animate && count !== prev) {
       badge.classList.remove("bounce-badge");
-      void badge.offsetWidth;             // reflow to restart animation
+      void badge.offsetWidth;             // reflow
       badge.classList.add("bounce-badge");
       badge.addEventListener("animationend", () => {
         badge.classList.remove("bounce-badge");
       }, { once: true });
     }
   } else {
-    badge.innerText = "";   // no “0”
-    badge.style.display = "none";
+    badge.innerText = "";                  // ✅ no “0”
+    badge.style.display = "none";          // ✅ hide when empty
   }
 
   badge.dataset.count = count;
 }
 
-updateCartBadge(false); // no bounce on initial load
+updateCartBadge(false); // ✅ no bounce on refresh
 </script>
-
 
 <script>
 function closePopup() {
@@ -3325,31 +3205,7 @@ window.closeHeaderSearch = function(){
   hideSuggest();
 };
 </script>
-<!-- A2_DIRECTION_TOGGLE :: JS helper -->
-<script>
-/* Reads A2 ("Box Direction") from the sheet rows.
-   If it's 2 -> set <body class="horizontal-mode"> */
 
-function applyDirectionFromSheet(rows){
-  try{
-    const first = rows?.[0] || {};
-    const key = Object.keys(first).find(k => k.trim().toLowerCase() === "box direction");
-    const value = Number(first[key] || first["Box Direction"] || 1);
-
-    // Reset classes first
-    document.body.classList.remove("horizontal-mode","small-cards");
-
-    if (value === 2){
-      // Mode 2: horizontal swipe (default card size)
-      document.body.classList.add("horizontal-mode");
-    } else if (value === 3){
-      // Mode 3: horizontal swipe + smaller cards
-      document.body.classList.add("horizontal-mode","small-cards");
-    } // value === 1 -> normal grid (no extra class)
-  }catch(e){}
-}
-
-</script>
 <!-- 🟣 Instagram banner: EXACTLY below the pink certified-strip -->
 <section class="ig-banner-wrap" id="igFollowBanner">
 <div aria-label="Instagram updates banner" class="ig-banner">
@@ -4029,6 +3885,259 @@ if (popup){
   });
 })();
 </script>
+<script>
+/* ============================================================
+   Box Direction (1 / 2 / 3) — controlled only via Google Sheet
+   Your Sheet: https://docs.google.com/spreadsheets/d/1ehaO9wptGfqHZVs46JJNUe8Ji_xR_YnWYwykhgiObs0/edit?usp=drivesdk
+   Tab: "Sheet1"
+   Meaning:
+     1 -> Normal grid      (no extra class)
+     2 -> Horizontal swipe (adds .horizontal-mode)
+     3 -> Horizontal + small cards (adds .horizontal-mode .small-cards)
+   ============================================================ */
+(function(){
+  // ==== CONFIG ====
+  const EXTERNAL_SHEET_LINK =
+    "https://docs.google.com/spreadsheets/d/1ehaO9wptGfqHZVs46JJNUe8Ji_xR_YnWYwykhgiObs0/edit?usp=drivesdk";
+  const TAB = "Sheet1";
+
+  // Build OpenSheet endpoint from the Google Sheet URL
+  const idMatch = EXTERNAL_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  const SHEET_ID = idMatch ? idMatch[1] : "";
+  const BOX_URL = SHEET_ID ? `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(TAB)}` : "";
+
+  // Apply classes on <body> based on numeric mode (1/2/3)
+  function applyClasses(mode){
+    const body = document.body;
+    body.classList.remove("horizontal-mode","small-cards"); // reset
+    if (mode === 2) body.classList.add("horizontal-mode");
+    else if (mode === 3) body.classList.add("horizontal-mode","small-cards");
+  }
+
+  // Parse the first row's "Box Direction" (case/space tolerant)
+  function parseDirection(rows){
+    const first = rows?.[0] || {};
+    const key = Object.keys(first).find(k => k && k.trim().toLowerCase() === "box direction");
+    const raw = key ? first[key] : first["Box Direction"];
+    const n = Number(raw);
+    return (n === 2 || n === 3) ? n : 1; // default to 1
+  }
+
+  async function applyFromSheet(){
+    if (!BOX_URL){
+      console.warn("[Box Direction] Invalid Google Sheet link.");
+      return;
+    }
+    try{
+      const r = await fetch(BOX_URL, { cache: "no-store" });
+      const rows = await r.json();
+      const mode = parseDirection(rows);
+      applyClasses(mode);
+      console.log("[Box Direction] Applied:", mode);
+    } catch (e){
+      console.warn("[Box Direction] Could not read external sheet:", e);
+    }
+  }
+
+  // Ensure our setting wins after DOM is ready
+  if (document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", applyFromSheet, { once: true });
+  } else {
+    applyFromSheet();
+  }
+})();
+</script>
+
+<script>
+/* ================================
+   MULTI-SOURCE LOADER (appended)
+   Reason: earlier code stopped at first non-empty row in master config.
+   This loader reads **all** rows and renders all sheets in order.
+   💀💀💀💀💀
+=============================== */
+(async function loadAllSourcesAndRender(){
+  try{
+    const masterURL = buildOpenSheetUrl(MASTER_SHEET_LINK, MASTER_TAB_NAME);
+    if (!masterURL) return;
+
+    const r = await fetch(masterURL, { cache: "no-store" });
+    const rowsRaw = await r.json();
+    const rows = (rowsRaw || []).map(makeLooseRow);
+
+    const configs = [];
+    for (const rr of rows){
+      const sheetUrl = String(rr["sheeturl"] || rr["sheeturlheading"] || rr["sheeturladdress"] || rr["sheeturl_"] || "").trim();
+      const tab      = String(rr["tab"] || rr["tabname"] || rr["sheettab"] || "").trim();
+      const boxDir   = String(rr["boxdirection"] || rr["direction"] || "").trim();
+      if (sheetUrl && tab) configs.push({ sheetUrl, tab, boxDir });
+    }
+    if (!configs.length) return;
+
+    // Apply Box Direction from first row (ltr/rtl or numeric modes 2/3)
+    const v = String(configs[0].boxDir || "").trim().toLowerCase();
+    applyBoxDirection(v);
+    document.body.classList.remove("horizontal-mode","small-cards");
+    if (v === "2") document.body.classList.add("horizontal-mode");
+    if (v === "3") document.body.classList.add("horizontal-mode","small-cards");
+
+    // Clear whatever previous script rendered
+    let content = document.getElementById("content");
+    if (!content){
+      content = document.createElement("div");
+      content.id = "content";
+      document.body.appendChild(content);
+    } else {
+      content.innerHTML = "";
+    }
+
+    window.catalogData = [];
+
+    // Helper to render one sheet block (reusing existing functions)
+    function renderRows(raw){
+      const data = (raw || []).map(makeLooseRow);
+      let currentSection = "";
+      let sectionWrapper = null;
+      let currentSectionHidden = false;
+
+      data.forEach((item) => {
+        const name = pick(item, ["Product Name","productname","name"]);
+        const sectionName = pick(item, ["Section","section"]);
+        const visibility = pick(item, ["visibility","Visible","Show/Hide","showhide"]);
+        const mrp = Number(pick(item, ["MRP","mrp"])) || 0;
+        const sp  = Number(pick(item, ["Selling Price","sellingprice","price"])) || 0;
+        const inStock = Number(pick(item, ["in stock","instock","stock"])) || 0;
+        const badge = pick(item, ["Badge","badge"]);
+        const p1 = pick(item, ["photo 1","photo1"]);
+        const p2 = pick(item, ["photo 2","photo2"]);
+        const p3 = pick(item, ["photo 3","photo3"]);
+        const p4 = pick(item, ["photo 4","photo4"]);
+
+        if (sectionName){
+          currentSection = sectionName;
+          const secVis = String(visibility || "").trim().toLowerCase();
+          currentSectionHidden = secVis.includes("hide");
+          if (currentSectionHidden){ sectionWrapper = null; return; }
+
+          const sectionTitle = document.createElement("div");
+          sectionTitle.className = "section-title";
+          sectionTitle.innerText = currentSection;
+          content.appendChild(sectionTitle);
+
+          sectionWrapper = document.createElement("div");
+          sectionWrapper.className = "product-grid";
+          content.appendChild(sectionWrapper);
+          return;
+        }
+
+        if (currentSectionHidden) return;
+        if (isHidden(item)) return;
+        if (!name) return;
+
+        const product = document.createElement("div");
+        product.className = "product";
+
+        product.addEventListener("click", (e) => {
+          if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+          const allPhotos = [p1, p2, p3, p4].filter(Boolean);
+          if (typeof openPopup === "function") {
+            openPopup(allPhotos, name, mrp, sp, inStock, getSheetDescription(item));
+          }
+        });
+
+        (function () {
+          const url1 = String(p1 || "").trim();
+          let el;
+          if (isVideoUrl(url1)) {
+            const v = document.createElement("video");
+            v.src = url1; v.muted = true; v.autoplay = true; v.loop = true; v.playsInline = true;
+            v.preload = "metadata"; v.disablePictureInPicture = true;
+            v.setAttribute("muted",""); v.setAttribute("webkit-playsinline","true"); v.setAttribute("playsinline","true");
+            v.style.pointerEvents = "none"; v.style.cursor = "default";
+            v.style.width = "100%"; v.style.height = "100%"; v.style.aspectRatio = "1 / 1"; v.style.objectFit = "contain";
+            el = v;
+          } else {
+            const img = document.createElement("img");
+            img.src = url1 || ""; img.alt = name; img.loading = "lazy"; img.decoding = "async";
+            img.style.pointerEvents = "none"; img.style.cursor = "default";
+            el = img;
+          }
+          const wrap = document.createElement("div");
+          wrap.className = "media-square";
+          wrap.appendChild(el);
+          product.appendChild(wrap);
+        })();
+
+        if (badge){
+          const b = document.createElement("div");
+          b.className = "badge";
+          b.innerText = badge;
+          product.appendChild(b);
+        }
+
+        const infoWrapper = document.createElement("div");
+        infoWrapper.style.padding = "0 6px";
+
+        const title = document.createElement("div");
+        title.className = "product-title";
+        title.style.fontSize = "14px";
+        title.style.textAlign = "left";
+        title.style.marginTop = "8px";
+        title.innerText = name;
+        infoWrapper.appendChild(title);
+
+        const info = document.createElement("div");
+        info.className = "product-info";
+
+        let priceHTML = "";
+        if (mrp && sp){
+          priceHTML = '<div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span>₹'+sp+'</span><s style="color:#999; font-weight:normal;">₹'+mrp+'</s></div>';
+        }
+
+        if (inStock === 0){
+          info.innerHTML = priceHTML + '<button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>';
+        } else {
+          const productData = { photo: p1, name, mrp, price: sp };
+          const btn = document.createElement("button");
+          btn.className = "add-btn";
+          btn.textContent = "Add to Cart";
+          btn.setAttribute("onclick", 'addToCartFromGrid(this, '+JSON.stringify(productData)+')');
+          info.innerHTML = priceHTML;
+          info.appendChild(btn);
+        }
+
+        infoWrapper.appendChild(info);
+        product.appendChild(infoWrapper);
+
+        if (!sectionWrapper){
+          sectionWrapper = document.createElement("div");
+          sectionWrapper.className = "product-grid";
+          content.appendChild(sectionWrapper);
+        }
+        sectionWrapper.appendChild(product);
+      });
+    }
+
+    for (const cfg of configs){
+      const url = buildOpenSheetUrl(cfg.sheetUrl, cfg.tab);
+      try{
+        const res = await fetch(url, { cache: "no-store" });
+        const raw = await res.json();
+        window.catalogData = window.catalogData.concat(raw || []);
+        renderRows(raw || []);
+      }catch(e){
+        console.warn("Failed to load data for", cfg, e);
+      }
+    }
+
+    if (typeof maybeOpenFromURL === "function") {
+      try { maybeOpenFromURL(); } catch (e) { console.warn(e); }
+    }
+  }catch(err){
+    console.error("Multi-source loader error:", err);
+  }
+})();
+</script>
+
 </body>
 </html>
 
