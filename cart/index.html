@@ -1016,48 +1016,6 @@ button.remove-btn:hover {
   box-sizing: border-box !important;
 }
 </style>
-<style>
-.coupon-success-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.45);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 11000;
-}
-.coupon-success-overlay.active { display: flex; }
-
-.coupon-success-box {
-  background: #fff;
-  border-radius: 18px;
-  padding: 20px;
-  max-width: 320px;
-  text-align: center;
-  font-family: 'Roboto Slab', serif;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  animation: popIn 0.3s ease;
-}
-@keyframes popIn {
-  0% { transform: scale(0.8); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-.coupon-check {
-  width: 70px;
-  height: 70px;
-  margin: 0 auto 10px;
-}
-.coupon-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: #111;
-}
-.coupon-sub {
-  font-size: 14px;
-  color: #333;
-}
-</style>
 
 </head>
 <body>
@@ -4354,46 +4312,6 @@ function buildRazorpayNotes(){
   // Expose for manual use if needed
   window.repairCartVideos = repairMediaCards;
 })();
-</script>
-<div class="coupon-success-overlay" id="couponSuccessOverlay">
-  <div class="coupon-success-box">
-    <div class="coupon-check">
-      <svg viewBox="0 0 52 52">
-        <circle cx="26" cy="26" r="25" fill="none" stroke="#16a34a" stroke-width="4" stroke-dasharray="157" stroke-dashoffset="157">
-          <animate attributeName="stroke-dashoffset" values="157;0" dur="0.6s" fill="freeze"/>
-        </circle>
-        <path fill="none" stroke="#16a34a" stroke-width="4" d="M14 27l8 8 16-16" stroke-dasharray="50" stroke-dashoffset="50">
-          <animate attributeName="stroke-dashoffset" values="50;0" dur="0.4s" begin="0.6s" fill="freeze"/>
-        </path>
-      </svg>
-    </div>
-    <div class="coupon-title">Coupon Applied!</div>
-    <div class="coupon-sub" id="couponSuccessText"></div>
-  </div>
-</div>
-<script>
-function showCouponSuccess(code, savings){
-  const overlay = document.getElementById("couponSuccessOverlay");
-  const text = document.getElementById("couponSuccessText");
-  text.innerHTML = `Code <b>${code}</b> applied — You saved <b>₹${savings}</b> 🎉`;
-  overlay.classList.add("active");
-  setTimeout(() => overlay.classList.remove("active"), 2500);
-  overlay.onclick = () => overlay.classList.remove("active");
-}
-
-// 🔗 Hook into your existing applyCouponManually
-const oldApplyCoupon = window.applyCouponManually;
-window.applyCouponManually = function(){
-  if (oldApplyCoupon) oldApplyCoupon.apply(this, arguments);
-
-  // After successful apply (check savedCoupon in localStorage)
-  try {
-    const saved = JSON.parse(localStorage.getItem("appliedCouponObj"));
-    if(saved && saved.code && saved.discount){
-      showCouponSuccess(saved.code, saved.discount);
-    }
-  } catch(e){}
-}
 </script>
 
 </body>
