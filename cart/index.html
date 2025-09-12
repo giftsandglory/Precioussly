@@ -1466,20 +1466,12 @@ function confirmAddress() {
       let feeText = "";
 
       if (data[0] && data[0]["Delivery Fee"]) {
-        const raw = String(data[0]["Delivery Fee"]).trim();
-        // Accept values like 0, 10, "₹10", "Free Delivery"
-        const num = Number((raw || "").replace(/[^\d.]/g, ""));
-        if (/free/i.test(raw)) {
+        const value = data[0]["Delivery Fee"].trim();
+        if (value === "0") {
+          // If column is exactly 0 → Free Delivery
           fee = 0;
           feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
-        } else if (!isNaN(num)) {
-          fee = num;
-          feeText = `₹${fee}`;
         } else {
-          fee = 0;
-          feeText = `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`;
-        }
-      } else {
           // Else use actual fee
           fee = parseFloat(value);
           feeText = `₹${fee}`;
@@ -2966,10 +2958,8 @@ function buildSheetPayload(order) {
   if (isRazorpay) paymentStatus = 'Paid';
   else if (isCOD && Number(order.prepaidAmount || 0) > 0) paymentStatus = 'Prepaid-COD';
 
-  // Delivery fee label (ALWAYS show; Free Delivery when 0)
-  const deliveryFeeText = (Number(a.deliveryFee || 0) === 0
-    ? 'Free Delivery'
-    : `₹${Number(a.deliveryFee || 0)}`);
+    // Delivery fee label (always show; 'Free Delivery' if 0)
+  const deliveryFeeText = (Number(a.deliveryFee || 0) === 0 ? 'Free Delivery' : `₹${Number(a.deliveryFee || 0)}`);
 
   const fullAddress = (function () {
     if (addr.address) {
