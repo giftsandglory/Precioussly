@@ -1828,19 +1828,17 @@ function updateSummary() {
     : `₹${deliveryFee}`;
 
   // ✅ COD par Delivery Fee line HIDE — chahe free ho ya paid
-  const showDeliveryRow = !(selectedPayment === "cod");
+  const showDeliveryRow = true;
 
   // grand total: agar Delivery row hide hai to usko add na karein
-  const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
+  const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
 
   // ---- build rows ----
   let rows = `
     <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
   `;
 
-  if (showDeliveryRow) {
-    rows += `<div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>`;
-  }
+  rows += `<div class=\"summary-row\"><span>Delivery Fee</span><span>${feeText}</span></div>`;
 
   // ✅ COD amount ko green rounded chip me dikhayein
   if (codFee) {
@@ -3093,12 +3091,12 @@ function saveOrderToGoogleSheet(order) {
         }
       }catch(e){}
 
-      const showDeliveryRow = !(window.selectedPayment === "cod");
+      const showDeliveryRow = true;
       const feeText = (deliveryFee === 0)
         ? '<span style="color: green; font-family: \'Roboto Slab\', serif;">Free Delivery</span>'
         : '₹' + deliveryFee;
 
-      const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
+      const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
 
       let rows = '';
       rows += '<div class="summary-row"><span>Item Total</span><span>₹'+subtotal+'</span></div>';
@@ -3171,12 +3169,12 @@ window.updateSummary = function() {
       }
     } catch(e){}
 
-    const showDeliveryRow = !(window.selectedPayment === "cod");
+    const showDeliveryRow = true;
     const feeText = (deliveryFee === 0)
       ? '<span style="color: green; font-family: \'Roboto Slab\', serif;">Free Delivery</span>'
       : '₹' + deliveryFee;
 
-    const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
+    const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
 
     let rows = '';
     rows += '<div class="summary-row"><span>Item Total</span><span>₹'+subtotal+'</span></div>';
@@ -3252,13 +3250,14 @@ function buildCODPreview() {
       }
     }
   } catch(e){}
-  const grandTotal = Math.max(0, itemsTotal + codFee - discount);
+  const deliveryFee = (typeof window.deliveryFee === 'number') ? window.deliveryFee : 0;
+  const grandTotal = Math.max(0, itemsTotal + deliveryFee + codFee - discount);
 
   return {
-    method: "Cash on Delivery",
+    method: \"Cash on Delivery\",
     items,
     coupon: couponCode,
-    amounts: { itemsTotal, deliveryFee: 0, codFee, discount, grandTotal },
+    amounts: { itemsTotal, deliveryFee, codFee, discount, grandTotal },
     address: localStorage.getItem("shippingAddress") || "",
     createdAt: new Date().toISOString()
   };
@@ -3955,12 +3954,7 @@ window.closeHeaderSearch = closeHeaderSearch;
     // Delivery fee logic:
     // Use the Google Sheet delivery fee for Razorpay so checkout amount matches the on-page summary.
     // COD path keeps 0 delivery and applies COD fee separately.
-    var deliveryFee = 0;
-    if (String(forMethod).toLowerCase() === "razorpay") {
-      deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-    } else {
-      deliveryFee = 0;
-    }
+    var deliveryFee = (typeof window.deliveryFee === \"number\") ? window.deliveryFee : 0;
 
     // COD charges only when COD
     var codFee = 0;
