@@ -1782,32 +1782,17 @@ function renderCart() {
 let selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || "razorpay";
 window.selectedPayment = selectedPayment;
 
-
 function updatePaymentMethod() {
-  const method = document.querySelector('input[name="paymentMethod"]:checked')?.value || "razorpay";
-
-  // save selected method
+  const method = document.querySelector('input[name="paymentMethod"]:checked').value;
   selectedPayment = method;
   window.selectedPayment = method;
 
-  // button text change
   const labelEl = document.querySelector('#proceedBtn .btn-label');
   if (labelEl) {
-    if (method === "cod") {
-      labelEl.textContent = "Continue with COD";
-    } else if (method === "prepaid") {
-      labelEl.textContent = "Continue with Prepaid";
-    } else {
-      labelEl.textContent = "Proceed to Pay";
-    }
+    labelEl.textContent = (method === "cod") ? "Continue with COD" : "Proceed to Pay";
   }
 
-  // refresh summary box
-  if (typeof updateSummary === "function") {
-    updateSummary();
-  }
-}
-
+  updateSummary();
   // minimum order ka notice total ke hisaab se dubara check ho
   try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
 }
@@ -1815,23 +1800,15 @@ function updatePaymentMethod() {
 
 
 // Override updateSummary to include COD charge
-<script>
 function updateSummary() {
-  // ---- figures ----
+  // ---- totals ----
   const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
   const subtotal = items.reduce((s, it) => s + (Number(it.price) * Number(it.qty || 1)), 0);
 
-  // current payment method (fallback to global/window if present)
-  const selectedPayment =
-    (window.selectedPayment) ||
-    (document.querySelector('input[name="paymentMethod"]:checked')?.value) ||
-    "razorpay";
+  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+  const codFee      = (selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
 
-  const baseDelivery = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-  const codFee       = (selectedPayment === "cod") ? (Number(window.codCharge) || 0) : 0;
-  const prepaidFee   = (selectedPayment === "prepaid") ? (Number(window.codPrepaid) || 0) : 0;
-
-  // ---- coupon logic (unchanged) ----
+  // ---- coupon logic (same as before) ----
   let couponToUse = null, discount = 0;
   if (window.allCoupons && allCoupons.length){
     if (window.manualLock && window.appliedCoupon){
@@ -1841,60 +1818,54 @@ function updateSummary() {
       const {coupon, amount} = bestCouponFor(subtotal);
       couponToUse = coupon;
       discount = amount;
-      window.appliedCoupon = coupon || null;
-      try { syncCouponInput(); } catch(e){}
+      window.appliedCoupon = coupon || null; try{syncCouponInput();}catch(e){}
     }
   }
 
-  // Delivery row text (always show)
-  const feeText = (baseDelivery === 0)
+  // “Free Delivery” ya amount ki text
+  const feeText = (deliveryFee === 0)
     ? `<span style="color: green; font-family: 'Roboto Slab', serif;">Free Delivery</span>`
-    : `₹${baseDelivery}`;
+    : `₹${deliveryFee}`;
 
-  // grand total
-  const grand = Math.max(0, subtotal + baseDelivery + codFee + prepaidFee - discount);
+  // ✅ COD par Delivery Fee line HIDE — chahe free ho ya paid
+  const showDeliveryRow = !(selectedPayment === "cod");
+
+  // grand total: agar Delivery row hide hai to usko add na karein
+  const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
 
   // ---- build rows ----
   let rows = `
     <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
-    <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
   `;
 
-  // COD / Prepaid extra charges (if any)
-  if (codFee > 0) {
-    rows += `
-      <div class="summary-row" style="justify-content:flex-start; gap:20px;">
-        <span>COD Charges</span>
-        <span style="font-weight:600;">₹${codFee}</span>
-      </div>`;
-  }
-  if (prepaidFee > 0) {
-    rows += `
-      <div class="summary-row" style="justify-content:flex-start; gap:20px;">
-        <span>Prepaid Confirmation</span>
-        <span style="font-weight:600;">₹${prepaidFee}</span>
-      </div>`;
+  if (showDeliveryRow) {
+    rows += `<div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>`;
   }
 
-  if (discount > 0 && couponToUse) {
+  // ✅ COD amount ko green rounded chip me dikhayein
+  if (codFee) {
+    rows += `<div class="summary-row" style="justify-content: flex-start; gap: 20px;">
+            <span>COD Charges</span>
+            <span style="font-weight: bold;">₹${codFee}</span>
+          </div>`;
+  }
+
+  if (discount) {
     rows += `<div class="summary-row"><span>Coupon (${couponToUse.code})</span><span>-₹${discount}</span></div>`;
   }
 
-  rows += `
-    <div class="summary-row" style="font-weight:bold; font-size:18px;">
-      <span>Order Total</span><span>₹${grand}</span>
-    </div>`;
+  rows += `<div class="summary-row" style="font-weight: bold; font-size: 18px;">
+            <span>Order Total</span><span>₹${grand}</span>
+          </div>`;
 
-  const box = document.getElementById("summaryBox");
-  if (box) box.innerHTML = rows;
+  document.getElementById("summaryBox").innerHTML = rows;
 
-  // helpers
+  // helpers jinhe aap pehle se use kar rahe the
   try { showAppliedTag(subtotal); } catch(e){}
   try { showProgress(subtotal); } catch(e){}
   try { if (typeof checkMinOrderCondition === "function") checkMinOrderCondition(); } catch(e){}
 }
 </script>
-
 <!-- ✅ COD Razorpay Suggestion Popup -->
 <div class="address-popup-overlay" id="codPopup">
   <div class="address-popup-box" style="text-align: center; max-width: 320px;">
@@ -2278,8 +2249,8 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
   .then(res => res.json())
   .then(data => {
     if (data[0] && data[0]["minimum order"]) {
-      minimumOrderValue = parseInt(data[0]["minimum order"], 10);
-      document.getElementById("proceedBtn").style.display = "block";   // show button
+      minimumOrderValue = parseInt(data[0]["minimum order"]);
+      document.getElementById("proceedBtn").style.display = "block"; // show button
       document.getElementById("minimumNotice").style.display = "block"; // show message area
       checkMinOrderCondition(); // run logic after fetch
     }
@@ -2291,29 +2262,14 @@ function checkMinOrderCondition() {
   const proceedBtn = document.getElementById("proceedBtn");
   const notice = document.getElementById("minimumNotice");
 
-  // cart subtotal
-  const cartData = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  const subtotal = cartData.reduce(
-    (sum, it) => sum + (Number(it.price) * Number(it.qty || 1)), 0
-  );
+  const cartData = JSON.parse(localStorage.getItem("cartItems")) || [];
+  let total = 0;
+  cartData.forEach(item => total += item.price * item.qty);
 
-  // 💀 Selected method ko robust tarike se read karo (fallbacks)
-  const selectedMethod =
-    window.selectedPayment ||
-    document.querySelector('input[name="paymentMethod"]:checked')?.value ||
-    "razorpay";
+  const deliveryFee = typeof window.deliveryFee === "number" ? window.deliveryFee : 0;
+  const codFee = (selectedPayment === "cod" ? (Number(window.codCharge)||0) : 0);
+  const grandTotal = total + deliveryFee + codFee;
 
-  // Base delivery fee (sheet se aata hai) — har method pe apply hoga
-  const deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
-
-  // 💀 Extra fees per method
-  const codFee = (selectedMethod === "cod") ? (Number(window.codCharge)   || 0) : 0;
-  const prepaidFee = (selectedMethod === "prepaid") ? (Number(window.codPrepaid) || 0) : 0;
-
-  // 💀 GRAND TOTAL: ab delivery fee hamesha include hogi (Razorpay + COD + Prepaid sab par)
-  const grandTotal = Math.max(0, subtotal + deliveryFee + codFee + prepaidFee);
-
-  // message
   notice.innerText = `Minimum order amount is ₹${minimumOrderValue} to proceed`;
 
   if (grandTotal < minimumOrderValue) {
@@ -2328,7 +2284,6 @@ function checkMinOrderCondition() {
     notice.style.display = "none";
   }
 }
-
 
 
 // ====== 1) CONFIG: use the SAME sheet as index.html coupons  ======
@@ -3138,12 +3093,12 @@ function saveOrderToGoogleSheet(order) {
         }
       }catch(e){}
 
-      const showDeliveryRow = true;
+      const showDeliveryRow = !(window.selectedPayment === "cod");
       const feeText = (deliveryFee === 0)
         ? '<span style="color: green; font-family: \'Roboto Slab\', serif;">Free Delivery</span>'
         : '₹' + deliveryFee;
 
-      const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
+      const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
 
       let rows = '';
       rows += '<div class="summary-row"><span>Item Total</span><span>₹'+subtotal+'</span></div>';
@@ -3216,12 +3171,12 @@ window.updateSummary = function() {
       }
     } catch(e){}
 
-    const showDeliveryRow = true;
+    const showDeliveryRow = !(window.selectedPayment === "cod");
     const feeText = (deliveryFee === 0)
       ? '<span style="color: green; font-family: \'Roboto Slab\', serif;">Free Delivery</span>'
       : '₹' + deliveryFee;
 
-    const grand = Math.max(0, subtotal + deliveryFee + codFee - discount);
+    const grand = Math.max(0, subtotal + (showDeliveryRow ? deliveryFee : 0) + codFee - discount);
 
     let rows = '';
     rows += '<div class="summary-row"><span>Item Total</span><span>₹'+subtotal+'</span></div>';
@@ -3297,14 +3252,13 @@ function buildCODPreview() {
       }
     }
   } catch(e){}
-  const deliveryFee = (typeof window.deliveryFee === 'number') ? window.deliveryFee : 0;
-  const grandTotal = Math.max(0, itemsTotal + deliveryFee + codFee - discount);
+  const grandTotal = Math.max(0, itemsTotal + codFee - discount);
 
   return {
-    method: \"Cash on Delivery\",
+    method: "Cash on Delivery",
     items,
     coupon: couponCode,
-    amounts: { itemsTotal, deliveryFee, codFee, discount, grandTotal },
+    amounts: { itemsTotal, deliveryFee: 0, codFee, discount, grandTotal },
     address: localStorage.getItem("shippingAddress") || "",
     createdAt: new Date().toISOString()
   };
@@ -4001,7 +3955,12 @@ window.closeHeaderSearch = closeHeaderSearch;
     // Delivery fee logic:
     // Use the Google Sheet delivery fee for Razorpay so checkout amount matches the on-page summary.
     // COD path keeps 0 delivery and applies COD fee separately.
-    var deliveryFee = (typeof window.deliveryFee === \"number\") ? window.deliveryFee : 0;
+    var deliveryFee = 0;
+    if (String(forMethod).toLowerCase() === "razorpay") {
+      deliveryFee = (typeof window.deliveryFee === "number") ? window.deliveryFee : 0;
+    } else {
+      deliveryFee = 0;
+    }
 
     // COD charges only when COD
     var codFee = 0;
