@@ -1626,9 +1626,14 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
           box.href = item.link || "#";
           box.style.textDecoration = "none";
           box.style.color = "inherit";
+          
+          const isVideo = /\.(mp4|webm|mov)(\?|$)/i.test(item.img);
+          const mediaTag = isVideo
+            ? `<video class="category-media" src="${item.img}" autoplay muted loop playsinline preload="metadata" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture></video>`
+            : `<img class="category-media" src="${item.img}" alt="${item.name}">`;
           box.innerHTML = `
             <div style="text-align:center;">
-              <img src="${item.img}" alt="${item.name}" style="width:100%; border-radius:20px; object-fit:cover;">
+              ${mediaTag}
               <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
             </div>`;
           grid.appendChild(box);
