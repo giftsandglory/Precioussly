@@ -1017,6 +1017,8 @@ button.remove-btn:hover {
 }
 </style>
 
+
+<style id="discount-style">.discount-amount{color:#0a7c5b;font-weight:700;}</style>
 </head>
 <body>
 <!-- 👇 Resin-style MENU -->
@@ -3109,7 +3111,7 @@ function saveOrderToGoogleSheet(order) {
         rows += '<div class="summary-row"><span>COD Charges</span><span><span class="cod-chip">₹'+codFee+'</span></span></div>';
       }
       if (discount) {
-        rows += '<div class="summary-row"><span>Coupon ('+(couponCode||'')+')</span><span>-₹'+discount+'</span></div>';
+        rows += '<div class="summary-row"><span>Coupon ('+(couponCode||'')+')</span><span><span class="discount-amount">-₹\'+discount+\'</span></div>';
       }
       rows += '<div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹'+grand+'</span></div>';
 
@@ -3188,7 +3190,7 @@ window.updateSummary = function() {
     }
     if (discount) {
       const code = (couponToUse && couponToUse.code) ? couponToUse.code : '';
-      rows += '<div class="summary-row"><span>Coupon ('+code+')</span><span>-₹'+discount+'</span></div>';
+      rows += '<div class="summary-row"><span>Coupon ('+code+')</span><span class="discount-amount">-₹'+discount+'</span></div>';
     }
     rows += '<div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹'+grand+'</span></div>';
 
