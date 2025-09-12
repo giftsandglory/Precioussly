@@ -109,15 +109,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
-<!-- Speed hints for Sheets/CDNs -->
-<link rel="preconnect" href="https://opensheet.elk.sh" crossorigin>
-<link rel="dns-prefetch" href="https://opensheet.elk.sh">
-<link rel="preconnect" href="https://docs.google.com" crossorigin>
-<link rel="dns-prefetch" href="https://docs.google.com">
-
-<!-- Smarter image decoding defaults (for browsers that read it) -->
-<meta http-equiv="x-dns-prefetch-control" content="on">
-
 <style>
 #toTopBtn {
   width: 55px;
@@ -837,12 +828,6 @@ down-toggle {
   padding: 0 14px 40px 14px;   /* ✅ upar ka 10px hata diya */
 }
 
-<div id="categorySkeleton" class="skel-grid" aria-hidden="true">
-  <div class="skel-card"><div class="skel-thumb"></div><div class="skel-text"></div></div>
-  <div class="skel-card"><div class="skel-thumb"></div><div class="skel-text"></div></div>
-  <div class="skel-card"><div class="skel-thumb"></div><div class="skel-text"></div></div>
-  <div class="skel-card"><div class="skel-thumb"></div><div class="skel-text"></div></div>
-</div>
 
 
 
@@ -912,6 +897,16 @@ down-toggle {
   text-decoration: none;
   color: inherit;
 }
+
+/* Unified media styling for images & videos in category cards */
+.category-media{
+  width:100%;
+  border-radius:20px;
+  object-fit:cover;
+  display:block;
+  background:#000; /* videos blend nicely while loading */
+}
+
     
 /* ==== Smart header ==== */
 .site-header {
@@ -1407,23 +1402,8 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
 @media (max-width:420px){
   .pp-card{top:14%;}
 }
-/* Skeleton cards for category grid while media preloads */
-.skel-grid {display:grid; grid-template-columns:1fr 1fr; gap:18px;}
-.skel-card{border-radius:20px; overflow:hidden;}
-.skel-thumb, .skel-text{
-  border-radius: 14px;
-  background: linear-gradient(90deg,#eeeeee 25%,#f7f7f7 37%,#eeeeee 63%);
-  background-size: 400% 100%;
-  animation: skel 1.2s ease-in-out infinite;
-}
-.skel-thumb{width:100%; height:190px;}
-.skel-text{height:16px; margin-top:10px; width:70%;}
-@keyframes skel{0%{background-position:100% 0}100%{background-position:0 0}}
-.hidden-until-ready{visibility:hidden; height:0; overflow:hidden;}
-.visible-now{visibility:visible; height:auto; overflow:visible;}
 
 </style>
-
 </head>
 <body>
 <!-- 👇 SIDE MENU STRUCTURE NEEDED FOR OVERLAY -->
@@ -1537,173 +1517,130 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
 <!-- 🔽 CATEGORY SCRIPT FROM SHEET — now with simple config -->
 <script>
   // ======================= EASY CONFIG (edit just these two) =======================
-  // 🔹 ❤️ Paste your Google Sheet link (full URL OR only Sheet ID) and tab name here ❤️
-  const FULL_SHEET_URL = "https://docs.google.com/spreadsheets/d/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/edit?usp=drivesdk";
-  const SHEET_TAB_NAME = "Resin Jewelry";
+  // 🔹 ❤️❤️❤️❤️Paste your Google Sheet link (the full URL) and tab name here:❤️❤️❤️❤️
+  const FULL_SHEET_URL = "https://docs.google.com/spreadsheets/d/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/edit?usp=drivesdk";   // ← e.g. https://docs.google.com/spreadsheets/d/1AbCdEfGh.../edit#gid=0 ----sheet here----
+  const SHEET_TAB_NAME = "Resin Jewelry"; 
+    // ← e.g. Sheet1 (tab name) ----sheet ----tab here----
 
   // ================= DO NOT EDIT BELOW THIS LINE (auto-generated) ==================
+  // ⚡ Extract the Sheet ID from the full URL or accept a bare ID
   function getSheetId(input){
     if(!input) return "";
     const s = String(input).trim();
     const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
     if(m) return m[1];
+    // if user pasted only the ID
     if (/^[a-zA-Z0-9-_]{20,}$/.test(s)) return s;
     return "";
   }
 
+  // ⚡ Build both GVIZ and OpenSheet JSON endpoints from the same config
   const SHEET_ID   = getSheetId(FULL_SHEET_URL);
   const GVIZ_URL   = SHEET_ID ? `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_TAB_NAME)}` : "";
   const JSON_URL   = SHEET_ID ? `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(SHEET_TAB_NAME)}` : "";
 
-  console.log("✅ GVIZ URL:", GVIZ_URL);
-  console.log("✅ JSON URL:", JSON_URL);
+  // For debugging in console
+  console.log("✅ Final working Sheet GVIZ URL:", GVIZ_URL);
+  console.log("✅ Final working Sheet JSON URL:", JSON_URL);
 
   // ================================================================================
-  // Column helpers
+  // Helper utils (case-insensitive column access + visibility flag)
   function normKey(k){ return String(k||"").replace(/\s+/g,"").toLowerCase(); }
   function getCell(row, key){
     const want = normKey(key);
     for (const k in row){
-      if (Object.prototype.hasOwnProperty.call(row, k) && normKey(k)===want) return row[k];
+      if (!Object.prototype.hasOwnProperty.call(row, k)) continue;
+      if (normKey(k) === want) return row[k];
     }
     return "";
   }
   function rowHasHideMarker(row){
-    const v = String(getCell(row,"visibility")||"").trim().toLowerCase();
-    const l = String(getCell(row,"link")||"").trim().toLowerCase();
+    const v = String(getCell(row, "visibility") || "").trim().toLowerCase();
+    const l = String(getCell(row, "link") || "").trim().toLowerCase();
     return ["hide","hidden","yes","1","true"].includes(v) || ["hide","hidden"].includes(l);
   }
 
   // ================================================================================
-  // Media helpers
-  const VIDEO_EXT_RE = /\.(mp4|webm|mov|m4v|ogg|ogv)$/i;
-  const IMG_EXT_RE   = /\.(png|jpe?g|gif|webp|avif|svg)$/i;
-
-  function isDirectVideo(u){ return VIDEO_EXT_RE.test(String(u||"").split("?")[0]); }
-  function isImage(u){ return IMG_EXT_RE.test(String(u||"").split("?")[0]) && !isDirectVideo(u); }
-
-  function isYouTube(u){
-    try{ const url = new URL(u); return /youtu\.be|youtube\.com/.test(url.hostname); }catch{ return false; }
-  }
-  function isVimeo(u){
-    try{ const url = new URL(u); return /vimeo\.com/.test(url.hostname); }catch{ return false; }
-  }
-
-  function toYouTubeEmbed(u){
-    try{
-      const url = new URL(u);
-      const id = url.hostname.includes("youtu.be") ? url.pathname.slice(1) : (url.searchParams.get("v")||"");
-      return id ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&modestbranding=1&rel=0&playsinline=1` : null;
-    }catch{ return null; }
-  }
-  function toVimeoEmbed(u){
-    try{
-      const url = new URL(u);
-      const id = url.pathname.split("/").filter(Boolean)[0];
-      return id ? `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&background=1&byline=0&title=0&portrait=0` : null;
-    }catch{ return null; }
-  }
-
-  function renderMediaHTML(url, altText){
-    const safeAlt = String(altText||"").replace(/"/g,"&quot;");
-    const baseStyle = "width:100%;border-radius:20px;object-fit:cover;display:block;";
-
-    if (isDirectVideo(url)){
-      return `<video src="${url}" style="${baseStyle}" autoplay muted loop playsinline
-                preload="metadata" disablepictureinpicture
-                controlslist="nodownload noplaybackrate nofullscreen noremoteplayback"
-                oncontextmenu="return false;"></video>`;
-    }
-    if (isYouTube(url)){
-      const embed = toYouTubeEmbed(url);
-      return embed ? `<iframe data-src="${embed}" style="${baseStyle}aspect-ratio:16/9;pointer-events:none;"
-                       frameborder="0" allow="autoplay; encrypted-media"></iframe>` : "";
-    }
-    if (isVimeo(url)){
-      const embed = toVimeoEmbed(url);
-      return embed ? `<iframe data-src="${embed}" style="${baseStyle}aspect-ratio:16/9;pointer-events:none;"
-                       frameborder="0" allow="autoplay; encrypted-media"></iframe>` : "";
-    }
-    return `<img src="${url}" alt="${safeAlt}" style="${baseStyle}" loading="lazy" decoding="async" referrerpolicy="no-referrer">`;
-  }
-
-  function lazyActivateIframes(root){
-    const iframes = root.querySelectorAll("iframe[data-src]");
-    if (!iframes.length) return;
-    const io = new IntersectionObserver((entries, obs)=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting){
-          e.target.src = e.target.dataset.src;
-          e.target.removeAttribute("data-src");
-          obs.unobserve(e.target);
-        }
-      });
-    },{rootMargin:"200px"});
-    iframes.forEach(f=>io.observe(f));
-  }
-
-  // ================================================================================
-  // Render Resin category grid (with preload + skeleton + refresh)
+  // Render "Resin" style category grid (title pill + 2-column cards)
   (async function(){
-    const url = JSON_URL;
-    const container = document.getElementById("categorySection");
+    // If config is not set, fall back to previous sheet (keeps page working)
+    const url = JSON_URL || "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
 
-    // skeleton visible, real content hidden
-    container.classList.add("hidden-until-ready");
+    try{
+      const res = await fetch(url);
+      const rows = await res.json();
 
-    let rows = [];
-    try{ rows = await (await fetch(url)).json(); }catch(e){ console.error(e); }
+      const container = document.getElementById("categorySection");
+      const grouped = {};
+      let currentSection = "";
+      let sectionHidden = false;
 
-    const grouped={}; let current="", hidden=false;
-    rows.forEach(row=>{
-      const titleCell = String(getCell(row,"Title")||"").trim();
-      if(titleCell){ current=titleCell; hidden=rowHasHideMarker(row); return; }
-      if(!current || hidden || rowHasHideMarker(row)) return;
-      const name  = String(getCell(row,"Category Name")||"").trim();
-      const media = String(getCell(row,"Category Image")||"").trim();
-      const link  = String(getCell(row,"Link")||"").trim() || "#";
-      if(!name||!media) return;
-      (grouped[current] ||= []).push({name,media,link});
-    });
+      rows.forEach((row) => {
+        const titleCell = String(getCell(row, "Title") || "").trim();
+        if (titleCell){
+          currentSection = titleCell;
+          sectionHidden = rowHasHideMarker(row);
+          return;
+        }
+        if (!currentSection) return;
+        if (sectionHidden) return;
+        if (rowHasHideMarker(row)) return;
 
-    const frag = document.createDocumentFragment();
-    Object.entries(grouped).forEach(([section,items])=>{
-      const wrap=document.createElement("div");
-      wrap.className="section-strip-wrap";
-      wrap.innerHTML=`<div class="section-strip-line"></div>
-                      <div class="section-strip"><span class="strip-text">${section}</span></div>
-                      <div class="section-strip-line"></div>`;
-      frag.appendChild(wrap);
+        const name = String(getCell(row, "Category Name") || "").trim();
+        const img  = String(getCell(row, "Category Image") || "").trim();
+        let link   = String(getCell(row, "Link") || "").trim();
+        if (!name || !img) return;
 
-      const grid=document.createElement("div");
-      grid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:18px;";
-      items.forEach((it,idx)=>{
-        const a=document.createElement("a");
-        a.href=it.link; a.style.textDecoration="none"; a.style.color="inherit";
-        const mediaHTML=renderMediaHTML(it.media,it.name);
-        a.innerHTML=`<div style="text-align:center;">${mediaHTML}
-                       <div style="margin-top:8px;font-family:'Roboto Slab',serif;font-size:15px;">${it.name}</div>
-                      </div>`;
-        grid.appendChild(a);
+        if (!grouped[currentSection]) grouped[currentSection] = [];
+        grouped[currentSection].push({ name, img, link: link || "#" });
       });
-      frag.appendChild(grid);
-    });
 
-    container.replaceChildren(frag);
-    lazyActivateIframes(container);
-    container.classList.remove("hidden-until-ready");
+      Object.entries(grouped).forEach(([section, items]) => {
+        if (!items || !items.length) return;
 
-    // background refresh every 3 min
-    setInterval(async()=>{
-      try{
-        const fresh=await (await fetch(url,{cache:"no-store"})).json();
-        if(JSON.stringify(fresh)!==JSON.stringify(rows)) location.reload();
-      }catch{}
-    },180000);
+        const wrap = document.createElement("div");
+        wrap.className = "section-strip-wrap";
+
+        const leftLine = document.createElement("div");
+        leftLine.className = "section-strip-line";
+
+        const strip = document.createElement("div");
+        strip.className = "section-strip";
+        strip.innerHTML = `<span class="strip-text">${section}</span>`;
+
+        const rightLine = document.createElement("div");
+        rightLine.className = "section-strip-line";
+
+        wrap.appendChild(leftLine);
+        wrap.appendChild(strip);
+        wrap.appendChild(rightLine);
+        container.appendChild(wrap);
+
+        const grid = document.createElement("div");
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "1fr 1fr";
+        grid.style.gap = "18px";
+
+        items.forEach(item => {
+          const box = document.createElement("a");
+          box.href = item.link || "#";
+          box.style.textDecoration = "none";
+          box.style.color = "inherit";
+          box.innerHTML = `
+            <div style="text-align:center;">
+              <img src="${item.img}" alt="${item.name}" style="width:100%; border-radius:20px; object-fit:cover;">
+              <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
+            </div>`;
+          grid.appendChild(box);
+        });
+
+        container.appendChild(grid);
+      });
+    }catch(err){
+      console.error("Category load error:", err);
+    }
   })();
 </script>
-
-
 <script>
   // Announcement Bar from Google Sheet
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
