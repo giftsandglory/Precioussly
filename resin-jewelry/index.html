@@ -39,18 +39,27 @@
     }catch(e){}
   }
 
-  function readCache(url){
-    try{
-      const raw = localStorage.getItem(cacheKey(url));
-      if (!raw) return null;
-      const obj = JSON.parse(raw);
-      if (!obj || !obj.body) return null;
-      const headers = new Headers();
-      headers.set("content-type", obj.mime || "application/json; charset=utf-8");
-      headers.set("x-gswr", "cache");
-      return new Response(obj.body, {status: 200, statusText:"OK (cache)", headers});
-    }catch(e){ return null; }
-  }
+  
+/* inside the same interceptor <script> */
+const MAX_AGE_MS = 2 * 60 * 1000; // 2 minutes
+
+function readCache(url){
+  try{
+    const raw = localStorage.getItem(cacheKey(url));
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.body) return null;
+    // ⛔ stale? then don't use cached
+    if (!obj.t || (Date.now() - obj.t) > MAX_AGE_MS) return null;
+
+    const headers = new Headers();
+    headers.set("content-type", obj.mime || "application/json; charset=utf-8");
+    headers.set("x-gswr", "cache");
+    return new Response(obj.body, { status: 200, statusText: "OK (cache)", headers });
+  }catch(e){ return null; }
+}
+
+
 
   function withTimeout(promise, ms){
     return new Promise((resolve, reject) => {
@@ -60,46 +69,54 @@
   }
 
   async function networkAndMaybeCache(url, init){
-    const res = await withTimeout(origFetch(url, init), TIMEOUT_MS);
-    // Clone BEFORE reading
-    const clone = res.clone();
-    const text = await clone.text();
-    if (!looksLikeHtmlError(res, text)) {
-      // Infer mime: opensheet JSON else gviz text/javascript
-      let mime = "application/json; charset=utf-8";
-      if (url.includes("docs.google.com")) mime = "text/plain; charset=utf-8";
-      storeCache(url, text, mime);
-    }
-    return new Response(text, {
-      status: res.status, statusText: res.statusText, headers: res.headers
-    });
+  // 👇 yahan no-store add kiya
+  const res = await withTimeout(
+    origFetch(url, { ...(init||{}), cache: "no-store" }),
+    TIMEOUT_MS
+  );
+
+  // Clone BEFORE reading
+  const clone = res.clone();
+  const text = await clone.text();
+  if (!looksLikeHtmlError(res, text)) {
+    // Infer mime: opensheet JSON else gviz text/javascript
+    let mime = "application/json; charset=utf-8";
+    if (url.includes("docs.google.com")) mime = "text/plain; charset=utf-8";
+    storeCache(url, text, mime);
+  }
+  return new Response(text, {
+    status: res.status,
+    statusText: res.statusText,
+    headers: res.headers
+  });
+}
+
+// Monkey patch
+window.fetch = function(input, init){
+  const url = toStr(input);
+  const method = (init && init.method) ? (init.method + "").toUpperCase() : "GET";
+  if (method !== "GET" || !isSheetsURL(url)) {
+    return origFetch(input, init);
   }
 
-  // Monkey patch
-  window.fetch = function(input, init){
-    const url = toStr(input);
-    const method = (init && init.method) ? (init.method + "").toUpperCase() : "GET";
-    if (method !== "GET" || !isSheetsURL(url)) {
-      return origFetch(input, init);
-    }
+  // Serve cached immediately if present
+  const cached = readCache(url);
+  if (cached) {
+    // Fire-and-forget revalidation
+    Promise.resolve().then(() => networkAndMaybeCache(url, init)).catch(()=>{});
+    return Promise.resolve(cached);
+  }
 
-    // Serve cached immediately if present
-    const cached = readCache(url);
-    if (cached) {
-      // Fire-and-forget revalidation
-      Promise.resolve().then(() => networkAndMaybeCache(url, init)).catch(()=>{});
-      return Promise.resolve(cached);
-    }
-
-    // No cache: go to network with timeout; cache if good
-    return networkAndMaybeCache(url, init).catch(err => {
-      // On timeout/error, if a (now) cache exists (race), use it; else propagate error
-      const late = readCache(url);
-      if (late) return late;
-      throw err;
-    });
-  };
+  // No cache: go to network with timeout; cache if good
+  return networkAndMaybeCache(url, init).catch(err => {
+    // On timeout/error, if a (now) cache exists (race), use it; else propagate error
+    const late = readCache(url);
+    if (late) return late;
+    throw err;
+  });
+};
 })();
+
 </script>
 
 <meta charset="utf-8"/>
