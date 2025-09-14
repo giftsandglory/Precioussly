@@ -1,6 +1,164 @@
 <!DOCTYPE html>
 <html>
 <head>
+<!-- SWR (stale-while-revalidate) fetch interceptor for Google Sheets sources -->
+<script>
+(function () {
+  try {
+    const originalFetch = window.fetch.bind(window);
+
+    const MATCH_HOSTS = [
+      "opensheet.elk.sh",
+      "docs.google.com"
+    ];
+
+    function isSheetsURL(u) {
+      try {
+        const url = new URL(u, location.href);
+        const hostOk = MATCH_HOSTS.some(h => url.hostname.includes(h));
+        const pathOk = url.hostname.includes("opensheet.elk.sh") 
+          ? true 
+          : url.pathname.includes("/spreadsheets");
+        return hostOk && pathOk && (url.protocol === "http:" || url.protocol === "https:");
+      } catch (e) { return false; }
+    }
+
+    function allowContentType(ct) {
+      if (!ct) return false;
+      ct = String(ct).toLowerCase();
+      if (ct.includes("text/html")) return false;         // avoid caching error pages
+      return ct.includes("application/json") || 
+             ct.includes("text/csv") || 
+             ct.includes("text/plain");
+    }
+
+    function cacheKey(u) {
+      return "swr:" + u;
+    }
+
+    function serializeHeaders(headers) {
+      const arr = [];
+      try {
+        headers.forEach((v, k) => arr.push([k, v]));
+      } catch (e) {}
+      return arr;
+    }
+
+    function reconstructResponse(rec) {
+      try {
+        return new Response(rec.body, {
+          status: rec.status || 200,
+          statusText: rec.statusText || "OK",
+          headers: new Headers(rec.headers || [["content-type","application/json"]])
+        });
+      } catch (e) {
+        // If reconstruction fails, fall back to a minimal response
+        return new Response(rec.body || "", { status: 200, headers: { "content-type": "text/plain" } });
+      }
+    }
+
+    function saveToCache(u, res, bodyText) {
+      try {
+        const ct = res.headers.get("content-type") || "";
+        const record = {
+          url: u,
+          status: res.status,
+          statusText: res.statusText,
+          headers: serializeHeaders(res.headers),
+          body: bodyText,
+          ts: Date.now()
+        };
+        localStorage.setItem(cacheKey(u), JSON.stringify(record));
+      } catch (e) {
+        // best effort; ignore quota or serialization errors
+      }
+    }
+
+    function getFromCache(u) {
+      try {
+        const raw = localStorage.getItem(cacheKey(u));
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) { return null; }
+    }
+
+    function withTimeout(promise, ms) {
+      return Promise.race([
+        promise,
+        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))
+      ]);
+    }
+
+    // Revalidate in background with a 7s timeout
+    async function revalidate(u, init) {
+      try {
+        const resp = await withTimeout(originalFetch(u, init), 7000);
+        if (!resp || !resp.ok || resp.type === "opaque") return;
+        const ct = resp.headers.get("content-type") || "";
+        if (!allowContentType(ct)) return;
+        const text = await resp.clone().text();
+        saveToCache(u, resp, text);
+      } catch (e) {
+        // silent fail; keep old cache
+      }
+    }
+
+    window.fetch = async function (input, init) {
+      // Pass-through: non-GET or non matching
+      let urlStr = "";
+      try {
+        if (input instanceof Request) {
+          if (input.method && input.method.toUpperCase() !== "GET") {
+            return originalFetch(input, init);
+          }
+          urlStr = input.url;
+        } else {
+          urlStr = String(input);
+          if (init && init.method && init.method.toUpperCase() !== "GET") {
+            return originalFetch(input, init);
+          }
+        }
+      } catch (e) {
+        return originalFetch(input, init);
+      }
+
+      if (!isSheetsURL(urlStr)) {
+        return originalFetch(input, init);
+      }
+
+      const key = cacheKey(urlStr);
+      const cached = getFromCache(urlStr);
+
+      if (cached) {
+        // Serve cached immediately
+        const cachedResp = reconstructResponse(cached);
+        // Kick off background revalidation
+        revalidate(urlStr, init);
+        return cachedResp;
+      }
+
+      // No cache: go to network
+      try {
+        const resp = await originalFetch(input, init);
+        const okToCache = resp && resp.ok && resp.type !== "opaque" && allowContentType(resp.headers.get("content-type") || "");
+        if (okToCache) {
+          const text = await resp.clone().text();
+          saveToCache(urlStr, resp, text);
+        }
+        return resp;
+      } catch (e) {
+        // Network failed; if we somehow have cache, serve it; else bubble error
+        const fallback = getFromCache(urlStr);
+        if (fallback) return reconstructResponse(fallback);
+        throw e;
+      }
+    };
+  } catch (e) {
+    // If anything goes wrong, do not block network
+  }
+})();
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet"/>
   <meta charset="UTF-8">
   <title>Your Cart - Precioussly</title>
