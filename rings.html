@@ -1,0 +1,2527 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+
+<!-- 🔒 Google Sheets SWR Fetch Interceptor (self-contained; no UI changes) -->
+<script>
+(function(){
+  // Only intercept GET requests to Google Sheets providers
+  const MATCH_HOSTS = ["opensheet.elk.sh", "docs.google.com"];
+  const SHEETS_PATH_HINT = "/spreadsheets"; // for docs.google.com
+  const TIMEOUT_MS = 7000;
+
+  const origFetch = window.fetch.bind(window);
+  const toStr = (u) => (typeof u === "string" ? u : (u && u.url) ? String(u.url) : String(u || ""));
+  const isSheetsURL = (url) => {
+    try {
+      const u = new URL(url, location.origin);
+      if (!MATCH_HOSTS.includes(u.host)) return false;
+      if (u.host === "docs.google.com" && !u.pathname.includes(SHEETS_PATH_HINT)) return false;
+      // GET only, no cache-busting here — let caller decide
+      return true;
+    } catch { return false; }
+  };
+
+  function looksLikeHtmlError(res, bodyText){
+    const ct = (res && res.headers && res.headers.get && res.headers.get("content-type")) || "";
+    const t = (bodyText || "").trim().slice(0, 120).toLowerCase();
+    return ct.includes("text/html") || t.startsWith("<!doctype html") || t.startsWith("<html");
+  }
+
+  function cacheKey(url){ return "gswr::" + url; }
+
+  function storeCache(url, bodyText, mime){
+    try{
+      localStorage.setItem(cacheKey(url), JSON.stringify({
+        v:1, t: Date.now(), mime: mime || "application/json", body: bodyText
+      }));
+    }catch(e){}
+  }
+
+  
+/* inside the same interceptor <script> */
+const MAX_AGE_MS = 2 * 60 * 1000; // 2 minutes
+
+function readCache(url){
+  try{
+    const raw = localStorage.getItem(cacheKey(url));
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.body) return null;
+    // ⛔ stale? then don't use cached
+    if (!obj.t || (Date.now() - obj.t) > MAX_AGE_MS) return null;
+
+    const headers = new Headers();
+    headers.set("content-type", obj.mime || "application/json; charset=utf-8");
+    headers.set("x-gswr", "cache");
+    return new Response(obj.body, { status: 200, statusText: "OK (cache)", headers });
+  }catch(e){ return null; }
+}
+
+
+
+  function withTimeout(promise, ms){
+    return new Promise((resolve, reject) => {
+      const id = setTimeout(() => reject(new Error("GSWR_TIMEOUT")), ms);
+      promise.then(v => { clearTimeout(id); resolve(v); }, err => { clearTimeout(id); reject(err); });
+    });
+  }
+
+  async function networkAndMaybeCache(url, init){
+  // 👇 yahan no-store add kiya
+  const res = await withTimeout(
+    origFetch(url, { ...(init||{}), cache: "no-store" }),
+    TIMEOUT_MS
+  );
+
+  // Clone BEFORE reading
+  const clone = res.clone();
+  const text = await clone.text();
+  if (!looksLikeHtmlError(res, text)) {
+    // Infer mime: opensheet JSON else gviz text/javascript
+    let mime = "application/json; charset=utf-8";
+    if (url.includes("docs.google.com")) mime = "text/plain; charset=utf-8";
+    storeCache(url, text, mime);
+  }
+  return new Response(text, {
+    status: res.status,
+    statusText: res.statusText,
+    headers: res.headers
+  });
+}
+
+// Monkey patch
+window.fetch = function(input, init){
+  const url = toStr(input);
+  const method = (init && init.method) ? (init.method + "").toUpperCase() : "GET";
+  if (method !== "GET" || !isSheetsURL(url)) {
+    return origFetch(input, init);
+  }
+
+  // Serve cached immediately if present
+  const cached = readCache(url);
+  if (cached) {
+    // Fire-and-forget revalidation
+    Promise.resolve().then(() => networkAndMaybeCache(url, init)).catch(()=>{});
+    return Promise.resolve(cached);
+  }
+
+  // No cache: go to network with timeout; cache if good
+  return networkAndMaybeCache(url, init).catch(err => {
+    // On timeout/error, if a (now) cache exists (race), use it; else propagate error
+    const late = readCache(url);
+    if (late) return late;
+    throw err;
+  });
+};
+})();
+
+</script>
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Precioussly</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
+<style>
+#toTopBtn {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+#toTopBtn svg {
+  width: 26px;
+  height: 26px;
+}
+
+.fab-stack {
+  position: fixed;
+  right: 10px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 6000;
+  pointer-events: none;
+}
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+/* ✅ WhatsApp button ka icon perfect center me, without misalignment */
+#waBtn {
+  width: 55px; /* icon ka size */
+  height: 55px;
+  border: none; /* circle ka border hata diya */
+  border-radius: 0; /* circle shape off */
+  background: none; /* background color hataya */
+  box-shadow: none; /* shadow bhi hataya */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Image ko full size pe dikhao */
+#waBtn img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+  .header-logo-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo-img {
+  width: 110px;
+  height: auto;
+  object-fit: contain;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+  .icon-size {
+  width: 10px;
+  height: 10px;
+}
+  .product-badge {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.coupon-strip {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  scroll-behavior: smooth;
+}
+.coupon-card {
+  background: #e9fef1;
+  border: 1px solid #c5ecd6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  width: 220px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.coupon-card h3 {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  color: #064c2c;
+}
+.coupon-card p {
+  font-size: 12px;
+  margin: 2px 0 6px;
+  color: #064c2c;
+}
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.code-box {
+  background: #d5f5e5;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #064c2c;
+  letter-spacing: 0.3px;
+}
+.copy-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.copy-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #064c2c;
+  stroke-width: 2;
+}
+.copy-btn:hover {
+  opacity: 0.6;
+}
+.strip-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 42px;
+  height: 42px;
+  background: rgba(0, 0, 0, 0.4); /* ✅ fixed background */
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 0;
+
+  /* ✅ Prevent tap glow & outlines */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-focus-ring-color: transparent;
+  outline: none;
+
+  /* ✅ Remove hover scale effect */
+  transition: none;
+}
+
+.strip-nav-btn:hover,
+.strip-nav-btn:active,
+.strip-nav-btn:focus {
+  background: rgba(0, 0, 0, 0.4); /* ❌ no change on hover/tap */
+  transform: translateY(-50%);   /* ❌ no zoom */
+}
+
+.strip-nav-left {
+  left: 8px;
+}
+
+.strip-nav-right {
+  right: 8px;
+}
+
+/* 👇 Arrow position adjust if needed */
+.strip-nav-btn span {
+  display: inline-block;
+  transform: translate(0, -2px); /* 🔼 Up 2px */
+}
+.image-strip-container {
+  display: flex;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.strip-media {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  object-fit: cover;
+  max-height: 320px;
+}
+
+.strip-media[controls] {
+  background: #000;
+}
+  .menu-divider {
+  width: 100vw;
+  height: 1px;
+  background-color: #e1dcd5;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+  .dropdown-icon {
+  font-size: 18px;
+  color: #000; /* black arrow */
+  font-family: 'Roboto Slab', serif;
+}
+  .header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 17px;
+  font-weight: 400;
+  color: #000;
+  font-family: 'Roboto Slab', serif;
+}
+  
+
+.side-menu.active {
+  left: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  z-index: 4000;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.menu-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.menu-link, .submenu-link {
+  display: block;
+  color: #5a3d2b;
+  text-decoration: none;
+  padding: 10px;
+  font-weight: 500;
+}
+
+.submenu-container {
+  margin-left: 15px;
+  padding-left: 10px;
+}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .site-header {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 16px; /* 🔁 increased from 12px */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  min-height: 72px;   /* ✅ added for height consistency */
+}
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hamburger-wrapper {
+  width: 24px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+
+  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue Android highlight */
+  touch-action: manipulation;               /* ✅ Prevent default touch delay */
+}
+
+    .hamburger-wrapper div {
+  width: 100%;
+  height: 3px;
+  background-color: #000; /* ✅ black */
+  border-radius: 2px;
+}
+
+    .logo-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .insta-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .insta-handle {
+  font-size: 17px;
+  color: #000; /* ✅ black */
+  font-weight: 500;
+}
+
+    .insta-handle a {
+      text-decoration: none;
+      color: #000;
+    }
+
+    .insta-handle a:hover {
+      text-decoration: underline;
+    }
+
+    .right-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  cursor: pointer;
+  border-radius: 50%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+    .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */ /* REMOVE THIS */
+  /* padding-top: 100px; */  /* REMOVE THIS */
+  z-index: 3000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+    .popup-box {
+  background-color: #ffffff;         /* white like header */
+  border: 2px solid #000;         /* premium brown */
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.4s ease;
+  pointer-events: none;
+  width: 90vw;
+  max-width: 320px;
+  position: absolute;
+  top: 120px;
+}
+
+    .popup-logo-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .popup-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .popup-insta {
+      font-size: 16px;
+      font-weight: 500;
+      color: #5a3d2b;
+    }
+
+    .popup-insta a {
+      color: #5a3d2b;
+      text-decoration: none;
+    }
+
+    .popup-insta a:hover {
+      text-decoration: underline;
+    }
+
+    .popup-text {
+      color: #5a3d2b;
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 90%;
+      word-wrap: break-word;
+    }
+
+    .close-btn {
+  position: absolute;
+  top: 8px;                 /* 🟢 adjust vertically inside */
+  right: 8px;               /* 🟢 adjust horizontally inside */
+  width: 22px;              /* 🟢 smaller size */
+  height: 22px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;          /* 🟢 smaller font */
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.close-btn:hover {
+  transform: scale(1.1);     /* hover zoom effect */
+}
+
+    #announcementBar {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #ffffff;
+  background: #000000;
+  border-top: none;
+  border-bottom: none;
+  font-weight: 500;
+  text-align: center;
+  font-family: 'Roboto Slab', serif; /* ✅ Use Roboto Slab */
+  min-height: 24px;
+  line-height: 22px;
+  user-select: none;
+}
+
+    @media (max-width: 480px) {
+      .logo-img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .insta-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      .insta-handle {
+        font-size: 15px;
+      }
+
+      
+
+      .hamburger-wrapper {
+        width: 22px;
+        height: 18px;
+      }
+
+      .hamburger-wrapper div {
+        height: 2.5px;
+      }
+    }
+  .overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.popup-box.active {
+  opacity: 1;
+  transform: translateY(-10px); /* Final position slightly above */
+  pointer-events: auto;
+}
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+  .menu-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+  user-select: none;  /* 👈 Yeh line add karo */
+}
+.menu-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.menu-text {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
+  color: #000;
+  font-weight: 400;
+}
+}
+}
+
+.menu-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000; /* 🔁 black */
+  font-family: 'Roboto Slab', serif;
+}
+
+.menu-close {
+  font-size: 24px;
+  font-weight: bold;
+  color: #000; /* ✅ black color */
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.menu-close:hover {
+  transform: scale(1.2);
+}
+
+/* Updated side-menu for premium look */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translateX(-100%);
+  width: 80%;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+  padding: 20px 16px;
+  overflow-y: auto;
+  z-index: 5000;
+  font-family: 'Roboto Slab', serif;
+
+  /* ✅ Ultra smooth animation */
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.side-menu.active {
+  transform: translateX(0%);
+}
+
+.menu-link {
+  font-size: 17px;
+  color: #000;
+  text-decoration: none;
+  padding: 14px 18px 14px 24px;
+  font-weight: 500;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: none !important; /* ✅ Remove the line */
+}
+
+.submenu-link {
+  font-size: 15px;
+  color: #444;
+  padding: 10px 20px 10px 36px;
+  text-decoration: none;
+  font-weight: 400;
+  font-family: 'Roboto Slab', serif;
+  border-bottom: 1px solid #eaeaea; /* ✅ Light line for submenu */
+}
+down-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px 14px 24px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  border-bottom: 1px solid #e1dcd5;
+  cursor: pointer;
+}
+
+.down-icon {
+  font-size: 18px;
+  color: #000; /* 🔁 black */
+}
+.menu-text, .header-title {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -ms-user-select: none !important;
+}
+  body.no-scroll {
+    overflow: hidden;
+    height: 100vh;
+    touch-action: none;
+  }
+  .fade-slider {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+}
+
+.fade-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.fade-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 1;
+}
+.fade-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  z-index: 5;
+}
+
+.fade-dot {
+  width: 14px;
+  height: 6px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.15); /* soft black */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.fade-dot.active {
+  background-color: rgba(0, 0, 0, 0.35); /* slightly darker */
+}
+  
+#categorySection {
+  padding: 0 14px 40px 14px;   /* ✅ upar ka 10px hata diya */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#categorySection h3 { display:none; } /* legacy */
+
+.section-strip-wrap{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 14px 0;
+  width: 100%;
+}
+
+.section-strip-line{
+  flex: 1;
+  height: 1px;
+  background: #ff99bb;
+  margin: 0 10px;
+  opacity: 0.5;
+}
+
+.section-strip{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 18px;
+  background: #ffe6f0;
+  border: 1.5px solid #ff99bb;
+  border-radius: 999px;
+}
+
+.section-strip .strip-text{
+  font-family: 'Roboto Slab', serif;
+  font-weight: 400; /* lighter */
+  font-size: 21px;
+  color: #111;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#categorySection img {
+  border-radius: 16px;
+  object-fit: cover;
+}
+#categorySection a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Unified media styling for images & videos in category cards */
+.category-media{
+  width:100%;
+  border-radius:20px;
+  object-fit:cover;
+  display:block;
+  background:#000; /* videos blend nicely while loading */
+}
+
+    
+/* ==== Smart header ==== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 3500;
+  transition: transform .35s ease;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.site-header.header-hidden { transform: translateY(-100%); }
+
+/* === MENU – ULTRA SMOOTH OPEN/CLOSE === */
+.menu-overlay{
+  opacity:0;
+  transition: opacity .35s cubic-bezier(.22,1,.36,1) !important;
+}
+.menu-overlay.active{opacity:1; display:block;}
+
+.side-menu {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.8s cubic-bezier(.25, 1, .3, 1) !important;
+}
+.side-menu.active{ transform: translateX(0); }
+
+/* Keep items still (no hover color), crisp separators */
+.menu-link, .submenu-link, .dropdown-toggle{ transition: none !important; }
+
+/* ===== Unified button list (same size, nice borders) ===== */
+#sideMenu #menuContent{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding: 6px 8px 14px;
+}
+#sideMenu .menu-link{
+  display:block;
+  text-align:center;
+  padding:10px 14px;
+  border:1px solid #e9e9e9;
+  border-radius:12px;
+  background:#ffffff;
+  color:#111 !important;
+  font-family:'Roboto Slab', serif;
+  font-size:17px;
+  font-weight:500;
+  text-decoration:none;
+  min-height:auto;
+  box-shadow:0 1px 0 rgba(0,0,0,.02);
+}
+#sideMenu .menu-link--primary{
+  background:#e9fef1;
+  border:1.5px solid #c5ecd6;
+  color:#064c2c !important;
+  font-weight:600;
+}
+/* Remove old bottom borders in menu list */
+#sideMenu .menu-link,
+#sideMenu .submenu-link{ border-bottom:none !important; }
+
+/* No color/size change on tap */
+#sideMenu .menu-link:active,
+#sideMenu .menu-link--primary:active{
+  background: inherit !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+/* Submenu base (if you use dropdowns) */
+.menu-link,
+.dropdown-toggle {
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:14px 16px; min-height:48px; font-size:17px; color:#000;
+  text-decoration:none; font-family:'Roboto Slab', serif;
+  border-bottom:1px solid #f1f1f1; background:transparent;
+}
+.submenu-container, .submenu { display:none; background:#fafafa; padding-left:8px; }
+.submenu-container.open, .submenu.open { display:block; }
+.submenu-link {
+  display:block; padding:12px 16px 12px 24px; font-size:15px; color:#333;
+  text-decoration:none; font-family:'Roboto Slab', serif;
+  border-bottom:1px solid #f1f1f1;
+}
+
+
+
+/* === Make try.html menu exactly like index.html === */
+
+/* Square close button with border (like index.html) */
+.menu-close{
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid #000;
+  border-radius: 10px;
+  font-size: 18px; font-weight: 700; color: #000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: none !important;
+}
+.menu-close:hover{ transform: none !important; }
+
+/* Same inside padding for the list */
+#sideMenu #menuContent{ padding: 8px 16px 18px !important; }
+
+/* Stronger border + soft shadow */
+#sideMenu .menu-link{
+  border: 1px solid #dcdcdc !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03) !important;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+/* Track Order style */
+#sideMenu .menu-link--primary{
+  background:#e9fef1 !important;
+  border:1.5px solid #c5ecd6 !important;
+  color:#064c2c !important;
+}
+
+/* Disable hover/tap changes */
+#sideMenu .menu-link:hover,
+#sideMenu .menu-link--primary:hover{
+  background: inherit !important;
+  color: inherit !important;
+}
+#sideMenu .menu-link:active,
+#sideMenu .menu-link--primary:active{
+  background: inherit !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+/* Font weight match */
+.menu-link,
+.menu-link--primary{ font-weight: 500 !important; }
+#cartCountBadge {
+  font-family: 'Roboto Slab', serif !important;
+  font-weight: 200; /* bold look */
+  font-size: 14px;  /* adjust number size */
+}
+/* ============ Search bar with Back pill ============ */
+#searchOverlay .search-box{
+  position: relative;
+  display: block;
+}
+
+#searchOverlay .search-box input{
+  width: 100%;
+  padding: 12px 86px 12px 14px;        /* right padding for Back button */
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;    /* consistent font */
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+#searchOverlay .search-box input:focus{
+  border-color: #bfbfbf;
+}
+
+/* Back button inside the input (pill) */
+#searchOverlay .back-btn{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 32px;
+  padding: 0 12px;
+  font: 500 14px 'Roboto Slab', serif;  /* normal, bold nahi */
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);    /* halka border */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+#searchOverlay .back-btn{ z-index:2; }
+#searchOverlay .search-box input{ position:relative; z-index:1; }
+
+#searchOverlay .back-btn:active{
+  transform: translateY(-50%) scale(0.98);
+}
+
+/* Safety: purani close-btn style ko neutralize */
+#searchOverlay .close-btn { display: none !important; }
+/* ============ Search bar with Back pill ============ */
+#searchOverlay .search-box{
+  position: relative;
+  display: block;
+}
+
+#searchOverlay .search-box input{
+  width: 100%;
+  padding: 12px 86px 12px 14px;        /* right padding for Back button */
+  font-size: 16px;
+  font-family: 'Roboto Slab', serif;    /* consistent font */
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+#searchOverlay .search-box input:focus{
+  border-color: #bfbfbf;
+}
+
+/* Back button inside the input (pill) */
+#searchOverlay .back-btn{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 32px;
+  padding: 0 12px;
+  font: 500 14px 'Roboto Slab', serif;  /* normal, bold nahi */
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);    /* halka border */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+#searchOverlay .back-btn{ z-index:2; }
+#searchOverlay .search-box input{ position:relative; z-index:1; }
+
+#searchOverlay .back-btn:active{
+  transform: translateY(-50%) scale(0.98);
+}
+
+/* Safety: purani close-btn style ko neutralize */
+#searchOverlay .close-btn { display: none !important; }
+
+/* === Header search mode (inline) === */
+.header-search {
+  display: none;               /* default hidden */
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.header-search input {
+  flex: 1;
+  padding: 12px 14px;
+  font: 400 16px 'Roboto Slab', serif;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+}
+
+.header-search input:focus { border-color: #bfbfbf; }
+
+#headerSearchBack {
+  height: 36px;
+  padding: 0 14px;
+  font: 500 14px 'Roboto Slab', serif;
+  color: #222;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.18);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* When searching: hide logo/menu/icons, show input+back pill */
+.site-header.searching .hamburger-wrapper,
+.site-header.searching #logoWrap,
+.site-header.searching #rightIcons { display: none !important; }
+
+.site-header.searching #headerSearchBar {
+  display: flex !important;
+}
+
+/* Keep header from jumping */
+.site-header { position: sticky; top: 0; z-index: 3500; }
+</style>
+<style>
+  /* === Admin button (bottom-left) === */
+  #adminBtn {
+    position: fixed; left: 12px; bottom: 14px;
+    width: 58px; height: 58px; border-radius: 50%;
+    background:#000; color:#fff; border:none; outline:none;
+    display:none; align-items:center; justify-content:center;
+    box-shadow: 0 8px 18px rgba(0,0,0,.22);
+    z-index: 7000; cursor:pointer; -webkit-tap-highlight-color: transparent;
+  }
+  #adminBtn svg { width: 28px; height: 28px; stroke:#fff; fill:none; stroke-width:2.2; }
+
+  /* === Admin overlay + panel === */
+  #adminOverlay{
+    position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    display:none; z-index: 7000;
+  }
+  #adminPanel{
+    position: fixed; left: 50%; top: 52%;
+    transform: translate(-50%, -50%);
+    width: min(960px, 94vw); max-height: 86vh; overflow: hidden;
+    background:#fff; border: 2px solid #000; border-radius: 20px;
+    display:none; z-index: 7001; font-family: 'Roboto Slab', serif;
+  }
+  .ap-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 12px 14px; border-bottom:1px solid #ececec;
+  }
+  .ap-title{ font-size:18px; font-weight:700; }
+  .ap-close{
+    width:34px; height:34px; border:1px solid #000; border-radius:10px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:800;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ap-tabs{ display:flex; gap:8px; padding:10px 12px; border-bottom:1px solid #f0f0f0; flex-wrap:wrap; }
+  .ap-tab{
+    padding:8px 12px; border:1px solid #ddd; border-radius:10px; cursor:pointer; user-select:none;
+    font-weight:600; background:#fff;
+  }
+  .ap-tab.active{ border-color:#000; }
+  .ap-body{ padding:12px; overflow:auto; max-height: calc(86vh - 126px); }
+
+  /* Editor tables */
+  .ap-table{ width:100%; border-collapse:separate; border-spacing:0 10px; }
+  .ap-table th{ text-align:left; font-size:13px; color:#333; padding:0 8px; }
+  .ap-row{
+    display:grid; grid-template-columns: 78px 1fr 1fr 1fr auto; gap:8px; align-items:center;
+    padding:8px; border:1px solid #eee; border-radius:12px; margin-bottom:8px;
+  }
+  .ap-row img{ width:72px; height:72px; border-radius:10px; object-fit:cover; border:1px solid #e6e6e6; }
+  .ap-row input{ width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:10px; font-size:14px; }
+  .ap-row .ap-del{ border:1px solid #e33; color:#e33; background:#fff; border-radius:10px; padding:10px 12px; cursor:pointer; }
+
+  .ap-actions{ display:flex; gap:8px; padding:12px; border-top:1px solid #f0f0f0; }
+  .ap-btn{
+    padding:10px 14px; border-radius:10px; border:1px solid #000; background:#fff; cursor:pointer; font-weight:700;
+  }
+  .ap-btn.primary{ background:#e9fef1; border-color:#c5ecd6; color:#064c2c; }
+  .ap-add{ margin:10px 0; }
+  .ap-note{ font-size:12px; color:#666; margin-top:6px; }
+</style>
+<style>
+#searchResults{
+  max-height: 62vh;
+  overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+#searchResults::-webkit-scrollbar{ display:none; }
+
+#searchOverlay .close-btn { display: none !important; }
+
+
+
+#searchOverlay .search-header{
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+/* Header search suggestions */
+#headerSearchResults{
+  position: absolute;
+  left: 0; right: 0;
+  margin-top: 8px;
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  max-height: 62vh;
+  overflow: auto;
+  padding: 6px;
+  z-index: 4000;
+}
+.header-suggest{
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 10px;
+}
+.header-suggest:hover{ background:#f9f9f9; }
+.header-suggest img{
+  width:56px; height:56px; border-radius:10px; object-fit:cover;
+}
+.header-suggest .name{ font-size:14px; font-weight:600; }
+.header-suggest .price{ font-size:13px; color:#111; }
+.header-suggest .tag{
+  font-size:11px; padding:3px 6px; border:1px solid #ddd; border-radius:8px; color:#333;
+}
+/* Make the search bar a positioning anchor */
+#headerSearchBar { position: relative; }
+
+/* Show suggestions BELOW the search bar */
+#headerSearchResults{
+  position: absolute;
+  top: calc(100% + 10px);   /* exactly below the bar with 10px gap */
+  left: 0;
+  right: 0;
+  max-height: 62vh;         /* already there is fine */
+  overflow: auto;           /* already there is fine */
+  z-index: 4000;            /* keep it above page content */
+}
+
+</style>
+<style>/* Hide right-side tag (Sheet1) in suggestions */.header-suggest .tag{display:none!important;}</style>
+<style>
+/* 🔵 Remove blue tap/click highlight and focus outlines */
+* { -webkit-tap-highlight-color: transparent; }
+a, button, [role="button"], input, textarea, select { outline: none !important; }
+:focus, :focus-visible { outline: none !important; box-shadow: none !important; }
+</style>
+<style id="instagram-banner-css">
+/* === Instagram follow banner (placed right below certified-strip) === */
+.ig-banner-wrap{ padding: 0 12px 18px; background:#fff; }
+.ig-banner{
+  background:#f6efe8;
+  border:1px solid #f1e7df;
+  border-radius:18px;
+  padding:22px 18px;
+  max-width:960px;
+  margin:12px auto 0;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.05);
+}
+.ig-banner p{
+  margin:0 0 14px;
+  font-size:18px;
+  line-height:1.55;
+  font-weight:600;
+  letter-spacing:.2px;
+  color:#1b1b1b;
+  font-family:'Roboto Slab', serif;
+}
+.ig-banner .ig-link{
+  display:inline-block;
+  line-height:0;
+  border-radius:14px;
+  padding:6px;
+  transition:transform .15s ease;
+}
+.ig-banner .ig-link:active{ transform:scale(.96); }
+.ig-banner .ig-icon{ width:36px; height:36px; }
+</style>
+<style id="pink-profile-popup-css">
+
+/* === Pink Profile Popup (ChatGPT Resin) === */
+.pp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:7000;}
+.pp-overlay.show{display:block;}
+.pp-card{
+  position: fixed; left:50%; top:18%;
+  transform: translateX(-50%);
+  width: min(92vw, 420px);
+  background:#fff;
+  border:2px solid #ff6ea8;
+  border-radius: 22px;
+  box-shadow:0 18px 40px rgba(0,0,0,.18);
+  padding: 18px 16px 16px;
+  font-family: 'Roboto Slab', serif;
+}
+.pp-hero{display:flex;justify-content:center;align-items:center;margin-top:6px;margin-bottom:6px;}
+.pp-hero .pp-badge{
+  width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(135deg,#ffe1ef,#ffd4ea 50%, #ffc1e1);
+  border:1.5px solid #ff8fbe;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 6px 16px rgba(255,110,168,.25);
+  font-size:30px; line-height:1;
+}
+.pp-title{font-size:20px; font-weight:800; color:#111; text-align:center; margin:8px 0 6px;}
+.pp-sub{font-size:15px; color:#3a3a3a; text-align:center; line-height:1.6; padding:0 8px;}
+.pp-cta{
+  display:block; width:100%; text-align:center; text-decoration:none;
+  margin:14px 0 2px; padding:12px 14px; border-radius:14px;
+  background:#ff6ea8; color:#fff; font-weight:800; border:1px solid #ff4d98;
+  box-shadow:0 8px 18px rgba(255,110,168,.28);
+}
+.pp-cta:active{transform:scale(.985);}
+.pp-back{
+  position:absolute; right:10px; top:10px;
+  height:34px; padding:0 12px; border-radius:10px; cursor:pointer;
+  font:600 14px/1 'Roboto Slab', serif; color:#ff2f90;
+  background:#fff; border:1px solid rgba(255,47,144,.5);
+  box-shadow: 0 3px 10px rgba(255,47,144,.15);
+}
+.pp-back:active{transform:scale(.98);}
+@media (max-width:420px){
+  .pp-card{top:14%;}
+}
+
+</style>
+</head>
+<body>
+<!-- 👇 SIDE MENU STRUCTURE NEEDED FOR OVERLAY -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<nav class="side-menu" id="sideMenu">
+<div class="menu-header">
+<span class="menu-title">Menu</span>
+<span class="menu-close" onclick="toggleMenu()">✕</span>
+</div>
+<div id="menuContent">
+  <a href="https://precioussly.com/track-order" class="menu-link menu-link--primary">Track Order</a>
+  <a href="https://precioussly.com/" class="menu-link">Home</a>
+</div>
+</nav>
+<script>
+  document.addEventListener('click', function (e) {
+    const menu = document.getElementById('sideMenu');
+    if (!menu || !menu.contains(e.target)) return;
+    const toggle = e.target.closest('.dropdown-toggle');
+    if (toggle) {
+      const next = toggle.nextElementSibling;
+      if (next && (next.classList.contains('submenu-container') || next.classList.contains('submenu'))) {
+        const isOpen = next.classList.contains('open') || next.style.display === 'block';
+        next.classList.toggle('open', !isOpen);
+        next.style.display = isOpen ? 'none' : 'block';
+      }
+      e.preventDefault();
+      return;
+    }
+    const a = e.target.closest('a');
+    if (a && a.href) { if (typeof toggleMenu === 'function') toggleMenu(); }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      const menu = document.getElementById('sideMenu');
+      if (menu && menu.classList.contains('active') && typeof toggleMenu === 'function') toggleMenu();
+    }
+  });
+</script>
+
+<header class="site-header">
+  <!-- Hamburger -->
+  <div class="hamburger-wrapper" onclick="toggleMenu()">
+    <div></div><div></div><div></div>
+  </div>
+
+  <!-- Logo -->
+  <div id="logoWrap" style="display:flex; align-items:center; position:absolute; left:70px; top:6px;">
+    <img
+      alt="Precioussly Logo"
+      src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png"
+      onclick="location.href='https://precioussly.com';"
+      style="width:110px; height:auto; object-fit:contain; cursor:pointer; transition:opacity .3s ease; -webkit-tap-highlight-color:transparent;"
+    />
+  </div>
+
+  <!-- Right icons -->
+  <div id="rightIcons" style="display:flex; align-items:center; gap:12px;">
+    <!-- Search icon -->
+    <img
+      src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
+      alt="Search"
+      class="right-icon"
+      style="cursor:pointer; border-radius:0; width:25px; height:26px; margin-top:2px;"
+      onclick="openHeaderSearch()"
+    />
+    <!-- Profile icon -->
+    <img
+      src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
+      alt="Profile"
+      id="profileIcon"
+      class="right-icon icon-size"
+      style="cursor:pointer;"
+      onclick="handleProfileClick()"
+    />
+    <!-- Cart with badge -->
+    <a href="https://www.precioussly.com/cart" style="position:relative; display:inline-block; margin-top:5px;">
+      <img
+        src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
+        alt="Cart"
+        class="right-icon icon-size"
+      />
+      <span id="cartCountBadge"
+            style="position:absolute; top:-6px; right:-6px; background:#fff; color:#000; font-size:12px; border:1px solid #888; border-radius:50%; width:21px; height:21px; display:flex; align-items:center; justify-content:center;">
+        0
+      </span>
+    </a>
+  </div>
+
+  <!-- Inline header search (same as index.html) -->
+  <div id="headerSearchBar" class="header-search">
+    <input id="headerSearchInput" type="text" placeholder="Search products..." autocomplete="off" />
+    <button id="headerSearchBack" class="back-btn" type="button" onclick="closeHeaderSearch()">Back</button>
+    <div id="headerSearchResults" style="display:none;"></div>
+  </div>
+</header>
+
+<div id="announcementBar">🧿</div>
+<!-- Category Section (still working) -->
+<div id="categorySection"></div>
+<section class="ig-banner-wrap" id="igFollowBanner" style="display:none;">
+<div aria-label="Instagram updates banner" class="ig-banner">
+<p>Stay connected with us for updates,<br/>offers &amp; behind-the-scenes ✨</p>
+<a aria-label="Open our Instagram profile" class="ig-link" href="https://www.instagram.com/precioussly_" rel="noopener noreferrer" target="_blank">
+<img alt="Instagram" class="ig-icon" src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"/>
+</a>
+</div>
+</section>
+<!-- 🔽 CATEGORY SCRIPT FROM SHEET (updated: section hide support) -->
+<!-- 🔽 CATEGORY SCRIPT FROM SHEET — now with simple config -->
+<script>
+  // ======================= EASY CONFIG (edit just these two) =======================
+  // 🔹 ❤️❤️❤️❤️Paste your Google Sheet link (the full URL) and tab name here:❤️❤️❤️❤️
+  const FULL_SHEET_URL = "https://docs.google.com/spreadsheets/d/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/edit?usp=drivesdk";   // ← e.g. https://docs.google.com/spreadsheets/d/1AbCdEfGh.../edit#gid=0 ----sheet here----
+  const SHEET_TAB_NAME = "rings"; 
+    // ← e.g. Sheet1 (tab name) ----sheet ----tab here----
+
+  // ================= DO NOT EDIT BELOW THIS LINE (auto-generated) ==================
+  // ⚡ Extract the Sheet ID from the full URL or accept a bare ID
+  function getSheetId(input){
+    if(!input) return "";
+    const s = String(input).trim();
+    const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    if(m) return m[1];
+    // if user pasted only the ID
+    if (/^[a-zA-Z0-9-_]{20,}$/.test(s)) return s;
+    return "";
+  }
+
+  // ⚡ Build both GVIZ and OpenSheet JSON endpoints from the same config
+  const SHEET_ID   = getSheetId(FULL_SHEET_URL);
+  const GVIZ_URL   = SHEET_ID ? `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_TAB_NAME)}` : "";
+  const JSON_URL   = SHEET_ID ? `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(SHEET_TAB_NAME)}` : "";
+
+  // For debugging in console
+  console.log("✅ Final working Sheet GVIZ URL:", GVIZ_URL);
+  console.log("✅ Final working Sheet JSON URL:", JSON_URL);
+
+  // ================================================================================
+  // Helper utils (case-insensitive column access + visibility flag)
+  function normKey(k){ return String(k||"").replace(/\s+/g,"").toLowerCase(); }
+  function getCell(row, key){
+    const want = normKey(key);
+    for (const k in row){
+      if (!Object.prototype.hasOwnProperty.call(row, k)) continue;
+      if (normKey(k) === want) return row[k];
+    }
+    return "";
+  }
+  function rowHasHideMarker(row){
+    const v = String(getCell(row, "visibility") || "").trim().toLowerCase();
+    const l = String(getCell(row, "link") || "").trim().toLowerCase();
+    return ["hide","hidden","yes","1","true"].includes(v) || ["hide","hidden"].includes(l);
+  }
+
+  // ================================================================================
+  // Render "Resin" style category grid (title pill + 2-column cards)
+  (async function(){
+    // If config is not set, fall back to previous sheet (keeps page working)
+    const url = JSON_URL || "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
+
+    try{
+      const res = await fetch(url);
+      const rows = await res.json();
+
+      const container = document.getElementById("categorySection");
+      const grouped = {};
+      let currentSection = "";
+      let sectionHidden = false;
+
+      rows.forEach((row) => {
+        const titleCell = String(getCell(row, "Title") || "").trim();
+        if (titleCell){
+          currentSection = titleCell;
+          sectionHidden = rowHasHideMarker(row);
+          return;
+        }
+        if (!currentSection) return;
+        if (sectionHidden) return;
+        if (rowHasHideMarker(row)) return;
+
+        const name = String(getCell(row, "Category Name") || "").trim();
+        const img  = String(getCell(row, "Category Image") || "").trim();
+        let link   = String(getCell(row, "Link") || "").trim();
+        if (!name || !img) return;
+
+        if (!grouped[currentSection]) grouped[currentSection] = [];
+        grouped[currentSection].push({ name, img, link: link || "#" });
+      });
+
+      Object.entries(grouped).forEach(([section, items]) => {
+        if (!items || !items.length) return;
+
+        const wrap = document.createElement("div");
+        wrap.className = "section-strip-wrap";
+
+        const leftLine = document.createElement("div");
+        leftLine.className = "section-strip-line";
+
+        const strip = document.createElement("div");
+        strip.className = "section-strip";
+        strip.innerHTML = `<span class="strip-text">${section}</span>`;
+
+        const rightLine = document.createElement("div");
+        rightLine.className = "section-strip-line";
+
+        wrap.appendChild(leftLine);
+        wrap.appendChild(strip);
+        wrap.appendChild(rightLine);
+        container.appendChild(wrap);
+
+        const grid = document.createElement("div");
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "1fr 1fr";
+        grid.style.gap = "18px";
+
+        items.forEach(item => {
+          const box = document.createElement("a");
+          box.href = item.link || "#";
+          box.style.textDecoration = "none";
+          box.style.color = "inherit";
+          
+          const isVideo = /\.(mp4|webm|mov)(\?|$)/i.test(item.img);
+          const mediaTag = isVideo
+            ? `<video class="category-media" src="${item.img}" autoplay muted loop playsinline preload="metadata" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture></video>`
+            : `<img class="category-media" src="${item.img}" alt="${item.name}">`;
+          box.innerHTML = `
+            <div style="text-align:center;">
+              ${mediaTag}
+              <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
+            </div>`;
+          grid.appendChild(box);
+        });
+
+        container.appendChild(grid);
+      });
+    }catch(err){
+      console.error("Category load error:", err);
+    }
+  })();
+</script>
+<script>
+  // Announcement Bar from Google Sheet
+  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+
+  fetch(announceURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0 && data[0]["(announcement_text)"]) {
+        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+      }
+    });
+
+  // Popup function
+  function togglePopup() {
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = overlay.querySelector(".popup-box");
+    const isOpen = overlay.classList.contains("active");
+    overlay.classList.toggle("active", !isOpen);
+    popupBox.classList.toggle("active", !isOpen);
+  }
+
+  // Hamburger toggle function
+function toggleMenu() {
+  const menu = document.getElementById("sideMenu");
+  const overlay = document.getElementById("menuOverlay");
+  const body = document.body;
+
+  const isOpen = menu.classList.contains("active");
+
+  if (isOpen) {
+    menu.classList.remove("active");
+    overlay.classList.remove("active");
+    body.classList.remove("no-scroll");
+  } else {
+    menu.classList.add("active");
+    overlay.classList.add("active");
+    body.classList.add("no-scroll");
+  }
+}
+  // 🔽 POPUP DATA FROM SHEET
+  const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+  const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
+
+  fetch(sheetURL)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const row = data[0];
+        const logo = document.querySelector(".popup-logo");
+        if (row.popup_logo) logo.src = row.popup_logo;
+
+        const popupText = document.querySelector(".popup-text");
+        if (row.popup_text) popupText.innerHTML = row.popup_text;
+
+        const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
+        instaLinks.forEach(link => {
+          if (row.popup_insta_link) link.href = row.popup_insta_link;
+          if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
+        });
+      }
+    });
+
+// 🔽 MENU DATA FROM SHEET (complete block)
+(function(){
+  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+  const desiredOrder = ["Resin","Fashion Jewellery","Crochet","Gift Hampers"];
+  const skipSet = new Set(["home","track order"]);
+  const menuContent = document.getElementById("menuContent");
+  if (!menuContent) return;
+
+  function toggleSubmenu(id){
+    const el = document.getElementById(id);
+    if (!el) return;
+    const open = el.style.display === "block" || el.classList.contains("open");
+    el.style.display = open ? "none" : "block";
+    el.classList.toggle("open", !open);
+  }
+  window.toggleSubmenu = toggleSubmenu;
+
+  function renderItem(title, info){
+    if ((info.subs && info.subs.length)) {
+      const menuId = title.replace(/\s+/g, '-') + '-submenu';
+      menuContent.insertAdjacentHTML('beforeend', `
+        <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+          <span>${title}</span>
+          <span class="dropdown-icon">›</span>
+        </div>
+        <div class="submenu-container" id="${menuId}" style="display:none;">
+          ${info.subs.map(s => `<a href="${s.link||'#'}" class="submenu-link">› ${s.name}</a>`).join("")}
+        </div>
+      `);
+    } else {
+      menuContent.insertAdjacentHTML('beforeend',
+        `<a href="${info.link||'#'}" class="menu-link">${title}</a>`
+      );
+    }
+  }
+
+  fetch(menuURL)
+    .then(res => res.json())
+    .then(data => {
+      const grouped = {};
+      data.forEach(row => {
+        const menu = (row.Menu||'').trim();
+        const sub  = (row.Submenu||'').trim();
+        const link = (row.Link||'').trim();
+        if (!menu) return;
+        if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+        if (sub) {
+          grouped[menu].subs.push({ name: sub, link: link || '#' });
+        } else {
+          grouped[menu].link = link || '#';
+        }
+      });
+
+      const used = new Set(["home","track order"]);
+      desiredOrder.forEach(want => {
+        const key = Object.keys(grouped).find(k => k.toLowerCase() === want.toLowerCase());
+        if (key) { renderItem(key, grouped[key]); used.add(key.toLowerCase()); delete grouped[key]; }
+      });
+      Object.entries(grouped).forEach(([menu, info]) => {
+        if (skipSet.has(menu.toLowerCase())) return;
+        renderItem(menu, info);
+      });
+    });
+})();
+
+// 🟢 Wide Media (Image/Video) Strip from Google Sheet
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    const strip = document.getElementById("imageStrip");
+    data.forEach(row => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.trim().endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url.trim();
+        el.controls = true;
+        el.muted = true;
+        el.loop = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url.trim();
+      }
+
+      el.className = "strip-media";
+      strip.appendChild(el);
+      setTimeout(() => {
+  const itemWidth = strip.children[0]?.offsetWidth || 0;
+  if (itemWidth) strip.scrollLeft = itemWidth;
+}, 300);
+    });
+  });
+let currentIndex = 0;
+let slides = [];
+let dots = [];
+const slider = document.getElementById("fadeSlider");
+const dotsContainer = document.getElementById("fadeDots");
+
+fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+  .then(res => res.json())
+  .then(data => {
+    data.forEach((row, index) => {
+      const url = row["(media_url)"];
+      if (!url) return;
+
+      let el;
+      if (url.endsWith(".mp4")) {
+        el = document.createElement("video");
+        el.src = url;
+        el.loop = true;
+        el.muted = true;
+        el.autoplay = true;
+        el.playsInline = true;
+      } else {
+        el = document.createElement("img");
+        el.src = url;
+      }
+
+      el.className = "fade-slide";
+      if (index === 0) el.classList.add("active");
+
+      slider.appendChild(el);
+      slides.push(el);
+
+      // dots
+      const dot = document.createElement("div");
+      dot.className = "fade-dot";
+      if (index === 0) dot.classList.add("active");
+      dot.addEventListener("click", () => showSlide(index));
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
+    });
+  });
+
+function showSlide(index) {
+  slides[currentIndex]?.classList.remove("active");
+  dots[currentIndex]?.classList.remove("active");
+
+  currentIndex = index;
+
+  slides[currentIndex]?.classList.add("active");
+  dots[currentIndex]?.classList.add("active");
+}
+
+function showNextSlide() {
+  showSlide((currentIndex + 1) % slides.length);
+}
+
+function showPrevSlide() {
+  showSlide((currentIndex - 1 + slides.length) % slides.length);
+}
+
+// Swipe gesture
+let startX = 0;
+slider.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+});
+slider.addEventListener("touchend", e => {
+  const deltaX = e.changedTouches[0].clientX - startX;
+  if (Math.abs(deltaX) > 50) {
+    if (deltaX < 0) showNextSlide();
+    else showPrevSlide();
+  }
+});
+</script>
+<script>
+  function updateCartBadge() {
+    const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+    let count = 0;
+    items.forEach(item => count += item.qty);
+    const badge = document.getElementById("cartCountBadge");
+    if (badge) {
+      if (count > 0) {
+        badge.innerText = count;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+  }
+
+  updateCartBadge(); // run on load
+</script>
+
+<script>
+  // ✅ Minimal & reliable hide-on-scroll logic
+(() => {
+  const header = document.querySelector('.site-header');
+  if (!header) return;
+
+  let lastY = window.pageYOffset;
+
+  const show = () => header.classList.remove('header-hidden');
+  const hide = () => header.classList.add('header-hidden');
+
+  const atTopOrSearching = () =>
+    window.pageYOffset < 10 || header.classList.contains('searching');
+
+  window.addEventListener('scroll', () => {
+    const y = window.pageYOffset;
+    const delta = y - lastY; // +ve = scrolling down, -ve = up
+
+    // Top par ya search khula ho to hamesha dikhana
+    if (atTopOrSearching()) { show(); lastY = y; return; }
+
+    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
+    else if (delta < -3) show(); // upar aate hi show
+
+    lastY = y;
+  }, { passive: true });
+})();
+</script>
+<!-- Floating Buttons: Back to Top + WhatsApp -->
+<div class="fab-stack">
+  <!-- Back to Top button -->
+  <button id="toTopBtn" class="fab-btn" aria-label="Back to top" title="Back to top" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"></path>
+    </svg>
+  </button>
+
+  <!-- WhatsApp button -->
+  <a id="waBtn" class="fab-btn" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" rel="noopener" target="_blank">
+    <img src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png" alt="WhatsApp">
+  </a>
+</div>
+<script>
+  const WA_NUMBER = "918586057887"; // 91 + 8586057887
+  const DEFAULT_MSG = "Hi Precioussly! I need help with my order.";
+
+  (function () {
+    const wa = document.getElementById("waBtn");
+    if (wa) {
+      const msg = encodeURIComponent(DEFAULT_MSG);
+      wa.href = `https://wa.me/${WA_NUMBER}?text=${msg}`;
+    }
+  })();
+
+  (function () {
+  const header = document.querySelector(".site-header");
+  if (!header) return;
+
+  let lastY = window.scrollY;
+  const TOL = 4; // px tolerance to avoid jitter
+
+  window.addEventListener("scroll", () => {
+    const y = window.scrollY;
+    const delta = y - lastY;
+    const movingDown = delta > TOL;
+    const movingUp   = delta < -TOL;
+
+    // ✅ Required behavior: UP => show, DOWN => hide
+    if (movingDown) {
+      header.classList.add("header-hidden");   // hide
+    } else if (movingUp) {
+      header.classList.remove("header-hidden"); // show
+    }
+    lastY = y;
+  }, { passive: true });
+})();
+</script>
+
+<script>
+  const toTopBtn = document.getElementById("toTopBtn");
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 200) {
+      toTopBtn.style.display = "flex";
+    } else {
+      toTopBtn.style.display = "none";
+    }
+  });
+  toTopBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+</script>
+<script>
+/* =============================================================================
+   Multi-page Search Setup (index.html)
+   • Sources auto-load from a CONFIG SHEET with columns: "Sheet Url" | "Tab"
+   • No manual edits in code—add/remove rows in the config sheet only.
+   • TAB text itself is used as the route path (e.g., "resin-jewelry/resin-necklace")
+   • Supports: opensheet.elk.sh, Google Docs link (auto → OpenSheet), or GVIZ.
+   • Auto video detection + muted autoplay previews (mp4/webm/mov + YouTube)
+   ========================================================================== */
+
+/* ========= 1) CONFIG SHEET URL (only thing hardcoded once) ========= */
+const CONFIG_SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
+
+/* ========= Helpers to detect/convert URLs ========= */
+function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url || ""); }
+function isGviz(url){ return /\/gviz\/tq\?/i.test(url || ""); }
+function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url || ""); }
+
+function parseGoogleSheetDoc(url){
+  try{
+    const u = new URL(url, location.origin);
+    const m = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/i);
+    const sheetId = m ? m[1] : "";
+    const gid = u.searchParams.get("gid") || "";
+    return { sheetId, gid };
+  }catch{ return { sheetId: "", gid: "" }; }
+}
+
+function buildOpenSheetUrl(sheetUrl, tab){
+  if (!sheetUrl) return "";
+  if (isOpenSheet(sheetUrl)){
+    // If already an opensheet link: ensure /<TAB> is appended (if missing)
+    try{
+      const u = new URL(sheetUrl, location.origin);
+      const parts = u.pathname.split('/').filter(Boolean);
+      if (parts.length >= 3) return u.toString(); // already /<ID>/<TAB>
+      if (tab){
+        if (!u.pathname.endsWith('/')) u.pathname += '/';
+        u.pathname += encodeURIComponent(tab);
+      }
+      return u.toString();
+    }catch{
+      return tab ? sheetUrl.replace(/\/?$/,'/') + encodeURIComponent(tab) : sheetUrl;
+    }
+  }
+  if (isGoogleDocSheet(sheetUrl) && tab){
+    const { sheetId } = parseGoogleSheetDoc(sheetUrl);
+    if (sheetId){
+      return `https://opensheet.elk.sh/${encodeURIComponent(sheetId)}/${encodeURIComponent(tab)}`;
+    }
+  }
+  return sheetUrl;
+}
+
+function buildGvizFromDoc(sheetUrl){
+  const { sheetId, gid } = parseGoogleSheetDoc(sheetUrl);
+  if (!sheetId) return "";
+  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
+}
+
+/* ========= GVIZ parser (used for both data sheets and config sheet) ========= */
+function parseGviz(text){
+  const match = text.match(/setResponse\(([\s\S]*?)\);?/);
+  if(!match) return [];
+  try{
+    const json = JSON.parse(match[1]);
+    const table = json && json.table;
+    if(!table || !table.cols || !table.rows) return [];
+    const headers = table.cols.map(c => (c && (c.label || c.id)) || "");
+    return table.rows.map(r => {
+      const obj = {};
+      (r.c || []).forEach((cell, i) => {
+        const key = headers[i] || `Col${i+1}`;
+        obj[key] = cell && (cell.v != null ? cell.v : cell.f) || "";
+      });
+      return obj;
+    });
+  }catch{ return []; }
+}
+
+/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
+async function fetchRowsFromSource(source){
+  const { sheetUrl, tab } = source || {};
+  if(!sheetUrl) return [];
+
+  // Prefer opensheet — either given or auto-built from Google Doc link
+  const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
+  if (isOpenSheet(openUrl)){
+    try{
+      const r = await fetch(openUrl, { cache: "no-store" });
+      if (r.ok) return await r.json();
+    }catch{}
+  }
+
+  // GVIZ fallback
+  let gvizUrl = "";
+  if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
+  else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
+
+  if (gvizUrl){
+    try{
+      const r = await fetch(gvizUrl, { cache: "no-store" });
+      if (r.ok) return parseGviz(await r.text());
+    }catch{}
+  }
+
+  // Last resort: try raw URL JSON or GVIZ text in response
+  try{
+    const r = await fetch(sheetUrl, { cache: "no-store" });
+    if(!r.ok) return [];
+    const txt = await r.text();
+    try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
+  }catch{ return []; }
+}
+
+/* ========= Read CONFIG SHEET and produce SOURCES ========= */
+function valFrom(row, keys){
+  const map = {};
+  Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
+  for(const key of keys){
+    const real = map[key.toLowerCase()];
+    if (real && row[real] != null && String(row[real]).trim() !== "") return row[real];
+  }
+  return "";
+}
+
+async function loadSourcesFromConfig(){
+  // We accept: opensheet config, Google Doc (auto-GVIZ), or GVIZ URL
+  let rows = [];
+  const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1"); // will be ignored if already has TAB
+  if (isOpenSheet(asOpen)){
+    try{
+      const r = await fetch(asOpen, { cache: "no-store" });
+      if (r.ok) rows = await r.json();
+    }catch{}
+  }
+  if (!rows.length){
+    let gvizUrl = isGviz(CONFIG_SHEET_URL)
+      ? CONFIG_SHEET_URL
+      : (isGoogleDocSheet(CONFIG_SHEET_URL) ? buildGvizFromDoc(CONFIG_SHEET_URL) : "");
+    if (gvizUrl){
+      try{
+        const r = await fetch(gvizUrl, { cache: "no-store" });
+        if (r.ok) rows = parseGviz(await r.text());
+      }catch{}
+    }
+  }
+
+  // Map to SOURCES
+  const sources = (rows || []).map(r => {
+    const sheetUrl = String(valFrom(r, ["Sheet Url","SheetURL","Sheet","URL","Link"])).trim();
+    const tab      = String(valFrom(r, ["Tab","Route","Path"])).trim();
+    if (!sheetUrl || !tab) return null;
+    return { sheetUrl, tab };
+  }).filter(Boolean);
+
+  return sources;
+}
+
+/* ========= Media detection (image / direct video / YouTube) ========= */
+const VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i;
+function isDirectVideo(url){ return VIDEO_EXT_RE.test(url || ""); }
+function isYouTube(url){ return /(youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\/)/i.test(url || ""); }
+function toYouTubeEmbed(url){
+  try{
+    const u = new URL(url);
+    let id = "";
+    if (u.hostname.includes("youtu.be")) id = u.pathname.slice(1);
+    else if (u.pathname.includes("/shorts/")) id = u.pathname.split("/shorts/")[1].split(/[/?#]/)[0];
+    else id = u.searchParams.get("v") || "";
+    if (!id) return "";
+    return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&modestbranding=1&playsinline=1`;
+  }catch{ return ""; }
+}
+
+/* ========= Route + row normalization ========= */
+function tabToRoute(tab){
+  let route = String(tab || "").trim();
+  if (!route) return "/";
+  if (!route.startsWith("/")) route = "/" + route;
+  return route;
+}
+
+function rowToItem(row, tabForRoute){
+  const name  = String(valFrom(row, ["Product Name","Name","Title"])).trim();
+  if(!name) return null;
+
+  const price = Number(valFrom(row, ["Selling Price","Price","Sale Price","Offer Price","₹","INR"])) || 0;
+  const mrp   = Number(valFrom(row, ["MRP","List Price","Max Retail Price"])) || 0;
+
+  const videoCandidate = String(valFrom(row, ["Video","Video URL","video url","video","MP4","WebM","Clip","Reel","Shorts"])).trim();
+  const mediaPrimary   = String(valFrom(row, ["photo 1","Photo 1","Image 1","Primary Image","Image","IMG","Picture","Pic 1","Thumbnail","Thumb"])).trim();
+
+  let mediaType = "image";
+  let mediaUrl  = mediaPrimary || "";
+  let poster    = "";
+
+  if (videoCandidate){ mediaUrl = videoCandidate; }
+  if (isDirectVideo(mediaUrl)){
+    mediaType = "video";
+    if (mediaPrimary && mediaPrimary !== mediaUrl && !isDirectVideo(mediaPrimary) && !isYouTube(mediaPrimary)){
+      poster = mediaPrimary;
+    }
+  } else if (isYouTube(mediaUrl)){
+    mediaType = "youtube";
+  } else if (isDirectVideo(mediaPrimary)){
+    mediaType = "video"; mediaUrl = mediaPrimary;
+  } else if (isYouTube(mediaPrimary)){
+    mediaType = "youtube"; mediaUrl = mediaPrimary;
+  } else {
+    mediaType = "image";
+    mediaUrl  = mediaPrimary || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
+  }
+
+  return { name, price, mrp, mediaType, mediaUrl, poster, route: tabToRoute(tabForRoute) };
+}
+
+/* ========= Load everything ========= */
+window.allProducts = [];
+
+(async function bootstrap(){
+  // 1) Read SOURCES from config
+  let SOURCES = [];
+  try{ SOURCES = await loadSourcesFromConfig(); }catch{ SOURCES = []; }
+
+  // If config is empty, you still get an empty product list (no crash)
+  try{
+    const lists = await Promise.all((SOURCES || []).map(async (src) => {
+      const rows = await fetchRowsFromSource(src).catch(()=>[]);
+      const tabRoute = src?.tab || "/";
+      return rows.map(r => rowToItem(r, tabRoute)).filter(Boolean);
+    }));
+    window.allProducts = lists.flat();
+  }catch{
+    window.allProducts = [];
+  }
+})();
+
+/* ========= URL builder & UI ========= */
+/* Rule: if product name is a single word (no spaces), append a trailing space before encoding.
+   Example: "Red" -> encode("Red ") -> "Red%20"
+*/
+function isSingleWord(str){
+  return !!str && str.trim().split(/\s+/).length === 1;
+}
+function buildParamValue(productName){
+  const raw = String(productName || "").trim();
+  const toEncode = isSingleWord(raw) ? (raw + " ") : raw;
+  return encodeURIComponent(toEncode);
+}
+function makeProductURL(routePath, productName){
+  const base = location.origin;                        // e.g., https://precioussly.com
+  const route = routePath.startsWith("/") ? routePath : "/" + routePath;
+  return `${base}${route}?p=${buildParamValue(productName)}`;
+}
+
+const inputEl = document.getElementById('headerSearchInput');
+const boxEl   = document.getElementById('headerSearchResults');
+
+function openHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.add('searching');
+  header && header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+}
+function closeHeaderSearch(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+  if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
+}
+function hideSuggest(){
+  if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
+}
+
+/** media thumb (video muted autoplay, YT iframe autoplay, or image) */
+function renderThumb(p){
+  if (p.mediaType === "video"){
+    const posterAttr = p.poster ? ` poster="${p.poster.replace(/"/g,'&quot;')}"` : "";
+    return `<video class="thumb" muted autoplay loop playsinline${posterAttr}><source src="${p.mediaUrl}"/></video>`;
+  }
+  if (p.mediaType === "youtube"){
+    const embed = toYouTubeEmbed(p.mediaUrl);
+    if (embed){
+      return `<iframe class="thumb" src="${embed}" title="preview" frameborder="0" allow="autoplay; fullscreen; clipboard-write" allowfullscreen></iframe>`;
+    }
+  }
+  const imgSrc = p.mediaUrl || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
+  return `<img class="thumb" src="${imgSrc}" alt="">`;
+}
+
+function renderSuggestions(q){
+  const ql = (q||"").toLowerCase().trim();
+  if(!ql){ hideSuggest(); return; }
+
+  const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
+  const top = list.slice(0, 12);
+  if(!top.length){ hideSuggest(); return; }
+
+  boxEl.innerHTML = top.map(p => {
+    const safeName = p.name.replace(/'/g,"\\'");
+    const url = makeProductURL(p.route, p.name);
+    return `
+      <a class="header-suggest" href="${url}" onclick="return goToProduct('${p.route}','${safeName}')">
+        <div class="thumb-wrap">${renderThumb(p)}</div>
+        <div>
+          <div class="name">${p.name}</div>
+          <div class="price">₹${p.price || '-'}</div>
+        </div>
+      </a>
+    `;
+  }).join('');
+
+  if (!document.getElementById('search-thumb-inline-style')){
+    const style = document.createElement('style');
+    style.id = 'search-thumb-inline-style';
+    style.textContent = `
+      #headerSearchResults a.header-suggest { text-decoration:none; color:inherit; }
+      .header-suggest { display:flex; gap:.75rem; align-items:center; padding:.5rem; border-radius:10px; }
+      .header-suggest:hover { background:#f7f7f7; }
+      .header-suggest .thumb-wrap { width:56px; height:56px; flex:0 0 56px; overflow:hidden; border-radius:8px; background:#f1f1f1; }
+      .header-suggest .thumb-wrap img,
+      .header-suggest .thumb-wrap video,
+      .header-suggest .thumb-wrap iframe { width:100%; height:100%; object-fit:cover; display:block; }
+      .header-suggest .name { font-weight:600; text-transform:capitalize; }
+      .header-suggest .price { opacity:.8; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  boxEl.style.display = 'block';
+}
+
+/* On click navigate using our builder (still an <a> for long-press copy) */
+function goToProduct(routePath, productName){
+  const url = makeProductURL(routePath, productName);
+  location.href = url;
+  return false;
+}
+
+/* Input wiring */
+if (inputEl){
+  inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
+  inputEl.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      const typed = (inputEl.value||'').trim();
+      if(!typed){ closeHeaderSearch(); return; }
+      const list = (window.allProducts || [])
+        .filter(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      const chosen = list[0]
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase() === typed.toLowerCase())
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().startsWith(typed.toLowerCase()))
+        || (window.allProducts||[]).find(p => (p.name||"").toLowerCase().includes(typed.toLowerCase()));
+      if (chosen){
+        goToProduct(chosen.route, chosen.name);
+      } else {
+        // fallback: first configured route or "/"
+        const fallbackRoute = (window.allProducts[0] && window.allProducts[0].route) || "/";
+        goToProduct(fallbackRoute, typed);
+      }
+    }
+  });
+}
+
+/* expose */
+window.goToProduct = goToProduct;
+window.openHeaderSearch = function(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.add('searching');
+  header && header.classList.remove('header-hidden');
+  if (inputEl){ inputEl.value=''; setTimeout(()=>inputEl.focus(),30); }
+  hideSuggest();
+};
+window.closeHeaderSearch = function(){
+  const header = document.querySelector('.site-header');
+  header && header.classList.remove('searching');
+  const bar = document.getElementById('headerSearchBar');
+  if (bar) bar.setAttribute('hidden','');
+  hideSuggest();
+};
+</script>
+
+<!-- Normal footer -->
+<footer id="siteFooter" 
+        style="text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0; width:100%; background:#fff;">
+  © 2025 Precioussly. All rights reserved.
+</footer>
+
+<script>
+  // Ensure footer sticks at bottom if content is short
+  function adjustFooter() {
+    const footer = document.getElementById("siteFooter");
+    if (!footer) return;
+    const bodyHeight = document.body.scrollHeight;
+    const winHeight = window.innerHeight;
+    if (bodyHeight < winHeight) {
+      footer.style.position = "fixed";
+      footer.style.bottom = "0";
+    } else {
+      footer.style.position = "relative";
+    }
+  }
+
+  window.addEventListener("load", adjustFooter);
+  window.addEventListener("resize", adjustFooter);
+</script>
+
+<script>
+  window.addEventListener("load", function() {
+    setTimeout(() => {
+      const ig = document.getElementById("igFollowBanner");
+      if (ig) ig.style.display = "block";
+    }, 2000);
+  });
+</script>
+
+
+
+<!-- === Pink Profile Popup (injected by ChatGPT) === -->
+<div class="pp-overlay" id="profilePopupOverlay" aria-hidden="true">
+  <div class="pp-card" role="dialog" aria-modal="true" aria-labelledby="ppTitle">
+    <button class="pp-back" id="ppBackBtn">Back</button>
+    <div class="pp-hero"><div class="pp-badge">♡</div></div>
+    <h3 class="pp-title" id="ppTitle">Precioussly for preciouss ones</h3>
+    <p class="pp-sub">You can track your order 24 hours after placing it by clicking the ‘Track Order’ button.</p>
+    <a class="pp-cta" id="ppTrackBtn" href="https://www.precioussly.com/track-order">Track Order</a>
+  </div>
+</div>
+
+<script id="pink-profile-popup-js">
+// === Pink Profile Popup (Back-button safe) ===
+(function(){
+  const overlay = document.getElementById('profilePopupOverlay');
+  const back = document.getElementById('ppBackBtn');
+
+  function baseline(){
+    try {
+      if (!history.state || !history.state.__page) {
+        history.replaceState({ __page: 'resin' }, '');
+      }
+    } catch(e){}
+  }
+  baseline();
+
+  function actuallyClose(){
+    if (!overlay) return false;
+    if (!overlay.classList.contains('show')) return false;
+    overlay.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    overlay.setAttribute('aria-hidden','true');
+    return true;
+  }
+
+  function openPopup(){
+    if(!overlay) return;
+    overlay.classList.add('show');
+    document.body.classList.add('no-scroll');
+    overlay.setAttribute('aria-hidden','false');
+    // Push a history entry + hash so Android back closes this
+    try { history.pushState({ __ui: 'pp' }, ''); } catch(e){}
+    if (location.hash !== '#pp') {
+      try { location.hash = 'pp'; } catch(e){}
+    }
+  }
+
+  function closePopup(){
+    const wasOpen = actuallyClose();
+    if (!wasOpen) return;
+    // Clean up state so another back doesn't leave the page immediately
+    try {
+      if (history.state && history.state.__ui === 'pp') {
+        history.back(); // pop the popup entry
+      } else {
+        history.replaceState({ __page: 'resin' }, '');
+      }
+    } catch(e){}
+    if (location.hash === '#pp') {
+      try { history.replaceState({ __page: 'resin' }, ''); location.hash = ''; } catch(e){}
+    }
+  }
+
+  // System back: close the popup instead of exiting
+  window.addEventListener('popstate', function(){
+    if (actuallyClose()){
+      try { history.replaceState({ __page: 'resin' }, ''); } catch(e){}
+    }
+  });
+
+  // Hash fallback (works in content:// & file:// viewers)
+  window.addEventListener('hashchange', function(){
+    if (location.hash !== '#pp' && overlay && overlay.classList.contains('show')){
+      actuallyClose();
+      try { history.replaceState({ __page: 'resin' }, ''); } catch(e){}
+    }
+  });
+
+  // Wire up triggers
+  const profileIcon = document.getElementById('profileIcon') ||
+    document.querySelector('img[alt="Profile"], .icon-profile, .profile-icon, [data-profile]');
+  if(profileIcon){
+    profileIcon.style.cursor = 'pointer';
+    profileIcon.addEventListener('click', openPopup, {passive:true});
+  }
+  if(back) back.addEventListener('click', closePopup);
+  if(overlay){
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay) closePopup();
+    });
+  }
+
+  // Expose for other scripts if needed
+  window.__openProfilePopup = openPopup;
+  window.__closeProfilePopup = closePopup;
+})();
+</script>
+</body>
+</html>
