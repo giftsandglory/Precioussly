@@ -10,7 +10,7 @@
     "opensheet.elk.sh",
     "docs.google.com"
   ];
-  const TIMEOUT_MS = 500; // ~7s
+  const TIMEOUT_MS = 7000; // ~7s
   const isSheetsUrl = (url) => {
     try {
       const u = new URL(url, location.href);
@@ -3231,7 +3231,8 @@ slider.addEventListener("mouseleave", () => { mouseDown = false; });
 <script>
 const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
 
-fetch(couponSheetURL)
+fetch(couponSheetURL + (couponSheetURL.includes('?')? '&':'?') + '_ts=' + Math.floor(Date.now()/1000), { cache: 'no-store' })
+
   .then(res => res.json())
   .then(data => {
     const container = document.getElementById("couponContainer");
@@ -3600,40 +3601,80 @@ function parseGviz(text){
   }catch{ return []; }
 }
 
-/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
+/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last)
+   UPDATED: Force fresh network on page-load by appending a short cache-busting param,
+   while leaving the SWR/localStorage interceptor intact for background refreshes.
+   This keeps initial loads fresh, but preserves the fast cached fallback when network fails.
+*/
 async function fetchRowsFromSource(source){
   const { sheetUrl, tab } = source || {};
   if(!sheetUrl) return [];
 
-  // Prefer opensheet — either given or auto-built from Google Doc link
+  // Helper -> return URL with cache-busting query param only for page-load (network-first)
+  function withTs(u){
+    try{
+      const url = new URL(u);
+      // add a short-lived timestamp so every page refresh queries the network for newest sheet
+      url.searchParams.set('_ts', String(Math.floor(Date.now() / 1000))); // seconds precision
+      return url.toString();
+    }catch(e){
+      // fallback: naive append
+      return u + (u.includes('?') ? '&' : '?') + '_ts=' + String(Math.floor(Date.now() / 1000));
+    }
+  }
+
+  // Prefer opensheet — convert Google Doc link to opensheet if needed
   const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
   if (isOpenSheet(openUrl)){
     try{
-      const r = await fetch(openUrl, { cache: "no-store" });
-      if (r.ok) return await r.json();
-    }catch{}
+      // NETWORK-FIRST: append ts so the SWR-interceptor sees different URL and fetches fresh.
+      const networkUrl = withTs(openUrl);
+      const r = await fetch(networkUrl, { cache: "no-store" });
+      if (r && r.ok) return await r.json();
+      // fallback to original (without ts) if network gave non-ok
+      const fallback = await fetch(openUrl, { cache: "no-store" }).catch(()=>null);
+      if (fallback && fallback.ok) return await fallback.json();
+    }catch(e){
+      // swallow and try next fallbacks
+    }
   }
 
-  // GVIZ fallback
+  // GVIZ fallback — also force fresh with ts for page-load
   let gvizUrl = "";
   if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
   else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
 
   if (gvizUrl){
     try{
-      const r = await fetch(gvizUrl, { cache: "no-store" });
-      if (r.ok) return parseGviz(await r.text());
-    }catch{}
+      const networkGviz = withTs(gvizUrl);
+      const r = await fetch(networkGviz, { cache: "no-store" });
+      if (r && r.ok) return parseGviz(await r.text());
+      // fallback to non-ts
+      const fallback = await fetch(gvizUrl, { cache: "no-store" }).catch(()=>null);
+      if (fallback && fallback.ok) return parseGviz(await fallback.text());
+    }catch(e){}
   }
 
-  // Last resort: try raw URL JSON or GVIZ text in response
+  // Last resort: try raw URL JSON or GVIZ text in response (force fresh with ts)
   try{
-    const r = await fetch(sheetUrl, { cache: "no-store" });
-    if(!r.ok) return [];
-    const txt = await r.text();
-    try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
-  }catch{ return []; }
+    const rawUrl = withTs(sheetUrl);
+    const r = await fetch(rawUrl, { cache: "no-store" });
+    if (r && r.ok){
+      const txt = await r.text();
+      try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
+    }
+    // fallback plain original url
+    const r2 = await fetch(sheetUrl, { cache: "no-store" }).catch(()=>null);
+    if (r2 && r2.ok){
+      const txt2 = await r2.text();
+      try{ return JSON.parse(txt2); }catch{ return parseGviz(txt2); }
+    }
+    return [];
+  }catch(e){
+    return [];
+  }
 }
+
 
 /* ========= Read CONFIG SHEET and produce SOURCES ========= */
 function valFrom(row, keys){
