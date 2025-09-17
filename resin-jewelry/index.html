@@ -9,7 +9,8 @@
   // Only intercept GET requests to Google Sheets providers
   const MATCH_HOSTS = ["opensheet.elk.sh", "docs.google.com"];
   const SHEETS_PATH_HINT = "/spreadsheets"; // for docs.google.com
-  const TIMEOUT_MS = 7000;
+  const TIMEOUT_MS = 10000; // 10 seconds - tolerate slower networks
+
 
   const origFetch = window.fetch.bind(window);
   const toStr = (u) => (typeof u === "string" ? u : (u && u.url) ? String(u.url) : String(u || ""));
@@ -41,7 +42,9 @@
 
   
 /* inside the same interceptor <script> */
-const MAX_AGE_MS = 2 * 60 * 1000; // 2 minutes
+// Serve cached only as a fallback; always prefer fresh network data
+const MAX_AGE_MS = 0; // 0 = never treat stored item as fresh — forces network revalidation
+
 
 function readCache(url){
   try{
@@ -2091,35 +2094,59 @@ async function fetchRowsFromSource(source){
   const { sheetUrl, tab } = source || {};
   if(!sheetUrl) return [];
 
-  // Prefer opensheet — either given or auto-built from Google Doc link
-  const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
-  if (isOpenSheet(openUrl)){
-    try{
-      const r = await fetch(openUrl, { cache: "no-store" });
-      if (r.ok) return await r.json();
-    }catch{}
+  // === Deduplicate concurrent requests per page load ===
+  // Keep a map of pending promises so multiple modules asking the same URL reuse it.
+  window._sheetPromises = window._sheetPromises || {};
+  const openUrl = (function() {
+    try { return buildOpenSheetUrl(sheetUrl, tab || ""); } catch(e){ return sheetUrl; }
+  })();
+  const dedupeKey = openUrl || sheetUrl;
+  if (window._sheetPromises[dedupeKey]) {
+    try { return await window._sheetPromises[dedupeKey]; } catch(e){ /* fallthrough */ }
   }
 
-  // GVIZ fallback
-  let gvizUrl = "";
-  if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
-  else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
+  const promise = (async () => {
+    // Prefer opensheet — either given or auto-built from Google Doc link
+    if (isOpenSheet(openUrl)){
+      try{
+        const r = await fetch(openUrl, { cache: "no-store" });
+        if (r.ok) return await r.json();
+      }catch{}
+    }
 
-  if (gvizUrl){
+    // GVIZ fallback
+    let gvizUrl = "";
+    if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
+    else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
+
+    if (gvizUrl){
+      try{
+        const r = await fetch(gvizUrl, { cache: "no-store" });
+        if (r.ok) return parseGviz(await r.text());
+      }catch{}
+    }
+
+    // Last resort: try raw URL JSON or GVIZ text in response
     try{
-      const r = await fetch(gvizUrl, { cache: "no-store" });
-      if (r.ok) return parseGviz(await r.text());
-    }catch{}
-  }
+      const r = await fetch(sheetUrl, { cache: "no-store" });
+      if(!r.ok) return [];
+      const txt = await r.text();
+      try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
+    }catch{ return []; }
+  })();
 
-  // Last resort: try raw URL JSON or GVIZ text in response
-  try{
-    const r = await fetch(sheetUrl, { cache: "no-store" });
-    if(!r.ok) return [];
-    const txt = await r.text();
-    try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
-  }catch{ return []; }
+  // store and finally remove when resolved so subsequent full page loads can re-fetch
+  window._sheetPromises[dedupeKey] = promise;
+  try {
+    const result = await promise;
+    delete window._sheetPromises[dedupeKey];
+    return result;
+  } catch(e) {
+    delete window._sheetPromises[dedupeKey];
+    return [];
+  }
 }
+
 
 /* ========= Read CONFIG SHEET and produce SOURCES ========= */
 function valFrom(row, keys){
