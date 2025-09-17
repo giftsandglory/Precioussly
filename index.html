@@ -3,99 +3,100 @@
 <html lang="en">
 <head>
 
-<!-- === SWR fetch interceptor for Google Sheets (opensheet.elk.sh & docs.google.com/spreadsheets) === -->
+
+<!-- REPLACE your existing SWR interceptor script with this (paste in same place) -->
 <script>
 (function(){
-  const ALLOWED_HOSTS = [
-    "opensheet.elk.sh",
-    "docs.google.com"
-  ];
-  const TIMEOUT_MS = 7000; // ~7s
+  const ALLOWED_HOSTS = ["opensheet.elk.sh","docs.google.com"];
+  const TIMEOUT_MS = 5000; // shorter timeout for snappier UI
+  const CACHE_TTL = 5 * 60 * 1000; // return cached data if younger than 5 minutes
   const isSheetsUrl = (url) => {
     try {
       const u = new URL(url, location.href);
       if (!ALLOWED_HOSTS.includes(u.hostname)) return false;
-      // Only intercept docs.google.com/spreadsheets paths
       if (u.hostname === "docs.google.com" && !u.pathname.startsWith("/spreadsheets")) return false;
       return true;
-    } catch (e) { return false; }
+    } catch(e){ return false; }
   };
-
-  // naive HTML page sniff (to avoid caching error pages)
-  const looksLikeHtml = (text) => {
-    const t = text.trim().toLowerCase();
-    return t.startsWith("<!doctype") || t.startsWith("<html");
-  };
-
   const _origFetch = window.fetch.bind(window);
-
   function withTimeout(promise, ms, controller){
-    const t = setTimeout(() => controller.abort("timeout"), ms);
-    return promise.finally(() => clearTimeout(t));
+    const t = setTimeout(()=>controller.abort(), ms);
+    return promise.finally(()=>clearTimeout(t));
   }
-
-  async function maybeCache(url, resp){
+  function buildCacheKey(url){ return "swr-json:" + url; }
+  async function readCache(key){
     try {
-      if (!resp || !resp.ok) return;
-      if (resp.type === "opaque") return; // can't read/cors restricted
-      const ct = resp.headers.get("content-type") || "";
-      const clone = resp.clone();
-      const text = await clone.text();
-      if (looksLikeHtml(text)) return; // skip HTML error pages
-      // Heuristic: allow JSON, CSV, plain text
-      if (!/json|csv|plain|sheet|javascript/i.test(ct) && !/^\s*[\[\{]/.test(text)) {
-        // not an expected data type, still allow plain text
-      }
-      localStorage.setItem("swr:" + url, JSON.stringify({
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      return obj;
+    } catch(e){ return null; }
+  }
+  async function writeCache(key, text, headers, status){
+    try {
+      localStorage.setItem(key, JSON.stringify({
         ts: Date.now(),
         body: text,
-        headers: { "content-type": ct || "text/plain;charset=utf-8" },
-        status: resp.status
+        headers: { "content-type": headers.get("content-type") || "text/plain;charset=utf-8" },
+        status: status || 200
       }));
-    } catch(e){ /* ignore */ }
+    } catch(e){ /* ignore quota errors */ }
   }
-
-  function buildResponseFromCache(cached){
+  function buildResponseFromCache(obj){
     try{
-      const data = JSON.parse(cached);
-      const headers = new Headers(data.headers || {});
-      return new Response(data.body, { status: data.status || 200, headers });
+      const headers = new Headers(obj.headers || {});
+      return new Response(obj.body, { status: obj.status || 200, headers });
     }catch(e){ return null; }
   }
 
-  window.fetch = function(input, init){
+  window.fetch = async function(input, init){
     const req = input instanceof Request ? input : new Request(input, init);
     const url = req.url;
-    if (!isSheetsUrl(url)) {
-      return _origFetch(input, init);
-    }
+    if (!isSheetsUrl(url)) return _origFetch(input, init);
 
-    const cacheKey = "swr:" + url;
-    const cached = localStorage.getItem(cacheKey);
+    const key = buildCacheKey(url);
+    const cached = await readCache(key);
 
-    if (cached){
-      (async () => {
-        const controller = new AbortController();
+    // If cached and fresh -> return cached immediately and revalidate in background
+    if (cached && (Date.now() - cached.ts) < CACHE_TTL){
+      // background revalidation (no await)
+      (async ()=>{
         try{
-          const network = withTimeout(_origFetch(req, { signal: controller.signal }), TIMEOUT_MS, controller);
+          const controller = new AbortController();
+          const network = withTimeout(_origFetch(new Request(url, Object.assign({}, init, { cache: "no-cache", signal: controller.signal }))), TIMEOUT_MS, controller);
           const resp = await network;
-          await maybeCache(url, resp);
-        }catch(e){ /* keep old cache */ }
+          if (resp && resp.ok){
+            const clone = resp.clone();
+            const text = await clone.text();
+            await writeCache(key, text, resp.headers, resp.status);
+          }
+        }catch(e){ /* ignore */ }
       })();
       const resp = buildResponseFromCache(cached);
       if (resp) return Promise.resolve(resp);
     }
 
+    // If cached but stale -> try network with timeout, fall back to cache if network fails
     const controller = new AbortController();
-    return withTimeout(_origFetch(req, { signal: controller.signal }), TIMEOUT_MS, controller)
-      .then(async (resp) => {
-        await maybeCache(url, resp);
-        return resp;
-      })
-      .catch((err) => { throw err; });
+    try{
+      const resp = await withTimeout(_origFetch(new Request(url, Object.assign({}, init, { cache: "no-cache", signal: controller.signal }))), TIMEOUT_MS, controller);
+      // store only non-HTML responses
+      const clone = resp.clone();
+      const ct = resp.headers.get("content-type") || "";
+      const text = await clone.text();
+      if (!/<!doctype|<html/i.test(text)){
+        await writeCache(key, text, resp.headers, resp.status);
+      }
+      return resp;
+    }catch(err){
+      // network failed -> return cached if available
+      if (cached) return Promise.resolve(buildResponseFromCache(cached));
+      throw err;
+    }
   };
 })();
 </script>
+
 <!-- === /SWR interceptor end === -->
 
 <meta charset="utf-8"/>
@@ -103,6 +104,21 @@
 <title>Precioussly</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<!-- HEAD: paste inside <head> (near existing meta/fonts) -->
+<!-- PERFORMANCE: preconnect, preload critical font, reduce render-blocking -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap">
+<!-- Critical inline style placeholder: keep minimal critical CSS here (reduce first paint) -->
+<style>
+  /* minimal critical CSS — keep only header + hero basics inline */
+  html,body{height:100%}
+  body{margin:0;font-family:Roboto,system-ui,-apple-system; -webkit-font-smoothing:antialiased;}
+  .site-header{position:sticky;top:0;z-index:3500;background:#fff;}
+  .fade-slider{min-height:280px;height:auto;overflow:hidden}
+</style>
+
 <style>
 
   /* 🔵 Disable blue tap highlight everywhere */
@@ -2779,8 +2795,15 @@ down-toggle {
     outline: none !important;
   }
 </style>
+<style>
+  .hero-skeleton{width:100%;height:280px;background:linear-gradient(90deg,#f4f4f4,#efefef,#f4f4f4);background-size:200% 100%;animation:shimmer 1.2s linear infinite}
+  @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+</style>
+
+
 </head>
 <body>
+  
   </div>
 </div>
 
@@ -5228,6 +5251,81 @@ try {
   }, 200);
 })();
 </script>
+<!-- LAZY IMAGE LOADER: paste before </body> (after other scripts) -->
+<script>
+/* lightweight lazy loader + adaptive image URL helper */
+(function(){
+  // If browser supports native lazy, just enable attribute for progressive enhancement
+  document.querySelectorAll('img').forEach(img=>{
+    if (!img.hasAttribute('loading')) img.setAttribute('loading','lazy');
+  });
+
+  // For images where you set data-src (preferred): observe and swap when in viewport
+  const ioSupported = 'IntersectionObserver' in window;
+  function optimizeUrl(url){
+    try{
+      // Add lightweight optimisation params if image host accepts them (safe no-op otherwise)
+      if (!url) return url;
+      const u = new URL(url, location.href);
+      // small heuristic: only modify for common hosts
+      if (/googleusercontent|cloudinary|imgix|cdn|s3|amazonaws|unsplash|images/i.test(u.hostname)){
+        // use webp fallback & responsive width (let backend ignore unknown params)
+        if (!u.searchParams.has('fmt')) u.searchParams.set('fmt','webp');
+        if (!u.searchParams.has('q')) u.searchParams.set('q','70');
+      }
+      return u.toString();
+    }catch(e){ return url; }
+  }
+  const io = ioSupported ? new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if (!entry.isIntersecting) return;
+      const img = entry.target;
+      const src = img.dataset.src || img.dataset.lazy;
+      if (src){
+        img.src = optimizeUrl(src);
+        img.removeAttribute('data-src'); img.removeAttribute('data-lazy');
+      }
+      io.unobserve(img);
+    });
+  },{
+    rootMargin: '200px 0px 400px 0px',
+    threshold: 0.01
+  }) : null;
+
+  document.querySelectorAll('img[data-src], img[data-lazy]').forEach(img=>{
+    // small immediate fallback: set srcset from data-srcset if exists
+    if (!img.getAttribute('loading')) img.setAttribute('loading','lazy');
+    if (io) io.observe(img);
+    else {
+      const src = img.dataset.src || img.dataset.lazy;
+      if (src) img.src = optimizeUrl(src);
+    }
+  });
+
+  // Degrade images for Save-Data users (optional)
+  if (navigator.connection && navigator.connection.saveData){
+    document.querySelectorAll('img').forEach(img=>{
+      // try to use low-quality placeholder if available
+      const lq = img.dataset.lq || img.dataset.placeholder;
+      if (lq) img.src = lq;
+    });
+  }
+})();
+</script>
+<!-- DEFER NON-ESSENTIAL SCRIPTS: change your heavy <script> tags to include `defer` or load dynamically -->
+<!-- Example: -->
+<script src="/js/widgets-heavy.js" defer></script>
+<!-- Or for inline heavy code: -->
+<script>
+  // load heavy module after first paint
+  window.addEventListener('load', ()=> {
+    const s = document.createElement('script');
+    s.src = '/js/widgets-heavy.js';
+    s.defer = true;
+    document.body.appendChild(s);
+  }, { once: true });
+</script>
+
 </body>
 </html>
 
