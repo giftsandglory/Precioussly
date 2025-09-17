@@ -97,6 +97,72 @@
 })();
 </script>
 <!-- === /SWR interceptor end === -->
+<script id="gsheet-poller">
+(function(){
+  // Utility: append cache-busting timestamp
+  function stampUrl(u){ return u + (u.includes('?') ? '&' : '?') + '_ts=' + Date.now(); }
+
+  /**
+   * startPollingGSheet(url, intervalMs, onUpdate, opts)
+   * - url: opensheet/elks/gviz URL
+   * - intervalMs: 1000 (for 1s)
+   * - onUpdate(rows): called only when response JSON text changed
+   * - opts.parseJson (default true) — set false to receive raw text
+   * Returns { stop() } to cancel.
+   */
+  function startPollingGSheet(url, intervalMs, onUpdate, opts){
+    opts = opts || {};
+    const parseJson = (opts.parseJson !== false);
+    let lastRaw = null;
+    let controller = null;
+    let timer = null;
+    let running = false;
+
+    async function pollOnce(){
+      if (running) return; // avoid overlap
+      // if user switched tab, skip to save CPU/battery
+      if (document.hidden) return;
+      running = true;
+      if (controller) try{ controller.abort(); }catch(e){}
+      controller = new AbortController();
+      try {
+        const res = await fetch(stampUrl(url), { signal: controller.signal, cache: "no-store" });
+        const text = await res.text();
+        if (!res.ok) { running = false; return; }
+        if (text === lastRaw) { running = false; return; } // no change
+        lastRaw = text;
+        const payload = parseJson ? JSON.parse(text) : text;
+        try { onUpdate(payload); } catch(e){ console.error("onUpdate error", e); }
+      } catch (err) {
+        if (err && err.name !== 'AbortError') console.debug('poll error', err);
+      } finally {
+        running = false;
+      }
+    }
+
+    // immediate first fetch, then interval
+    pollOnce();
+    timer = setInterval(pollOnce, Math.max(200, Number(intervalMs) || 1000));
+
+    function stop(){
+      clearInterval(timer);
+      timer = null;
+      if (controller) try{ controller.abort(); }catch(e){}
+      document.removeEventListener('visibilitychange', visibilityHandler);
+    }
+
+    function visibilityHandler(){
+      if (!document.hidden) pollOnce(); // resume immediately when tab shown
+    }
+    document.addEventListener('visibilitychange', visibilityHandler);
+
+    return { stop };
+  }
+
+  // Export globally so existing code can call it
+  window.startPollingGSheet = startPollingGSheet;
+})();
+</script>
 
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -2907,16 +2973,19 @@ down-toggle {
 <!-- 🔽 Final Working Script -->
 <script>
   // Announcement Bar from Google Sheet
-  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
-  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+/* Announcement bar — 1s poll */
+const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
 
-  fetch(announceURL)
-    .then(res => res.json())
-    .then(data => {
-      if (data.length > 0 && data[0]["(announcement_text)"]) {
-        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
-      }
-    });
+window._announcePoll = window.startPollingGSheet(announceURL, 1000, function(rows){
+  const el = document.getElementById("announcementBar");
+  if (!el) return;
+  if (rows && rows.length && rows[0]["(announcement_text)"]) {
+    el.innerText = rows[0]["(announcement_text)"];
+  } else {
+    el.innerText = "";
+  }
+});
 
   // Popup function
   function togglePopup() {
@@ -2946,69 +3015,74 @@ function toggleMenu() {
   }
 }
   // 🔽 POPUP DATA FROM SHEET
-  const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
-  const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
+  
+/* Popup data — 1s poll */
+const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
 
-  fetch(sheetURL)
-    .then(res => res.json())
-    .then(data => {
-      if (data.length > 0) {
-        const row = data[0];
-        const logo = document.querySelector(".popup-logo");
-        if (row.popup_logo) logo.src = row.popup_logo;
+function renderPopup(rows){
+  if (!rows || !rows.length) return;
+  const row = rows[0];
+  const logo = document.querySelector(".popup-logo");
+  if (row.popup_logo && logo && logo.src !== row.popup_logo) logo.src = row.popup_logo;
+  const popupText = document.querySelector(".popup-text");
+  if (row.popup_text && popupText && popupText.innerHTML !== row.popup_text) popupText.innerHTML = row.popup_text;
+  const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
+  instaLinks.forEach(link => {
+    if (row.popup_insta_link) link.href = row.popup_insta_link;
+    if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
+  });
+}
 
-        const popupText = document.querySelector(".popup-text");
-        if (row.popup_text) popupText.innerHTML = row.popup_text;
+window._popupPoll = window.startPollingGSheet(sheetURL, 1000, renderPopup);
 
-        const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
-        instaLinks.forEach(link => {
-          if (row.popup_insta_link) link.href = row.popup_insta_link;
-          if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
-        });
-      }
-    });
 
   // 🔽 MENU DATA FROM SHEET
-  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
-  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
 
-  fetch(menuURL)
-    .then(res => res.json())
-    .then(data => {
-      const menuContent = document.getElementById("menuContent");
-      const grouped = {};
+/* Menu — 1s poll */
+const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
 
-      data.forEach(item => {
-        const menu = item.Menu?.trim();
-        const sub = item.Submenu?.trim();
-        const link = item.Link?.trim();
-        if (!menu) return;
+function renderMenu(data){
+  const menuContent = document.getElementById("menuContent");
+  if (!menuContent) return;
+  const grouped = {};
+  (data || []).forEach(item => {
+    const menu = (item.Menu || "").trim();
+    const sub  = (item.Submenu || "").trim();
+    const link = (item.Link || "").trim();
+    if (!menu) return;
+    if (sub) {
+      if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+      grouped[menu].subs.push({ name: sub, link });
+    } else {
+      grouped[menu] = grouped[menu] || { link: link, subs: [] };
+      grouped[menu].link = link || grouped[menu].link;
+    }
+  });
 
-        if (sub) {
-          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
-          grouped[menu].subs.push({ name: sub, link });
-        } else {
-          grouped[menu] = { link, subs: [] };
-        }
-      });
+  let html = '';
+  Object.entries(grouped).forEach(([menu, info]) => {
+    if (!info.subs || info.subs.length === 0) {
+      html += `<a href="${info.link || '#'}" class="menu-link">${menu}</a>`;
+    } else {
+      const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+      html += `
+        <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
+          <span>${menu}</span>
+          <span class="dropdown-icon">›</span>
+        </div>
+        <div class="submenu-container" id="${menuId}" style="display: none;">
+          ${info.subs.map(s => `<a href="${s.link||'#'}" class="submenu-link">› ${s.name}</a>`).join('')}
+        </div>`;
+    }
+  });
 
-      Object.entries(grouped).forEach(([menu, info]) => {
-  if (info.subs.length === 0) {
-    menuContent.innerHTML += `<a href="${info.link}" class="menu-link">${menu}</a>`;
-  } else {
-    const menuId = menu.replace(/\s+/g, '-') + '-submenu';
-    menuContent.innerHTML += `
-      <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
-        <span>${menu}</span>
-        <span class="dropdown-icon">›</span>
-      </div>
-      <div class="submenu-container" id="${menuId}" style="display: none;">
-        ${info.subs.map(s => `<a href="${s.link}" class="submenu-link">› ${s.name}</a>`).join("")}
-      </div>
-    `;
-  }
-});
-    });
+  menuContent.innerHTML = html;
+}
+
+window._menuPoll = window.startPollingGSheet(menuURL, 1000, renderMenu);
+
     function toggleSubmenu(id) {
   const submenu = document.getElementById(id);
   submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
@@ -3229,34 +3303,34 @@ slider.addEventListener("mouseleave", () => { mouseDown = false; });
 
 </script>
 <script>
+/* Coupon strip — replaced with 1s poll */
 const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
 
-fetch(couponSheetURL + (couponSheetURL.includes('?')? '&':'?') + '_ts=' + Math.floor(Date.now()/1000), { cache: 'no-store' })
-
-  .then(res => res.json())
-  .then(data => {
-    const container = document.getElementById("couponContainer");
-    data.forEach(c => {
-      if (!c.Title || !c.MinAmount || !c.Code || !c.Discount) return;
-      const html = `
-        <div class="coupon-card">
-          <h3>${c.Title}</h3>
-          <p>Buy for min of ₹${c.MinAmount}</p>
-          <div class="code-row">
-            <div class="code-box">${c.Code}</div>
-            <div class="copy-btn" onclick="navigator.clipboard.writeText('${c.Code}')">
-              <svg viewBox="0 0 24 24">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4
-                         a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-            </div>
+function renderCoupons(rows){
+  const container = document.getElementById("couponContainer");
+  if (!container) return;
+  let html = '';
+  (rows || []).forEach(c => {
+    if (!c.Title || !c.MinAmount || !c.Code || !c.Discount) return;
+    html += `
+      <div class="coupon-card">
+        <h3>${c.Title}</h3>
+        <p>Buy for min of ₹${c.MinAmount}</p>
+        <div class="code-row">
+          <div class="code-box">${c.Code}</div>
+          <div class="copy-btn" data-copy="${c.Code}" title="Copy">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           </div>
-        </div>`;
-      container.innerHTML += html;
-    });
+        </div>
+      </div>`;
   });
+  container.innerHTML = html;
+}
+
+// Start 1s polling (will only re-render when JSON text changes)
+window._couponPoll = window.startPollingGSheet(couponSheetURL, 1000, renderCoupons);
 </script>
+
 <!-- >>> ChatGPT: Rewritten Categories loader with Box Direction support -->
 <script>
 /* ===== Categories from Google Sheet (with Section HIDE + SHAPE + BOX DIRECTION) =====
@@ -3601,80 +3675,40 @@ function parseGviz(text){
   }catch{ return []; }
 }
 
-/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last)
-   UPDATED: Force fresh network on page-load by appending a short cache-busting param,
-   while leaving the SWR/localStorage interceptor intact for background refreshes.
-   This keeps initial loads fresh, but preserves the fast cached fallback when network fails.
-*/
+/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
 async function fetchRowsFromSource(source){
   const { sheetUrl, tab } = source || {};
   if(!sheetUrl) return [];
 
-  // Helper -> return URL with cache-busting query param only for page-load (network-first)
-  function withTs(u){
-    try{
-      const url = new URL(u);
-      // add a short-lived timestamp so every page refresh queries the network for newest sheet
-      url.searchParams.set('_ts', String(Math.floor(Date.now() / 1000))); // seconds precision
-      return url.toString();
-    }catch(e){
-      // fallback: naive append
-      return u + (u.includes('?') ? '&' : '?') + '_ts=' + String(Math.floor(Date.now() / 1000));
-    }
-  }
-
-  // Prefer opensheet — convert Google Doc link to opensheet if needed
+  // Prefer opensheet — either given or auto-built from Google Doc link
   const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
   if (isOpenSheet(openUrl)){
     try{
-      // NETWORK-FIRST: append ts so the SWR-interceptor sees different URL and fetches fresh.
-      const networkUrl = withTs(openUrl);
-      const r = await fetch(networkUrl, { cache: "no-store" });
-      if (r && r.ok) return await r.json();
-      // fallback to original (without ts) if network gave non-ok
-      const fallback = await fetch(openUrl, { cache: "no-store" }).catch(()=>null);
-      if (fallback && fallback.ok) return await fallback.json();
-    }catch(e){
-      // swallow and try next fallbacks
-    }
+      const r = await fetch(openUrl, { cache: "no-store" });
+      if (r.ok) return await r.json();
+    }catch{}
   }
 
-  // GVIZ fallback — also force fresh with ts for page-load
+  // GVIZ fallback
   let gvizUrl = "";
   if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
   else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
 
   if (gvizUrl){
     try{
-      const networkGviz = withTs(gvizUrl);
-      const r = await fetch(networkGviz, { cache: "no-store" });
-      if (r && r.ok) return parseGviz(await r.text());
-      // fallback to non-ts
-      const fallback = await fetch(gvizUrl, { cache: "no-store" }).catch(()=>null);
-      if (fallback && fallback.ok) return parseGviz(await fallback.text());
-    }catch(e){}
+      const r = await fetch(gvizUrl, { cache: "no-store" });
+      if (r.ok) return parseGviz(await r.text());
+    }catch{}
   }
 
-  // Last resort: try raw URL JSON or GVIZ text in response (force fresh with ts)
+  // Last resort: try raw URL JSON or GVIZ text in response
   try{
-    const rawUrl = withTs(sheetUrl);
-    const r = await fetch(rawUrl, { cache: "no-store" });
-    if (r && r.ok){
-      const txt = await r.text();
-      try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
-    }
-    // fallback plain original url
-    const r2 = await fetch(sheetUrl, { cache: "no-store" }).catch(()=>null);
-    if (r2 && r2.ok){
-      const txt2 = await r2.text();
-      try{ return JSON.parse(txt2); }catch{ return parseGviz(txt2); }
-    }
-    return [];
-  }catch(e){
-    return [];
-  }
+    const r = await fetch(sheetUrl, { cache: "no-store" });
+    if(!r.ok) return [];
+    const txt = await r.text();
+    try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
+  }catch{ return []; }
 }
-
 
 /* ========= Read CONFIG SHEET and produce SOURCES ========= */
 function valFrom(row, keys){
