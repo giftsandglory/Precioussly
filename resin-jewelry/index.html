@@ -1581,142 +1581,7 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
   }
 
   // ================================================================================
-  // Render "Resin" style category grid (title pill + 2-column cards)
-  (async function(){
-    // If config is not set, fall back to previous sheet (keeps page working)
-    const url = JSON_URL || "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
-
-    try{
-      // Ashu Tyagi - safe fetch: never call res.json() directly on unknown sheet endpoints
-      const rows = await (async function(){
-        try{
-          const r = await fetch(url, { cache: "no-store" });
-          if (!r || !r.ok) return [];
-          const text = await r.text();
-          const t = (text || "").trim();
-
-          // Try plain JSON
-          if (t.startsWith("[") || t.startsWith("{")){
-            try{
-              const j = JSON.parse(t);
-              if (Array.isArray(j)) return j;
-              if (j && j.table && Array.isArray(j.table.rows)) {
-                const headers = (j.table.cols || []).map(c => (c && (c.label || c.id)) || "");
-                return (j.table.rows || []).map(rw => {
-                  const obj = {};
-                  (rw.c || []).forEach((cell, i) => {
-                    const key = headers[i] || `Col${i+1}`;
-                    obj[key] = cell && (cell.v != null ? cell.v : cell.f) || "";
-                  });
-                  return obj;
-                });
-              }
-            }catch(e){}
-          }
-
-          // Try GVIZ wrapper setResponse(...)
-          const m = text.match(/setResponse\(([\s\S]*?)\);?/);
-          if (m){
-            try{
-              const parsed = JSON.parse(m[1]);
-              const table = parsed && parsed.table;
-              if (table && table.cols && table.rows){
-                const headers = table.cols.map(c => (c && (c.label || c.id)) || "");
-                return table.rows.map(rw => {
-                  const obj = {};
-                  (rw.c || []).forEach((cell,i) => {
-                    const key = headers[i] || `Col${i+1}`;
-                    obj[key] = cell && (cell.v != null ? cell.v : cell.f) || "";
-                  });
-                  return obj;
-                });
-              }
-            }catch(e){}
-          }
-
-          // Fallback: try JSON.parse then empty array
-          try{ return JSON.parse(text); }catch(e){ return []; }
-        }catch(err){
-          console.error('Category safe fetch error (Ashu Tyagi):', err);
-          return [];
-        }
-      })();
-
-      const container = document.getElementById("categorySection");
-      const grouped = {};
-      let currentSection = "";
-      let sectionHidden = false;
-
-      rows.forEach((row) => {
-        const titleCell = String(getCell(row, "Title") || "").trim();
-        if (titleCell){
-          currentSection = titleCell;
-          sectionHidden = rowHasHideMarker(row);
-          return;
-        }
-        if (!currentSection) return;
-        if (sectionHidden) return;
-        if (rowHasHideMarker(row)) return;
-
-        const name = String(getCell(row, "Category Name") || "").trim();
-        const img  = String(getCell(row, "Category Image") || "").trim();
-        let link   = String(getCell(row, "Link") || "").trim();
-        if (!name || !img) return;
-
-        if (!grouped[currentSection]) grouped[currentSection] = [];
-        grouped[currentSection].push({ name, img, link: link || "#" });
-      });
-
-      Object.entries(grouped).forEach(([section, items]) => {
-        if (!items || !items.length) return;
-
-        const wrap = document.createElement("div");
-        wrap.className = "section-strip-wrap";
-
-        const leftLine = document.createElement("div");
-        leftLine.className = "section-strip-line";
-
-        const strip = document.createElement("div");
-        strip.className = "section-strip";
-        strip.innerHTML = `<span class="strip-text">${section}</span>`;
-
-        const rightLine = document.createElement("div");
-        rightLine.className = "section-strip-line";
-
-        wrap.appendChild(leftLine);
-        wrap.appendChild(strip);
-        wrap.appendChild(rightLine);
-        container.appendChild(wrap);
-
-        const grid = document.createElement("div");
-        grid.style.display = "grid";
-        grid.style.gridTemplateColumns = "1fr 1fr";
-        grid.style.gap = "18px";
-
-        items.forEach(item => {
-          const box = document.createElement("a");
-          box.href = item.link || "#";
-          box.style.textDecoration = "none";
-          box.style.color = "inherit";
-          
-          const isVideo = /\.(mp4|webm|mov)(\?|$)/i.test(item.img);
-          const mediaTag = isVideo
-            ? `<video class="category-media" src="${item.img}" autoplay muted loop playsinline preload="metadata" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture></video>`
-            : `<img class="category-media" src="${item.img}" alt="${item.name}">`;
-          box.innerHTML = `
-            <div style="text-align:center;">
-              ${mediaTag}
-              <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
-            </div>`;
-          grid.appendChild(box);
-        });
-
-        container.appendChild(grid);
-      });
-    }catch(err){
-      console.error("Category load error:", err);
-    }
-  })();
+  // 
 </script>
 <script>
   // Announcement Bar from Google Sheet
@@ -2471,7 +2336,14 @@ window.closeHeaderSearch = function(){
 
 
 
-
+<script>
+  window.addEventListener("load", function() {
+    setTimeout(() => {
+      const ig = document.getElementById("igFollowBanner");
+      if (ig) ig.style.display = "block";
+    }, 2000);
+  });
+</script>
 
 
 
@@ -2572,5 +2444,333 @@ window.closeHeaderSearch = function(){
   window.__closeProfilePopup = closePopup;
 })();
 </script>
+<!-- START: SWR loader + live revalidate for catalog -->
+<script>
+(function(){
+  // ---- CONFIG ----
+  const POLL_MS = 3000;               // poll interval
+  const CACHE_PREFIX = "gswr::";      // same prefix used elsewhere
+  const FALLBACK_SHEET = "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
+
+  // Resolve a sheet URL from existing globals if present (keeps your current config usable)
+  const SHEET_URL = (typeof JSON_URL !== "undefined" && JSON_URL)
+      ? JSON_URL
+      : (typeof FULL_SHEET_URL !== "undefined" && typeof SHEET_TAB_NAME !== "undefined" && typeof getSheetId === "function")
+        ? (function(){
+            const id = getSheetId(FULL_SHEET_URL);
+            return id ? `https://opensheet.elk.sh/${encodeURIComponent(id)}/${encodeURIComponent(SHEET_TAB_NAME)}` : FULL_SHEET_URL;
+          })()
+        : FALLBACK_SHEET;
+
+  // ---- helpers: local cache read/write (compatible with other GSWR code) ----
+  function cacheKey(url){ return CACHE_PREFIX + url; }
+  function writeLocalCache(url, bodyText, mime){
+    try{
+      localStorage.setItem(cacheKey(url), JSON.stringify({ v:1, t: Date.now(), mime: mime || "application/json", body: bodyText }));
+    }catch(e){ /* ignore */ }
+  }
+  function readLocalCacheRaw(url){
+    try{
+      const raw = localStorage.getItem(cacheKey(url));
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+
+  // ---- parse text into JS data (tries JSON, GViz, setResponse wrapper) ----
+  function parseSheetText(text){
+    if(!text) return null;
+    try{ return JSON.parse(text); }catch(e){}
+    // try GViz-style setResponse wrapper
+    try{
+      const m = String(text).match(/setResponse\(([\s\S]*?)\);?$/);
+      if(m && m[1]) return JSON.parse(m[1]);
+    }catch(e){}
+    // fallback: try parseGviz if present
+    if (typeof parseGviz === 'function'){
+      try { return parseGviz(text); } catch(e){}
+    }
+    return null;
+  }
+
+  // ---- small nav utils: detect reload or ?nocache=1 ----
+  function wasPageReload(){
+    try{
+      const nav = performance.getEntriesByType && performance.getEntriesByType('navigation');
+      if(nav && nav[0] && nav[0].type === 'reload') return true;
+      if(performance && performance.navigation && performance.navigation.type === 1) return true;
+    }catch(e){}
+    return false;
+  }
+  const urlParams = new URLSearchParams(location.search || "");
+  const forceNetworkOnLoad = urlParams.get('nocache') === '1' || wasPageReload();
+
+  // ---- rendering state ----
+  let lastRenderedCanonical = "";   // JSON.stringify(rows) of last rendered data
+  let inflightFetch = null;
+  let isDragging = false;
+  let pendingRender = null;
+
+  // ---- drag/press detection: defer renders while user is interacting ----
+  function startUserInteraction(){ isDragging = true; }
+  function stopUserInteraction(){
+    isDragging = false;
+    if (pendingRender){
+      // small timeout to avoid thrash immediately after scroll end
+      const p = pendingRender;
+      pendingRender = null;
+      setTimeout(()=> doRender(p.rows, p.meta), 60);
+    }
+  }
+  ['pointerdown','touchstart','dragstart'].forEach(ev => document.addEventListener(ev, startUserInteraction, {passive:true}));
+  ['pointerup','touchend','dragend','pointercancel','touchcancel'].forEach(ev => document.addEventListener(ev, stopUserInteraction, {passive:true}));
+
+  // ---- capture/restore horizontal scroll positions for important strips ----
+  // To mark a container as preserved across re-renders, add `data-preserve-scroll` to it.
+  function captureScrollMap(container){
+    const map = {};
+    if(!container) return map;
+    const candidates = container.querySelectorAll('[data-preserve-scroll], #imageStrip, .image-strip-container, .gallery-row, .slide-row');
+    candidates.forEach((el, idx) => {
+      let key = el.id || el.dataset.preserveKey;
+      if(!key){
+        key = 'preserve-' + Date.now() + '-' + idx;
+        el.dataset.preserveKey = key;
+      }
+      map[key] = el.scrollLeft || 0;
+    });
+    return map;
+  }
+  function restoreScrollMap(container, map){
+    if(!container) return;
+    Object.keys(map).forEach(k => {
+      const el = container.querySelector('#' + k) || container.querySelector(`[data-preserve-key="${k}"]`) || container.querySelector(`[data-preserve-key="${k.replace(/"/g,'\\\"')}"]`);
+      if(el) try{ el.scrollLeft = map[k]; }catch(e){}
+    });
+  }
+
+  // ---- small network fetch wrapper (dedupe concurrent requests) ----
+  async function fetchNetworkNoStore(url){
+    if (inflightFetch && inflightFetch.url === url) return inflightFetch.promise;
+    const p = (async () => {
+      const res = await fetch(url, { cache: "no-store" });
+      const text = await res.text();
+      return { ok: res.ok, status: res.status, text };
+    })();
+    inflightFetch = { url, promise: p };
+    try{
+      const r = await p;
+      inflightFetch = null;
+      return r;
+    }catch(e){
+      inflightFetch = null;
+      throw e;
+    }
+  }
+
+  // ---- revalidate: fetch network, compare canonical data, update cache + event if changed ----
+  async function revalidateAndMaybeUpdate(url, previousCanonical){
+    try{
+      const net = await fetchNetworkNoStore(url);
+      if(!net || !net.ok) return { updated:false, same:false, bodyText:null };
+      const parsed = parseSheetText(net.text);
+      if(parsed === null) return { updated:false, same:false, bodyText: net.text };
+      const canonical = JSON.stringify(parsed);
+      if(canonical === previousCanonical) return { updated:false, same:true, bodyText: net.text };
+      // write cache (store raw text so other parts remain compatible)
+      writeLocalCache(url, net.text, "application/json");
+      // dispatch update event with old/new canonical data
+      try{
+        window.dispatchEvent(new CustomEvent('swr:cache:update', { detail: { url, old: previousCanonical, newCanonical: canonical } }));
+      }catch(e){}
+      return { updated:true, same:false, canonical, parsed, bodyText: net.text };
+    }catch(e){
+      return { updated:false, same:false, bodyText: null };
+    }
+  }
+
+  // ---- main render function (re-uses the original category rendering logic) ----
+  function doRender(rows, meta){
+    // If dragging, defer
+    if (isDragging){
+      pendingRender = { rows, meta };
+      return;
+    }
+    try{
+      const container = document.getElementById('content') || document.getElementById('categorySection') || document.body;
+      if(!container) return;
+      // capture scrolls we care about
+      const scrollMap = captureScrollMap(container);
+
+      // canonical compare (rows is JS array/object)
+      const canonical = JSON.stringify(rows || []);
+      if (canonical === lastRenderedCanonical) {
+        // nothing changed
+        restoreScrollMap(container, scrollMap);
+        return;
+      }
+      lastRenderedCanonical = canonical;
+
+      // Clear container and re-render using the same UI as original renderer
+      container.innerHTML = '';
+
+      // The original renderer grouped items by a preceding "Title" row.
+      const grouped = {};
+      let currentSection = "";
+      let sectionHidden = false;
+      (rows || []).forEach((row) => {
+        const titleCell = String(typeof getCell === 'function' ? getCell(row,"Title") : (row.Title || "" ) || "").trim();
+        if (titleCell){
+          currentSection = titleCell;
+          sectionHidden = (typeof rowHasHideMarker === 'function') ? rowHasHideMarker(row) : false;
+          return;
+        }
+        if (!currentSection) return;
+        if (sectionHidden) return;
+        if (typeof rowHasHideMarker === 'function' && rowHasHideMarker(row)) return;
+
+        const name = String(typeof getCell === 'function' ? getCell(row,"Category Name") : (row["Category Name"] || "") || "").trim();
+        const img  = String(typeof getCell === 'function' ? getCell(row,"Category Image") : (row["Category Image"] || "") || "").trim();
+        let link   = String(typeof getCell === 'function' ? getCell(row,"Link") : (row["Link"] || "") || "").trim();
+        if (!name || !img) return;
+
+        if (!grouped[currentSection]) grouped[currentSection] = [];
+        grouped[currentSection].push({ name, img, link: link || "#" });
+      });
+
+      Object.entries(grouped).forEach(([section, items]) => {
+        if (!items || !items.length) return;
+
+        const wrap = document.createElement('div');
+        wrap.className = "section-strip-wrap";
+
+        const leftLine = document.createElement('div');
+        leftLine.className = "section-strip-line";
+
+        const strip = document.createElement('div');
+        strip.className = "section-strip";
+        strip.innerHTML = `<span class="strip-text">${section}</span>`;
+
+        const rightLine = document.createElement('div');
+        rightLine.className = "section-strip-line";
+
+        wrap.appendChild(leftLine);
+        wrap.appendChild(strip);
+        wrap.appendChild(rightLine);
+        container.appendChild(wrap);
+
+        const grid = document.createElement('div');
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "1fr 1fr";
+        grid.style.gap = "18px";
+
+        items.forEach(item => {
+          const box = document.createElement('a');
+          box.href = item.link || "#";
+          box.style.textDecoration = "none";
+          box.style.color = "inherit";
+
+          const isVideo = /\.(mp4|webm|mov)(\?|$)/i.test(item.img);
+          const mediaTag = isVideo
+            ? `<video class="category-media" src="${item.img}" autoplay muted loop playsinline preload="metadata" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture></video>`
+            : `<img class="category-media" src="${item.img}" alt="${item.name}">`;
+          box.innerHTML = `
+            <div style="text-align:center;">
+              ${mediaTag}
+              <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
+            </div>`;
+          grid.appendChild(box);
+        });
+
+        container.appendChild(grid);
+      });
+
+      // restore preserved scrolls
+      restoreScrollMap(container, scrollMap);
+    }catch(e){
+      console.error("render error:", e);
+    }
+  }
+
+  // ---- primary loader: SWR behaviour ----
+  async function loadAndRenderCatalog(){
+    const url = SHEET_URL;
+    if(!url) {
+      console.warn("No sheet URL configured for loadAndRenderCatalog()");
+      return;
+    }
+
+    // Attempt to read cached raw body (if available)
+    const rawCache = readLocalCacheRaw(url);
+    let cachedParsed = null, cachedCanonical = "";
+    if (rawCache && rawCache.body){
+      cachedParsed = parseSheetText(rawCache.body);
+      if (cachedParsed !== null) cachedCanonical = JSON.stringify(cachedParsed);
+    }
+
+    // 1) If not forcing network and we have cachedParsed -> render it immediately
+    if (!forceNetworkOnLoad && cachedParsed){
+      try { doRender(cachedParsed, { fromCache:true }); } catch(e){}
+      // background revalidate (don't block)
+      revalidateAndMaybeUpdate(url, cachedCanonical).then(res => {
+        if(res && res.updated && res.parsed){
+          doRender(res.parsed, { fromNetwork:true });
+        }
+      });
+      return;
+    }
+
+    // 2) Otherwise fetch network (first load or forced)
+    try{
+      const net = await fetchNetworkNoStore(url);
+      if(net && net.ok){
+        const parsed = parseSheetText(net.text);
+        if (parsed !== null){
+          // store raw text for compatibility + dispatch update if necessary
+          const previous = cachedCanonical;
+          writeLocalCache(url, net.text, "application/json");
+          const canonical = JSON.stringify(parsed);
+          if (canonical !== previous){
+            try{
+              window.dispatchEvent(new CustomEvent('swr:cache:update', { detail: { url, old: previous, newCanonical: canonical } }));
+            }catch(e){}
+          }
+          doRender(parsed, { fromNetwork:true });
+        } else {
+          // fallback: try cachedParsed if network parsing failed
+          if(cachedParsed) doRender(cachedParsed, { fromCache:true });
+        }
+      } else {
+        // network failed: fallback to cache if available
+        if(cachedParsed) doRender(cachedParsed, { fromCache:true });
+      }
+    }catch(e){
+      if(cachedParsed) doRender(cachedParsed, { fromCache:true });
+      console.warn("loadAndRenderCatalog network error:", e);
+    }
+  }
+
+  // ---- polling loop: call revalidate every POLL_MS, but avoid unnecessary renders ----
+  setInterval(async () => {
+    const url = SHEET_URL;
+    if(!url) return;
+    // read current cached canonical
+    const rawCache = readLocalCacheRaw(url);
+    const prevParsed = rawCache && rawCache.body ? parseSheetText(rawCache.body) : null;
+    const prevCanonical = prevParsed ? JSON.stringify(prevParsed) : "";
+    const res = await revalidateAndMaybeUpdate(url, prevCanonical);
+    if(res && res.updated && res.parsed){
+      doRender(res.parsed, { fromPoll:true });
+    }
+  }, POLL_MS);
+
+  // expose public function & start
+  window.loadAndRenderCatalog = loadAndRenderCatalog;
+  // Start immediately
+  loadAndRenderCatalog();
+
+})();
+</script>
+<!-- END: SWR loader + live revalidate for catalog -->
 </body>
 </html>
