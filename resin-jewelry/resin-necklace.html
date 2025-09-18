@@ -4245,6 +4245,20 @@ if (popup){
 <script>
 /* ===== New Named Function + Listener ===== */
 
+
+// ---------- preserve UX: detect user interacting (drag/swipe) ----------
+window._userInteracting = false;
+(function(){
+  const root = document;
+  root.addEventListener('pointerdown', ()=> window._userInteracting = true, {passive:true});
+  root.addEventListener('touchstart', ()=> window._userInteracting = true, {passive:true});
+  root.addEventListener('pointerup', () => {
+    setTimeout(()=> window._userInteracting = false, 250);
+  }, {passive:true});
+  root.addEventListener('touchend', () => {
+    setTimeout(()=> window._userInteracting = false, 250);
+  }, {passive:true});
+})();
 async function loadAndRenderCatalog() {
   try {
     // ensure SHEET_URL is defined
@@ -4256,14 +4270,42 @@ async function loadAndRenderCatalog() {
     const res = await fetch(SHEET_URL, {cache: "no-store"});
     const data = await res.json();
 
-    if (typeof applyDirectionFromSheet === "function") {
+    
+
+    // --- avoid full re-render if data hasn't changed (fast snapshot) ---
+    try {
+      const latestSnapshot = JSON.stringify((data || []).map(d => (d['Product Name']||'') + '::' + (d['Selling Price']||'')));
+      if (window._lastSnapshot === latestSnapshot) {
+        // no visible change — skip rebuilding to preserve UX
+        return;
+      }
+      window._lastSnapshot = latestSnapshot;
+    } catch(e){/* ignore snapshot errors */}
+if (typeof applyDirectionFromSheet === "function") {
       applyDirectionFromSheet(data);
     }
     window.catalogData = data;
 
-    const content = document.getElementById("content");
-    if (!content) return;
-    content.innerHTML = "";
+    
+const content = document.getElementById("content");
+if (!content) return;
+
+// if user is interacting (swiping), skip re-render to avoid reset
+if (window._userInteracting) {
+  if (window._swr_delayed_retry) clearTimeout(window._swr_delayed_retry);
+  window._swr_delayed_retry = setTimeout(() => {
+    if (!window._userInteracting) loadAndRenderCatalog();
+  }, 800);
+  return;
+}
+
+// --- capture scroll positions of existing product-grid containers (by index) ---
+const prevGrids = Array.from(content.querySelectorAll('.product-grid'));
+const prevScrolls = prevGrids.map(g => g.scrollLeft || 0);
+
+// clear old nodes (we will restore scrolls afterwards)
+content.innerHTML = "";
+
 
     let currentSection = "";
     let sectionWrapper = null;
@@ -4419,7 +4461,18 @@ async function loadAndRenderCatalog() {
       sectionWrapper.appendChild(product);
     });
 
-    if (typeof maybeOpenFromURL === "function") maybeOpenFromURL();
+    
+
+// --- restore scroll positions to corresponding product-grid elements ---
+try {
+  const newGrids = Array.from(content.querySelectorAll('.product-grid'));
+  newGrids.forEach((g, i) => {
+    if (typeof prevScrolls[i] === 'number') {
+      requestAnimationFrame(() => { g.scrollLeft = prevScrolls[i]; });
+    }
+  });
+} catch(e) { /* ignore */ }
+if (typeof maybeOpenFromURL === "function") maybeOpenFromURL();
 
   } catch (err) {
     console.error("Failed to load products:", err);
