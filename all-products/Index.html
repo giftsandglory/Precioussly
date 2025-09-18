@@ -42,11 +42,11 @@
   justify-content: center;
   border-radius: 6px;
   transition: background 0.2s ease;
-  outline: none !important;               /* ✅ Removes dotted focus */
-  box-shadow: none !important;            /* ✅ No glow */
-  -webkit-tap-highlight-color: transparent !important;  /* ✅ Remove Android/iOS grey flash */
-  user-select: none;                      /* ✅ Prevents accidental text selection */
-  touch-action: manipulation;            /* ✅ Better touch response */
+  outline: none !important;               
+  box-shadow: none !important;            
+  -webkit-tap-highlight-color: transparent !important;  
+  user-select: none;                      
+  touch-action: manipulation;            
 }
 
 .quantity-bar button:focus {
@@ -58,8 +58,6 @@
 .quantity-bar button:active {
   background: transparent !important;
 }
-
-
 
 .quantity-display {
   font-size: 15px;
@@ -82,18 +80,17 @@ body.noscroll {
   width:100%;
   height:100%;
   aspect-ratio:1/1;
-  object-fit:cover;    /* fill the 1:1 square */
+  object-fit:cover;    
   display:block;
 }
 
-/* 👇 SIMPLE popup slider (fade only) */
 #popupSlider{
   position: relative;
   min-height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;             /* no overflow peeking */
+  overflow: hidden;             
 }
 
 .popup-slide{
@@ -105,7 +102,7 @@ body.noscroll {
   object-fit: cover;
   border-radius: 14px;
   opacity: 0;
-  transition: opacity 180ms ease-in-out;  /* ✅ only fade */
+  transition: opacity 180ms ease-in-out;  
   pointer-events: none;
   z-index: 0;
 }
@@ -115,7 +112,6 @@ body.noscroll {
   z-index: 1;
 }
 
-/* Dots – no width animation */
 .popup-dots{
   display: flex;
   justify-content: center;
@@ -138,7 +134,7 @@ body.noscroll {
   justify-content: center;
 }
 .mini-spinner {
-  width: 16px;   /* ✅ smaller spinner to match button height */
+  width: 16px;   
   height: 16px;
   border: 2px solid #fff;
   border-top: 2px solid rgba(255,255,255,0.2);
@@ -160,14 +156,13 @@ body.noscroll {
     }
 
     .section-title {
-  font-size: 16px;         /* smaller font size */
-  font-weight: 400;        /* normal font weight */
+  font-size: 16px;         
+  font-weight: 400;        
   text-align: center;
-  padding: 14px 12px 8px;  /* reduced padding */
+  padding: 14px 12px 8px;  
   background: #fff;
 }
 
-    
 .product-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -175,12 +170,10 @@ body.noscroll {
   padding: 10px;
 }
 
-
     .product {
       position: relative;
     }
 
-    
   .product img {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -189,13 +182,12 @@ body.noscroll {
   transition: transform 0.3s ease;
 }
 
-    
     .badge {
   position: absolute;
   top: 8px;
   left: 8px;
-  background: #fbb6ce; /* light pink */
-  color: #87003b;       /* dark pink for text */
+  background: #fbb6ce; 
+  color: #87003b;       
   font-size: 11px;
   font-weight: 700;
   padding: 4px 8px;
@@ -237,8 +229,8 @@ body.noscroll {
   transition: background 0.3s ease;
   font-family: 'Roboto Slab', serif;
 
-  width: 100px;          /* ✅ FIXED WIDTH */
-  height: 36px;          /* ✅ FIXED HEIGHT */
+  width: 100px;          
+  height: 36px;          
   box-sizing: border-box;
 }
 
@@ -251,16 +243,15 @@ body.noscroll {
   background: #2563eb;
   transform: none;
 }
-  
-/* === HEADER + ANNOUNCEMENT BAR === */
+
 .site-header {
   background-color: #ffffff;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px; /* Reduced padding */
+  padding: 12px 16px; 
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  min-height: 56px;   /* Same as index.html height */
+  min-height: 56px;   
 }
 
 .left-section {
@@ -322,9 +313,9 @@ body.noscroll {
   line-height: 22px;
   user-select: none;
 }
-/* === Popup Animation & Layout (ULTRA SMOOTH) === */
+
 #productPopup {
-  /* overlay */
+  
   display: none;
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.18);
@@ -350,7 +341,6 @@ body.noscroll {
   border: 1px solid rgba(0,0,0,0.08);
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
 
-  /* smoother start */
   transform: translateY(18px) scale(.975);
   opacity: 0;
   transform-origin: center;
@@ -379,31 +369,22 @@ body.noscroll {
   opacity: 0;
 }
 
-/* Dots subtle */
 .popup-dot { transition: background 200ms ease, width 240ms ease; }
 .popup-dot.active { background: rgba(0,0,0,0.7); width: 22px; }
 
-/* Micro-interactions */
 .add-btn { transition: transform 120ms ease, box-shadow 120ms ease; }
 .add-btn:active { transform: scale(.98); }
 .quantity-bar button:active { transform: scale(.95); }
 
-/* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   #productPopup, .popup-card, .popup-slide, .add-btn { transition: none !important; }
 }
 
-/* === WhatsApp share button on popup === */
-
-
-
-
-/* WhatsApp share button new position (right-bottom of photo) */
 .popup-media{ position: relative; }
 
 .wh-share {
   position: absolute;
-  bottom: -40px; /* photo ke neeche le jane ke liye */
+  bottom: -40px; 
   right: 0;
   width: auto;
   height: auto;
@@ -413,12 +394,12 @@ body.noscroll {
 }
 
 .wh-share img {
-  width: 50px;  /* 🔹 Bada size */
+  width: 50px;  
   height: 50px;
   display: block;
   object-fit: contain;
 }
-/* === Cart badge ultra-smooth pop === */
+
 #cartCountBadge{
   transform-origin: center;
   will-change: transform;
@@ -434,7 +415,6 @@ body.noscroll {
   100% { transform: scale(1); }
 }
 
-/* === Auto Description (Details box) === */
 .desc-box {
   margin: 10px 6px 0;
   background: #fff;
@@ -459,23 +439,20 @@ body.noscroll {
 .desc-text ul { margin: 0; padding-left: 18px; }
 .desc-text li { margin: 8px 0; }
 
-
-/* === Fixed popup size + inner scroll === */
 .popup-card{
-  max-height: 88vh;              /* card won't grow beyond this */
+  max-height: 88vh;              
   display: flex;
   flex-direction: column;
 }
 .popup-body{
-  overflow-y: auto;               /* scroll inside */
+  overflow-y: auto;               
   -webkit-overflow-scrolling: touch;
   padding-bottom: 10px;
 }
 
-/* Summary chevron */
 .desc-box summary {
   position: relative;
-  padding-right: 28px;            /* room for chevron */
+  padding-right: 28px;            
 }
 .desc-box summary::after{
   content: "";
@@ -485,70 +462,67 @@ body.noscroll {
   width: 8px; height: 8px;
   border-right: 2px solid #222;
   border-bottom: 2px solid #222;
-  transform: translateY(-60%) rotate(-45deg); /* closed */
+  transform: translateY(-60%) rotate(-45deg); 
   transition: transform .2s ease;
 }
 .desc-box[open] summary::after{
-  transform: translateY(-30%) rotate(45deg);  /* open */
+  transform: translateY(-30%) rotate(45deg);  
 }
-/* Hide inner scrollbars (no thin line) */
+
 .popup-body,
 .desc-text {
-  scrollbar-width: none;          /* Firefox */
-  -ms-overflow-style: none;       /* Old Edge/IE */
-  overscroll-behavior: contain;   /* no edge glow */
+  scrollbar-width: none;          
+  -ms-overflow-style: none;       
+  overscroll-behavior: contain;   
 }
 .popup-body::-webkit-scrollbar,
 .desc-text::-webkit-scrollbar {
   width: 0;
   height: 0;
-  display: none;                  /* Chrome/Safari */
+  display: none;                  
   background: transparent;
 }
 #cartCountBadge {
   font-family: 'Roboto Slab', serif !important;
-  font-weight: 200; /* bold look */
-  font-size: 14px;  /* adjust number size */
+  font-weight: 200; 
+  font-size: 14px;  
 }
 
-/* Hide dots container when empty (no dots added) */
 .popup-dots:empty { display: none !important; }
 </style>
 <style>
-/* Horizontal container: ultra-smooth, no jerks, iOS-like momentum */
+
 body.horizontal-mode .product-grid{
   display: flex !important;
   flex-wrap: nowrap !important;
   gap: 12px !important;
 
   overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch !important; /* iOS smooth scrolling */
+  -webkit-overflow-scrolling: touch !important; 
   scroll-behavior: smooth !important;
-  touch-action: auto !important; /* ✅ allow pinch-zoom + normal scroll */
+  touch-action: auto !important; 
   overscroll-behavior-x: contain !important;
 
   scroll-snap-type: none !important;
-  padding: 10px 12px 14px 12px !important; /* side padding */
+  padding: 10px 12px 14px 12px !important; 
 }
 body.horizontal-mode .product-grid::-webkit-scrollbar{ height: 0; }
 body.horizontal-mode .product-grid{ scrollbar-width: none; }
 
-/* ✅ Smaller card size for premium look */
 body.horizontal-mode .product{
-  min-width: 42vw;  /* was 47vw */
-  max-width: 230px; /* was 260px */
+  min-width: 42vw;  
+  max-width: 230px; 
   scroll-snap-align: none !important;
   display: flex !important;
   flex-direction: column !important;
 }
 
-/* Product image */
 body.horizontal-mode .product img{
   width: 100% !important;
   aspect-ratio: 1 / 1 !important;
   height: auto !important;
   object-fit: cover !important;
-  border-radius: 10px !important; /* sleeker corners */
+  border-radius: 10px !important; 
   display: block !important;
 }
 \1height: 100% !important; aspect-ratio: 1 / 1 !important;
@@ -557,27 +531,23 @@ body.horizontal-mode .product img{
   background:#000;
 }
 
-
-/* Flexible content */
 body.horizontal-mode .product .content,
 body.horizontal-mode .product .details,
 body.horizontal-mode .product .info{
   flex: 1 1 auto !important;
 }
 
-/* Buttons */
 body.horizontal-mode .product .btn,
 body.horizontal-mode .product button,
 body.horizontal-mode .product .add-to-cart{
   margin-top: auto !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 9px 10px !important; /* slightly smaller padding */
+  padding: 9px 10px !important; 
   font-size: 13px !important;
   border-radius: 10px !important;
 }
 
-/* Title */
 body.horizontal-mode .product h3,
 body.horizontal-mode .product .title{
   font-size: 14px !important;
@@ -589,21 +559,20 @@ body.horizontal-mode .product .title{
   overflow: hidden;
 }
 
-/* Price */
 body.horizontal-mode .product .price,
 body.horizontal-mode .product .price-row{
   font-size: 12px !important;
 }
 </style>
 <style>
-/* ===== Mode 3: horizontal swipe + smaller product cards ===== */
+
 body.horizontal-mode.small-cards .product-grid{
   gap: 10px !important;
   padding: 8px 10px 12px 10px !important;
 }
 body.horizontal-mode.small-cards .product{
-  min-width: 34vw !important;   /* smaller than mode 2 */
-  max-width: 200px !important;   /* smaller than mode 2 */
+  min-width: 34vw !important;   
+  max-width: 200px !important;   
 }
 body.horizontal-mode.small-cards .product img{
   border-radius: 10px !important;
@@ -626,7 +595,6 @@ body.horizontal-mode.small-cards .product .add-to-cart{
 
 <style>
 
-/* === Side Menu (same as index.html look) === */
 .menu-overlay{
   position:fixed; inset:0;
   background:rgba(0,0,0,.45);
@@ -667,7 +635,6 @@ body.horizontal-mode.small-cards .product .add-to-cart{
   cursor:pointer; -webkit-tap-highlight-color:transparent;
 }
 
-/* Unified button list (green first button) */
 #sideMenu #menuContent{ display:flex; flex-direction:column; gap:10px; padding:8px 16px 18px; }
 #sideMenu .menu-link{
   display:block; text-align:center; padding:10px 14px;
@@ -681,9 +648,8 @@ body.horizontal-mode.small-cards .product .add-to-cart{
 
 </style>
 
-
 <style>
-/* ==== Floating action buttons (WhatsApp + Top) ==== */
+
 .fab-stack{position:fixed;right:10px;bottom:14px;display:flex;flex-direction:column;gap:12px;z-index:6000;pointer-events:none}
 .fab-btn{width:56px;height:56px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;pointer-events:auto;-webkit-tap-highlight-color:transparent}
 #toTopBtn{width:55px;height:55px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
@@ -691,11 +657,9 @@ body.horizontal-mode.small-cards .product .add-to-cart{
 #waBtn{width:55px;height:55px;border:none;border-radius:0;background:none;box-shadow:none;display:flex;align-items:center;justify-content:center;padding:0}
 #waBtn img{display:block;width:100%;height:100%;object-fit:contain}
 
-/* ==== Smart header (hide on scroll down, show on scroll up) ==== */
 .site-header{position:sticky;top:0;z-index:3500;transition:transform .35s ease;will-change:transform;backface-visibility:hidden}
 .site-header.header-hidden{transform:translateY(-100%)}
 
-/* Basic overlay + side-menu container (no blur) */
 .menu-overlay {
   position: fixed;
   inset: 0;
@@ -712,8 +676,8 @@ body.horizontal-mode.small-cards .product .add-to-cart{
 .side-menu {
   position: fixed;
   inset: 0 0 0 auto;
-  width: min(70vw, 300px); /* reduced from 88vw, 420px */
-  max-width: 300px;       /* was 420px */
+  width: min(70vw, 300px); 
+  max-width: 300px;       
   background: #fff;
   transform: translateX(100%);
   transition: transform 0.3s ease;
@@ -731,19 +695,19 @@ body.horizontal-mode.small-cards .product .add-to-cart{
   border-bottom: 1px solid #eee;
 }
 .menu-title {
-  font-size: 18px;       /* reduced from 28px */
-  font-weight: 600;      /* slightly lighter */
+  font-size: 18px;       
+  font-weight: 600;      
 }
 
 .menu-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;           /* reduced from 42px */
-  height: 32px;          /* reduced from 42px */
+  width: 32px;           
+  height: 32px;          
   border: 1px solid #111;
-  border-radius: 10px;   /* slightly smaller radius for proportion */
-  font-size: 14px;       /* smaller ✕ icon */
+  border-radius: 10px;   
+  font-size: 14px;       
   cursor: pointer;
 }
 #menuContent {
@@ -765,14 +729,13 @@ body.horizontal-mode.small-cards .product .add-to-cart{
 </style>
 
 <style>
-/* === FIX: Left-side menu like index.html (smaller) === */
+
 .menu-overlay{
   opacity:0; display:none;
   transition: opacity .35s cubic-bezier(.22,1,.36,1) !important;
 }
 .menu-overlay.active{ display:block; opacity:1; }
 
-/* Drawer from LEFT, smaller width */
 .side-menu{
   left:0 !important; right:auto !important;
   width:84vw !important; max-width:360px !important;
@@ -783,7 +746,7 @@ body.horizontal-mode.small-cards .product .add-to-cart{
   padding:16px 12px !important;
 }
 .side-menu.active{ transform: translateX(0) !important; }
-/* Paste this AFTER all previous .side-menu CSS */
+
 nav.side-menu {
   width: min(74vw, 270px) !important;
   max-width: 270px !important;
@@ -801,7 +764,7 @@ nav.side-menu {
 }
 </style>
 <style>
-/* ===== Header Search (inline) ===== */
+
 .header-search{ display:none; align-items:center; gap:8px; width:100%; }
 .header-search input{
   flex:1; padding:12px 14px; font:400 16px 'Roboto Slab', serif;
@@ -809,20 +772,17 @@ nav.side-menu {
 }
 .header-search input:focus{ border-color:#bfbfbf; }
 
-/* Back pill button */
 #headerSearchBack{
   height:36px; padding:0 14px; font:500 14px 'Roboto Slab', serif; color:#222;
   background:#fff; border:1px solid rgba(0,0,0,.18); border-radius:10px;
   box-shadow:0 2px 6px rgba(0,0,0,.06); cursor:pointer; -webkit-tap-highlight-color:transparent;
 }
 
-/* Searching mode: logo/menu/icons hide, input row show */
 .site-header.searching .hamburger-wrapper,
 .site-header.searching #logoWrap,
 .site-header.searching #rightIcons{ display:none !important; }
 .site-header.searching #headerSearchBar{ display:flex !important; }
 
-/* Suggestions box: search bar ke BILKUL niche */
 #headerSearchBar{ position:relative; }
 #headerSearchResults{
   position:absolute; top:calc(100% + 10px); left:0; right:0;
@@ -839,16 +799,11 @@ nav.side-menu {
 .header-suggest .price{ font-size:13px; color:#111; }
 .header-suggest .tag{ font-size:11px; padding:3px 6px; border:1px solid #ddd; border-radius:8px; color:#333; }
 
-/* Header sticky (already present; ensure z-index high) */
 .site-header{ position:sticky; top:0; z-index:3500; }
 </style>
 
-<!-- === NO-ANIMATION OVERRIDES (injected) === -->
-
-
-
 <style>
-/* ===== Title truncation + consistent button alignment ===== */
+
 .product, .product-card{
   display: flex !important;
   flex-direction: column !important;
@@ -861,22 +816,19 @@ nav.side-menu {
   height: 100%;
 }
 
-/* Single-line ellipsis for long product names */
 .product h3, .product .title, .product-card h3, .product-card .title{
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  min-height: 1.35em; /* reserve height so rows align */
+  min-height: 1.35em; 
 }
 
-/* Keep price row compact */
 .product .price-row, .product-card .price-row{
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Always pin Add to Cart to the bottom of card */
 .product .add-to-cart, .product-card .add-to-cart,
 .product button.add-to-cart, .product-card button.add-to-cart,
 .product .btn.add-to-cart, .product-card .btn.add-to-cart,
@@ -884,20 +836,18 @@ nav.side-menu {
   margin-top: auto !important;
 }
 
-/* Ensure the product card itself has a minimum height so buttons line up in rows */
 .product, .product-card{
-  min-height: 360px; /* adjust if your cards are taller/shorter */
+  min-height: 360px; 
 }
-/* In Mode 3 (small-cards), use a smaller minimum height */
+
 body.horizontal-mode.small-cards .product,
 body.horizontal-mode.small-cards .product-card{
   min-height: 300px;
 }
 </style>
 
-
 <style>
-/* ===== Alignment hotfix: ensure buttons align and names truncate ===== */
+
 .product{
   display:flex !important;
   flex-direction:column !important;
@@ -906,7 +856,7 @@ body.horizontal-mode.small-cards .product-card{
   display:flex !important;
   flex-direction:column !important;
   gap:6px;
-  flex: 1 1 auto; /* grow to fill remaining space */
+  flex: 1 1 auto; 
 }
 .product .product-title{
   white-space: nowrap !important;
@@ -915,14 +865,13 @@ body.horizontal-mode.small-cards .product-card{
   display: block;
   min-height: 1.35em;
 }
-.product .add-btn{  /* the actual Add to Cart button in grid */
+.product .add-btn{  
   margin-top: auto !important;
 }
 </style>
 
-
 <style>
-/* ===== Final alignment fix: force consistent card height and button position ===== */
+
 .product{
   display:flex !important;
   flex-direction:column !important;
@@ -938,18 +887,17 @@ body.horizontal-mode.small-cards .product-card{
   align-self:stretch !important;
   margin-top:auto !important;
 }
-/* Ensure all product cards in a row have the same height */
+
 .product-grid{
   align-items:stretch !important;
 }
 </style>
 
-
 <style>
-/* ===== Spacing fix: product info should hug image ===== */
+
 .product img{
   display:block;
-  margin-bottom:6px !important; /* tighten space below image */
+  margin-bottom:6px !important; 
 }
 .product .product-info{
   margin-top:0 !important;
@@ -961,9 +909,8 @@ body.horizontal-mode.small-cards .product-card{
 }
 </style>
 
-
 <style>
-/* ===== Compact spacing: remove unnecessary whitespace below images ===== */
+
 .product img{
   display:block;
   margin:0 !important;
@@ -977,25 +924,23 @@ body.horizontal-mode.small-cards .product-card{
   line-height:0 !important;
 }
 .product .product-info{
-  margin-top:4px !important; /* minimal gap only */
+  margin-top:4px !important; 
 }
 </style>
 
-
 <style>
-/* ===== Remove gap between photo and info ===== */
+
 .product{
-  justify-content: flex-start !important; /* previously space-between created big gap */
+  justify-content: flex-start !important; 
 }
-/* Keep the button at the bottom only */
+
 .product .add-btn{
   margin-top: auto !important;
 }
 </style>
 
-
 <style>
-/* ===== Equal spacing for section titles ===== */
+
 .section-title, h2, h3 {
   margin-top: 20px !important;
   margin-bottom: 20px !important;
@@ -1004,9 +949,8 @@ body.horizontal-mode.small-cards .product-card{
 }
 </style>
 
-
 <style>
-/* ===== Minimal spacing for section titles ===== */
+
 .section-title, h2, h3 {
   margin-top: 6px !important;
   margin-bottom: 8px !important;
@@ -1015,23 +959,21 @@ body.horizontal-mode.small-cards .product-card{
 }
 </style>
 
-
 <style id="layout-fix-0818">
-/* === Layout fix to match the second screenshot === */
+
 .product-grid{display:grid !important; grid-template-columns:1fr 1fr !important; gap:14px !important; padding:10px !important;}
 .product{display:flex !important; flex-direction:column !important; justify-content:flex-start !important; min-height:360px !important;}
 .product img{display:block !important; margin:0 !important; padding:0 !important; border-radius:12px !important; object-fit:cover !important; aspect-ratio:1/1 !important;}
 .product .product-title{font-size:14px !important; text-align:left !important; margin:8px 6px 0 !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important;}
 .product .product-info{margin-top:4px !important; padding:0 6px !important; text-align:left !important; display:flex !important; flex-direction:column !important; gap:6px !important; flex:1 1 auto !important;}
 .product .price-row{display:flex !important; align-items:center !important; gap:8px !important;}
-.add-btn{margin-top:auto !important; width:110px !important; height:38px !important; align-self:center !important;   /* ✅ Centered */}
-/* equal spacing for section headings */
+.add-btn{margin-top:auto !important; width:110px !important; height:38px !important; align-self:center !important;   }
+
 .section-title{font-size:16px !important; font-weight:400 !important; text-align:center !important; padding:14px 12px 8px !important;}
 </style>
 
-
 <style>
-/* === Reduce spacing for section titles === */
+
 .section-title {
   margin-top: 2px !important;
   margin-bottom: 2px !important;
@@ -1039,23 +981,19 @@ body.horizontal-mode.small-cards .product-card{
   line-height: 1.2 !important;
 }
 
-/* === Reduce spacing inside product cards === */
 .product .product-info {
-  gap: 2px !important;        /* minimal gap between price and button */
-  margin-top: 0 !important;   /* remove top margin */
+  gap: 2px !important;        
+  margin-top: 0 !important;   
   padding: 0 6px !important;
 }
 
 .product .add-btn {
-  margin-top: 2px !important; /* reduce space before Add to Cart */
+  margin-top: 2px !important; 
 }
 </style>
 
-
 <style id="zero-gaps-0818">
-/* ===== Force-zero extra space below cards & between sections ===== */
 
-/* Collapse any forced card height so there is no blank area under the button */
 .product, .product-card,
 body.horizontal-mode .product,
 body.horizontal-mode.small-cards .product {
@@ -1065,7 +1003,6 @@ body.horizontal-mode.small-cards .product {
   margin-bottom: 0 !important;
 }
 
-/* Remove any bottom space inside info/button area */
 .product .product-info {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
@@ -1076,14 +1013,12 @@ body.horizontal-mode.small-cards .product {
   margin-bottom: 8px !important;
 }
 
-/* Make vertical gaps between rows extremely small */
 .product-grid {
-  row-gap: 4px !important;  /* vertical gap */
-  column-gap: 12px !important; /* keep side gap comfortable */
-  gap: 4px 12px !important; /* ensure browsers honor both */
+  row-gap: 4px !important;  
+  column-gap: 12px !important; 
+  gap: 4px 12px !important; 
 }
 
-/* Minimize spacing for headings and between a grid and the next heading */
 .section-title {
   margin-top: 4px !important;
   margin-bottom: 4px !important;
@@ -1095,35 +1030,33 @@ body.horizontal-mode.small-cards .product {
 }
 </style>
 
-
 <style id="center-add-btn-override-0818">
-/* Force-center Add to Cart button inside product cards */
+
 .product .add-btn{
   align-self: center !important;
   margin-left: auto !important;
   margin-right: auto !important;
 }
-/* Extra gap between announcement bar and first section title */
+
 .section-title:first-of-type {
-  margin-top: 12px !important;  /* adjust this value as needed */
+  margin-top: 12px !important;  
 }
 
 </style>
 
-
 <style id="pinch-zoom-fix-aug18">
-/* === Pinch-zoom fix: keep zoom enabled on horizontal modes (2 & 3) === */
+
 body.horizontal-mode .product-grid{
-  touch-action: auto !important;    /* allow pinch-zoom */
+  touch-action: auto !important;    
 }
-/* Some browsers require explicit pinch-zoom token; harmless where unsupported */
+
 @supports (touch-action: pinch-zoom) {
   body.horizontal-mode .product-grid{
     touch-action: pinch-zoom pan-x pan-y !important;
   }
 }
 </style>
-<!-- LIVE DRAG SLIDER (natural swipe) -->
+
 <style id="live-drag-slider-css">
 #popupSlider{
   position: relative !important;
@@ -1144,10 +1077,10 @@ body.horizontal-mode .product-grid{
 #popupSlider .popup-slide{
   position: relative !important;
   inset: auto !important;
-  width: 100% !important;  /* slide width shrinks by 10px */
+  width: 100% !important;  
   max-width: none !important;
   flex: 0 0 100% !important;
-  margin: 0;   /* no gutter: prevents left photo peeking */
+  margin: 0;   
   aspect-ratio: 1 / 1 !important;
   border-radius: 14px !important;
   object-fit: cover !important;
@@ -1165,12 +1098,8 @@ body.horizontal-mode .product-grid{
 .popup-dot.active{ background:rgba(0,0,0,.6); width:22px; transition: background 200ms ease, width 240ms ease; }
 </style>
 
-
-
-
-
 <style id="premium-title-lines">
-/* ===== Ultra-sleek divider lines for section titles ===== */
+
 .section-title{
   display:flex !important;
   align-items:center !important;
@@ -1191,7 +1120,7 @@ body.horizontal-mode .product-grid{
 .section-title::after{
   content:"" !important;
   flex:1 !important;
-  height:1px !important;              /* ✅ thinner line */
+  height:1px !important;              
   border-radius:1px !important;
   background:linear-gradient(to right, rgba(0,0,0,0), #111, rgba(0,0,0,0)) !important;
 }
@@ -1200,20 +1129,13 @@ body.horizontal-mode .product-grid{
   background:linear-gradient(to left, rgba(0,0,0,0), #111, rgba(0,0,0,0)) !important;
 }
 
-/* Tighten spacing between a grid and the next title */
 .product-grid + .section-title{ margin-top:10px !important; }
 </style>
 
-
-
-
-
-
 <style id="photo-dots-pink">
-/* ===== In-photo premium pink dots (ultra-minimal) ===== */
+
 .popup-media{ position: relative !important; }
 
-/* Container: sits INSIDE the photo at the bottom */
 .popup-dots{
   position: absolute;
   left: 50%;
@@ -1223,16 +1145,15 @@ body.horizontal-mode .product-grid{
   gap: 6px;
   padding: 4px 6px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.10);       /* subtle glass */
+  background: rgba(255, 255, 255, 0.10);       
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
   border: 1px solid rgba(255,255,255,0.28);
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  pointer-events: auto;                         /* allow tap */
+  pointer-events: auto;                         
   z-index: 3;
 }
 
-/* Dots: tiny, light pink theme */
 .popup-dot{
   width: 6px;
   height: 6px;
@@ -1250,7 +1171,6 @@ body.horizontal-mode .product-grid{
   will-change: transform, opacity;
 }
 
-/* Active state: slightly larger with soft glow */
 .popup-dot.active{
   opacity: 1;
   transform: scale(1.35);
@@ -1259,14 +1179,13 @@ body.horizontal-mode .product-grid{
     0 2px 6px rgba(234, 86, 146, 0.35);
 }
 
-/* Respect users who prefer less motion */
 @media (prefers-reduced-motion: reduce){
   .popup-dot{ transition: none !important; }
 }
 </style>
 
 <style id="dot-circle-override">
-/* ===== FINAL OVERRIDE: perfect circular pink dots (no pills) ===== */
+
 .popup-media{ position: relative !important; }
 .popup-dots{
   position: absolute !important;
@@ -1285,7 +1204,7 @@ body.horizontal-mode .product-grid{
   pointer-events: auto !important;
   z-index: 3 !important;
 }
-/* Always circles */
+
 .popup-dot{
   width: 8px !important;
   height: 8px !important;
@@ -1300,45 +1219,41 @@ body.horizontal-mode .product-grid{
     transform 1400ms cubic-bezier(.22,1,.36,1),
     opacity 220ms ease !important;
 }
-/* Active: slightly bigger circle (still circle) */
+
 .popup-dot.active{
   opacity: 1 !important;
   transform: scale(1.25) !important;
 }
-/* Never animate width/shape anywhere */
+
 .popup-dot, .popup-dot.active{
   width: 8px !important;
   height: 8px !important;
 }
-/* Hide when only one image */
+
 .popup-dots:empty, .popup-dots.hide { display: none !important; }
 @media (prefers-reduced-motion: reduce){
   .popup-dot{ transition: none !important; }
 }
 </style>
 
-
-
 <style id="dot-blue-override">
-/* ===== DOTS: Blue Theme ===== */
+
 .popup-dot{
-  background: linear-gradient(180deg, #b3d9ff 0%, #3399ff 100%) !important; /* light to medium blue */
+  background: linear-gradient(180deg, #b3d9ff 0%, #3399ff 100%) !important; 
 }
 .popup-dot.active{
-  background: linear-gradient(180deg, #3399ff 0%, #0066cc 100%) !important; /* darker blue active */
+  background: linear-gradient(180deg, #3399ff 0%, #0066cc 100%) !important; 
 }
 </style>
 
-
-
 <style id="dot-blue-position">
-/* ===== DOTS: Corrected position (not too high) ===== */
+
 .popup-dots{
-  bottom: 18px !important; /* balanced position */
+  bottom: 18px !important; 
 }
 </style>
 <style id="plain-desc-css">
-/* ===== Plain Description (refined, no underline) ===== */
+
 .desc-section{
   margin: 8px 8px 0;
   text-align: center;
@@ -1352,21 +1267,19 @@ body.horizontal-mode .product-grid{
   letter-spacing: .2px;
   color: #111;
 }
-/* removed underline */
-.desc-content{font-size: 12.5px;        /* slightly smaller for SEO copy */
+
+.desc-content{font-size: 12.5px;        
   line-height: 1.55;
-  height:auto; overflow:visible;           /* scroll inside if long */
+  height:auto; overflow:visible;           
   padding: 0 4px 0;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;    /* Firefox hide scrollbar */
+  scrollbar-width: none;    
   max-width: 92%;
   margin: 0 auto;
-  text-align: left;         /* more readable */
+  text-align: left;         
   color: #444;
   white-space: pre-wrap;}
 
-
-/* Make popup content the single scroll container */
 .popup-card{
   overflow-y: auto;
   max-height: 86vh;
@@ -1380,7 +1293,7 @@ body.horizontal-mode .product-grid{
   #popupPrice { margin: 0 12px 10px 12px !important; }
 </style>
 <style>
-  /* Instagram follow banner */
+  
   .ig-banner-wrap{ padding: 0 12px 18px; background:#fff; }
   .ig-banner{
     background:#f6efe8; border:1px solid #f1e7df; border-radius:18px;
@@ -1397,7 +1310,6 @@ body.horizontal-mode .product-grid{
 </style>
 <style id="pink-profile-popup-css">
 
-/* === Pink Profile Popup (ChatGPT Resin) === */
 .pp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:7000;}
 .pp-overlay.show{display:block;}
 .pp-card{
@@ -1442,20 +1354,17 @@ body.horizontal-mode .product-grid{
   margin-left:15px; margin-right:15px; width: calc(100% - 30px);}
 }
 
-
-/* --- FORCE margins 15px L/R on popup --- */
 .pp-card{
   box-sizing: border-box !important;
   left: 50% !important;
   right: auto !important;
   transform: translateX(-50%) !important;
-  width: calc(100vw - 30px) !important;   /* viewport width minus 15px+15px */
+  width: calc(100vw - 30px) !important;   
   max-width: 420px !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
 
-/* --- Ensure Track button respects same left/right margin --- */
 .pp-card .pp-cta{
   width: auto !important;
   display: block !important;
@@ -1465,13 +1374,13 @@ body.horizontal-mode .product-grid{
 </style>
 
 <style id="hide-sheet1-pill">
-/* Hide the right-side "Sheet1" pill in header search suggestions */
+
 .header-suggest .tag{ display:none !important; }
-/* Also hide any generic tag badge inside suggestions, just in case */
+
 #headerSearchResults .tag{ display:none !important; }
 </style>
 <style id="instant-popup-css">
-  /* Open instantly: no fade/slide */
+  
   #productPopup { transition: none !important; }
   .popup-card { 
     transition: none !important; 
@@ -1479,9 +1388,9 @@ body.horizontal-mode .product-grid{
     opacity: 1 !important;
   }
 </style>
-<!-- ===== 1:1 MEDIA FIXES (injected by ChatGPT) ===== -->
+
 <style id="one-to-one-fixes">
-/* Grid square wrapper */
+
 .product .media-square{
   position: relative;
   width: 100%;
@@ -1491,18 +1400,16 @@ body.horizontal-mode .product-grid{
   background: #000;
 }
 
-/* Media inside wrapper fills square */
 .product .media-square img,
 .product .media-square video{
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;      /* fill 1:1 like your photo cards */
+  object-fit: cover;      
   display: block;
 }
 
-/* Override any previous video sizing in grid */
 .product video{
   width: 100% !important;
   height: 100% !important;
@@ -1512,7 +1419,6 @@ body.horizontal-mode .product-grid{
   background: #000 !important;
 }
 
-/* Popup slider: force perfect square */
 #popupSlider .popup-slide{
   aspect-ratio: 1 / 1 !important;
   width: 100% !important;
@@ -1521,18 +1427,16 @@ body.horizontal-mode .product-grid{
   border-radius: 14px !important;
 }
 
-/* Videos inside popup slides */
 #popupSlider video.popup-slide{
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
 }
 
-/* Ensure dots stay on-media */
 .popup-media{ position: relative !important; }
 </style>
 <style id="plain-desc-css">
-/* ===== Plain Description (refined, no underline) ===== */
+
 .desc-section{
   margin: 8px 8px 0;
   text-align: center;
@@ -1583,7 +1487,7 @@ body.horizontal-mode .product-grid{
   </div>
 
   <div id="rightIcons" style="display: flex; align-items: center; gap: 12px;">
-    <!-- Search icon -->
+    
     <img
       src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
       alt="Search"
@@ -1592,7 +1496,6 @@ body.horizontal-mode .product-grid{
       onclick="openHeaderSearch()"
     />
 
-    <!-- Profile icon -->
     <img
       id="profileIcon"
       src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
@@ -1602,7 +1505,6 @@ body.horizontal-mode .product-grid{
       style="cursor: pointer;"
     />
 
-    <!-- Cart icon with badge -->
     <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
       <img
         src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
@@ -1616,7 +1518,6 @@ body.horizontal-mode .product-grid{
     </a>
   </div>
 
-  <!-- 🔎 Inline header search row -->
   <div id="headerSearchBar" class="header-search">
     <input
       id="headerSearchInput"
@@ -1633,11 +1534,9 @@ body.horizontal-mode .product-grid{
     <div id="headerSearchResults"></div>
   </div>
 </header>
-<!-- Announcement Bar -->
+
 <div id="announcementBar">🧿</div>
 
-
-<!-- Menu overlay + drawer (same as index.html) -->
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 
 <nav class="side-menu" id="sideMenu">
@@ -1645,26 +1544,12 @@ body.horizontal-mode .product-grid{
     <span class="menu-title">Menu</span>
     <span class="menu-close" onclick="toggleMenu()">✕</span>
   </div>
-  <!-- Buttons from Google Sheet will be injected here -->
+  
   <div id="menuContent"></div>
 </nav>
 
-
 <div id="content"></div>
 <script>
-/* ===========================================
-   SWR FETCH INTERCEPTOR (for Google Sheets)
-   - Intercepts only:
-       • https://opensheet.elk.sh/...
-       • https://docs.google.com/spreadsheets/...
-   - Cache key: localStorage["swr:<url>"]
-   - Cache only OK, non-opaque, non-HTML (JSON/CSV/Plain Text)
-   - If cache exists: return cached Response immediately,
-     and revalidate in background (7s timeout).
-   - If no cache: do network (7s timeout), cache if valid, return.
-   - On network failure: fall back to cache if available.
-   - Non-matching requests: use original fetch as-is.
-   =========================================== */
 
 (function attachSWRInterceptor() {
   const originalFetch = window.fetch.bind(window);
@@ -1699,10 +1584,10 @@ body.horizontal-mode .product-grid{
   function shouldCacheResponse(res) {
     try {
       if (!res || !res.ok) return false;
-      if (res.type === "opaque") return false; // avoid opaque
+      if (res.type === "opaque") return false; 
       const ct = res.headers.get("content-type") || "";
       const base = ct.split(";")[0].trim().toLowerCase();
-      if (base === "text/html") return false; // avoid HTML error pages
+      if (base === "text/html") return false; 
       return isAllowedContentType(ct);
     } catch {
       return false;
@@ -1710,7 +1595,7 @@ body.horizontal-mode .product-grid{
   }
 
   function cacheKeyFor(url) {
-    // normalize fully-resolved absolute URL to avoid duplicates
+    
     try {
       const u = new URL(url, location.href).toString();
       return "swr:" + u;
@@ -1734,7 +1619,7 @@ body.horizontal-mode .product-grid{
     const status = cacheObj.status || 200;
     const statusText = cacheObj.statusText || "OK";
     const headers = new Headers(cacheObj.headers || {});
-    // Construct a fresh Response so .json()/.text() works normally.
+    
     return new Response(body, { status, statusText, headers });
   }
 
@@ -1749,10 +1634,10 @@ body.horizontal-mode .product-grid{
     try {
       localStorage.setItem(key, JSON.stringify(payload));
     } catch (e) {
-      // If quota exceeded, attempt a best-effort prune of swr:* entries (oldest first)
+      
       try {
         const keys = Object.keys(localStorage).filter(k => k.startsWith("swr:"));
-        // Load with timestamps
+        
         const items = keys.map(k => {
           try {
             const v = JSON.parse(localStorage.getItem(k) || "{}");
@@ -1761,7 +1646,7 @@ body.horizontal-mode .product-grid{
             return { k, ts: 0 };
           }
         }).sort((a, b) => a.ts - b.ts);
-        // Remove up to 3 oldest entries then retry once
+        
         for (let i = 0; i < Math.min(3, items.length); i++) {
           localStorage.removeItem(items[i].k);
         }
@@ -1791,9 +1676,9 @@ body.horizontal-mode .product-grid{
   }
 
   async function swrFetch(resource, init) {
-    // Resolve URL string for keying, but keep original args for fetching
+    
     const urlStr = typeof resource === "string" ? resource : (resource && resource.url) || "";
-    // Only intercept GET requests to the target domains
+    
     if (!isGET(init) || !isSheetsURL(urlStr)) {
       return originalFetch(resource, init);
     }
@@ -1801,9 +1686,8 @@ body.horizontal-mode .product-grid{
     const key = cacheKeyFor(urlStr);
     const cached = readCache(key);
 
-    // If we have cache, return it immediately and revalidate in background
     if (cached) {
-      // fire-and-forget revalidation
+      
       (async () => {
         try {
           const netRes = await timeoutFetch(resource, init, 7000);
@@ -1812,13 +1696,12 @@ body.horizontal-mode .product-grid{
             saveToCache(key, netRes, bodyText);
           }
         } catch {
-          // ignore background errors
+          
         }
       })();
       return reconstructResponse(cached);
     }
 
-    // No cache: go to network (with timeout), cache on success if allowed
     try {
       const res = await timeoutFetch(resource, init, 7000);
       if (shouldCacheResponse(res)) {
@@ -1827,42 +1710,30 @@ body.horizontal-mode .product-grid{
       }
       return res;
     } catch (e) {
-      // Network failed; if any (stale) cache somehow exists, serve it; else bubble up
+      
       const stale = readCache(key);
       if (stale) return reconstructResponse(stale);
       throw e;
     }
   }
 
-  // Attach once
   if (!window.__swr_fetch_patched__) {
     window.__swr_fetch_patched__ = true;
     window.fetch = swrFetch;
   }
 })();
 
-/* ================================
-   MASTER CONFIG (Hardcoded)
-   ================================ */
-// 💀💀💀💀💀 FIX: Ab yeh "Master" Sheet link & tab hardcoded rahenge.
-// Is master ke Sheet1 me headings "Sheet URL", "Tab", "Box Direction" ke values read honge.
 const MASTER_SHEET_LINK =
-  "https://docs.google.com/spreadsheets/d/1ehaO9wptGfqHZVs46JJNUe8Ji_xR_YnWYwykhgiObs0/edit?usp=drivesdk"; // 💀💀💀💀💀
-const MASTER_TAB_NAME = "Sheet1"; // 💀💀💀💀💀
+  "https://docs.google.com/spreadsheets/d/1ehaO9wptGfqHZVs46JJNUe8Ji_xR_YnWYwykhgiObs0/edit?usp=drivesdk"; 
+const MASTER_TAB_NAME = "Sheet1"; 
 
-/* ================================
-   Helpers
-   ================================ */
-
-// Normalize a header: lower-case, remove spaces, newlines, tabs, and non-alphanumerics
 function normalizeKey(k) {
   return String(k || "")
     .toLowerCase()
-    .replace(/[\s\r\n\t]+/g, "")   // remove all whitespace
-    .replace(/[^a-z0-9]/g, "");    // keep only a-z0-9
+    .replace(/[\s\r\n\t]+/g, "")   
+    .replace(/[^a-z0-9]/g, "");    
 }
 
-// Create a proxy that lets us read row["Product Name"] or row.productname equivalently
 function makeLooseRow(row) {
   const map = {};
   for (const key of Object.keys(row)) {
@@ -1882,7 +1753,6 @@ function makeLooseRow(row) {
   });
 }
 
-// Get first non-empty value from multiple possible headers
 function pick(row, keys) {
   for (const k of keys) {
     const v = row[k];
@@ -1891,14 +1761,12 @@ function pick(row, keys) {
   return "";
 }
 
-// Description tolerant read
 function getSheetDescription(row) {
   return pick(makeLooseRow(row), [
     "Description","description","desc","productdescription","DESCRIPTION","Description "
   ]) || "";
 }
 
-// Visibility check (hide if contains 'hide')
 function isHidden(row) {
   const R = makeLooseRow(row);
   const vis = String(
@@ -1907,14 +1775,12 @@ function isHidden(row) {
   return vis.includes("hide");
 }
 
-// Simple video URL detector
 function isVideoUrl(u = "") {
   u = String(u).trim().toLowerCase();
   if (!u) return false;
   return /\.(mp4|webm|mov|m4v)(\?|#|$)/.test(u) || u.includes("=media&video");
 }
 
-// Build opensheet URL from Google Sheet link + Tab
 function buildOpenSheetUrl(googleLink, tabName) {
   const m = String(googleLink).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
   if (!m) return "";
@@ -1922,264 +1788,19 @@ function buildOpenSheetUrl(googleLink, tabName) {
   return `https://opensheet.elk.sh/${id}/${encodeURIComponent(tabName)}`;
 }
 
-// Apply Box Direction → set dir or add a direction class
 function applyBoxDirection(dirValue) {
   const v = String(dirValue || "").trim().toLowerCase();
-  // 💀💀💀💀💀 FIX: "Box Direction" support – 'rtl' ya 'ltr' ko body par apply.
+  
   if (v === "rtl") document.documentElement.setAttribute("dir", "rtl");
   else if (v === "ltr") document.documentElement.setAttribute("dir", "ltr");
-  // (Optional) You can also add body class if your CSS relies on it:
+  
   document.body.classList.remove("dir-rtl", "dir-ltr");
   if (v === "rtl") document.body.classList.add("dir-rtl");
   if (v === "ltr") document.body.classList.add("dir-ltr");
 }
 
-/* ================================
-   MAIN FLOW
-   ================================ */
-(async function () {
-  try {
-    // 1) Load MASTER sheet to read config
-    // 💀💀💀💀💀 FIX: Master Sheet se "Sheet URL", "Tab", "Box Direction" read karo.
-    const masterURL = buildOpenSheetUrl(MASTER_SHEET_LINK, MASTER_TAB_NAME);
-    if (!masterURL) throw new Error("Invalid MASTER_SHEET_LINK");
 
-    const masterRes = await fetch(masterURL);
-    const masterRowsRaw = await masterRes.json();
-    const masterRows = masterRowsRaw.map(makeLooseRow);
-
-    // Find config from the first non-empty row (or scan all until a value is found)
-    let config = { sheetUrl: "", tab: "", boxDirection: "" };
-
-    for (const r of masterRows) {
-      if (!config.sheetUrl) config.sheetUrl = String(
-        r["sheeturl"] || r["sheeturlheading"] || r["sheeturladdress"] || r["sheeturl_"] || ""
-      ).trim();
-
-      if (!config.tab) config.tab = String(
-        r["tab"] || r["tabname"] || r["sheettab"] || ""
-      ).trim();
-
-      if (!config.boxDirection) config.boxDirection = String(
-        r["boxdirection"] || r["direction"] || ""
-      ).trim();
-
-      if (config.sheetUrl && config.tab) break;
-    }
-
-    if (!config.sheetUrl) {
-      console.warn("⚠️ 'Sheet URL' not found in master. Using MASTER itself as data source.");
-      config.sheetUrl = MASTER_SHEET_LINK;
-    }
-    if (!config.tab) {
-      console.warn("⚠️ 'Tab' not found in master. Falling back to MASTER_TAB_NAME.");
-      config.tab = MASTER_TAB_NAME;
-    }
-
-    // Apply Box Direction if present
-    applyBoxDirection(config.boxDirection);
-
-    // 2) Load PRODUCTS sheet based on config
-    // 💀💀💀💀💀 FIX: Ab yeh DATA_SHEET_URL dynamic hai (Master se aaya).
-    const DATA_SHEET_URL = buildOpenSheetUrl(config.sheetUrl, config.tab);
-    if (!DATA_SHEET_URL) throw new Error("Invalid DATA_SHEET_URL from config.");
-
-    console.log("✅ Master config:", config);
-    console.log("✅ Final products Sheet URL:", DATA_SHEET_URL);
-
-    const res = await fetch(DATA_SHEET_URL);
-    const rawData = await res.json();
-    const data = rawData.map(makeLooseRow);
-
-    // Optional external hook
-    if (typeof applyDirectionFromSheet === "function") {
-      try { applyDirectionFromSheet(data); } catch (e) { console.warn(e); }
-    }
-
-    window.catalogData = rawData;
-
-    // Ensure #content exists
-    let content = document.getElementById("content");
-    if (!content) {
-      console.warn("ℹ️ No #content container found; creating one.");
-      content = document.createElement("div");
-      content.id = "content";
-      document.body.appendChild(content);
-    }
-
-    let currentSection = "";
-    let sectionWrapper = null;
-    let currentSectionHidden = false;
-
-    data.forEach((item) => {
-      // Flexible names
-      const name = pick(item, ["Product Name","productname","name"]);
-      const sectionName = pick(item, ["Section","section"]);
-      const visibility = pick(item, ["visibility","Visible","Show/Hide","showhide"]);
-      const mrp = Number(pick(item, ["MRP","mrp"])) || 0;
-      const sp  = Number(pick(item, ["Selling Price","sellingprice","price"])) || 0;
-      const inStock = Number(pick(item, ["in stock","instock","stock"])) || 0;
-      const badge = pick(item, ["Badge","badge"]);
-      const p1 = pick(item, ["photo 1","photo1"]);
-      const p2 = pick(item, ["photo 2","photo2"]);
-      const p3 = pick(item, ["photo 3","photo3"]);
-      const p4 = pick(item, ["photo 4","photo4"]);
-
-      // --- Section handling with section-level hide ---
-      if (sectionName) {
-        currentSection = sectionName;
-        const secVis = String(visibility || "").trim().toLowerCase();
-        currentSectionHidden = secVis.includes("hide");
-        if (currentSectionHidden) { sectionWrapper = null; return; }
-
-        const sectionTitle = document.createElement("div");
-        sectionTitle.className = "section-title";
-        sectionTitle.innerText = currentSection;
-        content.appendChild(sectionTitle);
-
-        sectionWrapper = document.createElement("div");
-        sectionWrapper.className = "product-grid";
-        content.appendChild(sectionWrapper);
-        return;
-      }
-
-      if (currentSectionHidden) return;
-      if (isHidden(item)) return;
-      if (!name) return;
-
-      const product = document.createElement("div");
-      product.className = "product";
-
-      // Open popup on card click (ignore controls)
-      product.addEventListener("click", (e) => {
-        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-        const allPhotos = [p1, p2, p3, p4].filter(Boolean);
-        if (typeof openPopup === "function") {
-          openPopup(allPhotos, name, mrp, sp, inStock, getSheetDescription(item));
-        }
-      });
-
-      // --- Media (photo/video) ---
-      (function () {
-        const url1 = String(p1 || "").trim();
-        let el;
-        if (isVideoUrl(url1)) {
-          const v = document.createElement("video");
-          v.src = url1;
-          v.muted = true;
-          v.autoplay = true;
-          v.loop = true;
-          v.playsInline = true;
-          v.preload = "metadata";
-          v.disablePictureInPicture = true;
-          v.setAttribute("muted", "");
-          v.setAttribute("webkit-playsinline", "true");
-          v.setAttribute("playsinline", "true");
-          v.style.pointerEvents = "none";
-          v.style.cursor = "default";
-          v.style.display = "block";
-          v.style.width = "100%";
-          v.style.height = "100%";
-          v.style.aspectRatio = "1 / 1";
-          v.style.objectFit = "contain";
-          el = v;
-        } else {
-          const img = document.createElement("img");
-          img.src = url1 || "";
-          img.alt = name;
-          img.loading = "lazy";
-          img.decoding = "async";
-          img.style.pointerEvents = "none";
-          img.style.cursor = "default";
-          el = img;
-        }
-        const wrap = document.createElement("div");
-        wrap.className = "media-square";
-        wrap.appendChild(el);
-        product.appendChild(wrap);
-      })();
-
-      // Badge
-      if (badge) {
-        const b = document.createElement("div");
-        b.className = "badge";
-        b.innerText = badge;
-        product.appendChild(b);
-      }
-
-      // Info
-      const infoWrapper = document.createElement("div");
-      infoWrapper.style.padding = "0 6px";
-
-      const title = document.createElement("div");
-      title.className = "product-title";
-      title.style.fontSize = "14px";
-      title.style.textAlign = "left";
-      title.style.marginTop = "8px";
-      title.innerText = name;
-      infoWrapper.appendChild(title);
-
-      const info = document.createElement("div");
-      info.className = "product-info";
-
-      let priceHTML = "";
-      if (mrp && sp) {
-        priceHTML = `
-          <div style="
-            text-align:left;
-            font-size:14px;
-            font-weight:bold;
-            display:flex;
-            gap:6px;
-            align-items:center;
-            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-          ">
-            <span>₹${sp}</span>
-            <s style="color:#999; font-weight:normal;">₹${mrp}</s>
-          </div>
-        `;
-      }
-
-      if (inStock === 0) {
-        info.innerHTML = `
-          ${priceHTML}
-          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">
-            Out of Stock
-          </button>
-        `;
-      } else {
-        const productData = { photo: p1, name, mrp, price: sp };
-        info.innerHTML = `
-          ${priceHTML}
-          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>
-            Add to Cart
-          </button>
-        `;
-      }
-
-      infoWrapper.appendChild(info);
-      product.appendChild(infoWrapper);
-
-      if (!sectionWrapper) {
-        sectionWrapper = document.createElement("div");
-        sectionWrapper.className = "product-grid";
-        content.appendChild(sectionWrapper);
-      }
-      sectionWrapper.appendChild(product);
-    });
-
-    // Optional deep-link opener
-    if (typeof maybeOpenFromURL === "function") {
-      try { maybeOpenFromURL(); } catch (e) { console.warn(e); }
-    }
-  } catch (err) {
-    console.error("Failed to load products:", err);
-  }
-})();
 </script>
-
-
-
 
 <script>
   function getParam(name) {
@@ -2187,20 +1808,18 @@ function applyBoxDirection(dirValue) {
     return u.get(name);
   }
 
-  // ✅ New: consistent URL slug
   function slugify(s) {
     return String(s || '')
       .trim()
       .toLowerCase()
-      .replace(/[\s_]+/g, '-')      // spaces/underscores → hyphen
-      .replace(/[^a-z0-9-]/g, '');  // remove other symbols
+      .replace(/[\s_]+/g, '-')      
+      .replace(/[^a-z0-9-]/g, '');  
   }
 
   function maybeOpenFromURL() {
     const wanted = getParam('p');
     if (!wanted || !window.catalogData) return;
 
-    // ✅ Match by slug so it works for "car Keychain", "car-Keychain", or "car%20Keychain"
     const wantedSlug = slugify(decodeURIComponent(wanted));
     const item = window.catalogData.find(row =>
       slugify(row["Product Name"]) === wantedSlug
@@ -2212,29 +1831,21 @@ function applyBoxDirection(dirValue) {
   }
 </script>
 
-
 <div id="productPopup">
   <div class="popup-card" onclick="event.stopPropagation()">
 <div class="popup-body">
 
-
-
-<!-- Close button -->
-
-<!-- Square image 1:1 -->
-<!-- Sliding photos here -->
 <div class="popup-media">
   <div id="popupSlider"></div>
   <div id="popupDots" class="popup-dots" aria-hidden="true"></div>
   <a id="whShare" class="wh-share" href="#" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
     <img src="https://i.postimg.cc/fLMF5X4j/file-00000000fcd061f8a087874368df7c79.png" alt="Share on WhatsApp">
   </a>
-</div><!-- Product name on left -->
+</div>
 <div id="popupName" style="font-size:16px; font-weight:600; text-align:left; margin: 2px 12px 2px 12px;"></div>
-<!-- Price -->
+
 <div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:14px; text-align:left;"></div>
-<!-- Quantity Bar -->
-<!-- Auto SEO Description -->
+
 <div id="popupDesc" class="desc-section">
   <div class="desc-title">Description</div>
   <div id="popupDescText" class="desc-content"></div>
@@ -2253,11 +1864,11 @@ function applyBoxDirection(dirValue) {
     </svg>
   </button>
 </div>
-<!-- Add to Cart full-width button -->
+
 <button id="popupAddBtn" style="width:100%; background:#2563eb; color:#fff; border:1px solid #2563eb; border-radius:8px; padding:12px 16px; font-size:15px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
   Add to Cart
 </button>
-<!-- Back button with Roboto Slab and border -->
+
 <button onclick="closePopup()" style="width:100%; margin-top:10px; background:#f0f0f0; color:#333; border:1px solid #bbb; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
   Back
 </button>
@@ -2287,19 +1898,10 @@ function applyBoxDirection(dirValue) {
   <span style="line-height: 1;">Item added to cart</span>
 </div>
 <script>
-/* =========================================================
-   ULTRA-STABLE MEDIA + SILENT LIVE REFRESH (1000% FIX)
-   - All videos keep playing continuously (no pauses).
-   - No blank/vanishing videos during background data refresh.
-   - Reuses existing <video> nodes across re-renders to avoid resets.
-   - Hot-pulls Google Sheet updates (if your fetch/render exist).
-   ========================================================= */
 
-/* ====== SETTINGS ====== */
 const WHATSAPP_NUMBER = "8586057887";
 const BRAND_NAME = "precioussly";
 
-/* ====== Media helpers ====== */
 function isVideoUrl(url){
   if (!url) return false;
   url = String(url).split('?')[0].split('#')[0].trim().toLowerCase();
@@ -2312,14 +1914,12 @@ function isVideoUrl(url){
   );
 }
 
-/* ====== Keep videos alive & always playing ====== */
 const _videoKeepAlive = new WeakSet();
 
 function keepAliveVideo(v){
   if (!v || _videoKeepAlive.has(v)) return v;
 
-  // Essential attributes for uninterrupted autoplay
-  v.muted = true;                 // mobile autoplay
+  v.muted = true;                 
   v.autoplay = true;
   v.loop = true;
   v.playsInline = true;
@@ -2327,18 +1927,16 @@ function keepAliveVideo(v){
   v.preload = "auto";
   v.disablePictureInPicture = true;
 
-  // Aggressive re-play helper
   const forcePlay = () => {
     const p = v.play?.();
     if (p && typeof p.then === "function") {
       p.catch(() => {
-        // Retry shortly if browser momentarily blocks play
+        
         setTimeout(() => v.play?.().catch(()=>{}), 120);
       });
     }
   };
 
-  // (Re)start whenever possible
   v.addEventListener("loadeddata", forcePlay);
   v.addEventListener("canplay", forcePlay);
   v.addEventListener("stalled", forcePlay);
@@ -2346,29 +1944,23 @@ function keepAliveVideo(v){
   v.addEventListener("emptied", forcePlay);
   v.addEventListener("suspend", forcePlay);
 
-  // If something pauses it (layout/refresh), resume
   v.addEventListener("pause", forcePlay);
 
-  // When tab becomes visible, resume
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") forcePlay();
   });
 
-  // Lightweight watchdog to guarantee continuity
   const watchdog = setInterval(() => {
     if (v.isConnected === false) { clearInterval(watchdog); return; }
     if (v.paused || v.readyState < 2) forcePlay();
   }, 1500);
 
-  // Mark as set up
   _videoKeepAlive.add(v);
 
-  // Kickstart immediately
   forcePlay();
   return v;
 }
 
-/* ====== Inject JSON-LD Product schema (SEO) ====== */
 function injectProductSchema({name, price, mrp, image, description}) {
   try {
     const id = "product-jsonld";
@@ -2403,14 +1995,11 @@ function injectProductSchema({name, price, mrp, image, description}) {
 
 let selectedProduct = null;
 
-/* ====== OPEN POPUP (stable slider, videos never pause) ====== */
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
   selectedProduct = { image: images?.[0], name, mrp, price };
 
-  // Build a shareable link that re-opens this popup
   const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name || "")}`;
 
-  // WhatsApp share (stable variables)
   const imageUrl = images?.[0] || "";
   const line1 = `${name || ""} ${price ? "₹"+price : ""}`.trim();
 
@@ -2427,7 +2016,6 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
 
   document.getElementById("popupQty").innerText = "1";
 
-  // Inject product name and price
   const nmEl = document.getElementById("popupName");
   if (nmEl) nmEl.innerText = name || "";
 
@@ -2448,7 +2036,6 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   const priceEl = document.getElementById("popupPrice");
   if (priceEl) priceEl.innerHTML = priceHTML;
 
-  // === Build description from Google Sheet (hide section if empty) ===
   const descWrap = document.getElementById("popupDesc");
   const descText = document.getElementById("popupDescText");
   const fromSheet = (sheetDesc || "").trim();
@@ -2461,7 +2048,6 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     if (descWrap) descWrap.style.display = "none";
   }
 
-  // ✅ SEO schema: use sheet description if present, else empty
   injectProductSchema({
     name,
     price,
@@ -2470,7 +2056,6 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     description: fromSheet
   });
 
-  // Add to cart button
   const popupBtn = document.getElementById("popupAddBtn");
   if (popupBtn) {
     if (+stock === 0) {
@@ -2491,12 +2076,10 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     }
   }
 
-  // ===== Slider (LIVE, NO-PAUSE VIDEOS) =====
   const slider = document.getElementById("popupSlider");
   const dotsContainer = document.getElementById("popupDots");
   if (!slider) return;
 
-  // Capture existing video nodes to REUSE (preserve playback position)
   const existingBySrc = new Map();
   slider.querySelectorAll("video.popup-slide[src]").forEach(v => {
     existingBySrc.set(v.currentSrc || v.getAttribute("src"), v);
@@ -2518,7 +2101,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     let el;
 
     if (isVideoUrl(clean)) {
-      // Reuse existing node if available
+      
       const reuse = existingBySrc.get(clean);
       if (reuse) {
         el = reuse;
@@ -2526,10 +2109,10 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
         const v = document.createElement("video");
         v.className = "popup-slide";
         v.src = clean;
-        keepAliveVideo(v); // <-- ensures nonstop playback
+        keepAliveVideo(v); 
         el = v;
       }
-      // Guarantee keep-alive in case of reused node
+      
       keepAliveVideo(el);
     } else {
       const img = document.createElement("img");
@@ -2542,7 +2125,6 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     track.appendChild(el);
     slides.push(el);
 
-    // dots
     if (dotsContainer) {
       const d = document.createElement("div");
       d.className = "popup-dot" + (i === 0 ? " active" : "");
@@ -2552,7 +2134,6 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     }
   });
 
-  // Hide dots if single or zero images; show otherwise
   if (dotsContainer){
     dotsContainer.style.display = (slides.length <= 1) ? "none" : "inline-flex";
   }
@@ -2574,7 +2155,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const prevIndex = currentIndex;
     currentIndex = i;
     const dist = Math.max(1, Math.abs(prevIndex - currentIndex));
-    const base = 1400; // base ms (slower)
+    const base = 1400; 
     const extra = 200 * (dist - 1);
     let dur = base + extra;
     if (window.__fastSwipe) dur = Math.max(420, base - 120);
@@ -2583,14 +2164,10 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     track.style.transform = `translateX(${-i * width()}px)`;
     setActiveDot(i);
 
-    // ❌ DO NOT PAUSE OTHER VIDEOS — keep them running continuously
-    // (No play/pause logic here by design)
   }
 
-  // Init position (no pause)
   goTo(0, false);
 
-  // Drag logic
   let startX = 0, dragStartX = 0, isDragging = false, lastMoveTime = 0, lastMoveX = 0;
 
   const onPointerDown = (e) => {
@@ -2653,11 +2230,10 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     if (e.key === "ArrowLeft")  goTo(currentIndex - 1, true);
   });
 
-  // Show popup (ultra smooth)
   const popup = document.getElementById("productPopup");
   if (popup) {
     const card  = popup.querySelector(".popup-card");
-    popup.style.display = "flex";      // mount
+    popup.style.display = "flex";      
     requestAnimationFrame(() => {
       popup.classList.add("is-open");
       if (card) {
@@ -2669,7 +2245,6 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 }
 
-/* ====== Quantity bar increase/decrease logic ====== */
 function changePopupQty(change) {
   const qtyElement = document.getElementById("popupQty");
   let current = parseInt(qtyElement.innerText);
@@ -2679,7 +2254,6 @@ function changePopupQty(change) {
   qtyElement.innerText = current;
 }
 
-/* ====== Add to cart logic ====== */
 function addToCartFromGrid(button, product) {
   const originalHTML = button.innerHTML;
   button.disabled = true;
@@ -2689,19 +2263,17 @@ function addToCartFromGrid(button, product) {
     button.disabled = false;
     button.innerHTML = originalHTML;
 
-    // Add item to cart
     let cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
     const existing = cartItems.find(i => i.name === product.name);
     if (existing) {
-      existing.qty += product.qty || 1;  // ✅ Add correct qty if already exists
+      existing.qty += product.qty || 1;  
     } else {
-      cartItems.push({ ...product, qty: product.qty || 1 }); // ✅ Store correct qty
+      cartItems.push({ ...product, qty: product.qty || 1 }); 
     }
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     updateCartBadge?.();
 
-    // Show toast
     const toast = document.getElementById("addedToast");
     if (toast) {
       toast.innerHTML = `
@@ -2716,19 +2288,13 @@ function addToCartFromGrid(button, product) {
   }, 1000);
 }
 
-/* =========================================================
-   SILENT LIVE REFRESH FROM GOOGLE SHEET (No visual reset)
-   - If your page defines fetchSheetData(), PASTED_SHEET_LINK, TAB_NAME
-     and renderProducts(), this will poll & update in-place.
-   - Videos stay intact; we DO NOT reload the page.
-   ========================================================= */
 (function setupLiveSheetSync(){
   const canFetch = typeof window.fetchSheetData === "function" &&
                    typeof window.PASTED_SHEET_LINK === "string" &&
                    typeof window.TAB_NAME === "string";
   const canRender = typeof window.renderProducts === "function";
 
-  if (!canFetch || !canRender) return; // integrate only when your hooks exist
+  if (!canFetch || !canRender) return; 
 
   let lastJSON = "";
   let inflight = false;
@@ -2742,29 +2308,21 @@ function addToCartFromGrid(button, product) {
       if (nowJSON !== lastJSON) {
         lastJSON = nowJSON;
 
-        // Render NEW DATA without nuking existing video nodes when possible.
-        // Assumption: your renderProducts smartly updates DOM; if it clears,
-        // our keepAliveVideo will re-stabilize playback on recreated nodes.
         window.renderProducts(data);
 
-        // Re-apply keepAlive on any product videos just in case.
         document.querySelectorAll("video").forEach(keepAliveVideo);
       }
     } catch(e) {
-      // fail silently (no UX impact)
+      
     } finally {
       inflight = false;
     }
   };
 
-  // Initial & interval polling
   tick();
-  setInterval(tick, 10000); // every 10s; adjust if needed
+  setInterval(tick, 10000); 
 })();
 
-/* =========================================================
-   SAFETY NET: Ensure any existing videos on page never stop
-   ========================================================= */
 window.addEventListener("pageshow", () => {
   document.querySelectorAll("video").forEach(keepAliveVideo);
 });
@@ -2773,7 +2331,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <script>
-  // Announcement Bar from Google Sheet
+  
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
   const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
 
@@ -2801,21 +2359,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (animate && count !== prev) {
       badge.classList.remove("bounce-badge");
-      void badge.offsetWidth;             // reflow
+      void badge.offsetWidth;             
       badge.classList.add("bounce-badge");
       badge.addEventListener("animationend", () => {
         badge.classList.remove("bounce-badge");
       }, { once: true });
     }
   } else {
-    badge.innerText = "";                  // ✅ no “0”
-    badge.style.display = "none";          // ✅ hide when empty
+    badge.innerText = "";                  
+    badge.style.display = "none";          
   }
 
   badge.dataset.count = count;
 }
 
-updateCartBadge(false); // ✅ no bounce on refresh
+updateCartBadge(false); 
 </script>
 
 <script>
@@ -2849,9 +2407,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-
 <script>
-// identical function used on index.html
+
 function toggleMenu(){
   const menu = document.getElementById("sideMenu");
   const overlay = document.getElementById("menuOverlay");
@@ -2867,7 +2424,7 @@ function toggleMenu(){
     body.classList.add("no-scroll");
   }
 }
-// Close on ESC
+
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     const menu = document.getElementById('sideMenu');
@@ -2875,7 +2432,6 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// ===== MENU DATA FROM SHEET (same sheet as index.html) =====
 const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
 const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
 
@@ -2885,7 +2441,6 @@ fetch(menuURL)
     const menuContent = document.getElementById("menuContent");
     if (!menuContent) return;
 
-    // Group by Menu with optional Submenu
     const grouped = {};
     rows.forEach(r => {
       const menu = (r.Menu || "").trim();
@@ -2900,7 +2455,6 @@ fetch(menuURL)
       }
     });
 
-    // Build top-level buttons (no dropdowns to match screenshot UX)
     Object.entries(grouped).forEach(([name, info]) => {
       const a = document.createElement('a');
       a.href = info.link || "#";
@@ -2911,9 +2465,8 @@ fetch(menuURL)
   });
 </script>
 
-
 <script>
-// Announcement bar
+
 (function(){
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
   const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
@@ -2926,24 +2479,21 @@ fetch(menuURL)
 })();
 </script>
 
-
-<!-- Floating Buttons: Back to Top + WhatsApp -->
 <div class="fab-stack">
-  <!-- Back to Top button -->
+  
   <button id="toTopBtn" class="fab-btn" aria-label="Back to top" title="Back to top" style="display:none;">
     <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M18 15l-6-6-6 6"></path>
     </svg>
   </button>
 
-  <!-- WhatsApp button -->
   <a id="waBtn" class="fab-btn" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" rel="noopener" target="_blank">
     <img src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png" alt="WhatsApp">
   </a>
 </div>
 
 <script>
-// WhatsApp FAB link
+
 (function(){
   const WA_NUMBER = "918586057887";
   const DEFAULT_MSG = "Hi Precioussly! I need help with my order.";
@@ -2956,7 +2506,7 @@ fetch(menuURL)
 </script>
 
 <script>
-// ✅ Minimal & reliable hide-on-scroll logic
+
 (() => {
   const header = document.querySelector('.site-header');
   if (!header) return;
@@ -2971,13 +2521,12 @@ fetch(menuURL)
 
   window.addEventListener('scroll', () => {
     const y = window.pageYOffset;
-    const delta = y - lastY; // +ve = scrolling down, -ve = up
+    const delta = y - lastY; 
 
-    // Top par ya search khula ho to hamesha dikhana
     if (atTopOrSearching()) { show(); lastY = y; return; }
 
-    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
-    else if (delta < -3) show(); // upar aate hi show
+    if (delta > 3) hide();      
+    else if (delta < -3) show(); 
 
     lastY = y;
   }, { passive: true });
@@ -2985,7 +2534,7 @@ fetch(menuURL)
 </script>
 
 <script>
-// Back-to-top
+
 (function(){
   const toTopBtn = document.getElementById("toTopBtn");
   if (!toTopBtn) return;
@@ -2997,7 +2546,7 @@ fetch(menuURL)
 </script>
 
 <script>
-// Cart badge
+
 function updateCartBadge(){
   const items = JSON.parse(localStorage.getItem("cartItems")) || [];
   let count = 0; items.forEach(i => count += i.qty || i.quantity || 0);
@@ -3011,23 +2560,13 @@ if (document.readyState !== "loading") updateCartBadge();
 else document.addEventListener("DOMContentLoaded", updateCartBadge);
 </script>
 <script>
-/* =============================================================================
-   Multi-page Search Setup (index.html)
-   • Sources auto-load from a CONFIG SHEET with columns: "Sheet Url" | "Tab"
-   • No manual edits in code—add/remove rows in the config sheet only.
-   • TAB text itself is used as the route path (e.g., "resin-jewelry/resin-necklace")
-   • Supports: opensheet.elk.sh, Google Docs link (auto → OpenSheet), or GVIZ.
-   • Auto video detection + muted autoplay previews (mp4/webm/mov + YouTube)
-   ========================================================================== */
 
-/* ========= 1) CONFIG SHEET URL (only thing hardcoded once) ========= */
 const CONFIG_SHEET_URL =
   "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
 
-/* ========= Helpers to detect/convert URLs ========= */
 function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url || ""); }
 function isGviz(url){ return /\/gviz\/tq\?/i.test(url || ""); }
-function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url || ""); }
+function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\
 
 function parseGoogleSheetDoc(url){
   try{
@@ -3042,11 +2581,11 @@ function parseGoogleSheetDoc(url){
 function buildOpenSheetUrl(sheetUrl, tab){
   if (!sheetUrl) return "";
   if (isOpenSheet(sheetUrl)){
-    // If already an opensheet link: ensure /<TAB> is appended (if missing)
+    
     try{
       const u = new URL(sheetUrl, location.origin);
       const parts = u.pathname.split('/').filter(Boolean);
-      if (parts.length >= 3) return u.toString(); // already /<ID>/<TAB>
+      if (parts.length >= 3) return u.toString(); 
       if (tab){
         if (!u.pathname.endsWith('/')) u.pathname += '/';
         u.pathname += encodeURIComponent(tab);
@@ -3071,7 +2610,6 @@ function buildGvizFromDoc(sheetUrl){
   return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
 }
 
-/* ========= GVIZ parser (used for both data sheets and config sheet) ========= */
 function parseGviz(text){
   const match = text.match(/setResponse\(([\s\S]*?)\);?/);
   if(!match) return [];
@@ -3091,12 +2629,10 @@ function parseGviz(text){
   }catch{ return []; }
 }
 
-/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
 async function fetchRowsFromSource(source){
   const { sheetUrl, tab } = source || {};
   if(!sheetUrl) return [];
 
-  // Prefer opensheet — either given or auto-built from Google Doc link
   const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
   if (isOpenSheet(openUrl)){
     try{
@@ -3105,7 +2641,6 @@ async function fetchRowsFromSource(source){
     }catch{}
   }
 
-  // GVIZ fallback
   let gvizUrl = "";
   if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
   else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
@@ -3117,7 +2652,6 @@ async function fetchRowsFromSource(source){
     }catch{}
   }
 
-  // Last resort: try raw URL JSON or GVIZ text in response
   try{
     const r = await fetch(sheetUrl, { cache: "no-store" });
     if(!r.ok) return [];
@@ -3126,7 +2660,6 @@ async function fetchRowsFromSource(source){
   }catch{ return []; }
 }
 
-/* ========= Read CONFIG SHEET and produce SOURCES ========= */
 function valFrom(row, keys){
   const map = {};
   Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
@@ -3138,9 +2671,9 @@ function valFrom(row, keys){
 }
 
 async function loadSourcesFromConfig(){
-  // We accept: opensheet config, Google Doc (auto-GVIZ), or GVIZ URL
+  
   let rows = [];
-  const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1"); // will be ignored if already has TAB
+  const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1"); 
   if (isOpenSheet(asOpen)){
     try{
       const r = await fetch(asOpen, { cache: "no-store" });
@@ -3159,7 +2692,6 @@ async function loadSourcesFromConfig(){
     }
   }
 
-  // Map to SOURCES
   const sources = (rows || []).map(r => {
     const sheetUrl = String(valFrom(r, ["Sheet Url","SheetURL","Sheet","URL","Link"])).trim();
     const tab      = String(valFrom(r, ["Tab","Route","Path"])).trim();
@@ -3170,7 +2702,6 @@ async function loadSourcesFromConfig(){
   return sources;
 }
 
-/* ========= Media detection (image / direct video / YouTube) ========= */
 const VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i;
 function isDirectVideo(url){ return VIDEO_EXT_RE.test(url || ""); }
 function isYouTube(url){ return /(youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\/)/i.test(url || ""); }
@@ -3186,7 +2717,6 @@ function toYouTubeEmbed(url){
   }catch{ return ""; }
 }
 
-/* ========= Route + row normalization ========= */
 function tabToRoute(tab){
   let route = String(tab || "").trim();
   if (!route) return "/";
@@ -3228,15 +2758,13 @@ function rowToItem(row, tabForRoute){
   return { name, price, mrp, mediaType, mediaUrl, poster, route: tabToRoute(tabForRoute) };
 }
 
-/* ========= Load everything ========= */
 window.allProducts = [];
 
 (async function bootstrap(){
-  // 1) Read SOURCES from config
+  
   let SOURCES = [];
   try{ SOURCES = await loadSourcesFromConfig(); }catch{ SOURCES = []; }
 
-  // If config is empty, you still get an empty product list (no crash)
   try{
     const lists = await Promise.all((SOURCES || []).map(async (src) => {
       const rows = await fetchRowsFromSource(src).catch(()=>[]);
@@ -3249,10 +2777,6 @@ window.allProducts = [];
   }
 })();
 
-/* ========= URL builder & UI ========= */
-/* Rule: if product name is a single word (no spaces), append a trailing space before encoding.
-   Example: "Red" -> encode("Red ") -> "Red%20"
-*/
 function isSingleWord(str){
   return !!str && str.trim().split(/\s+/).length === 1;
 }
@@ -3262,7 +2786,7 @@ function buildParamValue(productName){
   return encodeURIComponent(toEncode);
 }
 function makeProductURL(routePath, productName){
-  const base = location.origin;                        // e.g., https://precioussly.com
+  const base = location.origin;                        
   const route = routePath.startsWith("/") ? routePath : "/" + routePath;
   return `${base}${route}?p=${buildParamValue(productName)}`;
 }
@@ -3288,7 +2812,6 @@ function hideSuggest(){
   if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
 }
 
-/** media thumb (video muted autoplay, YT iframe autoplay, or image) */
 function renderThumb(p){
   if (p.mediaType === "video"){
     const posterAttr = p.poster ? ` poster="${p.poster.replace(/"/g,'&quot;')}"` : "";
@@ -3346,14 +2869,12 @@ function renderSuggestions(q){
   boxEl.style.display = 'block';
 }
 
-/* On click navigate using our builder (still an <a> for long-press copy) */
 function goToProduct(routePath, productName){
   const url = makeProductURL(routePath, productName);
   location.href = url;
   return false;
 }
 
-/* Input wiring */
 if (inputEl){
   inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
   inputEl.addEventListener('keydown', e => {
@@ -3377,7 +2898,6 @@ if (inputEl){
   });
 }
 
-/* expose */
 window.goToProduct = goToProduct;
 window.openHeaderSearch = function(){
   const header = document.querySelector('.site-header');
@@ -3395,7 +2915,6 @@ window.closeHeaderSearch = function(){
 };
 </script>
 
-<!-- 🟣 Instagram banner: EXACTLY below the pink certified-strip -->
 <section class="ig-banner-wrap" id="igFollowBanner">
 <div aria-label="Instagram updates banner" class="ig-banner">
 <p>Stay connected with us for updates,<br/>offers &amp; behind-the-scenes ✨</p>
@@ -3428,7 +2947,7 @@ window.closeHeaderSearch = function(){
   window.addEventListener("load", adjustFooter);
   window.addEventListener("resize", adjustFooter);
 </script>
-<!-- === INSTANT POPUP BEHAVIOR (no animation) === -->
+
 <script>
   (function(){
     const popup = document.getElementById('productPopup');
@@ -3477,22 +2996,18 @@ window.closeHeaderSearch = function(){
       if (ev.state && ev.state.popupOpen) {
         // We're popping the popup state -> hide instantly
         hideInstant();
-        // Restore clean URL (remove ?p= if any)
+        
         try { history.replaceState(null, "", location.pathname); } catch(e) {}
       } else if (isVisible) {
-        // Safety: if user pressed back and popup visible but no state, hide it
+        
         hideInstant();
       }
     });
   })();
 </script>
 
-
-
-
-
 <style id="dot-hide-single-v2">
-/* Only hide when flagged 'single'. Otherwise show inline-flex */
+
 .popup-dots.single { display: none !important; }
 </style>
 <script id="dot-hide-script-v2">
@@ -3511,7 +3026,7 @@ window.closeHeaderSearch = function(){
     var obs = new MutationObserver(function(){ updateDotsVisibility(dots); });
     obs.observe(dots, {childList: true, subtree: true});
     dots.__observerBound = true;
-    // run a couple times to catch late DOM work
+    
     updateDotsVisibility(dots);
     setTimeout(function(){ updateDotsVisibility(dots); }, 200);
     setTimeout(function(){ updateDotsVisibility(dots); }, 600);
@@ -3521,20 +3036,13 @@ window.closeHeaderSearch = function(){
       bindObserver(dots);
     });
   });
-  // If popup content is dynamic, re-check when body receives clicks (cheap global hook)
+  
   document.addEventListener('click', function(e){
     var dots = document.querySelector('.popup-dots');
     if(dots){ updateDotsVisibility(dots); }
   }, true);
 })();
 </script>
-
-
-
-
-
-<!-- === Photo Nav Buttons (translucent) + Pinch-zoom friendly === -->
-
 
 <style id="photo-nav-buttons-css">
 .popup-media { position: relative !important; touch-action: pinch-zoom !important; }
@@ -3554,16 +3062,11 @@ window.closeHeaderSearch = function(){
 .photo-nav-btn[disabled]{ opacity:0.45; pointer-events:none; }
 </style>
 
-
-
-
-<!-- === Override: openPopup with button navigation (no swipe) === -->
 <script id="openPopup-left-right-override">
 (function(){
-  // helper to safely set innerText/HTML
+  
   function $(id){ return document.getElementById(id); }
 
-  // Sanitize array of image URLs
   function okImages(arr){
     return (arr || []).map(u => (u||"").trim()).filter(Boolean);
   }
@@ -3571,24 +3074,23 @@ window.closeHeaderSearch = function(){
   window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
     images = okImages(images);
     try {
-      // Share link
+      
       var shareUrl = location.origin + location.pathname + "?p=" + slugify(name || "");
 
 var imageUrl = (images && images[0]) ? String(images[0]) : "";
 var line1 = "Check this on Precioussly: " + (name || "") + " — ₹" + (price || "");
 var wh = $("whShare");
 if (wh) {
-  // Use the postimg *page* (https://postimg.cc/ID/) instead of the direct i.postimg.cc image
+  
   function toPostimgPage(u){
     try {
-      // e.g. https://i.postimg.cc/fk4627NT/IMG-20250629-004309.jpg -> https://postimg.cc/fk4627NT/
+      
       var m = String(u).match(/^https?:\/\/i\.postimg\.cc\/([^/]+)/i);
       return m ? `https://postimg.cc/${m[1]}/` : u;
     } catch(e){ return u; }
   }
   var shareImage = toPostimgPage(imageUrl);
 
-  // Share: image page first (for preview), then line1, then product link
   wh.href = "https://wa.me/?text="
             + encodeURIComponent(shareImage) + "%0A"
             + encodeURIComponent(line1) + "%0A"
@@ -3598,10 +3100,8 @@ if (wh) {
 history.replaceState && history.replaceState(null, "", shareUrl);
     } catch(e){}
 
-    // Qty reset
     var qtyEl = $("popupQty"); if(qtyEl) qtyEl.innerText = "1";
 
-    // Name + Price
     var nameEl = $("popupName"); if(nameEl) nameEl.innerText = name || "";
     var priceEl = $("popupPrice");
     if(priceEl){
@@ -3620,7 +3120,6 @@ history.replaceState && history.replaceState(null, "", shareUrl);
       }
     }
 
-    // Description from sheet (no auto bullets)
     var descWrap = $("popupDesc");
     var descText = $("popupDescText");
     var fromSheet = (sheetDesc||"").trim();
@@ -3632,14 +3131,12 @@ history.replaceState && history.replaceState(null, "", shareUrl);
       if(descWrap) descWrap.style.display = "none";
     }
 
-    // SEO schema (if function exists)
     try{
       if (typeof injectProductSchema === "function"){
         injectProductSchema({ name, price, mrp, image: images[0] || "", description: fromSheet });
       }
     }catch(e){}
 
-    // Add to Cart button
     var addBtn = $("popupAddBtn");
     if(addBtn){
       if (+stock === 0){
@@ -3658,27 +3155,22 @@ history.replaceState && history.replaceState(null, "", shareUrl);
       }
     }
 
-    // Build slider (no swipe)
     var slider = $("popupSlider");
     var dotsContainer = $("popupDots");
     if (!slider) return;
 
-    // Clear previous content
     slider.innerHTML = "";
     if (dotsContainer) dotsContainer.innerHTML = "";
 
-    // Remove any old nav buttons from a previous open
     var media = slider.parentElement;
     if (media){
       Array.from(media.querySelectorAll(".photo-nav-btn")).forEach(n => n.remove());
     }
 
-    // Track
     var track = document.createElement("div");
     track.className = "popup-track";
     slider.appendChild(track);
 
-// Slides + dots
 var slides = [], dots = [];
 images.forEach(function(url, i) {
   var clean = (url || "").trim();
@@ -3721,8 +3213,6 @@ images.forEach(function(url, i) {
   }
 });
 
-
-    // Hide dots if single/none
     if (dotsContainer){
       dotsContainer.style.display = (slides.length <= 1) ? "none" : "inline-flex";
     }
@@ -3751,7 +3241,6 @@ track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.2
       refreshNavState();
     }
 
-    // Create nav buttons (prev/next)
     function mkBtn(cls, label, svgPath){
       var b = document.createElement("button");
       b.className = "photo-nav-btn " + cls;
@@ -3779,26 +3268,22 @@ track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.2
     prevBtn && prevBtn.addEventListener("click", function(){ goTo(currentIndex - 1, true); });
     nextBtn && nextBtn.addEventListener("click", function(){ goTo(currentIndex + 1, true); });
 
-    // Arrow key support
     slider.tabIndex = 0;
     slider.onkeydown = function(e){
       if (e.key === "ArrowRight") goTo(currentIndex + 1, true);
       if (e.key === "ArrowLeft")  goTo(currentIndex - 1, true);
     };
 
-    // Resize
     window.addEventListener("resize", function(){ goTo(currentIndex, false); }, { passive: true });
 
-    // Init
     goTo(0, false);
 
-    // Open popup smoothly (uses existing CSS classes)
     var popup = $("productPopup");
 var card  = popup ? popup.querySelector(".popup-card") : null;
 if (popup){
   popup.style.display = "flex";
-  popup.classList.add("is-open");           // keeps overlay visible
-  if (card) {                               // OK to keep enter (no animation now)
+  popup.classList.add("is-open");           
+  if (card) {                               
     card.classList.remove("leave");
     card.classList.add("enter");
   }
@@ -3820,7 +3305,7 @@ if (popup){
 </div>
 
 <script id="pink-profile-popup-js">
-// === Pink Profile Popup (ChatGPT Resin) ===
+
 (function(){
   const overlay = document.getElementById('profilePopupOverlay');
   const back = document.getElementById('ppBackBtn');
@@ -3835,7 +3320,7 @@ if (popup){
     document.body.classList.remove('no-scroll');
     overlay.setAttribute('aria-hidden','true');
   }
-  // Try to grab the profile icon
+  
   const profileIcon = document.getElementById('profileIcon') ||
     document.querySelector('img[alt="Profile"], .icon-profile, .profile-icon, [data-profile]');
   if(profileIcon){
@@ -3843,7 +3328,7 @@ if (popup){
     profileIcon.addEventListener('click', openPopup, {passive:true});
   }
   if(back) back.addEventListener('click', closePopup);
-  // tap outside to close
+  
   if(overlay){
     overlay.addEventListener('click', function(e){
       if(e.target === overlay) closePopup();
@@ -3852,7 +3337,7 @@ if (popup){
 })();</script>
 
 <script>
-// === Android Back Button: close popup instead of exiting ===
+
 (function () {
   const POPUP_ID = 'productPopup';
   const popupEl = () => document.getElementById(POPUP_ID);
@@ -3863,14 +3348,12 @@ if (popup){
     return el.classList.contains('is-open') || ds === 'flex' || ds === 'block';
   };
 
-  // Ensure base state so first Back hits our handler
   try {
     if (!history.state || !history.state.__base) {
       history.replaceState({ __base: true }, "", location.href);
     }
   } catch (e) {}
 
-  // Wrap openPopup to push one history state
   const __origOpenPopup = window.openPopup;
   if (typeof __origOpenPopup === "function") {
     window.openPopup = function() {
@@ -3883,7 +3366,6 @@ if (popup){
     };
   }
 
-  // Visual close without touching history
   function __forceClosePopup() {
     const el = popupEl();
     if (!el) return;
@@ -3892,7 +3374,6 @@ if (popup){
     document.body.classList.remove("noscroll");
   }
 
-  // Wrap closePopup so the UI Back button also uses history
   const __origClosePopup = window.closePopup;
   window.closePopup = function() {
     if (history.state && history.state.__popup) {
@@ -3905,7 +3386,6 @@ if (popup){
     }
   };
 
-  // Hardware/browser back
   window.addEventListener("popstate", function () {
     if (isOpen()) {
       __forceClosePopup();
@@ -3913,7 +3393,6 @@ if (popup){
     }
   });
 
-  // Overlay click should also go through history when possible
   const el = popupEl();
   if (el) {
     el.addEventListener("click", function (e) {
@@ -3929,9 +3408,8 @@ if (popup){
 })();
 </script>
 
-
 <script>
-// === Enhanced Back Handling: product popup + profile popup ===
+
 (function () {
   function $(id){ return document.getElementById(id); }
   const product = () => $('productPopup');
@@ -3964,14 +3442,12 @@ if (popup){
     document.body.classList.remove('no-scroll');
   }
 
-  // Base state so first Back is caught
   try {
     if (!history.state || !history.state.__base) {
       history.replaceState({ __base: true }, "", location.href);
     }
   } catch(e){}
 
-  // Observe profile popup becoming visible -> push a state once
   const profEl = profile();
   if (profEl) {
     const pushIfNeeded = () => {
@@ -3981,7 +3457,7 @@ if (popup){
     };
     const mo = new MutationObserver(pushIfNeeded);
     mo.observe(profEl, { attributes: true, attributeFilter: ['class','aria-hidden','style'] });
-    // also bind its buttons to use history.back()
+    
     const backBtn = $('ppBackBtn');
     if (backBtn) {
       backBtn.addEventListener('click', function(ev){
@@ -3992,7 +3468,7 @@ if (popup){
         }
       }, { passive: false });
     }
-    // overlay click should also go through history
+    
     profEl.addEventListener('click', function(e){
       if (e.target === profEl) {
         if (history.state && history.state.__profile) { try { history.back(); } catch(e){} }
@@ -4001,7 +3477,6 @@ if (popup){
     }, { passive: true });
   }
 
-  // Ensure product open pushes a state (safety in case wrapper missed)
   const prodEl = product();
   if (prodEl) {
     const mo2 = new MutationObserver(() => {
@@ -4012,7 +3487,6 @@ if (popup){
     mo2.observe(prodEl, { attributes: true, attributeFilter: ['class','style'] });
   }
 
-  // BACK button / gesture
   window.addEventListener('popstate', function(){
     if (productOpen()) { closeProduct(); return; }
     if (profileOpen()) { closeProfile(); return; }
@@ -4020,41 +3494,30 @@ if (popup){
 })();
 </script>
 <script>
-/* ============================================================
-   Box Direction (1 / 2 / 3) — controlled only via Google Sheet
-   Your Sheet: https://docs.google.com/spreadsheets/d/1ehaO9wptGfqHZVs46JJNUe8Ji_xR_YnWYwykhgiObs0/edit?usp=drivesdk
-   Tab: "Sheet1"
-   Meaning:
-     1 -> Normal grid      (no extra class)
-     2 -> Horizontal swipe (adds .horizontal-mode)
-     3 -> Horizontal + small cards (adds .horizontal-mode .small-cards)
-   ============================================================ */
+
 (function(){
-  // ==== CONFIG ====
+  
   const EXTERNAL_SHEET_LINK =
     "https://docs.google.com/spreadsheets/d/1ehaO9wptGfqHZVs46JJNUe8Ji_xR_YnWYwykhgiObs0/edit?usp=drivesdk";
   const TAB = "Sheet1";
 
-  // Build OpenSheet endpoint from the Google Sheet URL
   const idMatch = EXTERNAL_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
   const SHEET_ID = idMatch ? idMatch[1] : "";
   const BOX_URL = SHEET_ID ? `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(TAB)}` : "";
 
-  // Apply classes on <body> based on numeric mode (1/2/3)
   function applyClasses(mode){
     const body = document.body;
-    body.classList.remove("horizontal-mode","small-cards"); // reset
+    body.classList.remove("horizontal-mode","small-cards"); 
     if (mode === 2) body.classList.add("horizontal-mode");
     else if (mode === 3) body.classList.add("horizontal-mode","small-cards");
   }
 
-  // Parse the first row's "Box Direction" (case/space tolerant)
   function parseDirection(rows){
     const first = rows?.[0] || {};
     const key = Object.keys(first).find(k => k && k.trim().toLowerCase() === "box direction");
     const raw = key ? first[key] : first["Box Direction"];
     const n = Number(raw);
-    return (n === 2 || n === 3) ? n : 1; // default to 1
+    return (n === 2 || n === 3) ? n : 1; 
   }
 
   async function applyFromSheet(){
@@ -4073,7 +3536,6 @@ if (popup){
     }
   }
 
-  // Ensure our setting wins after DOM is ready
   if (document.readyState === "loading"){
     document.addEventListener("DOMContentLoaded", applyFromSheet, { once: true });
   } else {
@@ -4083,12 +3545,7 @@ if (popup){
 </script>
 
 <script>
-/* ================================
-   MULTI-SOURCE LOADER (appended)
-   Reason: earlier code stopped at first non-empty row in master config.
-   This loader reads **all** rows and renders all sheets in order.
-   💀💀💀💀💀
-=============================== */
+
 (async function loadAllSourcesAndRender(){
   try{
     const masterURL = buildOpenSheetUrl(MASTER_SHEET_LINK, MASTER_TAB_NAME);
@@ -4107,14 +3564,12 @@ if (popup){
     }
     if (!configs.length) return;
 
-    // Apply Box Direction from first row (ltr/rtl or numeric modes 2/3)
     const v = String(configs[0].boxDir || "").trim().toLowerCase();
     applyBoxDirection(v);
     document.body.classList.remove("horizontal-mode","small-cards");
     if (v === "2") document.body.classList.add("horizontal-mode");
     if (v === "3") document.body.classList.add("horizontal-mode","small-cards");
 
-    // Clear whatever previous script rendered
     let content = document.getElementById("content");
     if (!content){
       content = document.createElement("div");
@@ -4126,7 +3581,6 @@ if (popup){
 
     window.catalogData = [];
 
-    // Helper to render one sheet block (reusing existing functions)
     function renderRows(raw){
       const data = (raw || []).map(makeLooseRow);
       let currentSection = "";
@@ -4272,11 +3726,9 @@ if (popup){
 })();
 </script>
 
-
-<!-- ===== SWR Background Refresh (no flicker) ===== -->
 <script>
 (function(){
-  // --- Safe helpers: use existing if present, else define ---
+  
   const normalizeKey = (typeof window.normalizeKey === 'function') ? window.normalizeKey : function(k){
     return String(k||"").toLowerCase().replace(/[\s\r\n\t]+/g,"").replace(/[^a-z0-9]/g,"");
   };
@@ -4316,16 +3768,14 @@ if (popup){
     if(v === "ltr") document.body.classList.add("dir-ltr");
   };
 
-  // --- Hash helper to detect changes ---
   function hashRows(rows){
     try{
       const s = JSON.stringify(rows);
-      let h = 5381; for(let i=0;i<s.length;i++){ h = ((h<<5)+h) ^ s.charCodeAt(i); } // djb2 xor
+      let h = 5381; for(let i=0;i<s.length;i++){ h = ((h<<5)+h) ^ s.charCodeAt(i); } 
       return (h>>>0).toString(36);
     }catch(e){ return String(Math.random()).slice(2); }
   }
 
-  // --- Renderer: builds the same structure as the existing code ---
   function renderProductsInto(container, rows){
     const data = (rows||[]).map(makeLooseRow);
     container.innerHTML = "";
@@ -4345,7 +3795,6 @@ if (popup){
       const p3 = pick(item, ["photo 3","photo3"]);
       const p4 = pick(item, ["photo 4","photo4"]);
 
-      // Section handling
       if (sectionName) {
         const secVis = String(visibility || "").trim().toLowerCase();
         currentSectionHidden = secVis.includes("hide");
@@ -4377,7 +3826,6 @@ if (popup){
         }
       });
 
-      // Media
       (function(){
         const url1 = String(p1||"").trim();
         let el;
@@ -4437,10 +3885,9 @@ if (popup){
     });
   }
 
-  // --- SWR engine ---
   const CACHE_KEY = "all_html_products_cache_v1";
-  const CACHE_TIME_MS = 5 * 60 * 1000;  // keep for 5 min (warm start only)
-  const POLL_INTERVAL_MS = 45000;       // refresh every 45s
+  const CACHE_TIME_MS = 5 * 60 * 1000;  
+  const POLL_INTERVAL_MS = 45000;       
 
   async function loadMaster(){
     try {
@@ -4484,7 +3931,7 @@ if (popup){
       if(!raw) return null;
       const o = JSON.parse(raw);
       if(!o || !o.rows) return null;
-      if ((Date.now() - (o.ts||0)) > CACHE_TIME_MS) { /* stale ok */ }
+      if ((Date.now() - (o.ts||0)) > CACHE_TIME_MS) {  }
       return o;
     }catch(e){ return null; }
   }
@@ -4503,17 +3950,15 @@ if (popup){
       const oldHash = old ? hashRows(old.rows) : null;
 
       if(newHash !== oldHash){
-        // Update cache
+        
         saveToCache(rows, { updatedAt: new Date().toISOString() });
 
-        // Atomically render into a detached node, then swap
         const oldContent = document.getElementById("content");
         if(!oldContent) return;
 
-        const newContent = oldContent.cloneNode(false); // keeps id
+        const newContent = oldContent.cloneNode(false); 
         renderProductsInto(newContent, rows);
 
-        // Fade swap (no flicker)
         oldContent.style.opacity = "1";
         newContent.style.opacity = "0.001";
         oldContent.parentNode.insertBefore(newContent, oldContent.nextSibling);
@@ -4529,7 +3974,6 @@ if (popup){
           }, 200);
         });
 
-        // Expose to deep-linking helpers
         window.catalogData = rows;
         if (typeof window.maybeOpenFromURL === "function"){
           try{ window.maybeOpenFromURL(); } catch(e){ console.warn(e); }
@@ -4547,6 +3991,234 @@ if (popup){
   window.__SWR_PRODUCTS_TIMER__ = _swr_timer;
 })();
 </script>
+<script>
+(async function loadAndRenderCatalog() {
+  try {
+    const masterURL = buildOpenSheetUrl(MASTER_SHEET_LINK, MASTER_TAB_NAME);
+    if (!masterURL) throw new Error("Invalid MASTER_SHEET_LINK");
+    function cacheKeyFor(url) {
+      try { return "swr:" + new URL(url, location.href).toString(); } catch { return "swr:" + url; }
+    }
+    function readLocalCache(key) {
+      try { const raw = localStorage.getItem(key); if (!raw) return null; const obj = JSON.parse(raw); return obj; } catch { return null; }
+    }
+    function saveLocalCache(key, resStatus, resStatusText, bodyText) {
+      try {
+        const payload = { status: resStatus || 200, statusText: resStatusText || "OK", headers: {}, body: String(bodyText || ""), ts: Date.now() };
+        localStorage.setItem(key, JSON.stringify(payload));
+        try { window.dispatchEvent(new CustomEvent('swr:cache:update', { detail: { key, ts: payload.ts } })); } catch (e) {}
+      } catch (e) {}
+    }
+    function parseSheetText(txt) {
+      try { return JSON.parse(txt); } catch (e) { try { return (typeof parseGviz === 'function') ? parseGviz(txt) : []; } catch (ee) { return []; } }
+    }
+    async function fetchSheetText(url, forceNetwork = false) {
+      try {
+        let fetchUrl = url;
+        if (forceNetwork) {
+          const sep = url.includes('?') ? '&' : '?';
+          fetchUrl = url + sep + '_cb=' + Date.now();
+        }
+        const r = await fetch(fetchUrl, forceNetwork ? { cache: 'no-store' } : undefined);
+        const txt = await r.text();
+        return { ok: r.ok, status: r.status, statusText: r.statusText, text: txt, url: fetchUrl };
+      } catch (e) { return { ok: false, status: 0, statusText: String(e), text: "" }; }
+    }
 
+    // read master config (same style as earlier code)
+    const masterResp = await fetchSheetText(masterURL, false);
+    const masterRowsRaw = parseSheetText(masterResp.text || "[]");
+    const masterRows = (masterRowsRaw || []).map(typeof makeLooseRow === 'function' ? makeLooseRow : (r => r));
+    let config = { sheetUrl: "", tab: "", boxDirection: "" };
+    for (const r of masterRows) {
+      if (!config.sheetUrl) config.sheetUrl = String(r["sheeturl"] || r["sheeturlheading"] || r["sheeturladdress"] || r["sheeturl_"] || "").trim();
+      if (!config.tab) config.tab = String(r["tab"] || r["tabname"] || r["sheettab"] || "").trim();
+      if (!config.boxDirection) config.boxDirection = String(r["boxdirection"] || r["direction"] || "").trim();
+      if (config.sheetUrl && config.tab) break;
+    }
+    if (!config.sheetUrl) config.sheetUrl = MASTER_SHEET_LINK;
+    if (!config.tab) config.tab = MASTER_TAB_NAME;
+    applyBoxDirection(config.boxDirection || "");
+
+    const DATA_SHEET_URL = buildOpenSheetUrl(config.sheetUrl, config.tab);
+    if (!DATA_SHEET_URL) throw new Error("Invalid DATA_SHEET_URL");
+
+    // rendering helpers
+    const contentEl = document.getElementById('content') || (function(){ const d=document.createElement('div'); d.id='content'; document.body.appendChild(d); return d; })();
+
+    function collectScrollLefts() {
+      const grids = Array.from(document.querySelectorAll('.product-grid'));
+      return grids.map(g => Math.max(0, g.scrollLeft || 0));
+    }
+    function restoreScrollLefts(prev) {
+      try {
+        const grids = Array.from(document.querySelectorAll('.product-grid'));
+        for (let i = 0; i < Math.min(prev.length, grids.length); i++) { try { grids[i].scrollLeft = prev[i] || 0; } catch (e) {} }
+      } catch (e) {}
+    }
+
+    // original row -> DOM rendering (keeps behavior from your file)
+    function renderFromRows(rawRows) {
+      try {
+        const rows = (rawRows || []).map(typeof makeLooseRow === 'function' ? makeLooseRow : (r => r));
+        contentEl.innerHTML = '';
+        let currentSection = "";
+        let sectionWrapper = null;
+        let currentSectionHidden = false;
+        rows.forEach((item) => {
+          const name = (typeof pick === 'function') ? pick(item, ["Product Name","productname","name"]) : (item["Product Name"] || item.name || "");
+          const sectionName = (typeof pick === 'function') ? pick(item, ["Section","section"]) : (item["Section"] || item.section || "");
+          const visibility = (typeof pick === 'function') ? pick(item, ["visibility","Visible","Show/Hide","showhide"]) : (item.visibility || item.Visible || item.showhide || "");
+          const mrp = Number((typeof pick === 'function') ? pick(item, ["MRP","mrp"]) : (item.MRP || item.mrp) ) || 0;
+          const sp  = Number((typeof pick === 'function') ? pick(item, ["Selling Price","sellingprice","price"]) : (item["Selling Price"] || item.sellingprice || item.price)) || 0;
+          const inStock = Number((typeof pick === 'function') ? pick(item, ["in stock","instock","stock"]) : (item["in stock"] || item.instock || item.stock)) || 0;
+          const badge = (typeof pick === 'function') ? pick(item, ["Badge","badge"]) : (item.Badge || item.badge || "");
+          const p1 = (typeof pick === 'function') ? pick(item, ["photo 1","photo1"]) : (item["photo 1"] || item.photo1 || "");
+          const p2 = (typeof pick === 'function') ? pick(item, ["photo 2","photo2"]) : (item["photo 2"] || item.photo2 || "");
+          const p3 = (typeof pick === 'function') ? pick(item, ["photo 3","photo3"]) : (item["photo 3"] || item.photo3 || "");
+          const p4 = (typeof pick === 'function') ? pick(item, ["photo 4","photo4"]) : (item["photo 4"] || item.photo4 || "");
+
+          if (sectionName) {
+            currentSection = sectionName;
+            const secVis = String(visibility || "").trim().toLowerCase();
+            currentSectionHidden = secVis.includes("hide");
+            if (currentSectionHidden) { sectionWrapper = null; return; }
+            const sectionTitle = document.createElement("div");
+            sectionTitle.className = "section-title";
+            sectionTitle.innerText = currentSection;
+            contentEl.appendChild(sectionTitle);
+            sectionWrapper = document.createElement("div");
+            sectionWrapper.className = "product-grid";
+            contentEl.appendChild(sectionWrapper);
+            return;
+          }
+          if (currentSectionHidden) return;
+          if (!name) return;
+          const product = document.createElement("div"); product.className = "product";
+          product.addEventListener("click", (e) => {
+            if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+            const allPhotos = [p1, p2, p3, p4].filter(Boolean);
+            if (typeof openPopup === "function") {
+              openPopup(allPhotos, name, mrp, sp, inStock, (typeof getSheetDescription === 'function') ? getSheetDescription(item) : "");
+            }
+          });
+          (function() {
+            const url1 = String(p1 || "").trim();
+            let el;
+            if (typeof isVideoUrl === 'function' && isVideoUrl(url1)) {
+              const v = document.createElement("video");
+              v.src = url1; v.muted = true; v.autoplay = true; v.loop = true; v.playsInline = true; v.preload = "metadata";
+              v.disablePictureInPicture = true; v.setAttribute("muted",""); v.setAttribute("webkit-playsinline","true"); v.setAttribute("playsinline","true");
+              v.style.pointerEvents = "none"; v.style.cursor = "default"; v.style.display = "block"; v.style.width = "100%"; v.style.height = "100%"; v.style.aspectRatio = "1 / 1"; v.style.objectFit = "contain";
+              el = v;
+            } else {
+              const img = document.createElement("img");
+              img.src = url1 || ""; img.alt = name; img.loading = "lazy"; img.decoding = "async"; img.style.pointerEvents = "none"; img.style.cursor = "default";
+              el = img;
+            }
+            const wrap = document.createElement("div"); wrap.className = "media-square"; wrap.appendChild(el); product.appendChild(wrap);
+          })();
+          if (badge) { const b = document.createElement("div"); b.className = "badge"; b.innerText = badge; product.appendChild(b); }
+          const infoWrapper = document.createElement("div"); infoWrapper.style.padding = "0 6px";
+          const title = document.createElement("div"); title.className = "product-title"; title.style.fontSize = "14px"; title.style.textAlign = "left"; title.style.marginTop = "8px"; title.innerText = name; infoWrapper.appendChild(title);
+          const info = document.createElement("div"); info.className = "product-info";
+          let priceHTML = "";
+          if (mrp && sp) {
+            priceHTML = `<div style="text-align:left;font-size:14px;font-weight:bold;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span>₹${sp}</span><s style="color:#999;font-weight:normal;">₹${mrp}</s></div>`;
+          }
+          if (inStock === 0) {
+            info.innerHTML = `${priceHTML}<button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>`;
+          } else {
+            const productData = { photo: p1, name, mrp, price: sp };
+            info.innerHTML = `${priceHTML}<button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>`;
+          }
+          infoWrapper.appendChild(info); product.appendChild(infoWrapper);
+          if (!sectionWrapper) { sectionWrapper = document.createElement("div"); sectionWrapper.className = "product-grid"; contentEl.appendChild(sectionWrapper); }
+          sectionWrapper.appendChild(product);
+        });
+      } catch (e) { console.error("render error", e); }
+    }
+
+    // change detection + scheduling
+    let lastSnapshot = null;
+    let scheduled = false;
+    let scheduledTimer = null;
+    let isDragging = false;
+
+    // drag detection (defer render while dragging on any .product-grid)
+    document.addEventListener('pointerdown', (ev) => { if (ev.target.closest('.product-grid')) isDragging = true; }, { passive: true });
+    document.addEventListener('pointermove', (ev) => { if (ev.pressure !== 0 && ev.target.closest('.product-grid')) isDragging = true; }, { passive: true });
+    document.addEventListener('pointerup', () => { if (isDragging) { isDragging = false; if (scheduled) { clearTimeout(scheduledTimer); scheduledTimer = setTimeout(() => { scheduled = false; _renderIfChanged(); }, 120); } } }, { passive: true });
+    document.addEventListener('pointercancel', () => { isDragging = false; });
+
+    async function _renderIfChanged(rawRows) {
+      try {
+        const prevScrolls = collectScrollLefts();
+        renderFromRows(rawRows);
+        restoreScrollLefts(prevScrolls);
+      } catch (e) { console.error(e); }
+    }
+
+    async function scheduleRenderOrApply(rawRows) {
+      const snap = JSON.stringify(rawRows || []);
+      if (snap === lastSnapshot) return;
+      lastSnapshot = snap;
+      if (isDragging) {
+        scheduled = true;
+        if (scheduledTimer) clearTimeout(scheduledTimer);
+        scheduledTimer = setTimeout(() => { scheduled = false; if (!isDragging) _renderIfChanged(rawRows); }, 150);
+      } else {
+        await _renderIfChanged(rawRows);
+      }
+    }
+
+    // single background fetch + cache update check
+    async function fetchAndMaybeUpdate(forceNetwork = false) {
+      try {
+        // attempt network fetch (forceNetwork adds cache-buster)
+        const net = await fetchSheetText(DATA_SHEET_URL, forceNetwork);
+        if (!net.ok && !net.text) return;
+        const parsed = parseSheetText(net.text || "[]");
+        const snap = JSON.stringify(parsed || []);
+        if (snap !== lastSnapshot) {
+          // save to local cache under canonical key (so other code finds it)
+          const key = cacheKeyFor(DATA_SHEET_URL);
+          saveLocalCache(key, net.status, net.statusText, net.text);
+          await scheduleRenderOrApply(parsed);
+        }
+      } catch (e) { console.warn("background fetch failed", e); }
+    }
+
+    // initial: try read local cache first (fast)
+    const canonicalKey = cacheKeyFor(DATA_SHEET_URL);
+    const cachedObj = readLocalCache(canonicalKey);
+    if (cachedObj && cachedObj.body) {
+      try {
+        const parsed = parseSheetText(cachedObj.body || "[]");
+        lastSnapshot = JSON.stringify(parsed || []);
+        await scheduleRenderOrApply(parsed);
+      } catch (e) { console.warn("failed parsing cached body", e); }
+    }
+
+    // decide force-on-load: ?nocache=1 or reload
+    const urlParams = new URLSearchParams(location.search);
+    const navEntries = (performance && performance.getEntriesByType) ? performance.getEntriesByType('navigation') : [];
+    const isReload = (navEntries && navEntries[0] && navEntries[0].type === 'reload') || (performance && performance.navigation && performance.navigation.type === 1);
+    const forceOnLoad = urlParams.get('nocache') === '1' || isReload;
+
+    // run background fetch now (force network if requested)
+    await fetchAndMaybeUpdate(forceOnLoad);
+
+    // poll every 3s
+    setInterval(() => { fetchAndMaybeUpdate(false); }, 3000);
+
+    // expose manual refresh
+    window.loadAndRenderCatalog = { refresh: () => fetchAndMaybeUpdate(true) };
+
+  } catch (err) {
+    console.error("loadAndRenderCatalog error:", err);
+  }
+})();
+</script>
 </body>
 </html>
