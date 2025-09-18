@@ -1652,7 +1652,7 @@ body.horizontal-mode .product-grid{
 
 <div id="content"></div>
 <script>
-// =============== SWR FETCH INTERCEPTOR (UPDATED) =================
+// =============== SWR FETCH INTERCEPTOR (place this first in index.html) ===============
 (() => {
   const ORIGINAL_FETCH = window.fetch.bind(window);
   const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
@@ -1663,9 +1663,11 @@ body.horizontal-mode .product-grid{
                   (input instanceof Request ? new URL(input.url) :
                    new URL(String(input)));
       if (!MATCH_HOSTS.has(url.hostname)) return false;
+      // Only intercept Google Sheets paths
       if (url.hostname === "docs.google.com") {
         return url.pathname.startsWith("/spreadsheets/");
       }
+      // Intercept all opensheet.elk.sh requests
       if (url.hostname === "opensheet.elk.sh") return true;
       return false;
     } catch {
@@ -1680,6 +1682,7 @@ body.horizontal-mode .product-grid{
     if (res.type === "opaque" || res.type === "opaqueredirect") return false;
     if (!contentType) return false;
     const ct = contentType.toLowerCase();
+    // avoid HTML error screens; allow only JSON, CSV, or plain text
     if (ct.includes("text/html")) return false;
     return (
       ct.includes("application/json") ||
@@ -1688,15 +1691,20 @@ body.horizontal-mode .product-grid{
     );
   };
 
-  const serializeHeaders = (headers) => { try { return Array.from(headers.entries()); } catch { return []; } };
-  const restoreHeaders = (entries) => { try { return new Headers(entries || []); } catch { return new Headers(); } };
+  const serializeHeaders = (headers) => {
+    try { return Array.from(headers.entries()); } catch { return []; }
+  };
 
-  // Store response in localStorage and dispatch an event so page can re-render
+  const restoreHeaders = (entries) => {
+    try { return new Headers(entries || []); } catch { return new Headers(); }
+  };
+
   const storeInCache = async (key, response) => {
     try {
       const ct = response.headers.get("content-type") || "";
       if (!isCacheableResponse(response, ct)) return;
 
+      // We must read the body to cache it; use text for JSON/CSV/TXT so .json()/.text() still work
       const bodyText = await response.clone().text();
       const payload = {
         body: bodyText,
@@ -1706,12 +1714,8 @@ body.horizontal-mode .product-grid{
         ts: Date.now()
       };
       localStorage.setItem(key, JSON.stringify(payload));
-
-      // Notify any page code that cache updated (so UI can re-render)
-      try {
-        window.dispatchEvent(new CustomEvent('swr:cache:update', { detail: { key, ts: payload.ts } }));
-      } catch (e) { /* ignore */ }
     } catch (e) {
+      // Swallow cache errors to avoid breaking network flow
       console.warn("SWR cache store failed:", e);
     }
   };
@@ -1744,50 +1748,41 @@ body.horizontal-mode .product-grid{
         await storeInCache(key, res);
       }
     } catch (e) {
+      // Silent fail; keep stale cache
       console.info("SWR revalidate skipped:", e?.name || e);
     }
   };
 
-  // Detect if the page load is a manual reload (so we can force network)
-  const isReloadNavigation = () => {
-    try {
-      const navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
-      if (navEntries && navEntries[0]) return navEntries[0].type === 'reload';
-      if (performance.navigation) return performance.navigation.type === 1; // legacy
-    } catch (e) {}
-    return false;
-  };
-
   window.fetch = function swrFetch(resource, init) {
-    // Non-sheet requests go through untouched
+    // Bypass if not a targeted sheets URL
     if (!isSheetRequest(resource)) {
       return ORIGINAL_FETCH(resource, init);
     }
 
     const url = (resource instanceof Request) ? resource.url : String(resource);
     const key = cacheKeyFor(url);
+
     const cachedJson = localStorage.getItem(key);
 
-    // Force network if this navigation is a manual reload OR URL contains nocache=1
-    const forceNetwork = isReloadNavigation() ||
-                         (typeof location !== "undefined" && location.search && location.search.includes("nocache=1"));
-
-    // If we have cache and NOT forcing network, serve cache immediately and revalidate in background
-    if (cachedJson && !forceNetwork) {
+    // If we have cache, return it immediately and revalidate in background
+    if (cachedJson) {
       const cachedRes = responseFromCache(cachedJson);
+      // Kick off background revalidation without blocking
       backgroundRevalidate(resource, init, key);
+      // Return a fresh clone so downstream can read body
       return Promise.resolve(cachedRes.clone());
     }
 
-    // Otherwise do network fetch (this includes manual reload case). Cache if valid.
+    // No cache -> do network fetch first, then decide whether to store/return
     return fetchWithTimeout(resource, init, 7000).then(async (res) => {
       const ct = res.headers.get("content-type") || "";
       if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res.clone());
+        // Store before returning; cloning keeps original readable
+        storeInCache(key, res.clone());
       }
       return res;
     }).catch((err) => {
-      // If network fails, try to fall back to cache (if any)
+      // Network failed; if somehow cache exists, fall back, else propagate
       const fallbackJson = localStorage.getItem(key);
       if (fallbackJson) {
         const fallbackRes = responseFromCache(fallbackJson);
@@ -1855,7 +1850,186 @@ function isVideoUrl(url=""){
   return u.endsWith(".mp4") || u.endsWith(".webm") || u.endsWith(".mov");
 }
 
+(async function () {
+  try {
+    // This fetch will be intercepted by SWR for opensheet.elk.sh
+    const res = await fetch(SHEET_URL);
+    // If SWR served from cache, .json() still works because we reconstructed Response with headers
+    const data = await res.json();
 
+    if (typeof applyDirectionFromSheet === "function") {
+      applyDirectionFromSheet(data);
+    }
+
+    window.catalogData = data;
+
+    const content = document.getElementById("content");
+    let currentSection = "";
+    let sectionWrapper;
+    let currentSectionHidden = false;
+
+    data.forEach((item) => {
+      // --- Section header row handling (section-level hide support) ---
+      if (item["Section"]) {
+        currentSection = item["Section"];
+        const secVis = String(item["visibility"] || item["Visibility"] || "")
+          .trim()
+          .toLowerCase();
+        currentSectionHidden = secVis.includes("hide");
+        if (currentSectionHidden) { sectionWrapper = null; return; }
+
+        const sectionTitle = document.createElement("div");
+        sectionTitle.className = "section-title";
+        sectionTitle.innerText = currentSection;
+        content.appendChild(sectionTitle);
+
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+        return;
+      }
+
+      if (currentSectionHidden) return;
+      if (isHidden(item)) return;
+      if (!item["Product Name"]) return;
+
+      const product = document.createElement("div");
+      product.className = "product";
+
+      // ✅ Open popup when clicking anywhere on the product card (except buttons/qty areas)
+      product.addEventListener("click", (e) => {
+        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+        const allPhotos = [
+          item["photo 1"],
+          item["photo 2"],
+          item["photo 3"],
+          item["photo 4"],
+        ].filter(Boolean);
+        openPopup(
+          allPhotos,
+          item["Product Name"],
+          item["MRP"],
+          item["Selling Price"],
+          item["in stock"],
+          getSheetDescription(item)
+        );
+      });
+
+      // --- Media (photo or video) ---
+      (function(){
+        const url1 = (item["photo 1"] || "").trim();
+        let el;
+        if (isVideoUrl(url1)) {
+          const v = document.createElement("video");
+          v.src = url1;
+          v.muted = true;
+          v.autoplay = true;
+          v.loop = true;
+          v.playsInline = true;
+          v.preload = "metadata";
+          v.style.width = "100%";
+          v.style.height = "100%";
+          v.style.objectFit = "contain";
+          v.disablePictureInPicture = true;
+          v.setAttribute("muted","");
+          v.setAttribute("webkit-playsinline","true");
+          v.setAttribute("playsinline","true");
+          v.style.pointerEvents = "none"; // allow card click to bubble
+          v.style.cursor = "default";
+          el = v;
+        } else {
+          const img = document.createElement("img");
+          img.src = url1;
+          img.alt = item["Product Name"];
+          img.style.pointerEvents = "none";
+          img.style.cursor = "default";
+          el = img;
+        }
+        const wrap = document.createElement('div');
+        wrap.className = 'media-square';
+        wrap.appendChild(el);
+        product.appendChild(wrap);
+      })();
+
+      if (item["Badge"]) {
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.innerText = item["Badge"];
+        product.appendChild(badge);
+      }
+
+      const infoWrapper = document.createElement("div");
+      infoWrapper.style.padding = "0 6px";
+
+      const title = document.createElement("div");
+      title.className = "product-title";
+      title.style.fontSize = "14px";
+      title.style.textAlign = "left";
+      title.style.marginTop = "8px";
+      title.innerText = item["Product Name"];
+      infoWrapper.appendChild(title);
+
+      const info = document.createElement("div");
+      info.className = "product-info";
+
+      let priceHTML = "";
+      if (item["MRP"] && item["Selling Price"]) {
+        priceHTML = `
+          <div style="
+            text-align:left;
+            font-size:14px;
+            font-weight:bold;
+            display:flex;
+            gap:6px;
+            align-items:center;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+          ">
+            <span>₹${item["Selling Price"]}</span>
+            <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+          </div>
+        `;
+      }
+
+      if (+item["in stock"] === 0) {
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
+        `;
+      } else {
+        const productData = {
+          photo: item["photo 1"],
+          name: item["Product Name"],
+          mrp: item["MRP"],
+          price: item["Selling Price"],
+        };
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(
+            productData
+          )})'>Add to Cart</button>
+        `;
+      }
+
+      infoWrapper.appendChild(info);
+      product.appendChild(infoWrapper);
+
+      if (!sectionWrapper) {
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+      }
+      sectionWrapper.appendChild(product);
+    });
+
+    if (typeof maybeOpenFromURL === "function") {
+      maybeOpenFromURL();
+    }
+  } catch (err) {
+    console.error("Failed to load products:", err);
+    // If network failed and cache existed, SWR already returned from cache.
+    // If no cache existed, UI may be empty on first load — you can show a friendly message here if desired.
+  }
+})();
 </script>
 
 
@@ -3927,32 +4101,175 @@ if (popup){
   });
 })();
 </script>
+
 <script>
-/* ===== Replace the old IIFE with this named function + listener ===== */
+// =============== SWR FETCH INTERCEPTOR (UPDATED) =================
+(() => {
+  const ORIGINAL_FETCH = window.fetch.bind(window);
+  const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
+
+  const isSheetRequest = (input) => {
+    try {
+      const url = typeof input === "string" ? new URL(input) :
+                  (input instanceof Request ? new URL(input.url) :
+                   new URL(String(input)));
+      if (!MATCH_HOSTS.has(url.hostname)) return false;
+      if (url.hostname === "docs.google.com") {
+        return url.pathname.startsWith("/spreadsheets/");
+      }
+      if (url.hostname === "opensheet.elk.sh") return true;
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  const cacheKeyFor = (url) => `swr:${url}`;
+
+  const isCacheableResponse = (res, contentType) => {
+    if (!res || !res.ok) return false;
+    if (res.type === "opaque" || res.type === "opaqueredirect") return false;
+    if (!contentType) return false;
+    const ct = contentType.toLowerCase();
+    if (ct.includes("text/html")) return false;
+    return (
+      ct.includes("application/json") ||
+      ct.includes("text/csv") ||
+      ct.includes("text/plain")
+    );
+  };
+
+  const serializeHeaders = (headers) => { try { return Array.from(headers.entries()); } catch { return []; } };
+  const restoreHeaders = (entries) => { try { return new Headers(entries || []); } catch { return new Headers(); } };
+
+  const storeInCache = async (key, response) => {
+    try {
+      const ct = response.headers.get("content-type") || "";
+      if (!isCacheableResponse(response, ct)) return;
+
+      const bodyText = await response.clone().text();
+      const payload = {
+        body: bodyText,
+        status: response.status,
+        statusText: response.statusText || "",
+        headers: serializeHeaders(response.headers),
+        ts: Date.now()
+      };
+      localStorage.setItem(key, JSON.stringify(payload));
+      try {
+        window.dispatchEvent(new CustomEvent('swr:cache:update', { detail: { key, ts: payload.ts } }));
+      } catch (e) { /* ignore */ }
+    } catch (e) {
+      console.warn("SWR cache store failed:", e);
+    }
+  };
+
+  const responseFromCache = (cachedJson) => {
+    try {
+      const cached = JSON.parse(cachedJson);
+      return new Response(cached.body, {
+        status: cached.status,
+        statusText: cached.statusText,
+        headers: restoreHeaders(cached.headers)
+      });
+    } catch {
+      return null;
+    }
+  };
+
+  const fetchWithTimeout = (resource, init, ms = 7000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), ms);
+    const mergedInit = { ...(init || {}), signal: controller.signal };
+    return ORIGINAL_FETCH(resource, mergedInit).finally(() => clearTimeout(id));
+  };
+
+  const backgroundRevalidate = async (resource, init, key) => {
+    try {
+      const res = await fetchWithTimeout(resource, init, 7000);
+      const ct = res.headers.get("content-type") || "";
+      if (isCacheableResponse(res, ct)) {
+        await storeInCache(key, res);
+      }
+    } catch (e) {
+      console.info("SWR revalidate skipped:", e?.name || e);
+    }
+  };
+
+  const isReloadNavigation = () => {
+    try {
+      const navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
+      if (navEntries && navEntries[0]) return navEntries[0].type === 'reload';
+      if (performance.navigation) return performance.navigation.type === 1;
+    } catch (e) {}
+    return false;
+  };
+
+  window.fetch = function swrFetch(resource, init) {
+    if (!isSheetRequest(resource)) {
+      return ORIGINAL_FETCH(resource, init);
+    }
+
+    const url = (resource instanceof Request) ? resource.url : String(resource);
+    const key = cacheKeyFor(url);
+    const cachedJson = localStorage.getItem(key);
+
+    const forceNetwork = isReloadNavigation() ||
+                         (typeof location !== "undefined" && location.search && location.search.includes("nocache=1"));
+
+    if (cachedJson && !forceNetwork) {
+      const cachedRes = responseFromCache(cachedJson);
+      backgroundRevalidate(resource, init, key);
+      return Promise.resolve(cachedRes.clone());
+    }
+
+    return fetchWithTimeout(resource, init, 7000).then(async (res) => {
+      const ct = res.headers.get("content-type") || "";
+      if (isCacheableResponse(res, ct)) {
+        await storeInCache(key, res.clone());
+      }
+      return res;
+    }).catch((err) => {
+      const fallbackJson = localStorage.getItem(key);
+      if (fallbackJson) {
+        const fallbackRes = responseFromCache(fallbackJson);
+        return Promise.resolve(fallbackRes.clone());
+      }
+      return Promise.reject(err);
+    });
+  };
+})();
+// ======================= END SWR FETCH INTERCEPTOR =======================
+</script>
+
+<script>
+/* ===== New Named Function + Listener ===== */
 
 async function loadAndRenderCatalog() {
   try {
-    // fetch the sheet (goes through SWR interceptor)
-    const res = await fetch(SHEET_URL);
+    // ensure SHEET_URL is defined
+    if (typeof SHEET_URL === "undefined") {
+      console.warn("SHEET_URL is not defined. Define SHEET_URL to point to your Google Sheet JSON URL.");
+      return;
+    }
+
+    const res = await fetch(SHEET_URL, {cache: "no-store"});
     const data = await res.json();
 
-    // let other code see the loaded catalog
     if (typeof applyDirectionFromSheet === "function") {
       applyDirectionFromSheet(data);
     }
     window.catalogData = data;
 
-    // clear previous content before re-rendering
     const content = document.getElementById("content");
     if (!content) return;
-    content.innerHTML = ""; // IMPORTANT: remove old nodes
+    content.innerHTML = "";
 
     let currentSection = "";
     let sectionWrapper = null;
     let currentSectionHidden = false;
 
     data.forEach((item) => {
-      // --- Section header row handling (section-level hide support) ---
       if (item["Section"]) {
         currentSection = item["Section"];
         const secVis = String(item["visibility"] || item["Visibility"] || "")
@@ -3987,21 +4304,22 @@ async function loadAndRenderCatalog() {
           item["photo 3"],
           item["photo 4"],
         ].filter(Boolean);
-        openPopup(
-          allPhotos,
-          item["Product Name"],
-          item["MRP"],
-          item["Selling Price"],
-          item["in stock"],
-          (typeof getSheetDescription === "function" ? getSheetDescription(item) : "")
-        );
+        if (typeof openPopup === "function") {
+          openPopup(
+            allPhotos,
+            item["Product Name"],
+            item["MRP"],
+            item["Selling Price"],
+            item["in stock"],
+            (typeof getSheetDescription === "function" ? getSheetDescription(item) : "")
+          );
+        }
       });
 
-      // --- Media (photo or video) ---
       (function(){
         const url1 = (item["photo 1"] || "").trim();
         let el;
-        if (isVideoUrl(url1)) {
+        if (typeof isVideoUrl === "function" && isVideoUrl(url1)) {
           const v = document.createElement("video");
           v.src = url1;
           v.muted = true;
@@ -4022,7 +4340,7 @@ async function loadAndRenderCatalog() {
         } else {
           const img = document.createElement("img");
           img.src = url1;
-          img.alt = item["Product Name"];
+          img.alt = item["Product Name"] || "";
           img.style.pointerEvents = "none";
           img.style.cursor = "default";
           el = img;
@@ -4086,7 +4404,7 @@ async function loadAndRenderCatalog() {
         };
         info.innerHTML = `
           ${priceHTML}
-          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(productData)})'>Add to Cart</button>
+          <button class="add-btn" onclick='if(typeof addToCartFromGrid==="function"){addToCartFromGrid(this, ${JSON.stringify(productData)})}'>Add to Cart</button>
         `;
       }
 
@@ -4101,7 +4419,6 @@ async function loadAndRenderCatalog() {
       sectionWrapper.appendChild(product);
     });
 
-    // if you have any URL-based popup opener, run it after render:
     if (typeof maybeOpenFromURL === "function") maybeOpenFromURL();
 
   } catch (err) {
@@ -4112,20 +4429,19 @@ async function loadAndRenderCatalog() {
 // Initial load
 loadAndRenderCatalog();
 
-// Re-run loadAndRenderCatalog when SWR has updated the localStorage cache for this URL
-window.addEventListener('swr:cache:update', function(e) {
-  try {
-    const expectedKey = 'swr:' + SHEET_URL;
-    if (e && e.detail && e.detail.key === expectedKey) {
-      // small debounce to avoid double runs if multiple updates arrive quickly
-      if (window._swr_reload_timeout) clearTimeout(window._swr_reload_timeout);
-      window._swr_reload_timeout = setTimeout(() => {
-        console.log('SWR cache updated; re-rendering catalog.');
-        loadAndRenderCatalog();
-      }, 180);
+// SIMPLE POLLING — re-run every few seconds (works without server)
+(function(){
+  const POLL_MS = 3000;
+  const pollFn = () => {
+    if (document.visibilityState !== 'visible') return;
+    if (typeof loadAndRenderCatalog === "function") {
+      loadAndRenderCatalog();
     }
-  } catch (err) { console.warn(err); }
-});
+  };
+  // start after initial render
+  setInterval(pollFn, POLL_MS);
+})();
 </script>
+
 </body>
 </html>
