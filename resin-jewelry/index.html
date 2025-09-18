@@ -9,8 +9,7 @@
   // Only intercept GET requests to Google Sheets providers
   const MATCH_HOSTS = ["opensheet.elk.sh", "docs.google.com"];
   const SHEETS_PATH_HINT = "/spreadsheets"; // for docs.google.com
-  const TIMEOUT_MS = 10000; // 10 seconds - tolerate slower networks
-
+  const TIMEOUT_MS = 7000;
 
   const origFetch = window.fetch.bind(window);
   const toStr = (u) => (typeof u === "string" ? u : (u && u.url) ? String(u.url) : String(u || ""));
@@ -42,9 +41,7 @@
 
   
 /* inside the same interceptor <script> */
-// Serve cached only as a fallback; always prefer fresh network data
-const MAX_AGE_MS = 0; // 0 = never treat stored item as fresh — forces network revalidation
-
+const MAX_AGE_MS = 2 * 60 * 1000; // 2 minutes
 
 function readCache(url){
   try{
@@ -1533,139 +1530,7 @@ a, button, [role="button"], input, textarea, select { outline: none !important; 
 </a>
 </div>
 </section>
-<!-- 🔽 CATEGORY SCRIPT FROM SHEET (updated: section hide support) -->
-<!-- 🔽 CATEGORY SCRIPT FROM SHEET — now with simple config -->
-<script>
-  // ======================= EASY CONFIG (edit just these two) =======================
-  // 🔹 ❤️❤️❤️❤️Paste your Google Sheet link (the full URL) and tab name here:❤️❤️❤️❤️
-  const FULL_SHEET_URL = "https://docs.google.com/spreadsheets/d/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/edit?usp=drivesdk";   // ← e.g. https://docs.google.com/spreadsheets/d/1AbCdEfGh.../edit#gid=0 ----sheet here----
-  const SHEET_TAB_NAME = "resin-jewelry"; 
-    // ← e.g. Sheet1 (tab name) ----sheet ----tab here----
 
-  // ================= DO NOT EDIT BELOW THIS LINE (auto-generated) ==================
-  // ⚡ Extract the Sheet ID from the full URL or accept a bare ID
-  function getSheetId(input){
-    if(!input) return "";
-    const s = String(input).trim();
-    const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-    if(m) return m[1];
-    // if user pasted only the ID
-    if (/^[a-zA-Z0-9-_]{20,}$/.test(s)) return s;
-    return "";
-  }
-
-  // ⚡ Build both GVIZ and OpenSheet JSON endpoints from the same config
-  const SHEET_ID   = getSheetId(FULL_SHEET_URL);
-  const GVIZ_URL   = SHEET_ID ? `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_TAB_NAME)}` : "";
-  const JSON_URL   = SHEET_ID ? `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(SHEET_TAB_NAME)}` : "";
-
-  // For debugging in console
-  console.log("✅ Final working Sheet GVIZ URL:", GVIZ_URL);
-  console.log("✅ Final working Sheet JSON URL:", JSON_URL);
-
-  // ================================================================================
-  // Helper utils (case-insensitive column access + visibility flag)
-  function normKey(k){ return String(k||"").replace(/\s+/g,"").toLowerCase(); }
-  function getCell(row, key){
-    const want = normKey(key);
-    for (const k in row){
-      if (!Object.prototype.hasOwnProperty.call(row, k)) continue;
-      if (normKey(k) === want) return row[k];
-    }
-    return "";
-  }
-  function rowHasHideMarker(row){
-    const v = String(getCell(row, "visibility") || "").trim().toLowerCase();
-    const l = String(getCell(row, "link") || "").trim().toLowerCase();
-    return ["hide","hidden","yes","1","true"].includes(v) || ["hide","hidden"].includes(l);
-  }
-
-  // ================================================================================
-  // Render "Resin" style category grid (title pill + 2-column cards)
-  (async function(){
-    // If config is not set, fall back to previous sheet (keeps page working)
-    const url = JSON_URL || "https://opensheet.elk.sh/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/Sheet1";
-
-    try{
-      const res = await fetch(url);
-      const rows = await res.json();
-
-      const container = document.getElementById("categorySection");
-      const grouped = {};
-      let currentSection = "";
-      let sectionHidden = false;
-
-      rows.forEach((row) => {
-        const titleCell = String(getCell(row, "Title") || "").trim();
-        if (titleCell){
-          currentSection = titleCell;
-          sectionHidden = rowHasHideMarker(row);
-          return;
-        }
-        if (!currentSection) return;
-        if (sectionHidden) return;
-        if (rowHasHideMarker(row)) return;
-
-        const name = String(getCell(row, "Category Name") || "").trim();
-        const img  = String(getCell(row, "Category Image") || "").trim();
-        let link   = String(getCell(row, "Link") || "").trim();
-        if (!name || !img) return;
-
-        if (!grouped[currentSection]) grouped[currentSection] = [];
-        grouped[currentSection].push({ name, img, link: link || "#" });
-      });
-
-      Object.entries(grouped).forEach(([section, items]) => {
-        if (!items || !items.length) return;
-
-        const wrap = document.createElement("div");
-        wrap.className = "section-strip-wrap";
-
-        const leftLine = document.createElement("div");
-        leftLine.className = "section-strip-line";
-
-        const strip = document.createElement("div");
-        strip.className = "section-strip";
-        strip.innerHTML = `<span class="strip-text">${section}</span>`;
-
-        const rightLine = document.createElement("div");
-        rightLine.className = "section-strip-line";
-
-        wrap.appendChild(leftLine);
-        wrap.appendChild(strip);
-        wrap.appendChild(rightLine);
-        container.appendChild(wrap);
-
-        const grid = document.createElement("div");
-        grid.style.display = "grid";
-        grid.style.gridTemplateColumns = "1fr 1fr";
-        grid.style.gap = "18px";
-
-        items.forEach(item => {
-          const box = document.createElement("a");
-          box.href = item.link || "#";
-          box.style.textDecoration = "none";
-          box.style.color = "inherit";
-          
-          const isVideo = /\.(mp4|webm|mov)(\?|$)/i.test(item.img);
-          const mediaTag = isVideo
-            ? `<video class="category-media" src="${item.img}" autoplay muted loop playsinline preload="metadata" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture></video>`
-            : `<img class="category-media" src="${item.img}" alt="${item.name}">`;
-          box.innerHTML = `
-            <div style="text-align:center;">
-              ${mediaTag}
-              <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
-            </div>`;
-          grid.appendChild(box);
-        });
-
-        container.appendChild(grid);
-      });
-    }catch(err){
-      console.error("Category load error:", err);
-    }
-  })();
-</script>
 <script>
   // Announcement Bar from Google Sheet
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
@@ -2094,59 +1959,35 @@ async function fetchRowsFromSource(source){
   const { sheetUrl, tab } = source || {};
   if(!sheetUrl) return [];
 
-  // === Deduplicate concurrent requests per page load ===
-  // Keep a map of pending promises so multiple modules asking the same URL reuse it.
-  window._sheetPromises = window._sheetPromises || {};
-  const openUrl = (function() {
-    try { return buildOpenSheetUrl(sheetUrl, tab || ""); } catch(e){ return sheetUrl; }
-  })();
-  const dedupeKey = openUrl || sheetUrl;
-  if (window._sheetPromises[dedupeKey]) {
-    try { return await window._sheetPromises[dedupeKey]; } catch(e){ /* fallthrough */ }
-  }
-
-  const promise = (async () => {
-    // Prefer opensheet — either given or auto-built from Google Doc link
-    if (isOpenSheet(openUrl)){
-      try{
-        const r = await fetch(openUrl, { cache: "no-store" });
-        if (r.ok) return await r.json();
-      }catch{}
-    }
-
-    // GVIZ fallback
-    let gvizUrl = "";
-    if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
-    else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
-
-    if (gvizUrl){
-      try{
-        const r = await fetch(gvizUrl, { cache: "no-store" });
-        if (r.ok) return parseGviz(await r.text());
-      }catch{}
-    }
-
-    // Last resort: try raw URL JSON or GVIZ text in response
+  // Prefer opensheet — either given or auto-built from Google Doc link
+  const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
+  if (isOpenSheet(openUrl)){
     try{
-      const r = await fetch(sheetUrl, { cache: "no-store" });
-      if(!r.ok) return [];
-      const txt = await r.text();
-      try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
-    }catch{ return []; }
-  })();
-
-  // store and finally remove when resolved so subsequent full page loads can re-fetch
-  window._sheetPromises[dedupeKey] = promise;
-  try {
-    const result = await promise;
-    delete window._sheetPromises[dedupeKey];
-    return result;
-  } catch(e) {
-    delete window._sheetPromises[dedupeKey];
-    return [];
+      const r = await fetch(openUrl, { cache: "no-store" });
+      if (r.ok) return await r.json();
+    }catch{}
   }
-}
 
+  // GVIZ fallback
+  let gvizUrl = "";
+  if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
+  else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
+
+  if (gvizUrl){
+    try{
+      const r = await fetch(gvizUrl, { cache: "no-store" });
+      if (r.ok) return parseGviz(await r.text());
+    }catch{}
+  }
+
+  // Last resort: try raw URL JSON or GVIZ text in response
+  try{
+    const r = await fetch(sheetUrl, { cache: "no-store" });
+    if(!r.ok) return [];
+    const txt = await r.text();
+    try{ return JSON.parse(txt); }catch{ return parseGviz(txt); }
+  }catch{ return []; }
+}
 
 /* ========= Read CONFIG SHEET and produce SOURCES ========= */
 function valFrom(row, keys){
@@ -2548,6 +2389,330 @@ window.closeHeaderSearch = function(){
   // Expose for other scripts if needed
   window.__openProfilePopup = openPopup;
   window.__closeProfilePopup = closePopup;
+})();
+</script>
+<!-- Catalog SWR + polling script (paste this once, just above </body>) -->
+<script>
+(function () {
+  'use strict';
+
+  /**
+   * CONFIG: Edit these two lines if you change sheet or tab.
+   * If you already removed the old block above, make sure these values match your sheet.
+   */
+  const FULL_SHEET_URL = "https://docs.google.com/spreadsheets/d/10OrIQb734WsdkEbBC8zh1mvZxfZ4AhWVkulHMsP8NCI/edit?usp=drivesdk";
+  const SHEET_TAB_NAME = "resin-jewelry";
+
+  // Selector of container to render into (your page uses #categorySection).
+  // If your page actually uses #content, change this to '#content'.
+  const CONTAINER_SELECTOR = '#categorySection';
+
+  // Build the OpenSheet JSON URL (safe for docs.google links)
+  function getSheetId(s){
+    if(!s) return '';
+    const m = String(s).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    if(m) return m[1];
+    if(/^[a-zA-Z0-9-_]{20,}$/.test(s)) return s;
+    return '';
+  }
+  const SHEET_ID = getSheetId(FULL_SHEET_URL);
+  const JSON_URL = SHEET_ID ? `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(SHEET_TAB_NAME)}` : '';
+
+  // Local cache prefix (keeps catalog cache separate).
+  const CACHE_PREFIX = 'catalog-swr::';
+  const POLL_INTERVAL_MS = 3000;
+
+  // -------------------------
+  // Small helpers copied from your original rendering logic
+  function normKey(k){ return String(k||'').replace(/\s+/g,'').toLowerCase(); }
+  function getCell(row, key){
+    const want = normKey(key);
+    for (const k in row){
+      if (!Object.prototype.hasOwnProperty.call(row, k)) continue;
+      if (normKey(k) === want) return row[k];
+    }
+    return '';
+  }
+  function rowHasHideMarker(row){
+    const v = String(getCell(row, "visibility") || "").trim().toLowerCase();
+    const l = String(getCell(row, "link") || "").trim().toLowerCase();
+    return ["hide","hidden","yes","1","true"].includes(v) || ["hide","hidden"].includes(l);
+  }
+
+  // If your page already defines parseGviz(), use it; otherwise define a small fallback.
+  const parseGvizFn = (typeof parseGviz === 'function') ? parseGviz : function (text) {
+    try {
+      const match = text.match(/setResponse\(([\s\S]*?)\);?/);
+      if(!match) return [];
+      const json = JSON.parse(match[1]);
+      const table = json.table;
+      if(!table || !table.cols || !table.rows) return [];
+      const headers = table.cols.map(c => (c && (c.label || c.id)) || "");
+      return table.rows.map(r => {
+        const obj = {};
+        (r.c || []).forEach((cell, i) => {
+          const key = headers[i] || `Col${i+1}`;
+          obj[key] = cell && (cell.v != null ? cell.v : cell.f) || "";
+        });
+        return obj;
+      });
+    } catch (e) { return []; }
+  };
+
+  // Parse rows generically (JSON array preferred, GViz fallback)
+  function parseRowsFromText(text){
+    if (!text) return [];
+    try {
+      const parsed = JSON.parse(text);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      // not JSON — try GViz parser
+      return parseGvizFn(text || '');
+    }
+  }
+
+  // localStorage helpers (graceful)
+  function readCacheRaw(url){
+    try {
+      const raw = localStorage.getItem(CACHE_PREFIX + url);
+      if (!raw) return null;
+      return JSON.parse(raw); // { t: <ts>, body: "<text>" }
+    } catch (e) { return null; }
+  }
+  function writeCacheRaw(url, text){
+    try {
+      localStorage.setItem(CACHE_PREFIX + url, JSON.stringify({ t: Date.now(), body: String(text) }));
+    } catch (e) {}
+  }
+
+  // Fetch text from network (no-store to skip browser caching)
+  async function fetchTextNetwork(url){
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Network error: ' + res.status);
+    return await res.text();
+  }
+
+  /**
+   * swrFetch(url, { forceNetwork:false })
+   * - If cached data exists and forceNetwork is false -> returns cached rows immediately
+   *   and starts a background network revalidation.
+   * - If no cache or forceNetwork true -> performs network fetch, updates cache and returns network rows.
+   *
+   * Returned object: { source: 'cache'|'network', rows: [...] }
+   */
+  async function swrFetch(url, opts = { forceNetwork: false }){
+    const cache = readCacheRaw(url);
+    if (!opts.forceNetwork && cache && cache.body){
+      // return cached rows immediately
+      const rows = parseRowsFromText(cache.body);
+
+      // run background revalidation (fire-and-forget)
+      (async () => {
+        try {
+          const text = await fetchTextNetwork(url);
+          if (text !== cache.body) {
+            // if different, update cache and notify
+            writeCacheRaw(url, text);
+            const freshRows = parseRowsFromText(text);
+            window.dispatchEvent(new CustomEvent('swr:cache:update', {
+              detail: { url, rows: freshRows, source: 'network' }
+            }));
+          }
+        } catch (e) {
+          // ignore background errors
+        }
+      })();
+
+      return { source: 'cache', rows };
+    }
+
+    // No cache or forced network -> network fetch
+    const text = await fetchTextNetwork(url);
+    writeCacheRaw(url, text);
+    const rows = parseRowsFromText(text);
+    return { source: 'network', rows };
+  }
+
+  // -------------------------
+  // Rendering: same structure as your existing category renderer
+  function renderRowsToContainer(rows){
+    const container = document.querySelector(CONTAINER_SELECTOR);
+    if (!container) return;
+    // Clear first (user wanted clear #content / #categorySection)
+    container.innerHTML = '';
+
+    try {
+      const grouped = {};
+      let currentSection = '';
+      let sectionHidden = false;
+
+      (rows || []).forEach((row) => {
+        const titleCell = String(getCell(row, "Title") || "").trim();
+        if (titleCell){
+          currentSection = titleCell;
+          sectionHidden = rowHasHideMarker(row);
+          return;
+        }
+        if (!currentSection) return;
+        if (sectionHidden) return;
+        if (rowHasHideMarker(row)) return;
+
+        const name = String(getCell(row, "Category Name") || "").trim();
+        const img  = String(getCell(row, "Category Image") || "").trim();
+        let link   = String(getCell(row, "Link") || "").trim();
+        if (!name || !img) return;
+
+        if (!grouped[currentSection]) grouped[currentSection] = [];
+        grouped[currentSection].push({ name, img, link: link || "#" });
+      });
+
+      Object.entries(grouped).forEach(([section, items]) => {
+        if (!items || !items.length) return;
+
+        const wrap = document.createElement("div");
+        wrap.className = "section-strip-wrap";
+
+        const leftLine = document.createElement("div");
+        leftLine.className = "section-strip-line";
+
+        const strip = document.createElement("div");
+        strip.className = "section-strip";
+        strip.innerHTML = `<span class="strip-text">${section}</span>`;
+
+        const rightLine = document.createElement("div");
+        rightLine.className = "section-strip-line";
+
+        wrap.appendChild(leftLine);
+        wrap.appendChild(strip);
+        wrap.appendChild(rightLine);
+        container.appendChild(wrap);
+
+        const grid = document.createElement("div");
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "1fr 1fr";
+        grid.style.gap = "18px";
+
+        items.forEach(item => {
+          const box = document.createElement("a");
+          box.href = item.link || "#";
+          box.style.textDecoration = "none";
+          box.style.color = "inherit";
+
+          const isVideo = /\.(mp4|webm|mov)(\?|$)/i.test(item.img);
+          const mediaTag = isVideo
+            ? `<video class="category-media" src="${item.img}" autoplay muted loop playsinline preload="metadata" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture></video>`
+            : `<img class="category-media" src="${item.img}" alt="${item.name}">`;
+          box.innerHTML = `
+            <div style="text-align:center;">
+              ${mediaTag}
+              <div style="margin-top:8px; font-family:'Roboto Slab', serif; font-size:15px;">${item.name}</div>
+            </div>`;
+          grid.appendChild(box);
+        });
+
+        container.appendChild(grid);
+      });
+    } catch (err) {
+      console.error('renderRowsToContainer error', err);
+    }
+  }
+
+  // Expose the function the way you requested: loadAndRenderCatalog()
+  // Accepts options: { forceNetwork: boolean } - useful for manual triggers.
+  window.loadAndRenderCatalog = async function (opts = { forceNetwork: false }) {
+    if (!JSON_URL) { console.warn('JSON_URL is empty; check FULL_SHEET_URL and SHEET_TAB_NAME'); return; }
+    const force = Boolean(opts.forceNetwork) || (new URLSearchParams(location.search).get('nocache') === '1');
+
+    // clear container immediately so user sees empty state (or you can show a spinner here)
+    const container = document.querySelector(CONTAINER_SELECTOR);
+    if (container) container.innerHTML = '';
+
+    try {
+      const result = await swrFetch(JSON_URL, { forceNetwork: force });
+      // render what we got (cache or network)
+      if (result && result.rows) renderRowsToContainer(result.rows);
+    } catch (e) {
+      console.error('loadAndRenderCatalog failed', e);
+    }
+  };
+
+  // When the SWR background finds newer data it will dispatch 'swr:cache:update'.
+  // Listen for that and re-render immediately (so screen updates).
+  window.addEventListener('swr:cache:update', function (ev) {
+    try {
+      if (!ev || !ev.detail) return;
+      if (ev.detail.url !== JSON_URL) return; // ignore other sheets
+      if (ev.detail && ev.detail.rows) {
+        renderRowsToContainer(ev.detail.rows);
+      }
+    } catch (e) {}
+  });
+
+  // -------------------------
+  // Polling that runs only while page is visible (Android/desktop)
+  let _pollTimer = null;
+  async function _pollOnceAndMaybeRender(){
+    try {
+      // force network for polling (we want quick updates)
+      const res = await swrFetch(JSON_URL, { forceNetwork: true });
+      if (res && res.rows){
+        renderRowsToContainer(res.rows);
+      }
+    } catch (e) { /* ignore poll errors */ }
+  }
+  function startPolling(){
+    if (_pollTimer) return;
+    // run immediately then every POLL_INTERVAL_MS
+    _pollTimer = setInterval(_pollOnceAndMaybeRender, POLL_INTERVAL_MS);
+    // first run immediately
+    _pollOnceAndMaybeRender();
+  }
+  function stopPolling(){
+    if (!_pollTimer) return;
+    clearInterval(_pollTimer);
+    _pollTimer = null;
+  }
+
+  // Only poll when visible
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') startPolling();
+    else stopPolling();
+  });
+
+  // Helper: detect Android manual reload (swipe-to-refresh or F5)
+  function isAndroidManualReload(){
+    try {
+      const ua = navigator.userAgent || '';
+      const isAndroid = /android/i.test(ua);
+      let isReload = false;
+      if (performance && performance.getEntriesByType) {
+        const nav = performance.getEntriesByType('navigation') || [];
+        if (nav.length && nav[0].type === 'reload') isReload = true;
+      }
+      // older browsers: performance.navigation.type === 1 is reload
+      if (!isReload && performance && performance.navigation && performance.navigation.type === 1) isReload = true;
+      return isAndroid && isReload;
+    } catch (e) { return false; }
+  }
+
+  // Start behavior on page load:
+  (function initOnLoad(){
+    const forceOnInit = isAndroidManualReload() || (new URLSearchParams(location.search).get('nocache') === '1');
+    // If page is already interactive/complete, call directly; otherwise wait for DOMContentLoaded
+    const runNow = function(){
+      // initial render: if Android manual reload or ?nocache=1 -> forceNetwork=true
+      window.loadAndRenderCatalog({ forceNetwork: forceOnInit });
+      // start polling if visible
+      if (document.visibilityState === 'visible') startPolling();
+    };
+    if (document.readyState === 'complete' || document.readyState === 'interactive') runNow();
+    else document.addEventListener('DOMContentLoaded', runNow, { once: true });
+  })();
+
+  // Optional: provide a global 'stopCatalogPolling' and 'startCatalogPolling' for debugging
+  window.startCatalogPolling = startPolling;
+  window.stopCatalogPolling = stopPolling;
+
 })();
 </script>
 </body>
