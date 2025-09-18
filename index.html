@@ -3,100 +3,7 @@
 <html lang="en">
 <head>
 
-<!-- === SWR fetch interceptor for Google Sheets (opensheet.elk.sh & docs.google.com/spreadsheets) === -->
-<script>
-(function(){
-  const ALLOWED_HOSTS = [
-    "opensheet.elk.sh",
-    "docs.google.com"
-  ];
-  const TIMEOUT_MS = 7000; // ~7s
-  const isSheetsUrl = (url) => {
-    try {
-      const u = new URL(url, location.href);
-      if (!ALLOWED_HOSTS.includes(u.hostname)) return false;
-      // Only intercept docs.google.com/spreadsheets paths
-      if (u.hostname === "docs.google.com" && !u.pathname.startsWith("/spreadsheets")) return false;
-      return true;
-    } catch (e) { return false; }
-  };
 
-  // naive HTML page sniff (to avoid caching error pages)
-  const looksLikeHtml = (text) => {
-    const t = text.trim().toLowerCase();
-    return t.startsWith("<!doctype") || t.startsWith("<html");
-  };
-
-  const _origFetch = window.fetch.bind(window);
-
-  function withTimeout(promise, ms, controller){
-    const t = setTimeout(() => controller.abort("timeout"), ms);
-    return promise.finally(() => clearTimeout(t));
-  }
-
-  async function maybeCache(url, resp){
-    try {
-      if (!resp || !resp.ok) return;
-      if (resp.type === "opaque") return; // can't read/cors restricted
-      const ct = resp.headers.get("content-type") || "";
-      const clone = resp.clone();
-      const text = await clone.text();
-      if (looksLikeHtml(text)) return; // skip HTML error pages
-      // Heuristic: allow JSON, CSV, plain text
-      if (!/json|csv|plain|sheet|javascript/i.test(ct) && !/^\s*[\[\{]/.test(text)) {
-        // not an expected data type, still allow plain text
-      }
-      localStorage.setItem("swr:" + url, JSON.stringify({
-        ts: Date.now(),
-        body: text,
-        headers: { "content-type": ct || "text/plain;charset=utf-8" },
-        status: resp.status
-      }));
-    } catch(e){ /* ignore */ }
-  }
-
-  function buildResponseFromCache(cached){
-    try{
-      const data = JSON.parse(cached);
-      const headers = new Headers(data.headers || {});
-      return new Response(data.body, { status: data.status || 200, headers });
-    }catch(e){ return null; }
-  }
-
-  window.fetch = function(input, init){
-    const req = input instanceof Request ? input : new Request(input, init);
-    const url = req.url;
-    if (!isSheetsUrl(url)) {
-      return _origFetch(input, init);
-    }
-
-    const cacheKey = "swr:" + url;
-    const cached = localStorage.getItem(cacheKey);
-
-    if (cached){
-      (async () => {
-        const controller = new AbortController();
-        try{
-          const network = withTimeout(_origFetch(req, { signal: controller.signal }), TIMEOUT_MS, controller);
-          const resp = await network;
-          await maybeCache(url, resp);
-        }catch(e){ /* keep old cache */ }
-      })();
-      const resp = buildResponseFromCache(cached);
-      if (resp) return Promise.resolve(resp);
-    }
-
-    const controller = new AbortController();
-    return withTimeout(_origFetch(req, { signal: controller.signal }), TIMEOUT_MS, controller)
-      .then(async (resp) => {
-        await maybeCache(url, resp);
-        return resp;
-      })
-      .catch((err) => { throw err; });
-  };
-})();
-</script>
-<!-- === /SWR interceptor end === -->
 
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -2904,37 +2811,31 @@ down-toggle {
     });
   });
 </script>
-<!-- 🔽 Final Working Script -->
 <script>
-  // Announcement Bar from Google Sheet
-  const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
-  const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
+const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
 
-  fetch(announceURL)
-    .then(res => res.json())
-    .then(data => {
-      if (data.length > 0 && data[0]["(announcement_text)"]) {
-        document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
-      }
-    });
+fetch(announceURL)
+  .then(res => res.json())
+  .then(data => {
+    if (data.length > 0 && data[0]["(announcement_text)"]) {
+      document.getElementById("announcementBar").innerText = data[0]["(announcement_text)"];
+    }
+  });
 
-  // Popup function
-  function togglePopup() {
-    const overlay = document.getElementById("popupOverlay");
-    const popupBox = overlay.querySelector(".popup-box");
-    const isOpen = overlay.classList.contains("active");
-    overlay.classList.toggle("active", !isOpen);
-    popupBox.classList.toggle("active", !isOpen);
-  }
+function togglePopup() {
+  const overlay = document.getElementById("popupOverlay");
+  const popupBox = overlay.querySelector(".popup-box");
+  const isOpen = overlay.classList.contains("active");
+  overlay.classList.toggle("active", !isOpen);
+  popupBox.classList.toggle("active", !isOpen);
+}
 
-  // Hamburger toggle function
 function toggleMenu() {
   const menu = document.getElementById("sideMenu");
   const overlay = document.getElementById("menuOverlay");
   const body = document.body;
-
   const isOpen = menu.classList.contains("active");
-
   if (isOpen) {
     menu.classList.remove("active");
     overlay.classList.remove("active");
@@ -2945,59 +2846,53 @@ function toggleMenu() {
     body.classList.add("no-scroll");
   }
 }
-  // 🔽 POPUP DATA FROM SHEET
-  const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
-  const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
 
-  fetch(sheetURL)
-    .then(res => res.json())
-    .then(data => {
-      if (data.length > 0) {
-        const row = data[0];
-        const logo = document.querySelector(".popup-logo");
-        if (row.popup_logo) logo.src = row.popup_logo;
+const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
+const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
 
-        const popupText = document.querySelector(".popup-text");
-        if (row.popup_text) popupText.innerHTML = row.popup_text;
+fetch(sheetURL)
+  .then(res => res.json())
+  .then(data => {
+    if (data.length > 0) {
+      const row = data[0];
+      const logo = document.querySelector(".popup-logo");
+      if (row.popup_logo) logo.src = row.popup_logo;
+      const popupText = document.querySelector(".popup-text");
+      if (row.popup_text) popupText.innerHTML = row.popup_text;
+      const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
+      instaLinks.forEach(link => {
+        if (row.popup_insta_link) link.href = row.popup_insta_link;
+        if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
+      });
+    }
+  });
 
-        const instaLinks = document.querySelectorAll(".popup-insta a, .insta-handle a");
-        instaLinks.forEach(link => {
-          if (row.popup_insta_link) link.href = row.popup_insta_link;
-          if (row.popup_insta_handle) link.innerText = row.popup_insta_handle;
-        });
+const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
+const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
+
+fetch(menuURL)
+  .then(res => res.json())
+  .then(data => {
+    const menuContent = document.getElementById("menuContent");
+    const grouped = {};
+    data.forEach(item => {
+      const menu = item.Menu?.trim();
+      const sub = item.Submenu?.trim();
+      const link = item.Link?.trim();
+      if (!menu) return;
+      if (sub) {
+        if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
+        grouped[menu].subs.push({ name: sub, link });
+      } else {
+        grouped[menu] = { link, subs: [] };
       }
     });
-
-  // 🔽 MENU DATA FROM SHEET
-  const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
-  const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
-
-  fetch(menuURL)
-    .then(res => res.json())
-    .then(data => {
-      const menuContent = document.getElementById("menuContent");
-      const grouped = {};
-
-      data.forEach(item => {
-        const menu = item.Menu?.trim();
-        const sub = item.Submenu?.trim();
-        const link = item.Link?.trim();
-        if (!menu) return;
-
-        if (sub) {
-          if (!grouped[menu]) grouped[menu] = { link: null, subs: [] };
-          grouped[menu].subs.push({ name: sub, link });
-        } else {
-          grouped[menu] = { link, subs: [] };
-        }
-      });
-
-      Object.entries(grouped).forEach(([menu, info]) => {
-  if (info.subs.length === 0) {
-    menuContent.innerHTML += `<a href="${info.link}" class="menu-link">${menu}</a>`;
-  } else {
-    const menuId = menu.replace(/\s+/g, '-') + '-submenu';
-    menuContent.innerHTML += `
+    Object.entries(grouped).forEach(([menu, info]) => {
+      if (info.subs.length === 0) {
+        menuContent.innerHTML += `<a href="${info.link}" class="menu-link">${menu}</a>`;
+      } else {
+        const menuId = menu.replace(/\s+/g, '-') + '-submenu';
+        menuContent.innerHTML += `
       <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
         <span>${menu}</span>
         <span class="dropdown-icon">›</span>
@@ -3006,14 +2901,15 @@ function toggleMenu() {
         ${info.subs.map(s => `<a href="${s.link}" class="submenu-link">› ${s.name}</a>`).join("")}
       </div>
     `;
-  }
-});
+      }
     });
-    function toggleSubmenu(id) {
+  });
+
+function toggleSubmenu(id) {
   const submenu = document.getElementById(id);
   submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
 }
-// 🟢 Wide Media (Image/Video) Strip from Google Sheet
+
 fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
   .then(res => res.json())
   .then(data => {
@@ -3021,7 +2917,6 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
     data.forEach(row => {
       const url = row["(media_url)"];
       if (!url) return;
-
       let el;
       if (url.trim().endsWith(".mp4")) {
         el = document.createElement("video");
@@ -3034,24 +2929,20 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
         el = document.createElement("img");
         el.src = url.trim();
       }
-
       el.className = "strip-media";
       strip.appendChild(el);
       setTimeout(() => {
-  const itemWidth = strip.children[0]?.offsetWidth || 0;
-  if (itemWidth) strip.scrollLeft = itemWidth;
-}, 300);
+        const itemWidth = strip.children[0]?.offsetWidth || 0;
+        if (itemWidth) strip.scrollLeft = itemWidth;
+      }, 300);
     });
   });
 
-// === IG dots utilities ===
 function renderIGDots(container, total, currentIndex, maxVisible = 5){
   if(!container) return;
   currentIndex = Math.max(0, Math.min(currentIndex, total-1));
   container.innerHTML = '';
   if(total <= 0) return;
-
-  // When total <= maxVisible, show all
   if(total <= maxVisible){
     for(let i=0;i<total;i++){
       const d = document.createElement('span');
@@ -3060,30 +2951,24 @@ function renderIGDots(container, total, currentIndex, maxVisible = 5){
     }
     return;
   }
-
-  // Sliding window
   const half = Math.floor(maxVisible/2);
   let start = currentIndex - half;
   let end = currentIndex + (maxVisible - half);
   if(start < 0){ end += -start; start = 0; }
   if(end > total){ start -= (end-total); end = total; }
   start = Math.max(0, start);
-
   const leftOverflow = start > 0;
   const rightOverflow = end < total;
-
   if(leftOverflow){
     const tiny = document.createElement('span');
     tiny.className = 'ig-dot-tiny';
     container.appendChild(tiny);
   }
-
   for(let i=start;i<end;i++){
     const d = document.createElement('span');
     d.className = 'ig-dot' + (i===currentIndex ? ' active' : '');
     container.appendChild(d);
   }
-
   if(rightOverflow){
     const tiny = document.createElement('span');
     tiny.className = 'ig-dot-tiny';
@@ -3108,19 +2993,14 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
     data.forEach((row, index) => {
       const url   = (row["(media_url)"] || "").trim();
       if (!url) return;
-
       const link  = (row["Linked"] || row["linked"] || row["Link"] || row["link"] || "").trim();
-
-      // Wrapper is an <a> if link exists, otherwise a simple <div>
       const wrapper = document.createElement(link ? "a" : "div");
       wrapper.className = "fade-slide";
       if (index === 0) wrapper.classList.add("active");
       if (link) {
-        wrapper.href = link;         // open in the same tab
+        wrapper.href = link;
         wrapper.style.cursor = "pointer";
       }
-
-      // Create the media element
       let media;
       if (url.toLowerCase().endsWith(".mp4")) {
         media = document.createElement("video");
@@ -3134,17 +3014,12 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
         media.src = url;
         media.alt = "";
       }
-
-      // Fill the wrapper (CSS also enforces this)
       media.style.width = "100%";
       media.style.height = "100%";
       media.style.objectFit = "cover";
-
       wrapper.appendChild(media);
       slider.appendChild(wrapper);
       slides.push(wrapper);
-
-      // Dot for this slide
       const dot = document.createElement("div");
       dot.className = "fade-dot";
       if (index === 0) dot.classList.add("active");
@@ -3154,21 +3029,15 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
     });
   });
 
-
 function showSlide(index){
-slides[currentIndex]?.classList.remove("active");
+  slides[currentIndex]?.classList.remove("active");
   dots[currentIndex]?.classList.remove("active");
-
   currentIndex = index;
-
   slides[currentIndex]?.classList.add("active");
   dots[currentIndex]?.classList.add("active");
-
-  // Update IG dots & counter
   renderIGDots(document.getElementById('fadeDots'), slides.length, currentIndex, 5);
   updateIGCounter(document.getElementById('fadeCounter'), currentIndex, slides.length);
 }
-
 
 function showNextSlide() {
   showSlide((currentIndex + 1) % slides.length);
@@ -3178,13 +3047,10 @@ function showPrevSlide() {
   showSlide((currentIndex - 1 + slides.length) % slides.length);
 }
 
-
-
 let startX = 0, startY = 0;
 let dragging = false;
-let pinching = false; // true while user is using two fingers (pinch-zoom)
+let pinching = false;
 
-/* Touch: lock to horizontal when dx > dy a little bit, so vertical scroll still works */
 slider.addEventListener("touchstart", e => {
   if (e.touches.length > 1) { pinching = true; dragging = false; return; }
   pinching = false;
@@ -3194,7 +3060,7 @@ slider.addEventListener("touchstart", e => {
 }, { passive: true });
 
 slider.addEventListener("touchmove", e => {
-  if (e.touches.length > 1) { pinching = true; return; } // stay out during pinch
+  if (e.touches.length > 1) { pinching = true; return; }
   if (pinching) return;
   const dx = e.touches[0].clientX - startX;
   const dy = e.touches[0].clientY - startY;
@@ -3202,7 +3068,7 @@ slider.addEventListener("touchmove", e => {
     dragging = true;
   }
   if (dragging) {
-    e.preventDefault(); // keep the swipe smooth; avoid page scroll stealing it
+    e.preventDefault();
   }
 }, { passive: false });
 
@@ -3216,7 +3082,6 @@ slider.addEventListener("touchend", e => {
   }
 });
 
-/* Mouse drag (desktop) */
 let mouseDown = false, mxStart = 0;
 slider.addEventListener("mousedown", e => { mouseDown = true; mxStart = e.clientX; });
 slider.addEventListener("mouseup", e => {
@@ -3226,7 +3091,6 @@ slider.addEventListener("mouseup", e => {
   if (Math.abs(dx) > 35) { dx < 0 ? showNextSlide() : showPrevSlide(); }
 });
 slider.addEventListener("mouseleave", () => { mouseDown = false; });
-
 </script>
 <script>
 const couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
@@ -3256,49 +3120,44 @@ fetch(couponSheetURL)
     });
   });
 </script>
-<!-- >>> ChatGPT: Rewritten Categories loader with Box Direction support -->
 <script>
-/* ===== Categories from Google Sheet (with Section HIDE + SHAPE + BOX DIRECTION) =====
-   Columns supported (case-insensitive):
-   - section        ← A section row has a value in "section" and blanks for name/image/link.
-   - box direction  ← On a SECTION row set:
-                       "1" → show as horizontal swipe strip + TINY CIRCLES with dual ring border.
-                       any other/blank → normal 2-column grid (rounded rectangles).
-   - shape          ← (optional) legacy: 1/2/3 for circle sizes (grid mode only).
-   - category name
-   - image
-   - link
-   - visibility     ← write "hide" on a section row → hide the whole section
-*/
 const categorySheetURL = "https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/Sheet1";
 
-function isVideo(url){try{const u=new URL(url,location.href);return u.pathname.toLowerCase().endswith(".mp4");}catch(e){return /\.mp4(\?.*)?$/i.test(url||"");}}
+function isVideo(url) {
+  try {
+    const u = new URL(url, location.href);
+    return u.pathname.toLowerCase().endsWith(".mp4");
+  } catch (e) {
+    return /\.mp4(\?.*)?$/i.test(url || "");
+  }
+}
 
-function norm(v){ return (v ?? "").toString().trim(); }
-function isHiddenValue(v){
+function norm(v) {
+  return (v ?? "").toString().trim();
+}
+
+function isHiddenValue(v) {
   const s = norm(v).toLowerCase();
   return s === "hide" || s === "hidden" || s === "no" || s === "0";
 }
 
-function preprocessRows(raw){
+function preprocessRows(raw) {
   let lastSection = "";
   let sectionHidden = false;
-  let sectionShape = null;      // null | "circle1" | "circle2" | "circle3"
-  let sectionBoxDir = "";       // "" or "1"
-
+  let sectionShape = null;
+  let sectionBoxDir = "";
   const cleaned = [];
-  for (const r of raw){
+  for (const r of raw) {
     const section = norm(r.section || r.Section || r.SECTION);
-    const name    = norm(r["category name"] || r["Category Name"] || r["CATEGORY NAME"]);
-    const img     = norm(r.image || r.Image || r.IMAGE);
-    const link    = norm(r.link || r.Link || r.LINK || r.url || r.URL);
-    const vis     = r.visibility || r.Visibility || r.VISIBILITY || r.visible || r.Visible;
-    const shape   = r.shape || r.Shape || r.SHAPE; // may exist only on section row
-    const boxDir  = r["Box Direction"] || r["box direction"] || r["BOX DIRECTION"] || r["BoxDirection"] || r["Direction"];
-
+    const name = norm(r["category name"] || r["Category Name"] || r["CATEGORY NAME"]);
+    const img = norm(r.image || r.Image || r.IMAGE);
+    const link = norm(r.link || r.Link || r.LINK || r.url || r.URL);
+    const vis = r.visibility || r.Visibility || r.VISIBILITY || r.visible || r.Visible;
+    const shape = r.shape || r.Shape || r.SHAPE;
+    const boxDir = r["Box Direction"] || r["box direction"] || r["BOX DIRECTION"] || r["BoxDirection"] || r["Direction"];
     const onlySection = !!section && !name && !img && !link;
-    if (onlySection){
-      lastSection   = section;
+    if (onlySection) {
+      lastSection = section;
       sectionHidden = isHiddenValue(vis);
       const s = norm(shape);
       sectionShape =
@@ -3308,42 +3167,37 @@ function preprocessRows(raw){
       sectionBoxDir = norm(boxDir);
       continue;
     }
-
     const effectiveSection = section || lastSection;
-    if (!effectiveSection) continue; // no section yet, skip
-
-    if (sectionHidden) continue;        // whole section hidden
-    if (isHiddenValue(vis)) continue;   // row hidden
-
+    if (!effectiveSection) continue;
+    if (sectionHidden) continue;
+    if (isHiddenValue(vis)) continue;
     cleaned.push({
       section: effectiveSection,
-      name, img, link,
-      shape: sectionShape,   // carry shape of the last declared SECTION
-      boxDir: sectionBoxDir  // carry Box Direction of the last declared SECTION
+      name,
+      img,
+      link,
+      shape: sectionShape,
+      boxDir: sectionBoxDir
     });
   }
   return cleaned;
 }
 
-function renderCategories(rows){
+function renderCategories(rows) {
   const container = document.getElementById("categorySection");
   if (!container) return;
   container.innerHTML = "";
-
   const data = preprocessRows(rows).filter(r => r.section && r.name && r.img);
-
-  // Group preserving order
   const grouped = [];
   const sectionIndex = new Map();
-  for (const r of data){
-    if (!sectionIndex.has(r.section)){
+  for (const r of data) {
+    if (!sectionIndex.has(r.section)) {
       grouped.push({ title: r.section, items: [], boxDir: r.boxDir });
       sectionIndex.set(r.section, grouped.length - 1);
     }
     grouped[sectionIndex.get(r.section)].items.push(r);
   }
-
-  for (const group of grouped){
+  for (const group of grouped) {
     if (!group.items.length) continue;
     const sec = document.createElement("section");
     sec.className = "cat-sec";
@@ -3351,26 +3205,18 @@ function renderCategories(rows){
     title.className = "cat-title";
     title.textContent = group.title;
     sec.appendChild(title);
-
-    // Wrapper: grid or horizontal swipe strip
     const wrap = document.createElement("div");
     const isStrip = (group.boxDir === "1");
     wrap.className = isStrip ? "cat-strip" : "cat-grid";
-
-    // If this section is a horizontal swipe strip, make it edge-to-edge
-    const outer = document.createElement(isStrip ? "div" : "fragment");
+    const outer = document.createElement("div");
     if (isStrip) outer.className = "full-bleed";
-
-    // Build items
-    for (const item of group.items){
-      
-      const shapeClass = (item.shape === "circle3") ? "square-mini" : "circle-mini";
-const a = document.createElement("a");
+    for (const item of group.items) {
+      const a = document.createElement("a");
       a.href = item.link || "#";
       a.className = "cat-card";
-      if (isStrip){
+      if (isStrip) {
         a.style.flex = "0 0 auto";
-        a.style.width = "132px"; // compact
+        a.style.width = "132px";
         const shapeClass = (item.shape === "circle3") ? "square-mini" : "circle-mini";
         a.innerHTML = `
           <div class="${shapeClass}">
@@ -3378,10 +3224,8 @@ const a = document.createElement("a");
           </div>
           <div class="label">${item.name}</div>`;
       } else {
-        // Default grid card (rounded rectangle). If shape says circleX, honor that.
         let imgHTML = "";
-        if (item.shape === "circle1" || item.shape === "circle2" || item.shape === "circle3"){
-          // circle mode (existing behavior)
+        if (item.shape === "circle1" || item.shape === "circle2" || item.shape === "circle3") {
           const w = item.shape === "circle1" ? "100%" : (item.shape === "circle2" ? "88%" : "76%");
           imgHTML = `<img src="${item.img}" alt="${item.name}" style="width:${w};aspect-ratio:1/1;margin:0 auto;display:block;border-radius:50%;object-fit:cover;">`;
         } else {
@@ -3392,35 +3236,308 @@ const a = document.createElement("a");
       }
       wrap.appendChild(a);
     }
-
-    if (isStrip){ outer.appendChild(wrap); sec.appendChild(outer); } else { sec.appendChild(wrap); }
+    if (isStrip) {
+      outer.appendChild(wrap);
+      sec.appendChild(outer);
+    } else {
+      sec.appendChild(wrap);
+    }
     container.appendChild(sec);
   }
 }
 
-async function loadCategories(){
-  try{
+async function loadCategories() {
+  try {
     const res = await fetch(categorySheetURL, { cache: "no-store" });
-
     const rows = await res.json();
     renderCategories(rows);
-  }catch(e){
+  } catch (e) {
     console.error("Failed to load categories:", e);
   }
 }
 
 loadCategories();
 setInterval(loadCategories, 180000);
-</script>
-<!-- <<< ChatGPT JS end -->
 
+(function () {
+  'use strict';
 
-<script>
-  function clearStorage() {
-    localStorage.clear();
-    sessionStorage.clear();
+  const CACHE_PREFIX = 'swr:catalog:';
+  const POLL_MS = 3000;
+
+  function catalogUrl() {
+    return window.CATALOG_SHEET_URL ||
+           window.categorySheetURL ||
+           window.CONFIG_SHEET_URL ||
+           window.CATALOG_URL ||
+           '';
   }
+
+  function isForcedNetwork() {
+    try {
+      const params = new URLSearchParams(location.search);
+      if (params.get('nocache') === '1') return true;
+    } catch (e) {}
+    try {
+      const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+      if (nav && nav.type === 'reload') return true;
+    } catch (e) {}
+    try {
+      if (performance && performance.navigation && performance.navigation.type === 1) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  function stableStringify(obj) {
+    try {
+      return JSON.stringify(obj, Object.keys(obj || {}).sort());
+    } catch (e) {
+      return JSON.stringify(obj);
+    }
+  }
+
+  function readCache(key) {
+    try {
+      const s = localStorage.getItem(key);
+      if (!s) return null;
+      return JSON.parse(s);
+    } catch (e) {
+      try { localStorage.removeItem(key); } catch (_) {}
+      return null;
+    }
+  }
+  function writeCache(key, payload) {
+    try {
+      localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data: payload }));
+    } catch (e) {}
+  }
+
+  async function fetchNetwork(url) {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Network fetch failed: ' + res.status);
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    if (ct.includes('application/json')) return await res.json();
+    const text = await res.text();
+    try { return JSON.parse(text); } catch (e) { return text; }
+  }
+
+  function fireCacheUpdateEvent(url, oldData, newData) {
+    try {
+      const evt = new CustomEvent('swr:cache:update', { detail: { url, oldData, newData } });
+      window.dispatchEvent(evt);
+    } catch (e) {}
+  }
+
+  function captureScrollLefts(root) {
+    const map = new Map();
+    const selectors = ['.cat-strip', '.category-row', '.happy-row', '.bestsellers', '.product-row', '.grid', '.items-row'];
+    selectors.forEach(sel => {
+      root.querySelectorAll(sel).forEach(el => {
+        if (!el.dataset.swrId) el.dataset.swrId = 'swr_' + Math.random().toString(36).slice(2);
+        map.set(el.dataset.swrId, el.scrollLeft || 0);
+      });
+    });
+    return map;
+  }
+  function restoreScrollLefts(root, map) {
+    root.querySelectorAll('[data-swr-id]').forEach(el => {
+      const id = el.dataset.swrId;
+      if (!id) return;
+      const v = map.get(id);
+      if (v != null) el.scrollLeft = v;
+    });
+  }
+
+  function findContainer() {
+    return document.getElementById('content') ||
+           document.getElementById('categorySection') ||
+           document.body;
+  }
+
+  function defaultRenderer(data, container) {
+    if (typeof window.renderCatalog === 'function') {
+      try { window.renderCatalog(data); return; } catch (e) { console.warn('renderCatalog failed', e); }
+    }
+    if (typeof window.renderCategories === 'function') {
+      try { window.renderCategories(data); return; } catch (e) { console.warn('renderCategories failed', e); }
+    }
+    container.innerHTML = '';
+    if (Array.isArray(data)) {
+      const frag = document.createDocumentFragment();
+      data.forEach((row) => {
+        const item = document.createElement('div');
+        item.className = 'swr-card';
+        const title = row['Product Name'] || row.name || row.Title || row.title || JSON.stringify(row).slice(0,40);
+        const price = row['Selling Price'] || row.price || row.Price || '';
+        item.style.padding = '10px';
+        item.style.borderBottom = '1px solid #eee';
+        item.innerHTML = `<div style="font-weight:600">${String(title)}</div>
+                          <div style="color:#777">₹${price || '-'}</div>`;
+        frag.appendChild(item);
+      });
+      container.appendChild(frag);
+    } else {
+      container.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    }
+  }
+
+  let isDragging = false;
+  (function attachDragGuards() {
+    const selectors = ['.cat-strip', '.category-row', '.happy-row', '.bestsellers', '.product-row', '.grid', '.items-row'];
+    const seen = new Set();
+    const startInfo = new WeakMap();
+    selectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        if (seen.has(el)) return;
+        seen.add(el);
+        let startX = 0, startY = 0, moved = false;
+        el.addEventListener('touchstart', function (ev) {
+          startX = ev.touches[0].clientX; startY = ev.touches[0].clientY; moved = false;
+        }, { passive: true });
+        el.addEventListener('touchmove', function (ev) {
+          const dx = Math.abs(ev.touches[0].clientX - startX);
+          const dy = Math.abs(ev.touches[0].clientY - startY);
+          if (!moved && dx > 8 && dx > dy) { moved = true; isDragging = true; }
+        }, { passive: true });
+        el.addEventListener('touchend', function () { if (isDragging) { setTimeout(()=>isDragging=false, 60); } }, { passive: true });
+        el.addEventListener('mousedown', function (ev) {
+          startX = ev.clientX; startY = ev.clientY; moved = false;
+          startInfo.set(el, { down: true });
+        }, { passive: true });
+        el.addEventListener('mousemove', function (ev) {
+          const s = startInfo.get(el);
+          if (!s || !s.down) return;
+          const dx = Math.abs(ev.clientX - startX); const dy = Math.abs(ev.clientY - startY);
+          if (!moved && dx > 6 && dx > dy) { moved = true; isDragging = true; }
+        }, { passive: true });
+        el.addEventListener('mouseup', function () { startInfo.set(el, { down: false }); if (isDragging) { setTimeout(()=>isDragging=false, 60); } }, { passive: true });
+        el.addEventListener('mouseleave', function () { startInfo.set(el, { down: false }); });
+      });
+    });
+  })();
+
+  let pollHandle = null;
+  async function loadAndRenderCatalog(options = {}) {
+    const url = (options.url || catalogUrl() || '').trim();
+    if (!url) {
+      console.warn('loadAndRenderCatalog: no URL found. Set window.CATALOG_SHEET_URL or pass {url:"..."}');
+      return;
+    }
+    const key = CACHE_PREFIX + url;
+    const container = findContainer();
+    if (!container) { console.warn('loadAndRenderCatalog: no container found'); return; }
+
+    const scrollMap = captureScrollLefts(container);
+
+    const forced = isForcedNetwork();
+
+    if (!forced) {
+      const cached = readCache(key);
+      if (cached && cached.data) {
+        try {
+          if (!isDragging) {
+            container.innerHTML = '';
+            defaultRenderer(cached.data, container);
+          } else {
+            const tryLater = function () {
+              if (!isDragging) {
+                container.innerHTML = '';
+                defaultRenderer(cached.data, container);
+              } else {
+                setTimeout(tryLater, 150);
+              }
+            };
+            setTimeout(tryLater, 150);
+          }
+        } catch (e) { console.warn('Error rendering cached data', e); }
+      }
+      backgroundUpdate(url, key).catch(e=>console.warn('bg update error', e));
+    } else {
+      try {
+        const net = await fetchNetwork(url);
+        writeCache(key, net);
+        if (!isDragging) {
+          container.innerHTML = '';
+          defaultRenderer(net, container);
+        } else {
+          const tryLater = function () {
+            if (!isDragging) {
+              container.innerHTML = '';
+              defaultRenderer(net, container);
+            } else {
+              setTimeout(tryLater, 150);
+            }
+          };
+          setTimeout(tryLater, 150);
+        }
+      } catch (e) {
+        console.error('loadAndRenderCatalog network error', e);
+      }
+    }
+
+    try { restoreScrollLefts(container, scrollMap); } catch (e) {}
+
+    if (!pollHandle) {
+      pollHandle = setInterval(async () => {
+        if (document.visibilityState !== 'visible') return;
+        if (isDragging) return;
+        try { await backgroundUpdate(url, key); } catch (e) {}
+      }, POLL_MS);
+    }
+  }
+
+  async function backgroundUpdate(url, key) {
+    try {
+      const net = await fetchNetwork(url);
+      const cached = readCache(key);
+      const oldData = cached ? cached.data : null;
+      const oldHash = oldData ? stableStringify(oldData) : null;
+      const newHash = stableStringify(net);
+
+      if (newHash !== oldHash) {
+        writeCache(key, net);
+        fireCacheUpdateEvent(url, oldData, net);
+        const container = findContainer();
+        if (container) {
+          const scrollMap = captureScrollLefts(container);
+          if (!isDragging) {
+            container.innerHTML = '';
+            defaultRenderer(net, container);
+            restoreScrollLefts(container, scrollMap);
+          } else {
+            const tryLater = function () {
+              if (!isDragging) {
+                container.innerHTML = '';
+                defaultRenderer(net, container);
+                restoreScrollLefts(container, scrollMap);
+              } else {
+                setTimeout(tryLater, 150);
+              }
+            };
+            setTimeout(tryLater, 150);
+          }
+        }
+      }
+      return net;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  window.loadAndRenderCatalog = loadAndRenderCatalog;
+  window.stopCatalogPolling = function () {
+    if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(function () { try { window.loadAndRenderCatalog(); } catch (e) { console.warn(e); } }, 120);
+  });
+
+})();
 </script>
+
+
+
 <script>
   function updateCartBadge() {
     const items = JSON.parse(localStorage.getItem("cartItems")) || [];
@@ -3515,25 +3632,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 <script>
-/* =============================================================================
-   Multi-page Search Setup (index.html)
-   • Sources auto-load from a CONFIG SHEET with columns: "Sheet Url" | "Tab"
-   • Only the CONFIG_SHEET_URL is hardcoded below.
-   • TAB text is used as the route path (e.g., "resin-jewelry/resin-necklace")
-   • Supports: opensheet.elk.sh, Google Docs link (auto → OpenSheet), or GVIZ.
-   • Auto video detection + muted autoplay previews (mp4/webm/mov + YouTube)
-   • Product click builds links like:
-       https://<origin>/<TAB>?p=<kebab-product-name>
-     Examples:
-       car keychain → ?p=car-keychain
-       blue         → ?p=blue
-   ========================================================================== */
+const CONFIG_SHEET_URL = "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
 
-/* ========= 1) CONFIG SHEET URL (only thing hardcoded once) ========= */
-const CONFIG_SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
-
-/* ========= Helpers to detect/convert URLs ========= */
 function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url || ""); }
 function isGviz(url){ return /\/gviz\/tq\?/i.test(url || ""); }
 function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url || ""); }
@@ -3551,11 +3651,10 @@ function parseGoogleSheetDoc(url){
 function buildOpenSheetUrl(sheetUrl, tab){
   if (!sheetUrl) return "";
   if (isOpenSheet(sheetUrl)){
-    // If already an opensheet link: ensure /<TAB> is appended (if missing)
     try{
       const u = new URL(sheetUrl, location.origin);
       const parts = u.pathname.split('/').filter(Boolean);
-      if (parts.length >= 3) return u.toString(); // already /<ID>/<TAB>
+      if (parts.length >= 3) return u.toString();
       if (tab){
         if (!u.pathname.endsWith('/')) u.pathname += '/';
         u.pathname += encodeURIComponent(tab);
@@ -3580,7 +3679,6 @@ function buildGvizFromDoc(sheetUrl){
   return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
 }
 
-/* ========= GVIZ parser (used for both data sheets and config sheet) ========= */
 function parseGviz(text){
   const match = text.match(/setResponse\(([\s\S]*?)\);?/);
   if(!match) return [];
@@ -3600,12 +3698,9 @@ function parseGviz(text){
   }catch{ return []; }
 }
 
-/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
 async function fetchRowsFromSource(source){
   const { sheetUrl, tab } = source || {};
   if(!sheetUrl) return [];
-
-  // Prefer opensheet — either given or auto-built from Google Doc link
   const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
   if (isOpenSheet(openUrl)){
     try{
@@ -3613,20 +3708,15 @@ async function fetchRowsFromSource(source){
       if (r.ok) return await r.json();
     }catch{}
   }
-
-  // GVIZ fallback
   let gvizUrl = "";
   if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
   else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
-
   if (gvizUrl){
     try{
       const r = await fetch(gvizUrl, { cache: "no-store" });
       if (r.ok) return parseGviz(await r.text());
     }catch{}
   }
-
-  // Last resort: try raw URL JSON or GVIZ text in response
   try{
     const r = await fetch(sheetUrl, { cache: "no-store" });
     if(!r.ok) return [];
@@ -3635,7 +3725,6 @@ async function fetchRowsFromSource(source){
   }catch{ return []; }
 }
 
-/* ========= Read CONFIG SHEET and produce SOURCES ========= */
 function valFrom(row, keys){
   const map = {};
   Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
@@ -3647,9 +3736,8 @@ function valFrom(row, keys){
 }
 
 async function loadSourcesFromConfig(){
-  // Accepts: opensheet config, Google Doc (auto-GVIZ), or GVIZ URL
   let rows = [];
-  const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1"); // ignored if already has TAB
+  const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1");
   if (isOpenSheet(asOpen)){
     try{
       const r = await fetch(asOpen, { cache: "no-store" });
@@ -3667,19 +3755,15 @@ async function loadSourcesFromConfig(){
       }catch{}
     }
   }
-
-  // Map to SOURCES
   const sources = (rows || []).map(r => {
     const sheetUrl = String(valFrom(r, ["Sheet Url","SheetURL","Sheet","URL","Link"])).trim();
     const tab      = String(valFrom(r, ["Tab","Route","Path"])).trim();
     if (!sheetUrl || !tab) return null;
     return { sheetUrl, tab };
   }).filter(Boolean);
-
   return sources;
 }
 
-/* ========= Media detection (image / direct video / YouTube) ========= */
 const VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i;
 function isDirectVideo(url){ return VIDEO_EXT_RE.test(url || ""); }
 function isYouTube(url){ return /(youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\/)/i.test(url || ""); }
@@ -3695,7 +3779,6 @@ function toYouTubeEmbed(url){
   }catch{ return ""; }
 }
 
-/* ========= Route + row normalization ========= */
 function tabToRoute(tab){
   let route = String(tab || "").trim();
   if (!route) return "/";
@@ -3706,17 +3789,13 @@ function tabToRoute(tab){
 function rowToItem(row, tabForRoute){
   const name  = String(valFrom(row, ["Product Name","Name","Title"])).trim();
   if(!name) return null;
-
   const price = Number(valFrom(row, ["Selling Price","Price","Sale Price","Offer Price","₹","INR"])) || 0;
   const mrp   = Number(valFrom(row, ["MRP","List Price","Max Retail Price"])) || 0;
-
   const videoCandidate = String(valFrom(row, ["Video","Video URL","video url","video","MP4","WebM","Clip","Reel","Shorts"])).trim();
   const mediaPrimary   = String(valFrom(row, ["photo 1","Photo 1","Image 1","Primary Image","Image","IMG","Picture","Pic 1","Thumbnail","Thumb"])).trim();
-
   let mediaType = "image";
   let mediaUrl  = mediaPrimary || "";
   let poster    = "";
-
   if (videoCandidate){ mediaUrl = videoCandidate; }
   if (isDirectVideo(mediaUrl)){
     mediaType = "video";
@@ -3733,19 +3812,14 @@ function rowToItem(row, tabForRoute){
     mediaType = "image";
     mediaUrl  = mediaPrimary || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
   }
-
   return { name, price, mrp, mediaType, mediaUrl, poster, route: tabToRoute(tabForRoute) };
 }
 
-/* ========= Load everything ========= */
 window.allProducts = [];
 
 (async function bootstrap(){
-  // 1) Read SOURCES from config
   let SOURCES = [];
   try{ SOURCES = await loadSourcesFromConfig(); }catch{ SOURCES = []; }
-
-  // If config is empty, you still get an empty product list (no crash)
   try{
     const lists = await Promise.all((SOURCES || []).map(async (src) => {
       const rows = await fetchRowsFromSource(src).catch(()=>[]);
@@ -3758,19 +3832,12 @@ window.allProducts = [];
   }
 })();
 
-/* ========= URL builder & UI ========= */
-/* Build p=<kebab-case> EXACTLY as required:
-   - Lowercase
-   - Non-letters/numbers → "-"
-   - Collapse multiple "-" and trim leading/trailing "-"
-*/
 function slugify(str){
   const s = String(str || "").trim().toLowerCase();
   const slug = s
     .replace(/[^a-z0-9]+/gi, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
-  // If slug becomes empty (rare), fall back to encoded original
   return slug || encodeURIComponent(s);
 }
 
@@ -3779,7 +3846,7 @@ function buildParamValue(productName){
 }
 
 function makeProductURL(routePath, productName){
-  const base = location.origin; // e.g., https://precioussly.com
+  const base = location.origin;
   const route = routePath.startsWith("/") ? routePath : "/" + routePath;
   const p = buildParamValue(productName);
   return `${base}${route}?p=${p}`;
@@ -3806,15 +3873,9 @@ function hideSuggest(){
   if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
 }
 
-/** media thumb (video muted autoplay, YT iframe autoplay, or image) */
 function renderThumb(p){
-  // Normalize mediaUrl once
   const mediaUrl = p?.mediaUrl || "";
-  
   if (p.mediaType === "video"){
-    // 😎 Use direct <video src> (no nested <source>) so DOM diffing doesn't recreate the element unnecessarily
-    // 😎 Preload aggressively + keep autoplaying inline on mobile
-    // 😎 Add data-media-url to help any diff/patch code decide whether to swap or keep the current element
     const posterAttr = p.poster ? ` poster="${p.poster.replace(/"/g,'&quot;')}"` : "";
     return `<video class="thumb"
                    src="${mediaUrl}"
@@ -3822,15 +3883,10 @@ function renderThumb(p){
                    disablepictureinpicture controlslist="nodownload noplaybackrate"
                    data-media-url="${mediaUrl}"></video>`;
   }
-
   if (p.mediaType === "youtube"){
-    // Convert to embed and force silent autoplay
     const embed = toYouTubeEmbed(mediaUrl);
     if (embed){
-      // 😎 Force autoplay+mute+loop+inline+clean UI on YouTube iframes
       const join = embed.includes("?") ? "&" : "?";
-      // (Optional) If you pass p.youtubeId, we’ll use it for true looping via playlist param
-      // 😎 Playlist trick keeps loop reliable for single videos
       const playlistParam = p.youtubeId ? `&playlist=${encodeURIComponent(p.youtubeId)}` : "";
       const src = `${embed}${join}autoplay=1&mute=1&playsinline=1&loop=1&controls=0&modestbranding=1${playlistParam}`;
       return `<iframe class="thumb"
@@ -3844,22 +3900,16 @@ function renderThumb(p){
                       data-media-url="${mediaUrl}"></iframe>`;
     }
   }
-
-  // Fallback: image
   const imgSrc = mediaUrl || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
-  // 😎 Lazy + async decode; keep data-media-url for stable diffs
   return `<img class="thumb" src="${imgSrc}" alt="" loading="lazy" decoding="async" data-media-url="${imgSrc}">`;
 }
-
 
 function renderSuggestions(q){
   const ql = (q||"").toLowerCase().trim();
   if(!ql){ hideSuggest(); return; }
-
   const list = (window.allProducts || []).filter(p => (p.name||"").toLowerCase().includes(ql));
   const top = list.slice(0, 12);
   if(!top.length){ hideSuggest(); return; }
-
   boxEl.innerHTML = top.map(p => {
     const safeName = p.name.replace(/'/g,"\\'");
     const url = makeProductURL(p.route, p.name);
@@ -3873,7 +3923,6 @@ function renderSuggestions(q){
       </a>
     `;
   }).join('');
-
   if (!document.getElementById('search-thumb-inline-style')){
     const style = document.createElement('style');
     style.id = 'search-thumb-inline-style';
@@ -3890,18 +3939,15 @@ function renderSuggestions(q){
     `;
     document.head.appendChild(style);
   }
-
   boxEl.style.display = 'block';
 }
 
-/* On click navigate using our builder (still an <a> for long-press copy) */
 function goToProduct(routePath, productName){
   const url = makeProductURL(routePath, productName);
   location.href = url;
   return false;
 }
 
-/* Input wiring */
 if (inputEl){
   inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
   inputEl.addEventListener('keydown', e => {
@@ -3917,15 +3963,13 @@ if (inputEl){
       if (chosen){
         goToProduct(chosen.route, chosen.name);
       } else {
-        // fallback: first configured route or "/"
         const fallbackRoute = (window.allProducts[0] && window.allProducts[0].route) || "/";
-        goToProduct(fallbackRoute, typed); // typed will be slugified by builder
+        goToProduct(fallbackRoute, typed);
       }
     }
   });
 }
 
-/* expose */
 window.goToProduct = goToProduct;
 window.openHeaderSearch = function(){
   const header = document.querySelector('.site-header');
@@ -3942,7 +3986,6 @@ window.closeHeaderSearch = function(){
   hideSuggest();
 };
 </script>
-
 
 
 <footer aria-label="Site footer" id="siteFooter">
@@ -5226,6 +5269,299 @@ try {
       clearInterval(t);
     }
   }, 200);
+})();
+</script>
+<script id="swr-catalog">
+/* SWR-style catalog loader
+   - Paste this script just before </body> in index.html
+   - Exposes: window.loadAndRenderCatalog(), window.stopCatalogPolling()
+   - Fires CustomEvent 'swr:cache:update' when cache changes
+*/
+
+(function(){
+  'use strict';
+
+  const CACHE_PREFIX = 'swr:catalog:';
+  const POLL_MS = 3000; // poll every 3s
+  let isDragging = false;
+  let pollHandle = null;
+
+  // ---------- Config / URL resolution ----------
+  function catalogUrl() {
+    return window.CATALOG_SHEET_URL ||
+           window.categorySheetURL ||
+           window.CONFIG_SHEET_URL ||
+           window.CATALOG_URL ||
+           '';
+  }
+
+  // F5 or ?nocache=1 or browser reload -> force network
+  function isForcedNetwork() {
+    try {
+      const params = new URLSearchParams(location.search);
+      if (params.get('nocache') === '1') return true;
+    } catch(e){}
+    try {
+      const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+      if (nav && nav.type === 'reload') return true;
+    } catch(e){}
+    try {
+      if (performance && performance.navigation && performance.navigation.type === 1) return true;
+    } catch(e){}
+    return false;
+  }
+
+  // ---------- Small utilities ----------
+  function stableStringify(obj){
+    try { return JSON.stringify(obj, Object.keys(obj||{}).sort()); }
+    catch(e){ return JSON.stringify(obj); }
+  }
+
+  function readCache(key){
+    try {
+      const s = localStorage.getItem(key);
+      if (!s) return null;
+      return JSON.parse(s);
+    } catch(e){ try{ localStorage.removeItem(key);}catch(_){ } return null; }
+  }
+  function writeCache(key, payload){
+    try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data: payload })); }
+    catch(e){}
+  }
+
+  async function fetchNetwork(url){
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Network fetch failed: ' + res.status);
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    if (ct.includes('application/json')) return await res.json();
+    const text = await res.text();
+    try { return JSON.parse(text); } catch(e){ return text; }
+  }
+
+  function fireCacheUpdateEvent(url, oldData, newData){
+    try {
+      const evt = new CustomEvent('swr:cache:update', { detail: { url, oldData, newData } });
+      window.dispatchEvent(evt);
+    } catch(e){}
+  }
+
+  // ---------- Scroll capture/restore ----------
+  function captureScrollLefts(root){
+    const map = new Map();
+    const selectors = ['.cat-strip', '.category-row', '.happy-row', '.bestsellers', '.product-row', '.grid', '.items-row'];
+    selectors.forEach(sel => {
+      root.querySelectorAll(sel).forEach(el => {
+        if (!el.dataset.swrId) el.dataset.swrId = 'swr_' + Math.random().toString(36).slice(2);
+        map.set(el.dataset.swrId, el.scrollLeft || 0);
+      });
+    });
+    return map;
+  }
+  function restoreScrollLefts(root, map){
+    if (!map) return;
+    root.querySelectorAll('[data-swr-id]').forEach(el => {
+      const id = el.dataset.swrId;
+      if (!id) return;
+      const v = map.get(id);
+      if (v != null) el.scrollLeft = v;
+    });
+  }
+
+  function findContainer(){
+    return document.getElementById('content') ||
+           document.getElementById('categorySection') ||
+           document.body;
+  }
+
+  // ---------- Default renderer (fallback) ----------
+  function defaultRenderer(data, container){
+    // If you already have renderCatalog / renderCategories functions, they will be used.
+    if (typeof window.renderCatalog === 'function') {
+      try { window.renderCatalog(data); return; } catch(e) { console.warn('renderCatalog failed', e); }
+    }
+    if (typeof window.renderCategories === 'function') {
+      try { window.renderCategories(data); return; } catch(e) { console.warn('renderCategories failed', e); }
+    }
+
+    // fallback simple rendering
+    container.innerHTML = '';
+    if (Array.isArray(data)){
+      const frag = document.createDocumentFragment();
+      data.forEach(row => {
+        const item = document.createElement('div');
+        item.className = 'swr-card';
+        const title = row['Product Name'] || row.name || row.Title || row.title || JSON.stringify(row).slice(0,40);
+        const price = row['Selling Price'] || row.price || row.Price || '';
+        item.style.padding = '10px';
+        item.style.borderBottom = '1px solid #eee';
+        item.innerHTML = `<div style="font-weight:600">${String(title)}</div><div style="color:#777">₹${price || '-'}</div>`;
+        frag.appendChild(item);
+      });
+      container.appendChild(frag);
+    } else {
+      container.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    }
+  }
+
+  // ---------- Drag guards (defer rendering while user is dragging) ----------
+  (function attachDragGuards(){
+    const selectors = ['.cat-strip', '.category-row', '.happy-row', '.bestsellers', '.product-row', '.grid', '.items-row'];
+    const seen = new Set();
+    const startInfo = new WeakMap();
+    selectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        if (seen.has(el)) return;
+        seen.add(el);
+        startInfo.set(el, { down: false });
+        let startX = 0, startY = 0, moved = false;
+        el.addEventListener('touchstart', function(ev){
+          startX = ev.touches[0].clientX; startY = ev.touches[0].clientY; moved = false;
+        }, { passive: true });
+        el.addEventListener('touchmove', function(ev){
+          const dx = Math.abs(ev.touches[0].clientX - startX), dy = Math.abs(ev.touches[0].clientY - startY);
+          if (!moved && dx > 8 && dx > dy) { moved = true; isDragging = true; }
+        }, { passive: true });
+        el.addEventListener('touchend', function(){ if (isDragging) { setTimeout(()=>isDragging=false, 60); } }, { passive: true });
+
+        el.addEventListener('mousedown', function(ev){
+          startX = ev.clientX; startY = ev.clientY; moved = false;
+          startInfo.set(el, { down: true });
+        }, { passive: true });
+        el.addEventListener('mousemove', function(ev){
+          const s = startInfo.get(el);
+          if (!s || !s.down) return;
+          const dx = Math.abs(ev.clientX - startX), dy = Math.abs(ev.clientY - startY);
+          if (!moved && dx > 6 && dx > dy) { moved = true; isDragging = true; }
+        }, { passive: true });
+        el.addEventListener('mouseup', function(){ startInfo.set(el, { down: false }); if (isDragging) { setTimeout(()=>isDragging=false, 60); } }, { passive: true });
+        el.addEventListener('mouseleave', function(){ startInfo.set(el, { down: false }); });
+      });
+    });
+  })();
+
+  // ---------- backgroundUpdate: fetch and compare, update if changed ----------
+  async function backgroundUpdate(url, key){
+    try {
+      const net = await fetchNetwork(url);
+      const cached = readCache(key);
+      const oldData = cached ? cached.data : null;
+      const oldHash = oldData ? stableStringify(oldData) : null;
+      const newHash = stableStringify(net);
+
+      if (newHash !== oldHash) {
+        writeCache(key, net);
+        fireCacheUpdateEvent(url, oldData, net);
+        const container = findContainer();
+        if (container) {
+          const scrollMap = captureScrollLefts(container);
+          if (!isDragging) {
+            container.innerHTML = '';
+            defaultRenderer(net, container);
+            restoreScrollLefts(container, scrollMap);
+          } else {
+            // try later when not dragging
+            const tryLater = function(){
+              if (!isDragging) {
+                container.innerHTML = '';
+                defaultRenderer(net, container);
+                restoreScrollLefts(container, scrollMap);
+              } else {
+                setTimeout(tryLater, 150);
+              }
+            };
+            setTimeout(tryLater, 150);
+          }
+        }
+      }
+      return net;
+    } catch(e){
+      throw e;
+    }
+  }
+
+  // ---------- main: loadAndRenderCatalog ----------
+  async function loadAndRenderCatalog(options = {}){
+    const url = (options.url || catalogUrl() || '').trim();
+    if (!url) {
+      console.warn('loadAndRenderCatalog: no URL found. Set window.CATALOG_SHEET_URL or pass {url:"..."}');
+      return;
+    }
+    const key = CACHE_PREFIX + url;
+    const container = findContainer();
+    if (!container) { console.warn('loadAndRenderCatalog: no container found'); return; }
+    const scrollMap = captureScrollLefts(container);
+    const forced = isForcedNetwork();
+
+    if (!forced) {
+      // show cached immediately if present
+      const cached = readCache(key);
+      if (cached && cached.data) {
+        try {
+          if (!isDragging) {
+            container.innerHTML = '';
+            defaultRenderer(cached.data, container);
+          } else {
+            const tryLater = function(){
+              if (!isDragging) {
+                container.innerHTML = '';
+                defaultRenderer(cached.data, container);
+              } else {
+                setTimeout(tryLater, 150);
+              }
+            };
+            setTimeout(tryLater, 150);
+          }
+        } catch(e){ console.warn('Error rendering cached data', e); }
+      }
+      // background network update
+      backgroundUpdate(url, key).catch(e => console.warn('bg update error', e));
+    } else {
+      // forced network (F5 or nocache=1)
+      try {
+        const net = await fetchNetwork(url);
+        writeCache(key, net);
+        if (!isDragging) {
+          container.innerHTML = '';
+          defaultRenderer(net, container);
+        } else {
+          const tryLater = function(){
+            if (!isDragging) {
+              container.innerHTML = '';
+              defaultRenderer(net, container);
+            } else {
+              setTimeout(tryLater, 150);
+            }
+          };
+          setTimeout(tryLater, 150);
+        }
+      } catch(e){
+        console.error('loadAndRenderCatalog network error', e);
+      }
+    }
+
+    try { restoreScrollLefts(container, scrollMap); } catch(e){}
+
+    // start polling if not already started
+    if (!pollHandle) {
+      pollHandle = setInterval(async () => {
+        if (document.visibilityState !== 'visible') return;
+        if (isDragging) return;
+        try { await backgroundUpdate(url, key); } catch(e){ /* ignore */ }
+      }, POLL_MS);
+    }
+  }
+
+  // ---------- exports ----------
+  window.loadAndRenderCatalog = loadAndRenderCatalog;
+  window.stopCatalogPolling = function(){
+    if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
+  };
+
+  // autostart after DOM ready (small delay)
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){ try { window.loadAndRenderCatalog(); } catch(e) { console.warn(e); } }, 120);
+  });
+
 })();
 </script>
 </body>
