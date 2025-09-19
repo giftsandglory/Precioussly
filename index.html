@@ -2,13 +2,20 @@
 
 <html lang="en">
 <head>
+  <link rel="preconnect" href="https://opensheet.elk.sh" crossorigin>
+<link rel="dns-prefetch" href="https://opensheet.elk.sh">
+
 
 
 
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet"></noscript>
+
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
 <style>
 
@@ -3315,7 +3322,8 @@ setInterval(loadCategories, 180000);
  }
 
  async function fetchNetwork(url) {
- const res = await fetch(url, { cache: 'no-store' });
+ const res = await fetch(url, { cache: 'no-store', keepalive: true })
+;
  if (!res.ok) throw new Error('Network fetch failed: ' + res.status);
  const ct = (res.headers.get('content-type') || '').toLowerCase();
  if (ct.includes('application/json')) return await res.json();
@@ -5730,12 +5738,15 @@ try {
 
  // start polling if not already started
  if (!pollHandle) {
- pollHandle = setInterval(async () => {
- if (document.visibilityState !== 'visible') return;
- if (isDragging) return;
- try { await backgroundUpdate(url, key); } catch(e){ /* ignore */ }
- }, POLL_MS);
- }
+ setTimeout(() => {
+     pollHandle = setInterval(async () => {
+         if (document.visibilityState !== 'visible') return;
+         if (isDragging) return;
+         try { await backgroundUpdate(url, key); } catch(e){}
+     }, POLL_MS);
+ }, 4000); // delay SWR start by 4s to give first paint time
+}
+
  }
 
  // ---------- exports ----------
@@ -5746,8 +5757,11 @@ try {
 
  // autostart after DOM ready (small delay)
  document.addEventListener('DOMContentLoaded', function(){
- setTimeout(function(){ try { window.loadAndRenderCatalog(); } catch(e) { console.warn(e); } }, 120);
- });
+ requestIdleCallback(function(){
+     try { window.loadAndRenderCatalog(); } catch(e) { console.warn(e); }
+ }, { timeout: 1000 });
+});
+
 
 })();
 </script>
