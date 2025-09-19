@@ -2928,25 +2928,7 @@ window.closeHeaderSearch = function(){
   © 2025 Precioussly. All rights reserved.
 </footer>
 
-<script>
-  function adjustFooter() {
-    const footer = document.getElementById("siteFooter");
-    if (!footer) return;
-    const bodyHeight = document.body.scrollHeight;
-    const winHeight = window.innerHeight;
 
-    if (bodyHeight < winHeight) {
-      footer.style.position = "fixed";
-      footer.style.bottom = "0";
-    } else {
-      footer.style.position = "relative";
-    }
-  }
-
-  // Run on load and resize
-  window.addEventListener("load", adjustFooter);
-  window.addEventListener("resize", adjustFooter);
-</script>
 
 <script>
   (function(){
