@@ -2692,6 +2692,26 @@ down-toggle {
  text-decoration: none !important;
  outline: none !important;
  }
+ /* Prevent sudden collapse of sections during background refresh */
+#categorySection,
+#happyRow,
+#couponContainer,
+#fadeSlider {
+    min-height: 1px; /* keeps box present without gaps */
+}
+
+/* Smoothly fade in updated content instead of blink */
+/* Smooth in-place update — never hide */
+.update-fade {
+    position: relative;
+    opacity: 1;
+    transition: opacity 0.25s ease;
+}
+.update-fade.updating {
+    opacity: 0.85; /* slightly dim only */
+}
+
+
 </style>
 </head>
 <body>
@@ -3195,7 +3215,11 @@ function preprocessRows(raw) {
 function renderCategories(rows) {
  const container = document.getElementById("categorySection");
  if (!container) return;
- container.innerHTML = "";
+ const frag = document.createDocumentFragment();
+// build the new sections into frag here...
+container.replaceChildren(...frag.childNodes);
+
+
  const data = preprocessRows(rows).filter(r => r.section && r.name && r.img);
  const grouped = [];
  const sectionIndex = new Map();
@@ -3505,11 +3529,14 @@ setInterval(loadCategories, 180000);
  const container = findContainer();
  if (container) {
  const scrollMap = captureScrollLefts(container);
+ 
  if (!isDragging) {
- container.innerHTML = '';
- defaultRenderer(net, container);
- restoreScrollLefts(container, scrollMap);
- } else {
+    const frag = document.createDocumentFragment();
+    defaultRenderer(net, frag); // render into temp fragment
+    container.replaceChildren(...frag.childNodes); // single swap
+    restoreScrollLefts(container, scrollMap);
+}
+ else {
  const tryLater = function () {
  if (!isDragging) {
  container.innerHTML = '';
@@ -5650,9 +5677,12 @@ try {
  if (container) {
  const scrollMap = captureScrollLefts(container);
  if (!isDragging) {
- container.innerHTML = '';
- defaultRenderer(net, container);
- restoreScrollLefts(container, scrollMap);
+ container.classList.add('updating');
+const frag = document.createDocumentFragment();
+defaultRenderer(..., frag);
+container.replaceChildren(...frag.childNodes);
+setTimeout(() => container.classList.remove('updating'), 150);
+
  } else {
  // try later when not dragging
  const tryLater = function(){
@@ -6020,3 +6050,5 @@ try {
 
 </body>
 </html>
+
+
