@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precioussly</title>
@@ -10,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
 <style>
 
-  /* 🔵 Disable blue tap highlight everywhere */
 * {
   -webkit-tap-highlight-color: transparent;
   -webkit-focus-ring-color: transparent;
@@ -126,7 +123,7 @@
   z-index: 10;
   width: 42px;
   height: 42px;
-  background: rgba(0, 0, 0, 0.4); /* ✅ fixed background */
+  background: rgba(0, 0, 0, 0.4);
   border: none;
   border-radius: 50%;
   color: white;
@@ -139,20 +136,18 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   padding: 0;
 
-  /* ✅ Prevent tap glow & outlines */
   -webkit-tap-highlight-color: transparent;
   -webkit-focus-ring-color: transparent;
   outline: none;
 
-  /* ✅ Remove hover scale effect */
   transition: none;
 }
 
 .strip-nav-btn:hover,
 .strip-nav-btn:active,
 .strip-nav-btn:focus {
-  background: rgba(0, 0, 0, 0.4); /* ❌ no change on hover/tap */
-  transform: translateY(-50%);   /* ❌ no zoom */
+  background: rgba(0, 0, 0, 0.4);
+  transform: translateY(-50%);
 }
 
 .strip-nav-left {
@@ -163,10 +158,9 @@
   right: 8px;
 }
 
-/* 👇 Arrow position adjust if needed */
 .strip-nav-btn span {
   display: inline-block;
-  transform: translate(0, -2px); /* 🔼 Up 2px */
+  transform: translate(0, -2px);
 }
 .image-strip-container {
   display: flex;
@@ -197,7 +191,7 @@
 }
   .dropdown-icon {
   font-size: 18px;
-  color: #000; /* black arrow */
+  color: #000;
   font-family: 'Roboto Slab', serif;
 }
   .header-title {
@@ -209,7 +203,6 @@
   color: #000;
   font-family: 'Roboto Slab', serif;
 }
-  
 
 .side-menu.active {
   left: 0;
@@ -260,9 +253,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 16px; /* 🔁 increased from 12px */
+  padding: 20px 16px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  min-height: 72px;   /* ✅ added for height consistency */
+  min-height: 72px;
 }
 
     .left-section {
@@ -282,14 +275,14 @@
   border: none;
   padding: 0;
 
-  -webkit-tap-highlight-color: transparent; /* ✅ Prevent blue Android highlight */
-  touch-action: manipulation;               /* ✅ Prevent default touch delay */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
     .hamburger-wrapper div {
   width: 100%;
   height: 3px;
-  background-color: #000; /* ✅ black */
+  background-color: #000;
   border-radius: 2px;
 }
 
@@ -308,7 +301,7 @@
 
     .insta-handle {
   font-size: 17px;
-  color: #000; /* ✅ black */
+  color: #000;
   font-weight: 500;
 }
 
@@ -340,8 +333,7 @@
   background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
-  /* align-items: center; */ /* REMOVE THIS */
-  /* padding-top: 100px; */  /* REMOVE THIS */
+
   z-index: 3000;
   opacity: 0;
   pointer-events: none;
@@ -349,8 +341,8 @@
 }
 
     .popup-box {
-  background-color: #ffffff;         /* white like header */
-  border: 2px solid #000;         /* premium brown */
+  background-color: #ffffff;
+  border: 2px solid #000;
   border-radius: 24px;
   padding: 20px;
   display: flex;
@@ -408,15 +400,15 @@
 
     .close-btn {
   position: absolute;
-  top: 8px;                 /* 🟢 adjust vertically inside */
-  right: 8px;               /* 🟢 adjust horizontally inside */
-  width: 22px;              /* 🟢 smaller size */
+  top: 8px;
+  right: 8px;
+  width: 22px;
   height: 22px;
   background-color: #000;
   color: #fff;
   border: none;
   border-radius: 50%;
-  font-size: 16px;          /* 🟢 smaller font */
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -432,7 +424,7 @@
 }
 
 .close-btn:hover {
-  transform: scale(1.1);     /* hover zoom effect */
+  transform: scale(1.1);
 }
 
     #announcementBar {
@@ -445,7 +437,7 @@
   border-bottom: none;
   font-weight: 500;
   text-align: center;
-  font-family: 'Roboto Slab', serif; /* ✅ Use Roboto Slab */
+  font-family: 'Roboto Slab', serif;
   min-height: 24px;
   line-height: 22px;
   user-select: none;
@@ -466,8 +458,6 @@
         font-size: 15px;
       }
 
-      
-
       .hamburger-wrapper {
         width: 22px;
         height: 18px;
@@ -484,7 +474,7 @@
 
 .popup-box.active {
   opacity: 1;
-  transform: translateY(-10px); /* Final position slightly above */
+  transform: translateY(-10px);
   pointer-events: auto;
 }
 .menu-header {
@@ -514,7 +504,7 @@
   font-size: 16px;
   color: #000;
   font-weight: 400;
-  user-select: none;  /* 👈 Yeh line add karo */
+  user-select: none;
 }
 .menu-logo {
   width: 40px;
@@ -535,14 +525,14 @@
 .menu-title {
   font-size: 18px;
   font-weight: 600;
-  color: #000; /* 🔁 black */
+  color: #000;
   font-family: 'Roboto Slab', serif;
 }
 
 .menu-close {
   font-size: 24px;
   font-weight: bold;
-  color: #000; /* ✅ black color */
+  color: #000;
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -551,7 +541,6 @@
   transform: scale(1.2);
 }
 
-/* Updated side-menu for premium look */
 .side-menu {
   position: fixed;
   top: 0;
@@ -566,7 +555,6 @@
   z-index: 5000;
   font-family: 'Roboto Slab', serif;
 
-  /* ✅ Ultra smooth animation */
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -581,7 +569,7 @@
   padding: 14px 18px 14px 24px;
   font-weight: 500;
   font-family: 'Roboto Slab', serif;
-  border-bottom: none !important; /* ✅ Remove the line */
+  border-bottom: none !important;
 }
 
 .submenu-link {
@@ -591,7 +579,7 @@
   text-decoration: none;
   font-weight: 400;
   font-family: 'Roboto Slab', serif;
-  border-bottom: 1px solid #eaeaea; /* ✅ Light line for submenu */
+  border-bottom: 1px solid #eaeaea;
 }
 down-toggle {
   display: flex;
@@ -607,7 +595,7 @@ down-toggle {
 
 .down-icon {
   font-size: 18px;
-  color: #000; /* 🔁 black */
+  color: #000;
 }
 .menu-text, .header-title {
   user-select: none !important;
@@ -626,15 +614,12 @@ down-toggle {
   overflow: hidden;
 }
 
-
-
-/* === Prevent hero slider from shrinking during data fetch === */
 .fade-slider{ min-height: clamp(280px, 62vw, 540px); height: clamp(300px, 62vw, 560px); }
 .fade-slider:empty{ background: #f6f6f6; }
 @supports (aspect-ratio: 16/9){
   .fade-slider{ aspect-ratio: 16/9; height: auto; }
 }
-/* ============================================================ */
+
 .fade-slide {
   position: absolute;
   top: 0;
@@ -674,23 +659,20 @@ down-toggle {
   transition: none !important;
 }
 
-
 .fade-dot.active { background: #3897f0; opacity: 1; }
-  
 
-/* --- sticky links at top of side menu (aligned) --- */
 .menu-fixed {
   position: sticky;
   top: 0;
   background: #ffffff;
   z-index: 2;
-  padding: 0 0 8px 0;   /* no extra top spacing */
-  /* no border line here so it looks same as list */
+  padding: 0 0 8px 0;
+
 }
 
 .menu-fixed .home-link {
   display: block;
-  padding: 14px 18px 14px 24px;  /* same as .menu-link */
+  padding: 14px 18px 14px 24px;
   font-family: 'Roboto Slab', serif;
   font-size: 17px;
   color: #000;
@@ -698,10 +680,9 @@ down-toggle {
   margin: 0;
 }
 
-/* green theme button, aligned with left edge via margin-left */
 .menu-fixed .track-btn {
   display: inline-block;
-  margin-left: 24px;   /* align with text of other menu items */
+  margin-left: 24px;
   margin-top: 6px;
   font-family: 'Roboto Slab', serif;
   font-size: 16px;
@@ -716,11 +697,6 @@ down-toggle {
 
 .menu-fixed .track-btn:active { transform: scale(0.98); }
 
-
-
-
-
-/* ✅ Pink theme certified strip — Vertical layout */
 .certified-strip {
   display: flex;
   flex-direction: column;
@@ -771,10 +747,8 @@ down-toggle {
 
 }
 
-
-/* --- OVERRIDES: Certified strip appears 3s after refresh, no blank space before --- */
 .certified-strip {
-  /* keep flex but collapse space */
+
   max-height: 0;
   padding: 0 14px;
   margin: 0 12px;
@@ -782,7 +756,7 @@ down-toggle {
   overflow: hidden;
 }
 .certified-strip.show {
-  /* expand + fade in */
+
   max-height: 2000px;
   padding: 16px 14px;
   margin: 18px 12px;
@@ -791,11 +765,6 @@ down-toggle {
   transition: max-height 0.5s ease, opacity 0.5s ease, padding 0.5s ease, margin 0.5s ease;
 }
 
-
-
-/* === MENU (NO HOVER / NO ANIMATION) – OVERRIDES === */
-
-/* Overlay: just show/hide, no fade */
 .menu-overlay {
   position: fixed;
   inset: 0;
@@ -807,7 +776,6 @@ down-toggle {
 }
 .menu-overlay.active { display: block; }
 
-/* Drawer: instant open/close, bigger width & padding */
 .side-menu {
   position: fixed;
   top: 0; left: 0;
@@ -824,7 +792,6 @@ down-toggle {
 }
 .side-menu.active { transform: translateX(0); }
 
-/* Header row */
 .menu-header {
   display: flex;
   align-items: center;
@@ -851,7 +818,6 @@ down-toggle {
 }
 .menu-close:hover { transform: none !important; }
 
-/* Sticky “Home” + “Track Order” block */
 .menu-fixed { position: sticky; top: 0; background: #fff; padding-bottom: 8px; z-index: 2; }
 .menu-fixed a { text-decoration: none; color: #000; font-family: 'Roboto Slab', serif; }
 .menu-fixed .home-link { display: block; padding: 14px 16px; font-size: 17px; }
@@ -865,7 +831,6 @@ down-toggle {
   font-size: 16px; font-weight: 600; text-align: center;
 }
 
-/* Main list */
 .menu-link,
 .dropdown-toggle {
   display: flex;
@@ -885,7 +850,6 @@ down-toggle {
 .dropdown-icon,
 .caret { font-size: 18px; line-height: 1; color: #000; }
 
-/* Submenus */
 .submenu-container,
 .submenu {
   display: none;
@@ -903,18 +867,13 @@ down-toggle {
   border-bottom: 1px solid #f1f1f1;
 }
 
-/* Kill hovers */
 .menu-link:hover,
 .submenu-link:hover,
 .dropdown-toggle:hover { background: transparent !important; }
 
-
-
-
-/* === MENU – ULTRA SMOOTH OPEN/CLOSE (OVERRIDES) === */
 .menu-overlay{
   opacity:0;
-  transition: opacity .35s cubic-bezier(.22,1,.36,1) !important; /* smooth fade */
+  transition: opacity .35s cubic-bezier(.22,1,.36,1) !important;
 }
 .menu-overlay.active{opacity:1; display:block;}
 
@@ -922,19 +881,16 @@ down-toggle {
   will-change: transform;
   backface-visibility: hidden;
   transform: translateX(-100%);
-  transition: transform 0.8s cubic-bezier(.25, 1, .3, 1) !important; /* smoother & slower */
+  transition: transform 0.8s cubic-bezier(.25, 1, .3, 1) !important;
 }
 .side-menu.active{ transform: translateX(0); }
 
-/* keep items still: no hover color, but give crisp separators */
 .menu-link, .submenu-link, .dropdown-toggle{ transition: none !important; }
 
-
-/* ===== Unified button list with equal size & spacing ===== */
 #sideMenu #menuContent{
   display:flex;
   flex-direction:column;
-  gap:10px;                 /* same space between all buttons */
+  gap:10px;
   padding: 6px 8px 14px;
 }
 
@@ -943,57 +899,51 @@ down-toggle {
   text-align:center;
   padding:10px 14px;
   border:1px solid #e9e9e9;
-  border-radius:12px;        /* little round corners */
+  border-radius:12px;
   background:#ffffff;
   color:#111 !important;
   font-family:'Roboto Slab', serif;
   font-size:17px;
   font-weight:500;
   text-decoration:none;
-  min-height:auto;          /* same height control */
+  min-height:auto;
   box-shadow:0 1px 0 rgba(0,0,0,.02);
 }
 
 #sideMenu .menu-link--primary{
-  background:#e9fef1;                /* keep green */
+  background:#e9fef1;
   border:1.5px solid #c5ecd6;
   color:#064c2c !important;
   font-weight:600;
 }
-/* Make first button in menu always green */
+
 #menuContent .menu-link:first-child {
   background: #e9fef1 !important;
   border: 1.5px solid #c5ecd6 !important;
   color: #064c2c !important;
   font-weight: 600 !important;
 }
-/* remove old separator lines effect */
+
 #sideMenu .menu-link,
 #sideMenu .submenu-link{ border-bottom:none !important; }
 
-/* tap feedback only */
 #sideMenu .menu-link:active{ transform:scale(.98); }
 
-
-/* ===== Menu button border & tap fixes (no color/size change) ===== */
-
-
-#sideMenu #menuContent{ padding: 8px 16px 18px !important; } /* breathing room for full rounded edges */
+#sideMenu #menuContent{ padding: 8px 16px 18px !important; }
 
 #sideMenu .menu-link{
-  border:1px solid #dcdcdc !important;   /* stronger border */
+  border:1px solid #dcdcdc !important;
   box-shadow:0 1px 2px rgba(0,0,0,.03) !important;
-  -webkit-tap-highlight-color: transparent; 
+  -webkit-tap-highlight-color: transparent;
   outline:none;
 }
 
 #sideMenu .menu-link--primary{
-  background:#e9fef1 !important;          /* keep green */
+  background:#e9fef1 !important;
   border:1.5px solid #c5ecd6 !important;
   color:#064c2c !important;
 }
 
-/* Do not change size or color on tap */
 #sideMenu .menu-link:active,
 #sideMenu .menu-link--primary:active{
   background: inherit !important;
@@ -1001,13 +951,12 @@ down-toggle {
   transform: none !important;
 }
 
-/* Also remove any hover variations just in case */
 #sideMenu .menu-link:hover,
 #sideMenu .menu-link--primary:hover{
   background: inherit !important;
   color: inherit !important;
 }
-/* Prevent Track Order color change on click */
+
 .menu-link:active,
 .menu-link--primary:active {
   background: inherit !important;
@@ -1015,12 +964,11 @@ down-toggle {
   transform: none !important;
 }
 
-/* Remove bold text for Track Order and Home */
 .menu-link,
 .menu-link--primary {
-  font-weight: 500 !important; /* normal weight */
+  font-weight: 500 !important;
 }
-/* ============ Search bar with Back pill ============ */
+
 #searchOverlay .search-box{
   position: relative;
   display: block;
@@ -1028,9 +976,9 @@ down-toggle {
 
 #searchOverlay .search-box input{
   width: 100%;
-  padding: 12px 86px 12px 14px;        /* right padding for Back button */
+  padding: 12px 86px 12px 14px;
   font-size: 16px;
-  font-family: 'Roboto Slab', serif;    /* consistent font */
+  font-family: 'Roboto Slab', serif;
   border: 1px solid #d9d9d9;
   border-radius: 12px;
   outline: none;
@@ -1041,7 +989,6 @@ down-toggle {
   border-color: #bfbfbf;
 }
 
-/* Back button inside the input (pill) */
 #searchOverlay .back-btn{
   position: absolute;
   top: 50%;
@@ -1049,10 +996,10 @@ down-toggle {
   transform: translateY(-50%);
   height: 32px;
   padding: 0 12px;
-  font: 500 14px 'Roboto Slab', serif;  /* normal, bold nahi */
+  font: 500 14px 'Roboto Slab', serif;
   color: #222;
   background: #fff;
-  border: 1px solid rgba(0,0,0,.18);    /* halka border */
+  border: 1px solid rgba(0,0,0,.18);
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,.06);
   cursor: pointer;
@@ -1066,12 +1013,10 @@ down-toggle {
   transform: translateY(-50%) scale(0.98);
 }
 
-/* Safety: purani close-btn style ko neutralize */
 #searchOverlay .close-btn { display: none !important; }
 
-/* === Header search mode (inline) === */
 .header-search {
-  display: none;               /* default hidden */
+  display: none;
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -1102,7 +1047,6 @@ down-toggle {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* When searching: hide logo/menu/icons, show input+back pill */
 .site-header.searching .hamburger-wrapper,
 .site-header.searching #logoWrap,
 .site-header.searching #rightIcons { display: none !important; }
@@ -1111,10 +1055,8 @@ down-toggle {
   display: flex !important;
 }
 
-/* Keep header from jumping */
 .site-header { position: sticky; top: 0; z-index: 3500; }
 
-/* === Instagram-like top counter (1/N) === */
 .ig-counter{
   position:absolute;
   top:10px;
@@ -1129,34 +1071,30 @@ down-toggle {
   border-radius: 999px;
   z-index: 6;
   letter-spacing: .2px;
-  pointer-events: none; /* never block taps/swipes */
+  pointer-events: none;
 }
 
-
-
-/* === Keep the 1/3 counter size stable even when empty === */
 .ig-counter{
   display:flex; align-items:center; justify-content:center;
   min-width: 56px; height: 32px; padding: 0 10px; border-radius: 999px;
 }
-/* Reserve space while JS is loading (text empty) */
+
 .ig-counter:empty::before{
-  content: "00/00"; /* invisible placeholder to keep width */
+  content: "00/00";
   opacity: 0;
 }
-/* ========================================================= */
-/* === Instagram-style dots (compact window with tiny overflow dots) === */
-.ig-dots { 
-  position: absolute; 
-  bottom: 12px; 
-  left: 0; 
-  width: 100%; 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-  gap: 8px; 
-  z-index: 5; 
-  pointer-events: none; /* dots shouldn't block swipes */
+
+.ig-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  z-index: 5;
+  pointer-events: none;
 }
 .ig-dot, .ig-dot-tiny {
   display: inline-block;
@@ -1166,43 +1104,35 @@ down-toggle {
 .ig-dot { width: 6px; height: 6px; opacity: .9; }
 .ig-dot.active { width: 7.5px; height: 7.5px; background: #3897f0; opacity: 1; }
 .ig-dot-tiny { width: 3px; height: 3px; opacity: .6; }
-/* old dot containers kept for compatibility but hidden */
+
 .fade-dots { display: none !important; }
 
-
-/* === Counter chip: smaller "normal" size as before === */
 .ig-counter{
   min-width: 44px; height: 26px; padding: 0 8px;
   font-size: 13px; border-radius: 999px;
 }
 .ig-counter:empty::before{ content:"00/00"; opacity:0; }
-/* ================================================ */
 
-
-#categorySection .category-media, 
+#categorySection .category-media,
 #categorySection .category-media * { box-sizing: border-box; }
 
 #categorySection video {
-        /* enforce square */
+
   width: 100%;
-  height: auto;              /* computed from aspect-ratio */
+  height: auto;
   object-fit: cover;
   display: block;
 }
 
-
-/* --- Category video/image uniform sizing --- */
 #categorySection .rect-img {  }
 #categorySection video.rect-img { width:100%; height:auto; display:block; object-fit:cover; border-radius:18px; }
 #categorySection .circle-mini video{ width:100%; height:100%; display:block; object-fit:cover; border-radius:50%; }
 #categorySection .square-mini video{ width:100%; height:100%; display:block; object-fit:cover; border-radius:12px; }
 
-
 #categorySection .cat-card .label{display:block;}
 
 </style>
 <style>
-/* ==== Floating action buttons (WhatsApp + Top) ==== */
 
 #toTopBtn {
   width: 55px;
@@ -1245,28 +1175,27 @@ down-toggle {
   pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
 }
-/* ✅ WhatsApp button ka icon perfect center me, without misalignment */
+
 #waBtn {
-  width: 55px; /* icon ka size */
+  width: 55px;
   height: 55px;
-  border: none; /* circle ka border hata diya */
-  border-radius: 0; /* circle shape off */
-  background: none; /* background color hataya */
-  box-shadow: none; /* shadow bhi hataya */
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
 }
 
-/* Image ko full size pe dikhao */
 #waBtn img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
-/* ==== Smart header ==== */
+
 .site-header {
   position: sticky;
   top: 0;
@@ -1278,8 +1207,8 @@ down-toggle {
 .site-header.header-hidden { transform: translateY(-100%); }
 #cartCountBadge {
   font-family: 'Roboto Slab', serif !important;
-  font-weight: 200; /* bold look */
-  font-size: 14px;  /* adjust number size */
+  font-weight: 200;
+  font-size: 14px;
 }
 </style>
 <style>
@@ -1293,8 +1222,6 @@ down-toggle {
 
 #searchOverlay .close-btn { display: none !important; }
 
-
-
 #searchOverlay .search-header{
   position: sticky;
   top: 0;
@@ -1303,7 +1230,7 @@ down-toggle {
   border-top-left-radius: 14px;
   border-top-right-radius: 14px;
 }
-/* Header search suggestions */
+
 #headerSearchResults{
   position: absolute;
   left: 0; right: 0;
@@ -1334,46 +1261,45 @@ down-toggle {
 .header-suggest .tag{
   font-size:11px; padding:3px 6px; border:1px solid #ddd; border-radius:8px; color:#333;
 }
-/* Make the search bar a positioning anchor */
+
 #headerSearchBar { position: relative; }
 
-/* Show suggestions BELOW the search bar */
 #headerSearchResults{
   position: absolute;
-  top: calc(100% + 10px);   /* exactly below the bar with 10px gap */
+  top: calc(100% + 10px);
   left: 0;
   right: 0;
-  max-height: 62vh;         /* already there is fine */
-  overflow: auto;           /* already there is fine */
-  z-index: 4000;            /* keep it above page content */
+  max-height: 62vh;
+  overflow: auto;
+  z-index: 4000;
 }
 
 </style>
 <style>
 #siteFooter{
-  display:none;            /* hidden at start */
-  opacity:0;               /* fade from 0 -> 1 */
+  display:none;
+  opacity:0;
   transition:opacity .35s ease;
   background:#fff;
   border-top:1px solid #eaeaea;
   text-align:center;
-  padding:6px 8px;         /* was 16px 12px 28px – reduced height */
+  padding:6px 8px;
   font-family:'Roboto Slab', serif;
   color:#000;
-  font-size:13px;          /* smaller text */
-  line-height:1.4;         /* tighter spacing */
+  font-size:13px;
+  line-height:1.4;
 }
 #siteFooter.show{ display:block; opacity:1; }
 
 #siteFooter .brand{
-  margin-bottom:4px;       /* minimal space */
+  margin-bottom:4px;
 }
 
 #siteFooter .links{
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
-  gap:4px 8px;              /* small gap */
+  gap:4px 8px;
 }
 #siteFooter .links a{
   color:#000;
@@ -1385,15 +1311,14 @@ down-toggle {
 #siteFooter .dot{ opacity:.6; }
 </style>
 <style>
-/* Make slide wrapper (anchor) fill the frame 100% */
+
 .fade-slide { display: block; text-decoration: none; }
 .fade-slide > img, .fade-slide > video { width: 100%; height: 100%; object-fit: cover; }
 </style>
 <style>
-/* --- Swipe reliability fixes (added by ChatGPT) --- */
-/* Tell the browser: allow vertical scroll, but don't hijack horizontal swipes. */
+
 .fade-slider, #fadeSlider { touch-action: pan-y pinch-zoom; }
-/* Make sure dots don't block swipes except on their tiny area */
+
 .fade-dots { pointer-events: none; }
 .fade-dots .fade-dot {
   width: 8px;
@@ -1405,21 +1330,18 @@ down-toggle {
 }
 
 </style>
-<!-- >>> ChatGPT: Category compact strip + tiny circle (Box Direction = 1) -->
 <style>
-/* === Category sections & tiny circle style for Box Direction 1 === */
+
 #categorySection{ display:block !important; padding:16px 12px !important; }
 .cat-sec{ width:100%; margin: 0 0 10px; flex: 0 0 100%; }
 .cat-title{ width:100%; text-align:center; font-family:'Roboto Slab',serif; font-size:17px; font-weight:400; margin:0 0 8px; }
 
-/* Default grid (when Box Direction != 1) */
 .cat-grid{
   display:grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap:12px;
 }
 
-/* Horizontal compact strip (when Box Direction = 1) */
 .cat-strip{
   display:flex;
   overflow-x:auto;
@@ -1441,15 +1363,14 @@ down-toggle {
   font-weight:500;
 }
 
-/* Mini circle with dual ring like your sample (outer beige, inner white) */
 .circle-mini{
   width:120px; height:120px; border-radius:50%;
   background:#fff;
-  /* crisp double ring fully visible */
+
   box-shadow: 0 0 0 5px #ffffff, 0 0 0 10px #ff79b0;
 
   display:flex; align-items:center; justify-content:center;
-  margin:8px auto; /* margin so outer ring isn't cut */
+  margin:8px auto;
   box-sizing:border-box;
 }
 .circle-mini img{
@@ -1459,10 +1380,8 @@ down-toggle {
   display:block;
 }
 
-/* Default rectangle image (grid mode) */
 .rect-img{ width:100%; border-radius:18px; display:block; object-fit:cover; }
 
-/* === Square (for Shape = 3) — no pink borders === */
 .square-mini{
   width: 120px;
   height: 120px;
@@ -1481,27 +1400,24 @@ down-toggle {
   border-radius: 12px;
 }
 
-<!-- <<< ChatGPT CSS end -->
 <style>
-  /* 🔴 Pink ring for all small circle thumbnails */
+
   .circle-mini{
-    /* inner ring = white, outer ring = pink */
+
     box-shadow: 0 0 0 5px #ffffff, 0 0 0 10px #ff79b0;
   }
 </style>
 <style>
-  /* 1) Make the circle ring (box-shadow) visible even at the edges */
-  /* Try these common wrappers—one of them will match your row that holds the circles. */
-  .best-sellers,                 /* if your section has this class */
-  .bestsellers,                  /* common variant */
-  .category-row,                 /* horizontal row of items */
+
+  .best-sellers,
+  .bestsellers,
+  .category-row,
   .product-row,
   .grid, .grid-wrap, .row, .items-row,
   .swiper, .swiper-wrapper, .swiper-container {
-    overflow: visible !important;   /* allow ring outside the circle */
+    overflow: visible !important;
   }
 
-  /* 2) Give a tiny breathing space on left/right edges so the first and last circle never touch the screen edge */
   .best-sellers,
   .bestsellers,
   .category-row,
@@ -1512,7 +1428,6 @@ down-toggle {
     padding-right: 12px;
   }
 
-  /* (optional) If your row uses 'mask-image' or 'clip-path' for fade edges, neutralize it so rings aren’t cut */
   .best-sellers,
   .bestsellers,
   .category-row,
@@ -1525,30 +1440,29 @@ down-toggle {
   }
 </style>
 <style>
-  /* Replace outside ring (box-shadow) with inside rings (border + inset shadow) */
+
   .circle-mini{
-    /* outer pink ring drawn INSIDE the circle */
-    border: 10px solid #ff79b0;             /* outer pink ring */
-    box-shadow: inset 0 0 0 5px #ffffff;    /* inner white ring */
+
+    border: 10px solid #ff79b0;
+    box-shadow: inset 0 0 0 5px #ffffff;
     border-radius: 50%;
   }
 </style>
 <style>
-  /* Space between circles so rings don't visually collide */
+
   .circle-mini { margin: 10px; }
 </style>
-<!-- === ChatGPT override: thin pink ring + free/natural swipe === -->
 <style id="chatgpt-ring-strip-fixes">
-/* Thin pink ring exactly like a clean circle border (no heavy shadows) */
+
 .circle-mini{
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 2.5px solid #ff79b0;      /* thin ring */
-  box-shadow: none !important;      /* kill previous thick rings */
+  border: 2.5px solid #ff79b0;
+  box-shadow: none !important;
   padding: 0 !important;
-  overflow: hidden;                  /* keep image inside circle */
-  background: #fff;                  /* clean backdrop */
+  overflow: hidden;
+  background: #fff;
 }
 .circle-mini img{
   width: 100%;
@@ -1558,26 +1472,22 @@ down-toggle {
   display: block;
 }
 
-/* Ensure the ring is never cut at the edges */
 .cat-strip, .best-sellers, .bestsellers, .category-row, .swiper, .swiper-wrapper{
-  overflow: auto !important;        /* allow horizontal scroll */
+  overflow: auto !important;
   padding-left: 12px !important;
   padding-right: 12px !important;
 }
 
-/* Free & natural swipe – remove snapping/jerk */
 .cat-strip{
   scroll-snap-type: none !important;
   -webkit-overflow-scrolling: touch;
-  scroll-behavior: auto !important; /* native drag */
+  scroll-behavior: auto !important;
   gap: 1px !important;
 }
 .cat-card{ flex: 0 0 auto; }
 
-/* In case older styles added inner/outer rings via box-shadow/border */
 .circle-mini::before, .circle-mini::after{ box-shadow: none !important; border: none !important; content: none !important; }
 </style>
-<!-- === ChatGPT fix for cut-off circle borders === -->
 <style id="chatgpt-circle-clip-fix">
 .cat-strip, .bestsellers, .category-row, .swiper, .swiper-wrapper{
   margin: 0 !important;
@@ -1585,8 +1495,8 @@ down-toggle {
   overflow-x: auto !important;
 }
 .cat-strip{
-  padding-left: 10px !important;   /* add breathing room so left circle not cut */
-  padding-right: 10px !important;  /* same for right side */
+  padding-left: 10px !important;
+  padding-right: 10px !important;
 }
 .circle-mini{
   margin: 0 !important;
@@ -1596,16 +1506,15 @@ down-toggle {
   justify-content: center;
 }
 </style>
-<!-- === ChatGPT FINAL fix: full-canvas, never-clipped circles === -->
 <style id="chatgpt-full-canvas-circles">
-/* The circular card itself */
+
 .circle-mini{
   width: 120px;
   height: 120px;
-  box-sizing: border-box !important;  /* include border in size so it never overflows */
+  box-sizing: border-box !important;
   border: 2.5px solid #ff79b0;
   border-radius: 50%;
-  overflow: hidden;                   /* keep image inside the circle */
+  overflow: hidden;
   margin: 0 !important;
   padding: 0 !important;
   background: #fff;
@@ -1619,14 +1528,12 @@ down-toggle {
   display: block;
 }
 
-/* Any wrappers around the circle must not crop */
 .circle-wrap, .cat-card, .cat-item, .circle-holder{
   overflow: visible !important;
   padding: 0 !important;
   margin: 0 !important;
 }
 
-/* The horizontal strip behaves like a free-scrolling canvas */
 .cat-strip, .bestsellers, .category-row{
   display: flex;
   gap: 14px;
@@ -1634,22 +1541,19 @@ down-toggle {
   overflow-y: visible !important;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: none !important;
-  padding-inline: 16px !important;    /* show full first/last items */
+  padding-inline: 16px !important;
   margin: 0 !important;
 }
 
-/* hide scrollbars if they show up (optional) */
 .cat-strip::-webkit-scrollbar{ display:none; }
 
-/* If they used fixed width/height on the parent circle container, let the border fit */
 .cat-card .circle-mini, .cat-item .circle-mini{
   max-width: 100%;
   max-height: 100%;
 }
 </style>
-<!-- === ChatGPT EDGE-FLUSH patch (no extra space at ends) === -->
 <style id="chatgpt-edge-flush">
-/* Ensure the scroll row has ZERO side padding and starts at the very left */
+
 .cat-strip, .bestsellers, .category-row, .swiper, .swiper-wrapper {
   padding-left: 0 !important;
   padding-right: 0 !important;
@@ -1662,7 +1566,6 @@ down-toggle {
   scroll-snap-type: none !important;
 }
 
-/* Kill any generic container side paddings that could push the row inwards */
 .section, .container, .wrap, .row {
   padding-left: 0 !important;
   padding-right: 0 !important;
@@ -1670,14 +1573,12 @@ down-toggle {
   margin-right: 0 !important;
 }
 
-/* Items should not add outside margins; gap controls spacing BETWEEN only */
 .cat-card, .cat-item, .circle-wrap {
   margin: 0 !important;
   padding: 0 !important;
   flex: 0 0 auto;
 }
 
-/* Keep thin ring and include border in box size so it isn't clipped */
 .circle-mini{
   width: 120px;
   height: 120px;
@@ -1692,7 +1593,6 @@ down-toggle {
 }
 .circle-mini img{ width:100%; height:100%; object-fit:cover; border-radius:50%; display:block; }
 
-/* Make absolutely sure the very first/last item sit flush to edges */
 .cat-strip > *:first-child,
 .bestsellers > *:first-child,
 .category-row > *:first-child,
@@ -1702,7 +1602,6 @@ down-toggle {
 .category-row > *:last-child,
 .swiper-wrapper > *:last-child { margin-right: 0 !important; }
 
-/* Remove any hidden padding added via pseudo elements */
 .cat-strip::before, .cat-strip::after,
 .bestsellers::before, .bestsellers::after,
 .category-row::before, .category-row::after,
@@ -1711,17 +1610,16 @@ down-toggle {
   display: none !important;
 }
 </style>
-<!-- === FINAL edge‑to‑edge strip override (added by ChatGPT) === -->
 <style id="edge2edge-strip-final">
-/* Keep your nice grid spacing everywhere */
+
 #categorySection{ --page-pad:12px; }
-/* Only the HORIZONTAL swipe sections (circle rows) go full‑bleed */
+
 .full-bleed{
   width: calc(100% + 2 * var(--page-pad));
   margin-left: calc(-1 * var(--page-pad));
   margin-right: calc(-1 * var(--page-pad));
 }
-/* Kill side padding on the strip itself so items touch the screen edges */
+
 .full-bleed .cat-strip{
   padding-left: 0px !important;
   padding-right: 0px !important;
@@ -1730,13 +1628,13 @@ down-toggle {
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: none !important;
 }
-/* Items spacing stays neat while still edge‑to‑edge */
+
 .full-bleed .cat-card{ margin: 0 12px 0 0 !important; flex: 0 0 auto; }
 .full-bleed .cat-strip > *:first-child{ margin-left: 0 !important; }
 .full-bleed .cat-strip > *:last-child{ margin-right: 0 !important; }
 </style>
 <style>
-/* === Instagram Slider (Title + free-format photos + dynamic button) === */
+
 .insta-section{padding:16px 12px 22px; margin:0;}
 .insta-title{
   font-family:'Roboto Slab', serif;
@@ -1751,7 +1649,7 @@ down-toggle {
 .insta-slide{flex:0 0 100%; padding:0 2px;}
 .insta-slide img{
   width:100%; height:auto; display:block;
-  border-radius:12px;               /* slightly rounded corners */
+  border-radius:12px;
 }
 .insta-dots{display:flex; justify-content:center; gap:8px; margin:10px 0 12px;}
 .insta-dot{width:8px; height:8px; border-radius:50%; background:#d0d0d0;}
@@ -1764,7 +1662,7 @@ down-toggle {
 }
 .insta-prev{left:6px;} .insta-next{right:6px;}
 .insta-nav:active{transform:translateY(-50%) scale(.98);}
-/* Black-outline CTA button */
+
 .btn-outline-black{
   display:inline-block; width:100%;
   border:1.5px solid #000; color:#000; background:#fff;
@@ -1783,24 +1681,24 @@ down-toggle {
 }
 </style>
 <style>
-/* --- Happy Customers visual tweaks --- */
+
 #happySection .fade-slider{
-  border-radius: 14px;       /* slight rounded corners */
-  overflow: hidden;          /* clip media to rounded corners */
+  border-radius: 14px;
+  overflow: hidden;
 }
 #happySection .fade-slide img,
 #happySection .fade-slide video{
-  border-radius: 14px;       /* keep media rounded too */
+  border-radius: 14px;
 }
 #happySection .btn-outline-black{
-  margin-top: 18px !important;   /* push button a little lower */
+  margin-top: 18px !important;
   display: block;
   width: 100%;
 }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&amp;display=swap" rel="stylesheet"/>
 <style>
-/* Dancing Script for "Happy Customers" title, keep same alignment */
+
 .happy-customers-title{
   font-family: 'Dancing Script', cursive !important;
   font-weight: 700;
@@ -1811,36 +1709,35 @@ down-toggle {
 
 </style>
 <style id="bestseller-center-fix">
-/* === Fix: Center label exactly under circular photo === */
-.cat-card{ display:block; } /* ensure the card is a block */
-.cat-card .circle-mini{ display:block; margin:0 auto !important; } /* center the circle itself */
+
+.cat-card{ display:block; }
+.cat-card .circle-mini{ display:block; margin:0 auto !important; }
 .cat-card .label{
   text-align:center !important;
   display:block;
   width:100%;
-  margin-top:6px; /* keep same spacing */
+  margin-top:6px;
 }
 </style>
 <style id="chatgpt-hide-all-dots">
-  /* Completely remove ALL dot indicators everywhere */
+
   .ig-dots, .fade-dots, .insta-dots, .fade-dot, .ig-dot, .ig-dot-tiny { display: none !important; visibility: hidden !important; }
 </style>
 <style id="chatgpt-always-hide-dots">
   .ig-dots, .fade-dots, .insta-dots { display:none !important; visibility:hidden !important; }
 </style>
 <style>
-/* === Force counter chip consistent small size === */
+
 .ig-counter{
   width: 44px; height: 26px; padding: 0;
   font-size: 13px; border-radius: 999px;
   display:flex; align-items:center; justify-content:center;
 }
 .ig-counter:empty::before{ content:"1/1"; opacity:0; }
-/* =============================================== */
+
 </style>
-<!-- === ChatGPT FINAL: Natural-aspect slider (no crop, no 1:1) === -->
 <style id="natural-aspect-slider">
-/* Container should size to the active media's natural height */
+
 .fade-slider {
   height: auto !important;
   min-height: 0 !important;
@@ -1849,7 +1746,6 @@ down-toggle {
   position: relative !important;
 }
 
-/* Slides stack normally and only the active one is shown */
 .fade-slide {
   position: static !important;
   width: 100% !important;
@@ -1857,25 +1753,22 @@ down-toggle {
   opacity: 1 !important;
   pointer-events: auto !important;
   transition: none !important;
-  display: none !important;   /* hide by default */
+  display: none !important;
 }
 
-/* Active slide becomes visible */
 .fade-slide.active {
   display: block !important;
 }
 
-/* Images & videos render at their intrinsic aspect ratio, fully visible */
 .fade-slide > img,
 .fade-slide > video {
   width: 100% !important;
   height: auto !important;
   object-fit: contain !important;
   display: block !important;
-  border-radius: 12px; /* keep your rounded look */
+  border-radius: 12px;
 }
 
-/* Keep the counter and dots positioned over the media */
 .ig-counter, .ig-dots {
   position: absolute !important;
   left: 0; right: 0;
@@ -1884,7 +1777,7 @@ down-toggle {
 .ig-dots { bottom: 12px !important; }
 </style>
 <style id="natural-aspect-slider-fixpos">
-/* Restore original counter/dots positions (no centering) */
+
 .ig-counter{
   position: absolute !important;
   top: 10px !important;
@@ -1899,20 +1792,19 @@ down-toggle {
 }
 </style>
 <style id="hero-no-rounded">
-/* Remove rounded corners only for the first slider (hero/banner under announcement bar) */
+
 .fade-slider.hero-slider .fade-slide > img,
 .fade-slider.hero-slider .fade-slide > video {
   border-radius: 0 !important;
 }
 </style>
 <style id="hero-no-rounded-final">
-/* Ensure hero/banner images have absolutely no rounded corners */
+
 .fade-slider.hero-slider .fade-slide > img,
 .fade-slider.hero-slider .fade-slide > video {
   border-radius: 0px !important;
 }
 
-/* === Happy Customers: video support & mute button === */
 #happySection .happy-video-wrap{
   position: relative;
   width: 100%;
@@ -1923,7 +1815,7 @@ down-toggle {
   width: 100%;
   height: auto;
   display: block;
-  aspect-ratio: 9 / 16;       /* keep 1:1 like photos */
+  aspect-ratio: 9 / 16;
   object-fit: cover;
   border-top-left-radius: 14px;
   border-top-right-radius: 14px;
@@ -1947,9 +1839,8 @@ down-toggle {
 
 #happySection .mute-btn:active{ transform: scale(.96); }
 </style>
-
 <style id="happy-customers-grid-css">
-/* === Happy Customers: Grid/Row layout (white background) === */
+
 #happySection{
   background:#fff;
 }
@@ -1997,7 +1888,6 @@ down-toggle {
   padding:10px 10px;
 }
 
-/* === Pink "Buy Now" button under username === */
 #happySection .happy-buy-btn{
   display:inline-block;
   margin: 6px 10px 12px;
@@ -2019,23 +1909,23 @@ down-toggle {
 
 </style>
 <style id="happy-edge-to-edge">
-/* === Edge-to-edge layout ONLY for the section under "Happy Customers" === */
+
 #happySection{
-  /* Make this section span the full viewport width while keeping the rest of the site unchanged */
+
   width: 100vw !important;
   margin-left: calc(50% - 50vw) !important;
   margin-right: calc(50% - 50vw) !important;
-  padding-left: 0px !important;   /* 1px gap on the left */
-  padding-right: 0px !important;  /* 1px gap on the right */
+  padding-left: 0px !important;
+  padding-right: 0px !important;
 }
-/* Ensure the media row inside also respects the 1px side gap */
+
 #happySection .happy-row{
   padding-left: 7px !important;
   padding-right: 7px !important;
 }
 </style>
 <style id="instagram-banner-css">
-/* === Instagram follow banner (placed right below certified-strip) === */
+
 .ig-banner-wrap{ padding: 0 12px 18px; background:#fff; }
 .ig-banner{
   background:#f6efe8;
@@ -2067,7 +1957,7 @@ down-toggle {
 .ig-banner .ig-icon{ width:36px; height:36px; }
 </style>
 <style id="cat-title-upgrade">
-/* === Strong, premium section headings for dynamically-created titles === */
+
 .cat-sec .cat-title{
   text-align: center !important;
   font-family: 'Roboto Slab', serif !important;
@@ -2091,40 +1981,39 @@ down-toggle {
 }
 </style>
 <style id="coupon-spacing-fix">
-/* === Coupon strip spacing fix === */
+
 .coupon-strip {
   gap: 10px !important;
   padding-left: 2px !important;
   padding-right: 2px !important;
 }
 </style><style id="coupon-spacing-reduce">
-/* === Reduce space below coupon strip === */
+
 .coupon-strip {
-  margin-bottom: 6px !important;  /* reduce empty space */
+  margin-bottom: 6px !important;
 }
 </style><style id="coupon-spacing-tight">
-/* === Force coupon strip to sit tightly === */
+
 .coupon-strip {
   margin-top: 4px !important;
   margin-bottom: 2px !important;
   padding-top: 4px !important;
   padding-bottom: 4px !important;
 }
-/* Also reduce space above "Our Categories" */
+
 .cat-sec .cat-title {
   margin-top: 8px !important;
 }
 </style>
-<!-- === Copy Confirmation (Green Theme) — ChatGPT === -->
 <style id="copy-confirmation-css">
 .copy-pop{
   position: fixed;
   top: 0; left: 0;
   transform: translate(-50%,-120%) scale(.96);
   padding: 8px 12px;
-  background: #e9fef1;                 /* light green */
-  color: #064c2c;                       /* dark green text */
-  border: 1px solid #c5ecd6;            /* green border */
+  background: #e9fef1;
+  color: #064c2c;
+  border: 1px solid #c5ecd6;
   border-radius: 12px;
   font-family: 'Roboto Slab', serif;
   font-weight: 700;
@@ -2145,8 +2034,8 @@ down-toggle {
   right: 16px;
   border: 8px solid transparent;
 }
-.copy-pop::before{ border-top-color: #c5ecd6; }  /* border outline */
-.copy-pop::after{ margin-top: -2px; border-top-color: #e9fef1; } /* inner fill */
+.copy-pop::before{ border-top-color: #c5ecd6; }
+.copy-pop::after{ margin-top: -2px; border-top-color: #e9fef1; }
 
 @keyframes copyPopFade{
   0%   { opacity: 0; transform: translate(-50%,-10%) scale(.92); }
@@ -2155,20 +2044,17 @@ down-toggle {
   100% { opacity: 0; transform: translate(-50%,-145%) scale(.98); }
 }
 </style>
-
-<!-- === CLASSIC 3D PINK BORDERS (Elegant, White BG Safe) — ChatGPT === -->
 <style id="classic-3d-pink-borders">
 :root{
-  --ring-thickness: 4px;                 /* adjust 3-6px */
-  --pink-deep: #d92b7a;                  /* deep edge */
-  --pink-mid:  #ff7fbc;                  /* mid tone */
-  --pink-lite: #ffd6ea;                  /* highlight */
+  --ring-thickness: 4px;
+  --pink-deep: #d92b7a;
+  --pink-mid:  #ff7fbc;
+  --pink-lite: #ffd6ea;
   --outer-soft-shadow: 0 6px 16px rgba(0,0,0,.06);
   --inner-top-highlight: inset 0 1px 0 rgba(255,255,255,.85);
   --inner-bottom-shade: inset 0 -2px 6px rgba(217,43,122,.18);
 }
 
-/* Reset old styles and apply a classic metal-like ring */
 .circle-mini{
   position: relative;
   border: 0 !important;
@@ -2176,7 +2062,7 @@ down-toggle {
   border-radius: 50% !important;
   overflow: hidden !important;
   background:
-    radial-gradient(farthest-side, #ffffff 99.9%, transparent 100%) content-box, /* keep image clean */
+    radial-gradient(farthest-side, #ffffff 99.9%, transparent 100%) content-box,
     conic-gradient(
       from 0deg,
       var(--pink-deep),
@@ -2188,7 +2074,6 @@ down-toggle {
   box-shadow: var(--outer-soft-shadow), var(--inner-top-highlight), var(--inner-bottom-shade) !important;
 }
 
-/* Subtle glass highlight arc for realism (no glow) */
 .circle-mini::after{
   content: "";
   position: absolute;
@@ -2204,7 +2089,6 @@ down-toggle {
   mix-blend-mode: screen;
 }
 
-/* Image stays crisp */
 .circle-mini img{
   width: 100% !important;
   height: 100% !important;
@@ -2213,21 +2097,17 @@ down-toggle {
   display: block !important;
 }
 
-/* Micro press feel, no animation */
 .circle-mini:active{ transform: translateY(1px) scale(.992); }
 
-/* Upgrade any alternates too */
 .circle, .circle-wrap, .cat-item .circle-mini { border: 0 !important; }
 </style>
-
-<!-- ChatGPT: Preloader pinned under header -->
 <style id="preloader-top-fix">
-/* Force the overlay's content to the top (under header) */
+
 #preloaderOverlay{
-  top: var(--preloaderTop, 0px) !important;   /* respect computed header height */
-  align-items: flex-start !important;         /* push card to the top */
-  justify-content: center !important;         /* centered horizontally */
-  padding-top: 8px !important;                /* small gap under header */
+  top: var(--preloaderTop, 0px) !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding-top: 8px !important;
 }
 #preloaderOverlay .pre-card{
   margin-top: 0 !important;
@@ -2242,21 +2122,17 @@ down-toggle {
       var header = document.querySelector('.site-header');
       if (bar && bar.offsetParent !== null) h += bar.offsetHeight || 0;
       if (header && header.offsetParent !== null) h += header.offsetHeight || 0;
-      // Apply to both html and body so CSS var is reachable anywhere
       document.documentElement.style.setProperty('--preloaderTop', h + 'px');
       document.body.style.setProperty('--preloaderTop', h + 'px');
-    }catch(e){ /* silent */ }
+    }catch(e){  }
   }
-  // Run early and update on changes
   document.addEventListener('DOMContentLoaded', computePreloaderTop);
   window.addEventListener('load', computePreloaderTop);
   window.addEventListener('resize', computePreloaderTop);
 })();
 </script>
-
-
 <style id="hc-title-ribbon-upgrade">
-/* === Happy Customers — premium ribbon/pill title === */
+
 #happySection .title-wrap{
   display:flex;
   justify-content:center;
@@ -2292,13 +2168,10 @@ down-toggle {
   box-shadow: 0 4px 10px rgba(255,121,176,.25);
   font-size: 16px;
 }
-/* small animated shimmer underline */
 
 </style>
-
-
 <style id="chatgpt-title-underline">
-/* === Title underline: black center fade (matches provided photo) === */
+
 .cat-sec .cat-title::after,
 .cat-title::after{
   content: "" !important;
@@ -2307,7 +2180,7 @@ down-toggle {
   max-width: 280px !important;
   height: 2px !important;
   margin: 10px auto 0 !important;
-  /* Strong black center, soft edges */
+
   background: radial-gradient(ellipse at center,
               rgba(0,0,0,.9) 0%,
               rgba(0,0,0,.55) 40%,
@@ -2316,10 +2189,8 @@ down-toggle {
   border-radius: 999px !important;
 }
 </style>
-
 <style id="pink-profile-popup-css">
 
-/* === Pink Profile Popup (ChatGPT) === */
 .pp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:7000;}
 .pp-overlay.show{display:block;}
 .pp-card{
@@ -2366,17 +2237,15 @@ down-toggle {
 }
 
 </style>
-
-<!-- === ChatGPT: Horizontal squares aligned both sides === -->
 <style id="square-strip-tightest">
 .cat-strip{
   display: flex !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   -webkit-overflow-scrolling: touch;
-  padding: 0 10px !important;   /* 10px both sides */
+  padding: 0 10px !important;
   margin: 0 !important;
-  gap: 10px !important;         /* consistent gap */
+  gap: 10px !important;
 }
 .cat-strip > *{
   flex: 0 0 auto !important;
@@ -2399,33 +2268,29 @@ down-toggle {
 .cat-strip::before,
 .cat-strip::after{ content:none !important; display:none !important; }
 </style>
-
 <style id="cat-video-support-css">
-/* === Category media: images & videos render identically === */
+
 #categorySection video {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-/* circular thumbnails */
+
 #categorySection .circle-mini video {
   border-radius: 50%;
 }
-/* rectangular thumbnails (if any use .rect-img class) */
+
 #categorySection video.rect-img {
   border-radius: 18px;
 }
-/* ensure click cursor when wrapped in <a> */
+
 #categorySection a { cursor: pointer; }
 </style>
-
-
-<!-- === ChatGPT fix: Happy Customers media top-only rounding === -->
 <style id="happy-video-corner-fix">
-  /* Make ONLY the top corners rounded for Happy Customers media */
+
   #happySection .fade-slider{
-    border-radius: 14px 14px 0 0 !important;   /* container top rounded, bottom straight */
+    border-radius: 14px 14px 0 0 !important;
     overflow: hidden !important;
   }
   #happySection .fade-slide img,
@@ -2442,11 +2307,8 @@ down-toggle {
     overflow: hidden !important;
   }
 </style>
-
-
-<!-- === Hero video Mute/Unmute (top-left) — injected by ChatGPT === -->
 <style id="hero-mute-control-css">
-/* Container that will host the mute button; we attach it to the slide element */
+
 .hero-mute-btn{
   position:absolute;
   top:8px;
@@ -2469,12 +2331,9 @@ down-toggle {
 .hero-mute-btn:active{ transform: scale(.97); }
 .hero-mute-btn svg{ width:22px; height:22px; display:none; }
 
-/* show OFF (cross) when muted; ON waves when unmuted */
 .hero-mute-btn[data-muted="true"]  .hero-icon-off{ display:block; }
 .hero-mute-btn[data-muted="false"] .hero-icon-on { display:block; }
 </style>
-
-
 <style id="hero-mute-control-css-v2">
 .hero-mute-btn{
   position:absolute;
@@ -2487,7 +2346,7 @@ down-toggle {
   box-shadow:0 2px 10px rgba(0,0,0,.4);
   cursor:pointer;padding:0;line-height:0;
   -webkit-tap-highlight-color:transparent;
-  z-index:10000; /* force above badges like 1/2 */
+  z-index:10000;
 }
 .hero-mute-btn:active{ transform:scale(.97); }
 .hero-mute-btn svg{ width:22px;height:22px; display:none; }
@@ -2495,26 +2354,19 @@ down-toggle {
 .hero-mute-btn[data-muted="false"] .hero-icon-on { display:block; }
 
 <style id="mute-scope-fix">
-  /* Never show the hero mute button inside Categories or Happy Customers */
+
   #categorySection .hero-mute-btn,
   #happySection .hero-mute-btn { display: none !important; }
 
-
-
-
-<!-- === Edge‑to‑Edge (ONLY for the horizontal small‑squares strip) — ChatGPT === -->
-
-/* Make only the section that contains the horizontal small-squares strip full-bleed */
 .cat-sec:has(.cat-strip .square-mini){
   width: 100vw !important;
   margin-left: calc(50% - 50vw) !important;
   margin-right: calc(50% - 50vw) !important;
-  padding-left: 0 !important;  /* keep section itself flush */
+  padding-left: 0 !important;
   padding-right: 0 !important;
   box-sizing: border-box;
 }
 
-/* Put the breathing space on the INNER scroll strip so first/last card never touch screen edges */
 .cat-sec:has(.cat-strip .square-mini) .cat-strip{
   padding-left: 15px !important;
   padding-right: 3px !important;
@@ -2527,30 +2379,23 @@ down-toggle {
   box-sizing: border-box;
 }
 
-/* Keep inter-item spacing as-is; prevent any outside margins from cancelling padding */
 .cat-sec:has(.cat-strip .square-mini) .cat-card{
   flex: 0 0 auto;
 }
 
-/* Safety: remove negative margins on first/last if theme had any */
 .cat-sec:has(.cat-strip .square-mini) .cat-card:first-child{ margin-left: 0 !important; }
 .cat-sec:has(.cat-strip .square-mini) .cat-card:last-child{ margin-right: 0 !important; }
 
-/* Center labels under each square */
 .cat-sec:has(.cat-strip .square-mini) .cat-card .label{ text-align: center !important; }
 
-/* Remove hidden pseudo padders if present */
 .cat-sec:has(.cat-strip .square-mini) .cat-strip::before,
 .cat-sec:has(.cat-strip .square-mini) .cat-strip::after{ content:none !important; display:none !important; }
 .hero-mute-btn .hero-icon-on { display: none; }
 .hero-mute-btn[data-muted="false"] .hero-icon-on { display: inline; }
 .hero-mute-btn[data-muted="true"]  .hero-icon-off { display: inline; }
 </style>
-
-
-<!-- === ChatGPT FIX: perfectly center the product names under small squares === -->
 <style id="square-name-center-fix">
-/* Make each small card a centered vertical stack */
+
 .cat-card{
   display: flex !important;
   flex-direction: column !important;
@@ -2559,28 +2404,25 @@ down-toggle {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
-/* Ensure the square/circle media sits truly centered */
-/* For square items */
+
 .cat-card .square-mini {
-  margin-left: auto !important;   /* yahan -px, +px, 0px sab chalega */
-  margin-right: auto !important;  /* chahe to right side bhi negative rakh sakte ho */
+  margin-left: auto !important;
+  margin-right: auto !important;
   display: block !important;
 }
 
-/* For circle items */
 .cat-card .circle-mini {
   margin-left: auto !important;
   margin-right: auto !important;
   display: block !important;
 }
 
-/* For rectangle images */
 .cat-card .rect-img {
   margin-left: auto !important;
   margin-right: auto !important;
   display: block !important;
 }
-/* Label aligns to the visual thumbnail, not the full grid cell */
+
 .cat-card .label{
   text-align: center !important;
   margin-top: 6px !important;
@@ -2589,11 +2431,9 @@ down-toggle {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
-/* Defensive: kill any leftover text-indent or transforms */
-.cat-card .label{ text-indent: 0 !important; transform: none !important; }
-/* === FINAL: Square strips = edge-to-edge with exact 1px side gap === */
 
-/* 1) Section ko viewport tak kheecho, lekin dono side 1px chhodo */
+.cat-card .label{ text-indent: 0 !important; transform: none !important; }
+
 #categorySection .cat-sec:has(.square-mini) {
   margin-left: calc(50% - 50vw + 1px) !important;
   margin-right: calc(50% - 50vw + 1px) !important;
@@ -2602,7 +2442,6 @@ down-toggle {
   padding-right: 0 !important;
 }
 
-/* 2) Strip: koi extra padding nahi; items ke beech 1px gap */
 #categorySection .cat-sec:has(.square-mini) .cat-strip {
   padding-left: 0 !important;
   padding-right: 0 !important;
@@ -2614,20 +2453,18 @@ down-toggle {
   justify-content: flex-start !important;
 }
 
-/* 3) Items: koi outer margin nahi; first/last flush; square ko margins 0 */
-#categorySection .cat-sec:has(.square-mini) .cat-card { 
-  margin: 0 !important; 
-  padding: 0 !important; 
-  flex: 0 0 auto; 
+#categorySection .cat-sec:has(.square-mini) .cat-card {
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto;
 }
 #categorySection .cat-sec:has(.square-mini) .cat-strip > *:first-child { margin-left: 12px !important; }
 #categorySection .cat-sec:has(.square-mini) .cat-strip > *:last-child  { margin-right: 12px !important; }
-#categorySection .cat-sec:has(.square-mini) .square-mini { 
-  display: block !important; 
-  margin: 0 !important;          /* <-- yeh ensure karta hai equal gap logic */
+#categorySection .cat-sec:has(.square-mini) .square-mini {
+  display: block !important;
+  margin: 0 !important;
 }
 
-/* (optional) Name/label ko perfect center rakho */
 #categorySection .cat-sec:has(.square-mini) .label {
   text-align: center !important;
   display: block;
@@ -2635,18 +2472,16 @@ down-toggle {
 }
 </style>
 <style id="mobile-overscroll-hotfix">
-  /* Stop page from sliding sideways on mobile */
+
   html, body { overflow-x: hidden; }
 
-  /* Make the “full-bleed” sections behave but still look edge-to-edge */
   .cat-sec:has(.cat-strip .square-mini),
   #happySection {
-    width: 100% !important;          /* not 100vw */
+    width: 100% !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
 
-  /* Keep inner rows scrollable without causing page overflow */
   .cat-sec:has(.cat-strip .square-mini) .cat-strip {
     padding-left: 12px !important;
     padding-right: 12px !important;
@@ -2657,18 +2492,16 @@ down-toggle {
   #happySection .happy-row {
     padding-left: 7px !important;
     padding-right: 7px !important;
-    overflow-x: auto; /* if you’re using the horizontal row on mobile */
+    overflow-x: auto;
   }
 </style>
-
-<!-- === ChatGPT: Make Instagram username links look like normal text but clickable === -->
 <style id="happy-id-link-fix">
-  /* Target anchors with class 'happy-id' and also usernames wrapped inside a .happy-id container */
+
   a.happy-id,
   .happy-id a {
-    color: inherit !important;           /* no blue */
-    text-decoration: none !important;    /* no underline */
-    cursor: pointer;                     /* still looks tappable */
+    color: inherit !important;
+    text-decoration: none !important;
+    cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
   a.happy-id:visited,
@@ -2686,39 +2519,29 @@ down-toggle {
 </style>
 </head>
 <body>
-  </div>
 </div>
-
+</div>
 <header class="site-header" id="mainHeader">
-<!-- Left: Menu (unchanged) -->
 <button aria-label="Menu" class="hamburger-wrapper" onclick="toggleMenu()">
 <div></div><div></div><div></div>
 </button>
-<!-- Center: Logo (same image, just wrapped for easy hide/show) -->
 <div id="logoWrap" style="display:flex; align-items:center; position:absolute; left:70px; top:6px;">
 <img alt="Precioussly Logo" onclick="location.href = 'https://precioussly.com';" src="https://i.postimg.cc/HnRbjRbh/Best-Logo.png" style="width:110px; height:auto; object-fit:contain; cursor:pointer; transition:opacity .3s ease; -webkit-tap-highlight-color:transparent;"/>
 </div>
-<!-- Right: Icons (search, profile, cart) -->
 <div id="rightIcons" style="display:flex; align-items:center; gap:12px;">
-<!-- Search icon → NEW handler -->
 <img alt="Search" class="right-icon" onclick="openHeaderSearch()" src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg" style="cursor:pointer; border-radius:0; width:25px; height:26px; margin-top:2px;"/>
-<!-- Profile icon (unchanged) -->
 <img alt="Profile" class="right-icon icon-size" id="profileIcon" src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png" style="cursor: default;">
-<!-- Cart icon with badge (unchanged) -->
 <a href="https://www.precioussly.com/cart" style="position:relative; display:inline-block; margin-top:5px;">
 <img alt="Cart" class="right-icon icon-size" src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"/>
 <span id="cartCountBadge" style="position:absolute; top:-6px; right:-6px; background:white; color:black; font-size:12px; border:1px solid grey; border-radius:50%; width:21px; height:21px; display:flex; align-items:center; justify-content:center;">0</span>
 </a>
 </div>
-<!-- Inline search bar (hidden until search mode) -->
 <div class="header-search" id="headerSearchBar">
 <input autocomplete="off" id="headerSearchInput" placeholder="Search products..." type="search"/>
 <button aria-label="Back" id="headerSearchBack" onclick="closeHeaderSearch()" type="button">Back</button>
-<!-- 🔎 Live suggestions (multi-page catalog) -->
 <div id="headerSearchResults" style="display:none;"></div>
 </div>
 </header>
-<!-- Announcement Bar -->
 <div id="announcementBar">🧿</div>
 <div style="position: relative; overflow: hidden;">
 <div class="fade-slider hero-slider" id="fadeSlider" style="min-height:clamp(280px,62vw,540px);height:clamp(300px,62vw,560px);"></div>
@@ -2726,14 +2549,11 @@ down-toggle {
 </div>
 <div class="coupon-strip" id="couponContainer"></div>
 <div id="categorySection" style="padding: 16px 12px; display: flex; flex-wrap: wrap; gap: 12px;"></div>
-<!-- === Instagram Slider Section (auto from Google Sheet) === -->
 <section class="insta-section" id="happySection">
 <div class="title-wrap"><h2 class="happy-customers-title"><span class="hc-icon">♥</span>Happy Customers</h2></div>
 <div aria-live="polite" class="happy-row" id="happyRow"></div>
-<!-- keep a hidden stub so any legacy JS looking for this id doesn't crash -->
 <a aria-hidden="true" href="#" id="instaBtn" style="display:none">Instagram</a>
 </section>
-<!-- ✅ Certified Strip (Pink Theme) -->
 <div class="certified-strip" id="certifiedStrip">
 <div class="certified-item">
 <img alt="Secure Payment" src="https://i.postimg.cc/050Tt5sQ/file-0000000064dc61f697002e63e38cb125.png"/>
@@ -2752,7 +2572,6 @@ down-toggle {
 <span>Timely Delivery</span>
 </div>
 </div>
-<!-- 🟣 Instagram banner: EXACTLY below the pink certified-strip -->
 <section class="ig-banner-wrap" id="igFollowBanner">
 <div aria-label="Instagram updates banner" class="ig-banner">
 <p>Stay connected with us for updates,<br/>offers &amp; behind-the-scenes ✨</p>
@@ -2762,14 +2581,11 @@ down-toggle {
 </div>
 </section>
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-<!-- Side Menu -->
 <nav class="side-menu" id="sideMenu">
 <div class="menu-header">
 <span class="menu-title">Menu</span>
 <span class="menu-close" onclick="toggleMenu()">✕</span>
 </div>
-<!-- 🔒 Always-visible links -->
-<!-- scrollable area for the rest of menu items from Google Sheet -->
 <div id="menuContent">
 </div>
 </nav>
@@ -2804,14 +2620,12 @@ down-toggle {
     document.querySelectorAll('#sideMenu a.menu-link, #sideMenu .home-link').forEach(a => {
       try {
         const path = new URL(a.href).pathname.replace(/\/+$/, '');
-        
+
       } catch (_) {}
     });
   });
 </script>
-<!-- 🔽 Final Working Script -->
 <script>
-  // Announcement Bar from Google Sheet
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
   const announceURL = `https://opensheet.elk.sh/${announceSheetID}/Sheet1`;
 
@@ -2823,7 +2637,6 @@ down-toggle {
       }
     });
 
-  // Popup function
   function togglePopup() {
     const overlay = document.getElementById("popupOverlay");
     const popupBox = overlay.querySelector(".popup-box");
@@ -2832,7 +2645,6 @@ down-toggle {
     popupBox.classList.toggle("active", !isOpen);
   }
 
-  // Hamburger toggle function
 function toggleMenu() {
   const menu = document.getElementById("sideMenu");
   const overlay = document.getElementById("menuOverlay");
@@ -2850,7 +2662,6 @@ function toggleMenu() {
     body.classList.add("no-scroll");
   }
 }
-  // 🔽 POPUP DATA FROM SHEET
   const sheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
   const sheetURL = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
 
@@ -2873,7 +2684,6 @@ function toggleMenu() {
       }
     });
 
-  // 🔽 MENU DATA FROM SHEET
   const menuSheetID = "1C9AWqv9fv4deHYigCf6Zx0QlIg9xu4RD8MI3quI4Lag";
   const menuURL = `https://opensheet.elk.sh/${menuSheetID}/Sheet1`;
 
@@ -2904,10 +2714,10 @@ function toggleMenu() {
     const menuId = menu.replace(/\s+/g, '-') + '-submenu';
     menuContent.innerHTML += `
       <div class="menu-link dropdown-toggle" onclick="toggleSubmenu('${menuId}')">
-        <span>${menu}</span>
-        <span class="dropdown-icon">›</span>
-      </div>
-      <div class="submenu-container" id="${menuId}" style="display: none;">
+<span>${menu}</span>
+<span class="dropdown-icon">›</span>
+</div>
+<div class="submenu-container" id="${menuId}" style="display: none;">
         ${info.subs.map(s => `<a href="${s.link}" class="submenu-link">› ${s.name}</a>`).join("")}
       </div>
     `;
@@ -2918,7 +2728,6 @@ function toggleMenu() {
   const submenu = document.getElementById(id);
   submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
 }
-// 🟢 Wide Media (Image/Video) Strip from Google Sheet
 fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
   .then(res => res.json())
   .then(data => {
@@ -2949,14 +2758,12 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
     });
   });
 
-// === IG dots utilities ===
 function renderIGDots(container, total, currentIndex, maxVisible = 5){
   if(!container) return;
   currentIndex = Math.max(0, Math.min(currentIndex, total-1));
   container.innerHTML = '';
   if(total <= 0) return;
 
-  // When total <= maxVisible, show all
   if(total <= maxVisible){
     for(let i=0;i<total;i++){
       const d = document.createElement('span');
@@ -2966,7 +2773,6 @@ function renderIGDots(container, total, currentIndex, maxVisible = 5){
     return;
   }
 
-  // Sliding window
   const half = Math.floor(maxVisible/2);
   let start = currentIndex - half;
   let end = currentIndex + (maxVisible - half);
@@ -3016,7 +2822,6 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
 
       const link  = (row["Linked"] || row["linked"] || row["Link"] || row["link"] || "").trim();
 
-      // Wrapper is an <a> if link exists, otherwise a simple <div>
       const wrapper = document.createElement(link ? "a" : "div");
       wrapper.className = "fade-slide";
       if (index === 0) wrapper.classList.add("active");
@@ -3025,7 +2830,6 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
         wrapper.style.cursor = "pointer";
       }
 
-      // Create the media element
       let media;
       if (url.toLowerCase().endsWith(".mp4")) {
         media = document.createElement("video");
@@ -3040,7 +2844,6 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
         media.alt = "";
       }
 
-      // Fill the wrapper (CSS also enforces this)
       media.style.width = "100%";
       media.style.height = "100%";
       media.style.objectFit = "cover";
@@ -3049,7 +2852,6 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
       slider.appendChild(wrapper);
       slides.push(wrapper);
 
-      // Dot for this slide
       const dot = document.createElement("div");
       dot.className = "fade-dot";
       if (index === 0) dot.classList.add("active");
@@ -3058,7 +2860,6 @@ fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/She
       dots.push(dot);
     });
   });
-
 
 function showSlide(index){
 slides[currentIndex]?.classList.remove("active");
@@ -3069,11 +2870,9 @@ slides[currentIndex]?.classList.remove("active");
   slides[currentIndex]?.classList.add("active");
   dots[currentIndex]?.classList.add("active");
 
-  // Update IG dots & counter
   renderIGDots(document.getElementById('fadeDots'), slides.length, currentIndex, 5);
   updateIGCounter(document.getElementById('fadeCounter'), currentIndex, slides.length);
 }
-
 
 function showNextSlide() {
   showSlide((currentIndex + 1) % slides.length);
@@ -3083,13 +2882,10 @@ function showPrevSlide() {
   showSlide((currentIndex - 1 + slides.length) % slides.length);
 }
 
-
-
 let startX = 0, startY = 0;
 let dragging = false;
 let pinching = false; // true while user is using two fingers (pinch-zoom)
 
-/* Touch: lock to horizontal when dx > dy a little bit, so vertical scroll still works */
 slider.addEventListener("touchstart", e => {
   if (e.touches.length > 1) { pinching = true; dragging = false; return; }
   pinching = false;
@@ -3121,7 +2917,6 @@ slider.addEventListener("touchend", e => {
   }
 });
 
-/* Mouse drag (desktop) */
 let mouseDown = false, mxStart = 0;
 slider.addEventListener("mousedown", e => { mouseDown = true; mxStart = e.clientX; });
 slider.addEventListener("mouseup", e => {
@@ -3144,188 +2939,187 @@ fetch(couponSheetURL)
       if (!c.Title || !c.MinAmount || !c.Code || !c.Discount) return;
       const html = `
         <div class="coupon-card">
-          <h3>${c.Title}</h3>
-          <p>Buy for min of ₹${c.MinAmount}</p>
-          <div class="code-row">
-            <div class="code-box">${c.Code}</div>
-            <div class="copy-btn" onclick="navigator.clipboard.writeText('${c.Code}')">
-              <svg viewBox="0 0 24 24">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4
+<h3>${c.Title}</h3>
+<p>Buy for min of ₹${c.MinAmount}</p>
+<div class="code-row">
+<div class="code-box">${c.Code}</div>
+<div class="copy-btn" onclick="navigator.clipboard.writeText('${c.Code}')">
+<svg viewBox="0 0 24 24">
+<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+<path d="M5 15H4a2 2 0 0 1-2-2V4
                          a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-            </div>
-          </div>
-        </div>`;
+</svg>
+</div>
+</div>
+</div>`;
       container.innerHTML += html;
     });
   });
 </script>
-<!-- >>> ChatGPT: Rewritten Categories loader with Box Direction support -->
 <script>
-/* ===== Categories from Google Sheet (with Section HIDE + SHAPE + BOX DIRECTION) =====
-   Columns supported (case-insensitive):
-   - section        ← A section row has a value in "section" and blanks for name/image/link.
-   - box direction  ← On a SECTION row set:
-                       "1" → show as horizontal swipe strip + TINY CIRCLES with dual ring border.
-                       any other/blank → normal 2-column grid (rounded rectangles).
-   - shape          ← (optional) legacy: 1/2/3 for circle sizes (grid mode only).
-   - category name
-   - image
-   - link
-   - visibility     ← write "hide" on a section row → hide the whole section
-*/
-window.categorySheetURL = "https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/Sheet1";
+(function(){
+  const OPEN_URL="https://opensheet.elk.sh/1ItzvMkAJ1nuoNA25sK3OUYUD04B2tKGAqK9Ft75gH4I/Sheet1";
+  const CACHE_KEY="swr::catalog";
+  const noCache=location.search.includes("nocache=1");
+  const NAV=performance.getEntriesByType("navigation")[0]||{};
+  const hardReload=NAV.type==="reload"||NAV.type==="back_forward";
+  let dragging=false,pendingData=null,pollTimer=null;
 
-function isVideo(url){try{const u=new URL(url,location.href);return u.pathname.toLowerCase().endswith(".mp4");}catch(e){return /\.mp4(\?.*)?$/i.test(url||"");}}
-
-function norm(v){ return (v ?? "").toString().trim(); }
-function isHiddenValue(v){
-  const s = norm(v).toLowerCase();
-  return s === "hide" || s === "hidden" || s === "no" || s === "0";
-}
-
-function preprocessRows(raw){
-  let lastSection = "";
-  let sectionHidden = false;
-  let sectionShape = null;      // null | "circle1" | "circle2" | "circle3"
-  let sectionBoxDir = "";       // "" or "1"
-
-  const cleaned = [];
-  for (const r of raw){
-    const section = norm(r.section || r.Section || r.SECTION);
-    const name    = norm(r["category name"] || r["Category Name"] || r["CATEGORY NAME"]);
-    const img     = norm(r.image || r.Image || r.IMAGE);
-    const link    = norm(r.link || r.Link || r.LINK || r.url || r.URL);
-    const vis     = r.visibility || r.Visibility || r.VISIBILITY || r.visible || r.Visible;
-    const shape   = r.shape || r.Shape || r.SHAPE; // may exist only on section row
-    const boxDir  = r["Box Direction"] || r["box direction"] || r["BOX DIRECTION"] || r["BoxDirection"] || r["Direction"];
-
-    const onlySection = !!section && !name && !img && !link;
-    if (onlySection){
-      lastSection   = section;
-      sectionHidden = isHiddenValue(vis);
-      const s = norm(shape);
-      sectionShape =
-        s === "1" ? "circle1" :
-        s === "2" ? "circle2" :
-        s === "3" ? "circle3" : null;
-      sectionBoxDir = norm(boxDir);
-      continue;
-    }
-
-    const effectiveSection = section || lastSection;
-    if (!effectiveSection) continue; // no section yet, skip
-
-    if (sectionHidden) continue;        // whole section hidden
-    if (isHiddenValue(vis)) continue;   // row hidden
-
-    cleaned.push({
-      section: effectiveSection,
-      name, img, link,
-      shape: sectionShape,   // carry shape of the last declared SECTION
-      boxDir: sectionBoxDir  // carry Box Direction of the last declared SECTION
+  [".cat-strip",".happy-row",".ff-track"].forEach(sel=>{
+    document.addEventListener("pointerdown",e=>{
+      if(e.target.closest(sel))dragging=true;
     });
+  });
+  ["pointerup","touchend","mouseup"].forEach(ev=>{
+    window.addEventListener(ev,()=>{
+      if(dragging){dragging=false;if(pendingData){applyData(pendingData);pendingData=null;}}
+    });
+  });
+
+  function snapshotScroll(){return Array.from(document.querySelectorAll(".cat-strip,.happy-row")).map(el=>({el,x:el.scrollLeft}));}
+  function restoreScroll(snaps){snaps.forEach(s=>{if(s.el)s.el.scrollLeft=s.x;});}
+  function readCache(){try{return JSON.parse(localStorage.getItem(CACHE_KEY))||null;}catch{}}
+  function writeCache(data){try{localStorage.setItem(CACHE_KEY,JSON.stringify(data));}catch{}}
+  function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+  async function fetchData(){const r=await fetch(OPEN_URL,{cache:"no-store"});return r.json();}
+
+  function applyData(data){
+    writeCache(data);
+    const snaps=snapshotScroll();
+    const content=document.getElementById("content")||document.getElementById("categorySection");
+    if(content)content.innerHTML="";
+    if(typeof loadCategories==="function")loadCategories();
+    if(typeof loadHero==="function")loadHero();
+    if(typeof reloadCoupons==="function")reloadCoupons();
+    if(typeof reloadHappy==="function")reloadHappy();
+    document.dispatchEvent(new CustomEvent("swr:cache:update",{detail:{url:OPEN_URL,data}}));
+    setTimeout(()=>restoreScroll(snaps),120);
   }
-  return cleaned;
-}
 
-function renderCategories(rows){
-  const container = document.getElementById("categorySection");
-  if (!container) return;
-  container.innerHTML = "";
-
-  const data = preprocessRows(rows).filter(r => r.section && r.name && r.img);
-
-  // Group preserving order
-  const grouped = [];
-  const sectionIndex = new Map();
-  for (const r of data){
-    if (!sectionIndex.has(r.section)){
-      grouped.push({ title: r.section, items: [], boxDir: r.boxDir });
-      sectionIndex.set(r.section, grouped.length - 1);
+  async function swrFetchAndRender(){
+    let cache=readCache();
+    if(cache&&!noCache&&!hardReload){
+      applyData(cache);
+      try{
+        const fresh=await fetchData();
+        if(!same(fresh,cache)){if(dragging)pendingData=fresh;else applyData(fresh);}
+      }catch(e){}
+    }else{
+      try{const fresh=await fetchData();applyData(fresh);}
+      catch(e){if(cache)applyData(cache);}
     }
-    grouped[sectionIndex.get(r.section)].items.push(r);
   }
 
-  for (const group of grouped){
-    if (!group.items.length) continue;
-    const sec = document.createElement("section");
-    sec.className = "cat-sec";
-    const title = document.createElement("h3");
-    title.className = "cat-title";
-    title.textContent = group.title;
-    sec.appendChild(title);
+  window.loadAndRenderCatalog=swrFetchAndRender;
 
-    // Wrapper: grid or horizontal swipe strip
-    const wrap = document.createElement("div");
-    const isStrip = (group.boxDir === "1");
-    wrap.className = isStrip ? "cat-strip" : "cat-grid";
+  function startPolling(){
+    if(pollTimer)return;
+    pollTimer=setInterval(async()=>{
+      if(document.visibilityState!=="visible")return;
+      try{
+        const newData=await fetchData();
+        const oldData=readCache();
+        if(!same(newData,oldData)){if(dragging)pendingData=newData;else applyData(newData);}
+      }catch(e){}
+    },3000);
+  }
+  function stopPolling(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}
 
-    // If this section is a horizontal swipe strip, make it edge-to-edge
-    const outer = document.createElement(isStrip ? "div" : "fragment");
-    if (isStrip) outer.className = "full-bleed";
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){startPolling();}else{stopPolling();}});
+  document.addEventListener("DOMContentLoaded",()=>{swrFetchAndRender();startPolling();});
 
-    // Build items
-    for (const item of group.items){
-      
-      const shapeClass = (item.shape === "circle3") ? "square-mini" : "circle-mini";
-const a = document.createElement("a");
-      a.href = item.link || "#";
-      a.className = "cat-card";
-      if (isStrip){
-        a.style.flex = "0 0 auto";
-        a.style.width = "132px"; // compact
-        const shapeClass = (item.shape === "circle3") ? "square-mini" : "circle-mini";
-        a.innerHTML = `
-          <div class="${shapeClass}">
-            <img src="${item.img}" alt="${item.name}">
-          </div>
-          <div class="label">${item.name}</div>`;
-      } else {
-        // Default grid card (rounded rectangle). If shape says circleX, honor that.
-        let imgHTML = "";
-        if (item.shape === "circle1" || item.shape === "circle2" || item.shape === "circle3"){
-          // circle mode (existing behavior)
-          const w = item.shape === "circle1" ? "100%" : (item.shape === "circle2" ? "88%" : "76%");
-          imgHTML = `<img src="${item.img}" alt="${item.name}" style="width:${w};aspect-ratio:1/1;margin:0 auto;display:block;border-radius:50%;object-fit:cover;">`;
-        } else {
-          imgHTML = `<img class="rect-img" src="${item.img}" alt="${item.name}">`;
-        }
-        a.innerHTML = `${imgHTML}<div class="label" style="font-size:15px;">${item.name}</div>`;
-        a.style.width = "100%";
+  window.categorySheetURL=OPEN_URL;
+  function norm(v){return(v??"").toString().trim();}
+  function isHiddenValue(v){const s=norm(v).toLowerCase();return s==="hide"||s==="hidden"||s==="no"||s==="0";}
+  function preprocessRows(raw){
+    let lastSection="",sectionHidden=false,sectionShape=null,sectionBoxDir="";
+    const cleaned=[];
+    for(const r of raw){
+      const section=norm(r.section||r.Section||r.SECTION);
+      const name=norm(r["category name"]||r["Category Name"]||r["CATEGORY NAME"]);
+      const img=norm(r.image||r.Image||r.IMAGE);
+      const link=norm(r.link||r.Link||r.LINK||r.url||r.URL);
+      const vis=r.visibility||r.Visibility||r.VISIBILITY||r.visible||r.Visible;
+      const shape=r.shape||r.Shape||r.SHAPE;
+      const boxDir=r["Box Direction"]||r["box direction"]||r["BOX DIRECTION"]||r["BoxDirection"]||r["Direction"];
+      const onlySection=!!section&&!name&&!img&&!link;
+      if(onlySection){
+        lastSection=section;
+        sectionHidden=isHiddenValue(vis);
+        const s=norm(shape);
+        sectionShape=s==="1"?"circle1":s==="2"?"circle2":s==="3"?"circle3":null;
+        sectionBoxDir=norm(boxDir);
+        continue;
       }
-      wrap.appendChild(a);
+      const effectiveSection=section||lastSection;
+      if(!effectiveSection)continue;
+      if(sectionHidden)continue;
+      if(isHiddenValue(vis))continue;
+      cleaned.push({section:effectiveSection,name,img,link,shape:sectionShape,boxDir:sectionBoxDir});
     }
-
-    if (isStrip){ outer.appendChild(wrap); sec.appendChild(outer); } else { sec.appendChild(wrap); }
-    container.appendChild(sec);
+    return cleaned;
   }
-}
 
-async function loadCategories(){
-  try{
-    const res = await fetch(categorySheetURL, { cache: "no-store" });
-
-    const rows = await res.json();
-    renderCategories(rows);
-  }catch(e){
-    console.error("Failed to load categories:", e);
+  function renderCategories(rows){
+    const container=document.getElementById("categorySection");
+    if(!container)return;
+    container.innerHTML="";
+    const data=preprocessRows(rows).filter(r=>r.section&&r.name&&r.img);
+    const grouped=[],sectionIndex=new Map();
+    for(const r of data){
+      if(!sectionIndex.has(r.section)){grouped.push({title:r.section,items:[],boxDir:r.boxDir});sectionIndex.set(r.section,grouped.length-1);}
+      grouped[sectionIndex.get(r.section)].items.push(r);
+    }
+    for(const group of grouped){
+      if(!group.items.length)continue;
+      const sec=document.createElement("section");
+      sec.className="cat-sec";
+      const title=document.createElement("h3");
+      title.className="cat-title";
+      title.textContent=group.title;
+      sec.appendChild(title);
+      const wrap=document.createElement("div");
+      const isStrip=(group.boxDir==="1");
+      wrap.className=isStrip?"cat-strip":"cat-grid";
+      const outer=document.createElement(isStrip?"div":"fragment");
+      if(isStrip)outer.className="full-bleed";
+      for(const item of group.items){
+        const a=document.createElement("a");
+        a.href=item.link||"#";
+        a.className="cat-card";
+        if(isStrip){
+          a.style.flex="0 0 auto";
+          a.style.width="132px";
+          const shapeClass=(item.shape==="circle3")?"square-mini":"circle-mini";
+          a.innerHTML=`<div class="${shapeClass}"><img src="${item.img}" alt="${item.name}"></div><div class="label">${item.name}</div>`;
+        }else{
+          let imgHTML="";
+          if(item.shape==="circle1"||item.shape==="circle2"||item.shape==="circle3"){
+            const w=item.shape==="circle1"?"100%":(item.shape==="circle2"?"88%":"76%");
+            imgHTML=`<img src="${item.img}" alt="${item.name}" style="width:${w};aspect-ratio:1/1;margin:0 auto;display:block;border-radius:50%;object-fit:cover;">`;
+          }else{
+            imgHTML=`<img class="rect-img" src="${item.img}" alt="${item.name}">`;
+          }
+          a.innerHTML=`${imgHTML}<div class="label" style="font-size:15px;">${item.name}</div>`;
+          a.style.width="100%";
+        }
+        wrap.appendChild(a);
+      }
+      if(isStrip){outer.appendChild(wrap);sec.appendChild(outer);}else{sec.appendChild(wrap);}
+      container.appendChild(sec);
+    }
   }
-}
 
-loadCategories();
-setInterval(loadCategories, 180000);
+  async function loadCategories(){
+    try{const res=await fetch(categorySheetURL,{cache:"no-store"});const rows=await res.json();renderCategories(rows);}
+    catch(e){}
+  }
+
+  window.loadCategories=loadCategories;
+  setInterval(loadCategories,180000);
+})();
 </script>
-<!-- <<< ChatGPT JS end -->
 
-
-<script>
-  function clearStorage() {
-    localStorage.clear();
-    sessionStorage.clear();
-  }
-</script>
 <script>
   function updateCartBadge() {
     const items = JSON.parse(localStorage.getItem("cartItems")) || [];
@@ -3341,7 +3135,6 @@ setInterval(loadCategories, 180000);
   }
 }
   }
-  // Call once on page load
   updateCartBadge();
 </script>
 <script>
@@ -3350,15 +3143,12 @@ document.addEventListener('DOMContentLoaded', function() {
   if (cs) { setTimeout(function(){ cs.classList.add('show'); }, 1600); }
 });
 </script>
-<!-- Floating Buttons: Back to Top + WhatsApp -->
 <div class="fab-stack">
-<!-- Back to Top button -->
 <button aria-label="Back to top" class="fab-btn" id="toTopBtn" style="display:none;" title="Back to top">
 <svg fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
 <path d="M18 15l-6-6-6 6"></path>
 </svg>
 </button>
-<!-- WhatsApp button -->
 <a aria-label="Chat on WhatsApp" class="fab-btn" id="waBtn" rel="noopener" target="_blank" title="Chat on WhatsApp">
 <img alt="WhatsApp" src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png"/>
 </a>
@@ -3375,9 +3165,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   })();
 
-  
-
-// ✅ Minimal & reliable hide-on-scroll logic
 (() => {
   const header = document.querySelector('.site-header');
   if (!header) return;
@@ -3394,7 +3181,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const y = window.pageYOffset;
     const delta = y - lastY; // +ve = scrolling down, -ve = up
 
-    // Top par ya search khula ho to hamesha dikhana
     if (atTopOrSearching()) { show(); lastY = y; return; }
 
     if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
@@ -3417,28 +3203,11 @@ document.addEventListener('DOMContentLoaded', function() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 </script>
-
-
 <script>
-/* =============================================================================
-   Multi-page Search Setup (index.html)
-   • Sources auto-load from a CONFIG SHEET with columns: "Sheet Url" | "Tab"
-   • Only the CONFIG_SHEET_URL is hardcoded below.
-   • TAB text is used as the route path (e.g., "resin-jewelry/resin-necklace")
-   • Supports: opensheet.elk.sh, Google Docs link (auto → OpenSheet), or GVIZ.
-   • Auto video detection + muted autoplay previews (mp4/webm/mov + YouTube)
-   • Product click builds links like:
-       https://<origin>/<TAB>?p=<kebab-product-name>
-     Examples:
-       car keychain → ?p=car-keychain
-       blue         → ?p=blue
-   ========================================================================== */
 
-/* ========= 1) CONFIG SHEET URL (only thing hardcoded once) ========= */
 const CONFIG_SHEET_URL =
   "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
 
-/* ========= Helpers to detect/convert URLs ========= */
 function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(url || ""); }
 function isGviz(url){ return /\/gviz\/tq\?/i.test(url || ""); }
 function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(url || ""); }
@@ -3456,7 +3225,6 @@ function parseGoogleSheetDoc(url){
 function buildOpenSheetUrl(sheetUrl, tab){
   if (!sheetUrl) return "";
   if (isOpenSheet(sheetUrl)){
-    // If already an opensheet link: ensure /<TAB> is appended (if missing)
     try{
       const u = new URL(sheetUrl, location.origin);
       const parts = u.pathname.split('/').filter(Boolean);
@@ -3485,7 +3253,6 @@ function buildGvizFromDoc(sheetUrl){
   return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?gid=${encodeURIComponent(gid || "0")}`;
 }
 
-/* ========= GVIZ parser (used for both data sheets and config sheet) ========= */
 function parseGviz(text){
   const match = text.match(/setResponse\(([\s\S]*?)\);?/);
   if(!match) return [];
@@ -3505,12 +3272,10 @@ function parseGviz(text){
   }catch{ return []; }
 }
 
-/* ========= Fetch any sheet (OpenSheet preferred, GVIZ fallback, raw last) ========= */
 async function fetchRowsFromSource(source){
   const { sheetUrl, tab } = source || {};
   if(!sheetUrl) return [];
 
-  // Prefer opensheet — either given or auto-built from Google Doc link
   const openUrl = buildOpenSheetUrl(sheetUrl, tab || "");
   if (isOpenSheet(openUrl)){
     try{
@@ -3519,7 +3284,6 @@ async function fetchRowsFromSource(source){
     }catch{}
   }
 
-  // GVIZ fallback
   let gvizUrl = "";
   if (isGviz(sheetUrl)) gvizUrl = sheetUrl;
   else if (isGoogleDocSheet(sheetUrl)) gvizUrl = buildGvizFromDoc(sheetUrl);
@@ -3531,7 +3295,6 @@ async function fetchRowsFromSource(source){
     }catch{}
   }
 
-  // Last resort: try raw URL JSON or GVIZ text in response
   try{
     const r = await fetch(sheetUrl, { cache: "no-store" });
     if(!r.ok) return [];
@@ -3540,7 +3303,6 @@ async function fetchRowsFromSource(source){
   }catch{ return []; }
 }
 
-/* ========= Read CONFIG SHEET and produce SOURCES ========= */
 function valFrom(row, keys){
   const map = {};
   Object.keys(row || {}).forEach(k => map[k.toLowerCase()] = k);
@@ -3552,7 +3314,6 @@ function valFrom(row, keys){
 }
 
 async function loadSourcesFromConfig(){
-  // Accepts: opensheet config, Google Doc (auto-GVIZ), or GVIZ URL
   let rows = [];
   const asOpen = buildOpenSheetUrl(CONFIG_SHEET_URL, "Sheet1"); // ignored if already has TAB
   if (isOpenSheet(asOpen)){
@@ -3573,7 +3334,6 @@ async function loadSourcesFromConfig(){
     }
   }
 
-  // Map to SOURCES
   const sources = (rows || []).map(r => {
     const sheetUrl = String(valFrom(r, ["Sheet Url","SheetURL","Sheet","URL","Link"])).trim();
     const tab      = String(valFrom(r, ["Tab","Route","Path"])).trim();
@@ -3584,7 +3344,6 @@ async function loadSourcesFromConfig(){
   return sources;
 }
 
-/* ========= Media detection (image / direct video / YouTube) ========= */
 const VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i;
 function isDirectVideo(url){ return VIDEO_EXT_RE.test(url || ""); }
 function isYouTube(url){ return /(youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\/)/i.test(url || ""); }
@@ -3600,7 +3359,6 @@ function toYouTubeEmbed(url){
   }catch{ return ""; }
 }
 
-/* ========= Route + row normalization ========= */
 function tabToRoute(tab){
   let route = String(tab || "").trim();
   if (!route) return "/";
@@ -3642,15 +3400,12 @@ function rowToItem(row, tabForRoute){
   return { name, price, mrp, mediaType, mediaUrl, poster, route: tabToRoute(tabForRoute) };
 }
 
-/* ========= Load everything ========= */
 window.allProducts = [];
 
 (async function bootstrap(){
-  // 1) Read SOURCES from config
   let SOURCES = [];
   try{ SOURCES = await loadSourcesFromConfig(); }catch{ SOURCES = []; }
 
-  // If config is empty, you still get an empty product list (no crash)
   try{
     const lists = await Promise.all((SOURCES || []).map(async (src) => {
       const rows = await fetchRowsFromSource(src).catch(()=>[]);
@@ -3663,19 +3418,12 @@ window.allProducts = [];
   }
 })();
 
-/* ========= URL builder & UI ========= */
-/* Build p=<kebab-case> EXACTLY as required:
-   - Lowercase
-   - Non-letters/numbers → "-"
-   - Collapse multiple "-" and trim leading/trailing "-"
-*/
 function slugify(str){
   const s = String(str || "").trim().toLowerCase();
   const slug = s
     .replace(/[^a-z0-9]+/gi, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
-  // If slug becomes empty (rare), fall back to encoded original
   return slug || encodeURIComponent(s);
 }
 
@@ -3711,15 +3459,10 @@ function hideSuggest(){
   if(boxEl){ boxEl.style.display='none'; boxEl.innerHTML=''; }
 }
 
-/** media thumb (video muted autoplay, YT iframe autoplay, or image) */
 function renderThumb(p){
-  // Normalize mediaUrl once
   const mediaUrl = p?.mediaUrl || "";
-  
+
   if (p.mediaType === "video"){
-    // 😎 Use direct <video src> (no nested <source>) so DOM diffing doesn't recreate the element unnecessarily
-    // 😎 Preload aggressively + keep autoplaying inline on mobile
-    // 😎 Add data-media-url to help any diff/patch code decide whether to swap or keep the current element
     const posterAttr = p.poster ? ` poster="${p.poster.replace(/"/g,'&quot;')}"` : "";
     return `<video class="thumb"
                    src="${mediaUrl}"
@@ -3729,13 +3472,9 @@ function renderThumb(p){
   }
 
   if (p.mediaType === "youtube"){
-    // Convert to embed and force silent autoplay
     const embed = toYouTubeEmbed(mediaUrl);
     if (embed){
-      // 😎 Force autoplay+mute+loop+inline+clean UI on YouTube iframes
       const join = embed.includes("?") ? "&" : "?";
-      // (Optional) If you pass p.youtubeId, we’ll use it for true looping via playlist param
-      // 😎 Playlist trick keeps loop reliable for single videos
       const playlistParam = p.youtubeId ? `&playlist=${encodeURIComponent(p.youtubeId)}` : "";
       const src = `${embed}${join}autoplay=1&mute=1&playsinline=1&loop=1&controls=0&modestbranding=1${playlistParam}`;
       return `<iframe class="thumb"
@@ -3750,12 +3489,9 @@ function renderThumb(p){
     }
   }
 
-  // Fallback: image
   const imgSrc = mediaUrl || "https://i.postimg.cc/3N1J0J3S/file-000000-placeholder.png";
-  // 😎 Lazy + async decode; keep data-media-url for stable diffs
   return `<img class="thumb" src="${imgSrc}" alt="" loading="lazy" decoding="async" data-media-url="${imgSrc}">`;
 }
-
 
 function renderSuggestions(q){
   const ql = (q||"").toLowerCase().trim();
@@ -3770,12 +3506,12 @@ function renderSuggestions(q){
     const url = makeProductURL(p.route, p.name);
     return `
       <a class="header-suggest" href="${url}" onclick="return goToProduct('${p.route}','${safeName}')">
-        <div class="thumb-wrap">${renderThumb(p)}</div>
-        <div>
-          <div class="name">${p.name}</div>
-          <div class="price">₹${p.price || '-'}</div>
-        </div>
-      </a>
+<div class="thumb-wrap">${renderThumb(p)}</div>
+<div>
+<div class="name">${p.name}</div>
+<div class="price">₹${p.price || '-'}</div>
+</div>
+</a>
     `;
   }).join('');
 
@@ -3799,14 +3535,12 @@ function renderSuggestions(q){
   boxEl.style.display = 'block';
 }
 
-/* On click navigate using our builder (still an <a> for long-press copy) */
 function goToProduct(routePath, productName){
   const url = makeProductURL(routePath, productName);
   location.href = url;
   return false;
 }
 
-/* Input wiring */
 if (inputEl){
   inputEl.addEventListener('input', e => renderSuggestions(e.target.value));
   inputEl.addEventListener('keydown', e => {
@@ -3822,7 +3556,6 @@ if (inputEl){
       if (chosen){
         goToProduct(chosen.route, chosen.name);
       } else {
-        // fallback: first configured route or "/"
         const fallbackRoute = (window.allProducts[0] && window.allProducts[0].route) || "/";
         goToProduct(fallbackRoute, typed); // typed will be slugified by builder
       }
@@ -3830,7 +3563,6 @@ if (inputEl){
   });
 }
 
-/* expose */
 window.goToProduct = goToProduct;
 window.openHeaderSearch = function(){
   const header = document.querySelector('.site-header');
@@ -3847,9 +3579,6 @@ window.closeHeaderSearch = function(){
   hideSuggest();
 };
 </script>
-
-
-
 <footer aria-label="Site footer" id="siteFooter">
 <div class="brand">© <span id="footerYear"></span> Precioussly. All rights reserved.</div>
 <nav aria-label="Policies" class="links">
@@ -3866,11 +3595,9 @@ window.closeHeaderSearch = function(){
 </footer>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Set the live year
     var y = document.getElementById('footerYear');
     if (y) y.textContent = new Date().getFullYear();
 
-    // Show footer after 3 seconds
     var f = document.getElementById('siteFooter');
     setTimeout(function () {
       if (f) f.classList.add('show');
@@ -3878,7 +3605,6 @@ window.closeHeaderSearch = function(){
   });
 </script>
 <script>
-// === Instagram Slider from Google Sheet ===
 (() => {
   const SHEET_ID = "1T3pK9Ya7hm-RXWH4Hq-wV2JUYRbFJJ5qo8rSMbPIcLs";
   const URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
@@ -3902,7 +3628,6 @@ window.closeHeaderSearch = function(){
   window.instaNext = () => show(current + 1);
   window.instaPrev = () => show(current - 1);
 
-  // touch swipe
   let startX = 0, dx = 0, dragging = false;
   track.addEventListener("touchstart", e => { startX = e.touches[0].clientX; dragging = true; }, {passive:true});
   track.addEventListener("touchmove",  e => { if(!dragging) return; dx = e.touches[0].clientX - startX; }, {passive:true});
@@ -3915,12 +3640,10 @@ window.closeHeaderSearch = function(){
   fetch(URL).then(r => r.json()).then(rows => {
     if (!Array.isArray(rows)) return;
 
-    // Title: first non-empty "Title"
     const titleRow = rows.find(r => (r["Title"] || r["title"] || "").trim());
     const title = titleRow ? (titleRow["Title"] || titleRow["title"]).trim() : "Instagram";
     titleEl.textContent = title;
 
-    // Items: rows with a photo URL; optional 'insta link'
     const items = rows
       .filter(r => (r["photo"] || r["Photo"] || r["PHOTO"] || "").trim())
       .map(r => ({
@@ -3931,7 +3654,6 @@ window.closeHeaderSearch = function(){
 
     if (!items.length) return;
 
-    // Build slides
     items.forEach((it, idx) => {
       const wrap = document.createElement("div");
       wrap.className = "insta-slide";
@@ -3950,22 +3672,13 @@ window.closeHeaderSearch = function(){
       links.push(it.link || "#");
     });
 
-    // Reveal section and initialize
     section.style.display = "block";
     show(0);
   }).catch(console.error);
 })();
 </script>
 <script>
-/* ====== Unified Swipe/Drag Fade Slider (no buttons, infinite) ======
-   Usage:
-     createSwipeFadeSlider({
-       sliderId: 'fadeSlider',
-       dotsId: 'fadeDots',
-       items: [{media:url, link:href}, ...],
-       onIndexChange: (i, item)=>{ ... }
-     });
-*/
+
 function createSwipeFadeSlider(opts){
   const slider = document.getElementById(opts.sliderId);
   const dotsWrap = document.getElementById(opts.dotsId);
@@ -3976,7 +3689,6 @@ function createSwipeFadeSlider(opts){
   const dots = [];
   let current = 0;
 
-  // build slides
   (opts.items||[]).forEach((it, idx)=>{
     const wrap = document.createElement(it.link ? 'a' : 'div');
     wrap.className = 'fade-slide' + (idx===0?' active':'');
@@ -4018,7 +3730,6 @@ function createSwipeFadeSlider(opts){
     }
   }
 
-  // touch/mouse handlers (same for every slider)
   let startX=0, startY=0, dragging=false, pinching=false, mdown=false, mxStart=0;
 
   slider.addEventListener('touchstart', e=>{
@@ -4051,7 +3762,6 @@ function createSwipeFadeSlider(opts){
   return { show };
 }
 
-/* === Initialize "Happy Customers" from Google Sheet === */
 (function () {
   const SHEET = "https://opensheet.elk.sh/1T3pK9Ya7hm-RXWH4Hq-wV2JUYRbFJJ5qo8rSMbPIcLs/Sheet1";
   fetch(SHEET).then(r => r.json()).then(rows => {
@@ -4060,7 +3770,6 @@ function createSwipeFadeSlider(opts){
       const media =
         (r.photo || r.Photo || r.image || r.Image || r.img || r.Img || r.URL || r.Url || r.url || "").trim();
 
-      // Flexible column picker
       const pick = (...names) => {
         for (const n of names) {
           if (r[n] && String(r[n]).trim()) return String(r[n]).trim();
@@ -4073,7 +3782,6 @@ function createSwipeFadeSlider(opts){
         return "";
       };
 
-      // Accept either a full Instagram URL or a plain username
       let raw = pick(
         "insta link", "Insta link", "Insta Link", "insta_link", "instagram", "Instagram",
         "insta", "Insta", "handle", "Handle", "username", "Username", "profile", "Profile",
@@ -4084,7 +3792,6 @@ function createSwipeFadeSlider(opts){
       let handle = "";
 
       if (raw) {
-        // If it's a full URL, extract username; else treat as username
         if (/^https?:\/\//i.test(raw)) {
           link = raw.trim();
           const m = raw.match(/instagram\.com\/([^\/?#]+)/i);
@@ -4114,7 +3821,6 @@ function createSwipeFadeSlider(opts){
       }
     });
 
-    // Set initial button state
     if (btn) {
       btn.href = items[0].link || "#";
       btn.textContent = items[0].handle || "View Instagram Profile";
@@ -4133,7 +3839,6 @@ function createSwipeFadeSlider(opts){
       const dots = Array.from(dotsWrap.children || []);
       let total = dots.length;
       let activeIndex = dots.findIndex(d => d.classList.contains('active'));
-      // Fallback via slides if dots not ready
       if (total === 0){
         const slides = sliderEl.querySelectorAll('.fade-slide');
         total = slides.length;
@@ -4147,15 +3852,12 @@ function createSwipeFadeSlider(opts){
       }
     };
 
-    // Observe dot class mutations & child updates
     const obs1 = new MutationObserver(update);
     obs1.observe(dotsWrap, { subtree:true, childList:true, attributes:true, attributeFilter:['class'] });
 
-    // Also observe slide ACTIVE changes
     const obs2 = new MutationObserver(update);
     obs2.observe(sliderEl, { subtree:true, childList:true, attributes:true, attributeFilter:['class'] });
 
-    // Initial warm-up until content loads
     const init = setInterval(() => {
       const slidesReady = sliderEl.querySelectorAll('.fade-slide').length > 0;
       const dotsReady   = dotsWrap.children.length > 0;
@@ -4171,9 +3873,8 @@ function createSwipeFadeSlider(opts){
 })();
 </script>
 <script id="chatgpt-dots-guards">
-  // Safety guards: if any function tries to render dots, neutralize it.
   try {
-    window.renderIGDots = function(){ /* dots intentionally removed */ };
+    window.renderIGDots = function(){  };
   } catch(e) {}
 </script>
 <script id="chatgpt-gsheet-hero-loader">if(false){
@@ -4186,13 +3887,10 @@ function createSwipeFadeSlider(opts){
     const heroWrap = document.getElementById("fadeSlider");
     const counterEl = document.getElementById("fadeCounter");
     const dotsEl = document.getElementById("fadeDots");
-// ✅ Guard: If the primary slider (#fadeSlider) already has .fade-slide items,
-// do not override or reset the counter. This prevents 1/1 bug.
 try {
   const _fw = document.getElementById("fadeSlider");
   if (_fw && _fw.querySelector(".fade-slide")) { return; }
 } catch(e) {}
-// will stay hidden; just to satisfy any code
 
     function looksLikeImage(url){
       if(!url) return false;
@@ -4216,7 +3914,6 @@ try {
       const res = await fetch(GVIZ_URL, {mode:"cors"});
       if(!res.ok) throw new Error("GViz fetch failed");
       const text = await res.text();
-      // GViz wraps JSON in "google.visualization.Query.setResponse(...)"
       const json = JSON.parse(text.replace(/^.*setResponse\(/, "").replace(/\);?\s*$/, ""));
       const rows = json.table.rows || [];
       const urls = [];
@@ -4235,7 +3932,6 @@ try {
       rows.forEach(r => r.forEach(cell => {
         const v = (cell||"").trim();
         if(looksLikeImage(v)) urls.push(v);
-        // also allow multiple space-separated URLs in one cell
         if(/\shttps?:\/\//.test(v)){
           v.split(/\s+/).forEach(x => { if(looksLikeImage(x)) urls.push(x); });
         }
@@ -4274,7 +3970,6 @@ try {
     }
 
     function initOrReinitSlider(total){
-      // If your site defines createSwipeFadeSlider, use it; otherwise basic swipe is ok
       initCounter(total);
       if(typeof window.createSwipeFadeSlider === "function"){
         window.createSwipeFadeSlider({
@@ -4285,7 +3980,6 @@ try {
           interval: 3500
         });
       } else {
-        // minimal fallback: no-op (image is static)
       }
     }
 
@@ -4297,9 +3991,7 @@ try {
         if(urls.length === 0){
           urls = await fetchGViz();
         }
-        // take first 2 if more are present
         if(urls.length > 2) urls = urls.slice(0,2);
-        // If still empty, keep existing image
         const slidesEl = clearSlides();
         if(urls.length){
           addSlides(urls);
@@ -4308,22 +4000,16 @@ try {
         initOrReinitSlider(total);
       }catch(err){
         console.error("Hero GS fetch error:", err);
-        // Ensure we still have a valid counter
         const total = heroWrap.querySelectorAll(".slide").length || 1;
         initOrReinitSlider(total);
       }
     }
-    // Start
     document.addEventListener("DOMContentLoaded", loadHero);
   })();
 }</script>
-
-
-
 <script id="happy-customers-grid-js">
 (function(){
 
-    // === SVG icons for mute/unmute (Feather-style) ===
     function svgMuteIcon(){
       return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="22" y1="9" x2="16" y2="15"></line><line x1="16" y1="9" x2="22" y2="15"></line></svg>';
     }
@@ -4339,7 +4025,6 @@ try {
     const rowEl = document.getElementById('happyRow');
     if(!secEl){ return; } // section missing
 
-    // Read Google Sheet via OpenSheet
     const SHEET_ID = '1T3pK9Ya7hm-RXWH4Hq-wV2JUYRbFJJ5qo8rSMbPIcLs';
     const TAB = 'Sheet1';
     const endpoint = `https://opensheet.elk.sh/${SHEET_ID}/${TAB}`;
@@ -4347,7 +4032,6 @@ try {
     fetch(endpoint)
       .then(r => r.json())
       .then(rows => {
-        // Visibility cell: first row's "visibility" value
         const visVal = (rows && rows[0] && rows[0]['visibility'])
           ? String(rows[0]['visibility']).trim().toLowerCase()
           : '';
@@ -4361,26 +4045,19 @@ try {
 
         if(!rowEl) return;
 
-        // Build cards
         rowEl.innerHTML = '';
         (rows || []).forEach((r) => {
           const photo = String(r['photo']||'').trim();
           if(!photo) return;
 
-          // Username can be plain or with @
           const handleRaw = String(r['insta link']||r['instagram']||r['insta']||'').trim();
           const handle = handleRaw.replace(/^@/,''); // strip @ for link
 
-          // Buy link: show button only if non-empty
           const buyUrl = String(r['Buy Now']||r['buy now']||r['buy']||r['Buy']||'').trim();
 
-          // Card container (always a DIV to allow nested links)
           const card = document.createElement('div');
           card.className = 'happy-card';
 
-          
-          
-          // Media: image or video (NOT clickable)
           const isVideo = /\.(mp4|webm|ogg)(\?|#|$)/i.test(photo);
           if (isVideo) {
             const wrap = document.createElement('div');
@@ -4395,14 +4072,12 @@ try {
             vid.playsInline = true;    // iOS inline
             vid.setAttribute('playsinline','');
             vid.setAttribute('webkit-playsinline','');
-            // toggle mute on click
             vid.addEventListener('click', () => {
               vid.muted = !vid.muted;
               setMuteButtonIcon(toggleBtn, vid.muted);
               toggleBtn.setAttribute('aria-label', vid.muted ? 'Unmute' : 'Mute');
             });
 
-            // mute/unmute button (top-right)
             const toggleBtn = document.createElement('button');
             toggleBtn.className = 'mute-btn';
             toggleBtn.type = 'button';
@@ -4426,7 +4101,6 @@ try {
             img.src = photo;
             card.appendChild(img);
           }
-// Username line (ONLY this should open Instagram)
           let cap;
           if (handle) {
             cap = document.createElement('a');
@@ -4442,8 +4116,6 @@ try {
           }
           card.appendChild(cap);
 
-
-          // Optional Buy Now button
           if (buyUrl) {
             const btn = document.createElement('a');
             btn.className = 'happy-buy-btn';
@@ -4463,26 +4135,20 @@ try {
   }
 })();
 </script>
-
-<!-- === Copy Confirmation Logic — ChatGPT === -->
 <script id="copy-confirmation-js">
 (function(){
   function textFrom(el){
     if(!el) return "";
-    // Prefer data-copy attribute
     const dc = el.getAttribute && el.getAttribute("data-copy");
     if(dc) return dc.trim();
-    // If it's a coupon card icon, take sibling .code-box
     const card = el.closest && el.closest(".coupon-card");
     if(card){
       const box = card.querySelector(".code-box");
       if(box && box.textContent) return box.textContent.trim();
     }
-    // If user tapped directly on the code text
     if(el.classList && el.classList.contains("code-box")){
       return (el.textContent || "").trim();
     }
-    // Fallback to element text
     return (el.textContent || "").trim();
   }
 
@@ -4492,7 +4158,6 @@ try {
     pop.textContent = "Copied!";
     document.body.appendChild(pop);
 
-    // Keep within viewport edges
     const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
     const left = Math.min(Math.max(20, clientX), vw - 20);
     const top  = Math.max(10, clientY - 16);
@@ -4500,13 +4165,11 @@ try {
     pop.style.left = left + "px";
     pop.style.top  = top + "px";
 
-    // Haptics (best‑effort)
     if (navigator.vibrate) { try { navigator.vibrate(12); } catch(e){} }
 
     setTimeout(function(){ pop.remove(); }, 1600);
   }
 
-  // Event delegation: copy when clicking .copy-btn, .code-box, or anything with [data-copy]
   document.addEventListener("click", function(e){
     const target = e.target.closest && e.target.closest(".copy-btn, .code-box, [data-copy]");
     if(!target) return;
@@ -4514,12 +4177,10 @@ try {
     const value = textFrom(target);
     if(!value) return;
 
-    // Use Clipboard API
     (navigator.clipboard && navigator.clipboard.writeText
       ? navigator.clipboard.writeText(value)
       : Promise.reject())
     .catch(function(){
-      // Fallback for older browsers
       const ta = document.createElement("textarea");
       ta.value = value;
       ta.style.position = "fixed";
@@ -4536,10 +4197,8 @@ try {
   }, true);
 })();
 </script>
-
-
 <style id="ffollow-css">
-  /* Finger-follow override for the hero slider (FIXED sizing) */
+
   #fadeSlider { position: relative; overflow: hidden; touch-action: pan-y pinch-zoom; }
   #fadeSlider .ff-track { display: flex; width: 100%; height: auto; will-change: transform; transition: none; }
   #fadeSlider .fade-slide {
@@ -4549,23 +4208,21 @@ try {
     z-index: auto !important;
     flex: 0 0 100%;
     width: 100%;
-    /* no fixed height so content decides height */
+
   }
   #fadeSlider .fade-slide img, #fadeSlider .fade-slide video {
     width: 100%;
-    height: auto;           /* keep natural aspect ratio */
-    object-fit: contain;    /* don't crop */
+    height: auto;
+    object-fit: contain;
     -webkit-user-drag: none; user-select: none;
     display: block;
   }
 
 <style id="hero-track-visibility-fix">
-  /* Ensure hero slides remain visible when upgraded to ff-track slider */
+
   #fadeSlider .fade-slide { display: block !important; }
 </style>
 </style>
-
-
 <script id="ffollow-js">
 (function(){
   if (window.__FF_HERO_INIT__) return;
@@ -4578,13 +4235,10 @@ try {
     const slides = Array.from(slider.querySelectorAll('.fade-slide'));
     if (!slides.length) { requestAnimationFrame(initWhenReady); return; }
 
-    // Already upgraded?
     if (slider.querySelector('.ff-track')) return;
 
-    // Build track and move slides
     const track = document.createElement('div');
     track.className = 'ff-track';
-    // Preserve existing children order
     slides.forEach(s => track.appendChild(s));
     slider.appendChild(track);
 
@@ -4615,9 +4269,7 @@ try {
       setCounter();
     }
 
-    // pointer state
     let dragging=false, startX=0, startY=0, baseX=0, lastX=0, lastT=0, vel=0;
-    // Helpers to stop the old listeners from firing
     function swallow(e){ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
 
     slider.addEventListener('touchstart', function(e){
@@ -4667,7 +4319,6 @@ try {
       go(index, true);
     }, {passive:false, capture:true});
 
-    // Mouse (desktop)
     let mDown=false, mStart=0;
     slider.addEventListener('mousedown', function(e){
       mDown=true; mStart=e.clientX; baseX=-index*w(); lastX=mStart; lastT=Date.now();
@@ -4692,34 +4343,26 @@ try {
     go(0,false);
   }
 
-  // Wait a tick so the original fetch builds slides, then upgrade
   window.addEventListener('DOMContentLoaded', function(){
     setTimeout(initWhenReady, 400);
   });
 })();
 </script>
-
-
 <script id="ffollow-patch">
 (function(){
   const s = document.getElementById('fadeSlider');
   if(!s) return;
   const imgs = s.querySelectorAll('.fade-slide img');
   imgs.forEach((im, i)=>{
-    // Un-lazy
     const ds = im.getAttribute('data-src');
     if(ds && !im.getAttribute('src')) im.setAttribute('src', ds);
-    // If previous CSS left inline opacity 0, clear it
     const st = (im.getAttribute('style')||'').toLowerCase();
     if (st.includes('opacity:0')) { im.style.opacity = '1'; }
   });
 })();
 </script>
-
-
 <style id="hero-ff-track-reset">
-  /* When the hero slider is upgraded to a track-based swiper,
-     ensure every slide is fully visible and participates in layout. */
+
   #fadeSlider .ff-track .fade-slide{
     position: relative !important;
     opacity: 1 !important;
@@ -4727,7 +4370,7 @@ try {
     z-index: auto !important;
     display: block !important;
   }
-  /* Images/videos inside should render normally */
+
   #fadeSlider .ff-track .fade-slide > img,
   #fadeSlider .ff-track .fade-slide > video{
     width: 100% !important;
@@ -4735,27 +4378,21 @@ try {
     object-fit: cover;
   }
 </style>
-
-
-
-<!-- === Pink Profile Popup (injected by ChatGPT) === -->
 <div class="pp-overlay" id="profilePopupOverlay" aria-hidden="true">
-  <div class="pp-card" role="dialog" aria-modal="true" aria-labelledby="ppTitle">
-    <button class="pp-back" id="ppBackBtn">Back</button>
-    <div class="pp-hero"><div class="pp-badge">♡</div></div>
-    <h3 class="pp-title" id="ppTitle">Precioussly for preciouss ones</h3>
-    <p class="pp-sub">You can track your order 24 hours after placing it by clicking the ‘Track Order’ button.</p>
-    <a class="pp-cta" id="ppTrackBtn" href="https://www.precioussly.com/track-order">Track Order</a>
-    <div class="pp-links">
-      <a href="https://www.precioussly.com/dashboard"></a>
-      <span></span>
-      <a href="https://www.precioussly.com/login"></a>
-    </div>
-  </div>
+<div class="pp-card" role="dialog" aria-modal="true" aria-labelledby="ppTitle">
+<button class="pp-back" id="ppBackBtn">Back</button>
+<div class="pp-hero"><div class="pp-badge">♡</div></div>
+<h3 class="pp-title" id="ppTitle">Precioussly for preciouss ones</h3>
+<p class="pp-sub">You can track your order 24 hours after placing it by clicking the ‘Track Order’ button.</p>
+<a class="pp-cta" id="ppTrackBtn" href="https://www.precioussly.com/track-order">Track Order</a>
+<div class="pp-links">
+<a href="https://www.precioussly.com/dashboard"></a>
+<span></span>
+<a href="https://www.precioussly.com/login"></a>
 </div>
-
+</div>
+</div>
 <script id="pink-profile-popup-js">
-// === Pink Profile Popup (ChatGPT) ===
 (function(){
   const overlay = document.getElementById('profilePopupOverlay');
   const back = document.getElementById('ppBackBtn');
@@ -4770,7 +4407,6 @@ try {
     document.body.classList.remove('no-scroll');
     overlay.setAttribute('aria-hidden','true');
   }
-  // Try to grab the profile icon
   const profileIcon = document.getElementById('profileIcon') ||
     document.querySelector('img[alt="Profile"], .icon-profile, .profile-icon, [data-profile]');
   if(profileIcon){
@@ -4778,7 +4414,6 @@ try {
     profileIcon.addEventListener('click', openPopup, {passive:true});
   }
   if(back) back.addEventListener('click', closePopup);
-  // tap outside to close
   if(overlay){
     overlay.addEventListener('click', function(e){
       if(e.target === overlay) closePopup();
@@ -4786,7 +4421,6 @@ try {
   }
 })();
 </script>
-<!-- ChatGPT: Back-button popup handler v2 (profile popup aware) -->
 <script>
 (function(){
   var overlay = document.getElementById('profilePopupOverlay') || document.querySelector('.pp-overlay, .overlay');
@@ -4826,30 +4460,25 @@ try {
     } catch(e){ try{ location.hash = HASH; }catch(_e){} }
   }
 
-  // Observe overlay attribute/class changes to know when it's opened
   var mo = new MutationObserver(function(){
     if(isOpen()) pushModalState();
   });
   mo.observe(overlay, {attributes:true, attributeFilter:['class','aria-hidden','style']});
 
-  // Back button (history pop) -> close popup instead of leaving
   window.addEventListener('popstate', function(){
     if(closing) return;
     if(isOpen()){
       closing = True;
       closeInternal();
-      // normalize URL to base (remove hash) so next Back exits page
       try{ history.replaceState({__base:true}, '', location.pathname + location.search); }catch(e){}
       closing = False;
     }
   });
 
-  // Hash fallback
   window.addEventListener('hashchange', function(){
     if(location.hash !== HASH && isOpen()) closeInternal();
   });
 
-  // Close via overlay click (outside the card) or dedicated buttons
   overlay.addEventListener('click', function(e){
     if(e.target === overlay){
       closeInternal();
@@ -4866,7 +4495,6 @@ try {
     });
   }
 
-  // Escape key closes
   document.addEventListener('keydown', function(e){
     if(e.key === 'Escape' && isOpen()){
       closeInternal();
@@ -4875,24 +4503,15 @@ try {
   });
 })();
 </script>
-
-
 <script id="cat-video-support-js">
 (function(){
-  /**
-   * Replace any <img> in the category section whose src points to an .mp4
-   * with an inline autoplaying, looping, muted <video> element that looks
-   * exactly like the image (same classes & sizing). The card remains clickable.
-   * Runs once and also whenever the category section changes (dynamic render).
-   */
+
   function isMp4(url){
     try {
-      // strip query/hash and test extension
       const u = new URL(url, location.href);
       const path = (u.pathname || "").toLowerCase();
       return path.endsWith(".mp4");
     } catch (e){
-      // fallback simple test
       return /\.mp4(\?.*)?$/i.test(url || "");
     }
   }
@@ -4903,9 +4522,7 @@ try {
     if (!isMp4(src)) return;
 
     const v = document.createElement("video");
-    // mirror classes & important sizing classes
     v.className = img.className || ""; v.style.aspectRatio = "1 / 1";
-    // core attributes: no controls, loop, autoplay, muted, inline
     v.setAttribute("playsinline", "");
     v.setAttribute("loop", "");
     v.setAttribute("autoplay", "");
@@ -4921,7 +4538,6 @@ try {
 
     v.src = src;
 
-    // Replace the <img> with <video>
     img.replaceWith(v);
     v.dataset._upgraded = "1";
   }
@@ -4930,10 +4546,8 @@ try {
     const root = document.getElementById("categorySection");
     if (!root) return;
 
-    // Any <img> inside category section that actually points to a .mp4
     root.querySelectorAll("img").forEach(imgToVideo);
 
-    // If someone rendered <source src=...mp4> inside a <picture>, convert picture to video too
     root.querySelectorAll("picture").forEach(pic => {
       if (pic.dataset._upgraded === "1") return;
       const srcEl = pic.querySelector("source, img");
@@ -4952,7 +4566,6 @@ try {
           v.setAttribute("disablePictureInPicture","");
           v.setAttribute("disableRemotePlayback","");
           v.src = src;
-          // Try to keep any class from an <img> inside picture
           const img = pic.querySelector("img");
           if (img && img.className) v.className = img.className; v.style.aspectRatio = "1 / 1";
           pic.replaceWith(v);
@@ -4963,25 +4576,20 @@ try {
     });
   }
 
-  // Run now (in case content is static)
   document.addEventListener("DOMContentLoaded", upgradeAll);
 
-  // Also observe dynamic changes to the category section (if categories load via JS)
   const catRoot = document.getElementById("categorySection");
   if (catRoot && "MutationObserver" in window){
     const mo = new MutationObserver(() => upgradeAll());
     mo.observe(catRoot, { childList: true, subtree: true });
   }
 
-  // Re-run on window load as a final safety
   window.addEventListener("load", upgradeAll);
 })();
 </script>
-
 <script id="hero-mute-control-js-v2">
 (function(){
   function makeBtn(video){
-    // Avoid duplicates
     if (video.__muteBtn) return;
 
     var host = video.closest('.fade-slide, a, .swiper-slide, .slick-slide, .slide') || video.parentElement;
@@ -4990,16 +4598,12 @@ try {
 
     var btn = document.createElement('button');
     btn.className = 'hero-mute-btn';
-    // Guard: only attach in the black announcement hero slider (#fadeSlider)
     if(!video.closest('#fadeSlider')) return;
     btn.type = 'button';
-    // Default state = muted
     btn.setAttribute('aria-pressed','true'); // pressed means "sound off" state
     btn.setAttribute('aria-label','Unmute');
     btn.dataset.muted = 'true';
 
-    // ====== UNMUTED ICON (waves) -> class: hero-icon-on ======
-    // Matches your "Unmute icon"
     var onSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
     onSvg.setAttribute('viewBox','0 0 24 24');
     onSvg.setAttribute('class','hero-icon-on');
@@ -5032,8 +4636,6 @@ try {
     onSvg.appendChild(onWave1);
     onSvg.appendChild(onWave2);
 
-    // ====== MUTED ICON (X) -> class: hero-icon-off ======
-    // Matches your "Mute icon"
     var offSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
     offSvg.setAttribute('viewBox','0 0 24 24');
     offSvg.setAttribute('class','hero-icon-off');
@@ -5066,15 +4668,12 @@ try {
     offSvg.appendChild(offLine1);
     offSvg.appendChild(offLine2);
 
-    // Add icons to button
     btn.appendChild(onSvg);
     btn.appendChild(offSvg);
 
-    // Default: start muted
     video.muted = true;
     video.setAttribute('muted','');
 
-    // Toggle logic
     btn.addEventListener('click', function(e){
       e.preventDefault(); e.stopPropagation();
       var willMute = !video.muted;       // if currently unmuted -> willMute true
@@ -5089,33 +4688,26 @@ try {
     video.__muteBtn = btn;
   }
 
-  // Attach buttons to all videos with autoplay/loop or hero context
   function scan(){
     document.querySelectorAll('#fadeSlider video').forEach(function(v){
-      // You can refine this condition if needed:
       if (!v.__muteBtn) makeBtn(v);
     });
   }
 
-  // Initial + dynamic
   if (document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', scan, {once:true});
   } else {
     scan();
   }
 
-  // In case videos load later
   var mo = new MutationObserver(function(){
     scan();
   });
   mo.observe(document.documentElement, {childList:true, subtree:true});
 })();
 </script>
-
-  
 </script>
 <script>
-// Safety: ensure the hero counter updates at least once even if the observer misses early paints.
 (function(){
   const el = document.getElementById('fadeCounter');
   if (!el) return;
@@ -5123,7 +4715,7 @@ try {
   let n = 0;
   const t = setInterval(() => {
     const dots = document.querySelectorAll('#fadeDots .fade-dot').length;
-    if (dots > 0 || n++ > tries){ 
+    if (dots > 0 || n++ > tries){
       const sliderEl = document.getElementById('fadeSlider');
       const active = Array.from(sliderEl.querySelectorAll('.fade-slide')).findIndex(s => s.classList.contains('active'));
       const total  = sliderEl.querySelectorAll('.fade-slide').length || dots;
@@ -5133,11 +4725,8 @@ try {
   }, 200);
 })();
 </script>
-
-<!-- SWR & loadAndRenderCatalog added by ChatGPT: start -->
 <script id="swr-and-catalog">
 (function(){
-  // Simple helper: which sheet URLs we consider for SWR
   const SHEET_PATTERNS = ['opensheet.elk.sh', 'docs.google.com/spreadsheets', '/gviz/tq?'];
 
   const ORIGINAL_FETCH = window.fetch.bind(window);
@@ -5150,7 +4739,6 @@ try {
 
   const noCacheParam = !!(location.search && location.search.indexOf('nocache=1') !== -1);
 
-  // Track drag state for deferring renders
   let isUserDragging = false;
   const dragSelectors = ['.cat-strip', '.bestsellers', '.ff-track', '.insta-track', '.happy-row'];
   function setDragListeners(){
@@ -5163,7 +4751,6 @@ try {
         window.addEventListener('pointerup', ()=> {
           if (isUserDragging){
             isUserDragging = false;
-            // If an update was queued, dispatch event to process it
             window.dispatchEvent(new CustomEvent('swr:dragend'));
           }
         }, {passive:true});
@@ -5177,11 +4764,9 @@ try {
     });
   }
   setDragListeners();
-  // Observe DOM for newly added strips to attach listeners
   const mo = new MutationObserver(()=> setDragListeners());
   mo.observe(document.documentElement || document.body, { childList:true, subtree:true });
 
-  // Storage helpers
   function cacheKey(url){ return 'swr::' + url; }
   function readCache(url){
     try{ const raw = localStorage.getItem(cacheKey(url)); return raw ? JSON.parse(raw) : null; }catch{ return null; }
@@ -5190,21 +4775,17 @@ try {
     try{ localStorage.setItem(cacheKey(url), JSON.stringify({ts:Date.now(), data: data})); }catch(e){ console.warn('SWR cache write failed', e); }
   }
 
-  // Compare utility
   function isSame(a,b){ try{ return JSON.stringify(a) === JSON.stringify(b); }catch{ return false; } }
 
-  // Queue updates if dragging
   const pendingUpdates = new Map(); // url -> data
 
   window.addEventListener('swr:dragend', function(){
-    // flush pending updates
     for (const [url, data] of pendingUpdates.entries()){
       pendingUpdates.delete(url);
       applyUpdate(url, data);
     }
   });
 
-  // Restore scroll positions wrapper
   function snapshotScrollPositions(){
     const els = document.querySelectorAll('.cat-strip, .bestsellers, .ff-track, .insta-track, .happy-row');
     const arr = [];
@@ -5221,7 +4802,6 @@ try {
       });
     });
   }
-  // Simple css path (best-effort)
   function getCssPath(el){
     if (!el) return '';
     if (el.id) return '#' + el.id;
@@ -5246,58 +4826,43 @@ try {
     return parts.join(' > ');
   }
 
-  // When update arrives, call known renderers if available, else dispatch event
   function applyUpdate(url, data){
-    // Save to cache
     writeCache(url, data);
 
-    // Snapshot scroll positions to restore after re-render
     const snaps = snapshotScrollPositions();
 
-    // Call known reloaders based on url hints
     try{
       if (String(url).includes('opensheet.elk.sh') || String(url).includes('/gviz/tq')) {
-        // heuristic: categories, coupons, happy customers, hero, announcements use different IDs in page
-        // Re-run loaders if available
         if (typeof window.loadCategories === 'function') try{ window.loadCategories(); }catch(e){console.warn(e);}
         if (typeof window.loadHero === 'function') try{ window.loadHero(); }catch(e){console.warn(e);}
-        // coupons
-        if (typeof window.reloadCoupons === 'function') try{ window.reloadCoupons(); }catch(e){ /* ignore */ }
-        // happy customers
-        if (typeof window.reloadHappy === 'function') try{ window.reloadHappy(); }catch(e){ /* ignore */ }
-        // Fire generic event
+        if (typeof window.reloadCoupons === 'function') try{ window.reloadCoupons(); }catch(e){  }
+        if (typeof window.reloadHappy === 'function') try{ window.reloadHappy(); }catch(e){  }
         document.dispatchEvent(new CustomEvent('swr:cache:update', {detail:{url, data}}));
       } else {
         document.dispatchEvent(new CustomEvent('swr:cache:update', {detail:{url, data}}));
       }
     }catch(e){ console.warn('applyUpdate error', e); }
 
-    // Restore scroll positions after slight delay
     setTimeout(()=> restoreScrollPositions(snaps), 120);
   }
 
-  // Polling set
   const pollingSet = new Set();
   function ensurePolling(url){
     if (pollingSet.has(url)) return;
     pollingSet.add(url);
     setInterval(()=> {
-      // background fetch only
       swrNetworkFetch(url).catch(()=>{});
     }, 3000);
   }
 
-  // Perform network fetch and return parsed JSON (or text fallback)
   async function swrNetworkFetch(url, init){
     try{
       const r = await ORIGINAL_FETCH(url, init);
-      // try to parse as json
       const ct = r.headers.get('content-type') || '';
       if (ct.includes('application/json')) {
         const json = await r.clone().json();
         const prev = readCache(url);
         if (!prev || !isSame(prev.data, json)){
-          // If user dragging, queue update
           if (isUserDragging){
             pendingUpdates.set(url, json);
           } else {
@@ -5307,7 +4872,6 @@ try {
         return json;
       } else {
         const txt = await r.clone().text();
-        // try to parse gviz response
         try{
           const parsed = (typeof parseGviz === 'function') ? parseGviz(txt) : JSON.parse(txt);
           const prev = readCache(url);
@@ -5320,32 +4884,25 @@ try {
         }
       }
     }catch(e){
-      // network error
       throw e;
     }
   }
 
-  // Override fetch for sheet URLs to provide SWR behavior (fast cached response + background refresh)
   window.fetch = function(input, init){
     try{
       const url = (typeof input === 'string') ? input : (input && input.url) || '';
       if (!isSheetUrl(url)) return ORIGINAL_FETCH(input, init);
 
-      // If nocache param or hard reload: skip cache, fetch network and return it
       const forceNetwork = noCacheParam || isHardReload;
 
       const cached = readCache(url);
       if (!forceNetwork && cached && cached.data){
-        // return a Response-like Promise that resolves quickly with cached JSON
         const body = JSON.stringify(cached.data);
-        // Start background network fetch
         swrNetworkFetch(url, init).catch(()=>{});
         const resp = new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' }});
         return Promise.resolve(resp);
       } else {
-        // No cache: fetch network, write cache, and return the real response
         return ORIGINAL_FETCH(input, init).then(async (r)=>{
-          // duplicate: if json, store parsed
           try{
             const ct = r.headers.get('content-type') || '';
             let parsed = null;
@@ -5355,9 +4912,8 @@ try {
               try{ parsed = (typeof parseGviz==='function') ? parseGviz(txt) : JSON.parse(txt); }catch{ parsed = txt; }
             }
             if (parsed !== null) writeCache(url, parsed);
-            // dispatch update
             if (!isUserDragging) applyUpdate(url, parsed); else pendingUpdates.set(url, parsed);
-          }catch(e){ /* ignore parse errors */ }
+          }catch(e){  }
           return r;
         });
       }
@@ -5366,39 +4922,28 @@ try {
     }
   };
 
-  // Public: loadAndRenderCatalog that clears and re-renders main dynamic areas
   window.loadAndRenderCatalog = async function(){
     try{
-      // Snapshot scrolls
       const snaps = snapshotScrollPositions();
 
-      // Clear product container(s)
       const content = document.getElementById('categorySection') || document.getElementById('content') || null;
       if (content) content.innerHTML = '';
 
-      // Re-run known loaders (they will use our fetch wrapper so SWR applies)
       if (typeof window.loadCategories === 'function') { try{ await window.loadCategories(); }catch(e){console.warn(e);} }
       if (typeof window.loadHero === 'function') { try{ await window.loadHero(); }catch(e){console.warn(e);} }
-      // coupons loader: we expose reloadCoupons below if original wasn't a function
       if (typeof window.reloadCoupons === 'function') { try{ await window.reloadCoupons(); }catch(e){console.warn(e);} } else {
-        // try existing container and re-fetch from known URL if present in DOM scope
         try{ if (window.couponSheetURL) fetch(window.couponSheetURL).then(r=>r.json()).then(data=> { const container = document.getElementById('couponContainer'); if (container){ container.innerHTML=''; data.forEach(c=>{ if (!c.Title || !c.MinAmount || !c.Code || !c.Discount) return; const html = `<div class="coupon-card"><h3>${c.Title}</h3><p>Buy for min of ₹${c.MinAmount}</p><div class="code-row"><div class="code-box">${c.Code}</div><div class="copy-btn" onclick=\"navigator.clipboard.writeText('${c.Code}')\"><svg viewBox=\"0 0 24 24\"><rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\" ry=\"2\"/></svg></div></div></div>`; container.innerHTML += html; }); } }); }catch(e){} }
-      // happy customers reload
       if (typeof window.reloadHappy === 'function') { try{ await window.reloadHappy(); }catch(e){console.warn(e);} } else {
-        // try to re-fetch known sheet id if exists in script
         if (typeof window.SHEET_ID !== 'undefined') {
           try{ fetch(`https://opensheet.elk.sh/${window.SHEET_ID}/Sheet1`).then(r=>r.json()).then(rows=>{ const rowEl = document.getElementById('happyRow'); if (rowEl){ rowEl.innerHTML=''; rows.forEach(r=>{ const photo = r.photo||r.Photo||r.image||''; if(!photo) return; const div = document.createElement('div'); div.className='happy-card'; div.innerHTML = `<img class="happy-photo" src="${photo}"><div class="happy-id">${r.insta||r.handle||''}</div>`; rowEl.appendChild(div); }); } }); }catch(e){}
       }
 
-      // Dispatch an update event so any other code can re-bind
       document.dispatchEvent(new CustomEvent('swr:render:done'));
 
-      // restore scrolls
       setTimeout(()=> restoreScrollPositions(snaps), 120);
     }catch(e){ console.warn('loadAndRenderCatalog error', e); }
   };
 
-  // Expose reloadCoupons & reloadHappy helper if not present
   if (typeof window.reloadCoupons !== 'function'){
     window.reloadCoupons = async function(){
       try{
@@ -5419,7 +4964,6 @@ try {
   if (typeof window.reloadHappy !== 'function'){
     window.reloadHappy = async function(){
       try{
-        // try to find a happy customers sheet URL from existing scripts
         const possible = Array.from(document.querySelectorAll('script')).map(s=>s.textContent||'').join('|||');
         const m = possible.match(/opensheet\.elk\.sh\/([A-Za-z0-9_-]+)/);
         const sheet = m ? `https://opensheet.elk.sh/${m[1]}/Sheet1` : null;
@@ -5440,7 +4984,6 @@ try {
     };
   }
 
-  // Start polling for any sheet URLs currently present in page scripts
   try{
     const scriptsText = Array.from(document.querySelectorAll('script')).map(s=>s.src || s.textContent || '').join(' ');
     const urls = new Set();
@@ -5450,18 +4993,13 @@ try {
     urls.forEach(u=>{ ensurePolling(u); });
   }catch(e){}
 
-  // Auto-run initial SWR fetch for known sheet URLs so page gets immediate cached renders
   document.addEventListener('DOMContentLoaded', ()=> {
     try{
-      // trigger a catalog load which will use our fetch wrapper
       if (typeof window.loadAndRenderCatalog === 'function') window.loadAndRenderCatalog();
     }catch(e){}
   });
 
 })();
 </script>
-<!-- SWR & loadAndRenderCatalog added by ChatGPT: end -->
-
 </body>
 </html>
-
