@@ -1966,7 +1966,7 @@ function isVideoUrl(url=""){
       title.style.fontSize = "14px";
       title.style.textAlign = "left";
       title.style.marginTop = "8px";
-      title.innerText = item["Product Name"];
+      {const fullName = String(item["Product Name"] || "");const words = fullName.trim().split(/\s+/).filter(Boolean);let shortName = fullName;if (words.length > 2) {  const third = words[2].slice(0,4);  shortName = words[0] + ' ' + words[1] + ' ' + third + '...';} else {  shortName = fullName;}title.innerText = shortName;title.title = fullName;}
       infoWrapper.appendChild(title);
 
       const info = document.createElement("div");
@@ -4408,7 +4408,7 @@ content.innerHTML = "";
       title.style.fontSize = "14px";
       title.style.textAlign = "left";
       title.style.marginTop = "8px";
-      title.innerText = item["Product Name"];
+      {const fullName = String(item["Product Name"] || "");const words = fullName.trim().split(/\s+/).filter(Boolean);let shortName = fullName;if (words.length > 2) {  const third = words[2].slice(0,4);  shortName = words[0] + ' ' + words[1] + ' ' + third + '...';} else {  shortName = fullName;}title.innerText = shortName;title.title = fullName;}
       infoWrapper.appendChild(title);
 
       const info = document.createElement("div");
