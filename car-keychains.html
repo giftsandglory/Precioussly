@@ -89,7 +89,7 @@ body.noscroll {
 /* 👇 SIMPLE popup slider (fade only) */
 #popupSlider{
   position: relative;
-  min-height: 0 !important;
+  min-height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -886,12 +886,12 @@ nav.side-menu {
 
 /* Ensure the product card itself has a minimum height so buttons line up in rows */
 .product, .product-card{
-  min-height: 0 !important; /* adjust if your cards are taller/shorter */
+  min-height: 360px; /* adjust if your cards are taller/shorter */
 }
 /* In Mode 3 (small-cards), use a smaller minimum height */
 body.horizontal-mode.small-cards .product,
 body.horizontal-mode.small-cards .product-card{
-  min-height: 0 !important;
+  min-height: 300px;
 }
 </style>
 
@@ -1684,7 +1684,7 @@ body.horizontal-mode .product-grid{
 
 /* Ensure grid rows are uniform so cards align across the row */
 .product-grid {
-  grid-auto-rows: auto !important;
+  grid-auto-rows: 1fr !important;
   align-items: stretch !important;
 }
 
@@ -1750,9 +1750,9 @@ div.product-title {
 <!-- END: STRONG MOBILE ALIGNMENT FIX -->
 
 
-<!-- Compact spacing override added by ChatGPT to lift price & button -->
-<style id="chatgpt-compact-product-spacing">
-/* Collapse any extra forced heights and tighten gaps */
+<!-- USER PATCH: remove reserved blank line under product title and tighten spacing -->
+<style id="user-fix-remove-blank">
+/* Remove forced reserve space under product title */
 .product, .product-card {
   min-height: 0 !important;
   height: auto !important;
@@ -1761,71 +1761,82 @@ div.product-title {
   justify-content: flex-start !important;
 }
 
-/* Make image and info sit tightly */
-.product .media-square,
-.product img,
-.product .product-image,
-.product .image-wrapper {
-  margin: 0 !important;
-  padding: 0 !important;
-  line-height: 0 !important;
-}
-
-/* Reduce gap between title and price, and between price and button */
-.product .product-info {
-  margin-top: 2px !important;
-  padding-top: 0 !important;
-  gap: 4px !important; /* small but readable */
-  min-height: 0 !important;
-  padding: 0 6px !important;
-}
-
-/* Title - reserve a single compact line only */
+/* Allow title to wrap naturally (max 2 lines) and don't reserve extra height */
 .product .product-title,
 .product .product-title * {
-  display: block !important;
-  white-space: nowrap !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  white-space: normal !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  line-height: 1.2em !important;
-  height: 1.2em !important;
-  margin: 4px 0 0 0 !important;
-  font-size: 14px !important;
-}
-
-/* Price row - pulled up */
-.product .price-row,
-.product .product-info b,
-.product .product-info s {
+  height: auto !important;
+  line-height: 1.15em !important;
   margin: 0 !important;
   padding: 0 !important;
-  font-size: 14px !important;
+  box-sizing: border-box !important;
 }
 
-/* Pull Add to Cart up and reduce spacing above it */
-.product .add-btn,
-.product button.add-btn {
+/* Make product-info hug the content with minimal gap */
+.product .product-info {
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 6px !important;
+  gap: 4px !important;
+}
+
+/* Tighten spacing before the Add to Cart button */
+.product .add-btn {
   margin-top: 6px !important;
-  margin-bottom: 8px !important;
-  align-self: center !important;
-  min-width: 100px !important;
-  height: 36px !important;
-  padding: 6px 12px !important;
+  margin-bottom: 6px !important;
 }
 
-/* Reduce vertical gaps in the grid */
+/* Ensure grid rows don't force extra height */
 .product-grid {
-  row-gap: 6px !important;
-  gap: 6px 12px !important;
   align-items: start !important;
+  row-gap: 8px !important;
 }
 
-/* Last resort: if any other rule forces large spacing, override */
-[class*="card"], [class*="details"], .card-body {
-  margin: 0 !important;
-  padding: 0 !important;
+/* Final safety: remove any explicit height/reserve applied elsewhere */
+.product[style], .product *[style] {
+  min-height: 0 !important;
+  height: auto !important;
 }
 </style>
+<!-- END USER PATCH -->
+
+<!-- USER PATCH 2: restore tidy spacing between product image and title (prevents title sticking to image) -->
+<style id="user-fix-restore-gap">
+/* Give the image a small bottom gap so title does not touch the photo */
+.product .product-image,
+.product-image img,
+.product-card .product-image {
+  display: block !important;
+  margin-bottom: 10px !important; /* comfortable gap similar to first photo */
+}
+
+/* Ensure product-info has a little top padding */
+.product .product-info,
+.product-info {
+  padding-top: 6px !important;
+  margin-top: 0 !important;
+}
+
+/* Title should not be glued to the image and keeps natural line-height */
+.product .product-title,
+.product-title {
+  margin-top: 4px !important;
+  padding-top: 0 !important;
+  line-height: 1.2em !important;
+}
+
+/* Keep grid aligned while preserving this gap */
+.product-grid {
+  align-items: start !important;
+}
+</style>
+<!-- END USER PATCH 2 -->
+
 
 </head>
 <body>
@@ -4777,12 +4788,12 @@ loadAndRenderCatalog();
 </script>
 
 
-<!-- START: Auto-truncate titles to 16 alphabet characters (added by ChatGPT) -->
+<!-- START: Auto-truncate titles to 20 alphabet characters (added by ChatGPT) -->
 <script>
 (function(){
-  // Truncate product title text so it contains at most 16 alphabetic characters (A-Z, a-z).
+  // Truncate product title text so it contains at most 20 alphabetic characters (A-Z, a-z).
   // It preserves original punctuation/spaces up to the cutoff point and appends an ellipsis.
-  function truncateTo16Alphabets(node){
+  function truncateTo20Alphabets(node){
     if(!node || !node.innerText) return;
     const original = node.innerText.trim();
     let letters = 0;
@@ -4792,7 +4803,7 @@ loadAndRenderCatalog();
       if (/[A-Za-z]/.test(ch)) {
         letters++;
       }
-      if (letters > 16) break;
+      if (letters > 20) break;
       out += ch;
     }
     // If we didn't hit the limit and string shorter, leave as-is
@@ -4815,7 +4826,7 @@ loadAndRenderCatalog();
     els.forEach(el => {
       // Avoid re-processing elements we've already handled
       if (el.dataset._alphaTruncated === "1") return;
-      truncateTo16Alphabets(el);
+      truncateTo20Alphabets(el);
       el.dataset._alphaTruncated = "1";
     });
   }
