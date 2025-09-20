@@ -827,7 +827,13 @@ nav.side-menu {
 .site-header.searching .hamburger-wrapper,
 .site-header.searching #logoWrap,
 .site-header.searching #rightIcons{ display:none !important; }
-.site-header.searching #headerSearchBar{ display:flex !important; }
+.site-header.searching #headerSearchBar{
+  display:flex !important;
+  position: relative !important;
+  width: calc(100% - 32px) !important;
+  margin: 0 16px !important;
+  box-sizing: border-box !important;
+}
 
 /* Suggestions box: search bar ke BILKUL niche */
 #headerSearchBar{ position:relative; }
@@ -1755,6 +1761,50 @@ div.product-title {
 }
 </style>
 <!-- END: STRONG MOBILE ALIGNMENT FIX -->
+
+
+<!-- STRONG OVERRIDE: force left-aligned suggestion rows (added by ChatGPT) -->
+<style>
+/* Make suggestion rows use grid (not flex), always left-aligned */
+#headerSearchBar #headerSearchResults .header-suggest,
+#headerSearchResults .header-suggest,
+#headerSearchResults a.header-suggest {
+  display: grid !important;
+  grid-template-columns: 56px 1fr auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+  justify-items: start !important;
+  text-align: left !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+/* Ensure inner thumbnail wrapper doesn't center its contents */
+#headerSearchResults .header-suggest .thumb-wrap,
+#headerSearchResults .header-suggest img {
+  margin: 0 !important;
+  display: block !important;
+  width: 56px !important;
+  height: 56px !important;
+  object-fit: cover !important;
+}
+
+/* Make sure the suggestion box matches the header input width */
+#headerSearchBar { position: relative !important; }
+#headerSearchResults{
+  position:absolute; top:calc(100% + 10px); left:0; right:0;
+  display:none; background:#fff; border:1px solid #eaeaea; border-radius:12px;
+  box-shadow:0 8px 22px rgba(0,0,0,0.08); max-height:62vh; overflow:auto; padding:6px; z-index:4000;
+  box-sizing: border-box !important;
+}
+
+/* tiny safety: make sure text sits left inside the name/price columns */
+#headerSearchResults .header-suggest .name,
+#headerSearchResults .header-suggest .price {
+  text-align: left !important;
+  justify-self: start !important;
+}
+</style>
 
 </head>
 <body>
