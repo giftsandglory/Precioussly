@@ -89,7 +89,7 @@ body.noscroll {
 /* 👇 SIMPLE popup slider (fade only) */
 #popupSlider{
   position: relative;
-  min-height: 300px;
+  min-height: 0 !important;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -551,7 +551,11 @@ body.horizontal-mode .product img{
   border-radius: 10px !important; /* sleeker corners */
   display: block !important;
 }
-
+\1height: 100% !important; aspect-ratio: 1 / 1 !important;
+  object-fit:contain;
+  border-radius:12px;
+  background:#000;
+}
 
 
 /* Flexible content */
@@ -882,12 +886,12 @@ nav.side-menu {
 
 /* Ensure the product card itself has a minimum height so buttons line up in rows */
 .product, .product-card{
-  min-height: 360px; /* adjust if your cards are taller/shorter */
+  min-height: 0 !important; /* adjust if your cards are taller/shorter */
 }
 /* In Mode 3 (small-cards), use a smaller minimum height */
 body.horizontal-mode.small-cards .product,
 body.horizontal-mode.small-cards .product-card{
-  min-height: 300px;
+  min-height: 0 !important;
 }
 </style>
 
@@ -1550,44 +1554,277 @@ body.horizontal-mode .product-grid{
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
-/* ===== FULL FORCE OVERRIDE: equal 5px spacing left/right ===== */
-html, *, *::before, *::after {
+</style>
+
+
+
+<!-- START: enforced truncation for product titles (added by ChatGPT) -->
+<style>
+/* Mobile-friendly 2-line clamp for product titles to avoid layout breakage */
+.product .product-title,
+.product .product-title * {
+  box-sizing: border-box;
+}
+
+/* Clamp to maximum 2 lines, show ellipsis */
+.product .product-title {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2;               /* show up to 2 lines */
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: normal !important;      /* allow wrapping */
+  line-height: 1.2em !important;
+  max-height: calc(1.2em * 2) !important; /* exactly two lines */
+  padding-right: 6px !important;
+}
+
+/* Ensure product card reserves space so grid doesn't jump when title wraps */
+.product .product-info { min-height: calc(1.2em * 2 + 10px); }
+
+/* If some titles are short, vertically align content nicely */
+.product .product-card { display: flex; flex-direction: column; }
+
+/* Keep popup full name visible */
+#popupName {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+/* Fallback: if browser doesn't support -webkit-line-clamp, force single-line truncation */
+@supports not (-webkit-line-clamp: 2) {
+  .product .product-title {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+}
+</style>
+<!-- END: enforced truncation for product titles -->
+
+
+
+<!-- START: ensure popup shows full product name -->
+<style>
+#popupName {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+</style>
+<!-- END: ensure popup shows full product name -->
+
+
+<!-- START: USER FIX — force single-line truncation and stable button alignment -->
+<style id="user-fix-single-line-title">
+/* Force single-line title with ellipsis so long names don't push the button down */
+.product .product-title,
+.product .product-title * {
+  box-sizing: border-box;
+}
+
+/* Single-line ellipsis */
+.product .product-title {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
+  max-width: 100% !important;
+  line-height: 1.35em !important;
+  height: 1.35em !important; /* exact single-line height reserved */
+  padding-right: 6px !important;
+}
+
+/* Ensure the product info area reserves the same small vertical space so grid rows don't jump */
+.product .product-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  flex: 1 1 auto !important;
+  min-height: 48px !important; /* reserve room for price + title */
+}
+
+/* Keep Add to Cart pinned to bottom of card and same size */
+.product {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+.product .add-btn {
+  margin-top: auto !important;
+  align-self: center !important;
+  width: 110px !important;
+  height: 36px !important;
   box-sizing: border-box !important;
 }
 
-/* Product Grid container */
+/* Make sure grid items stretch evenly */
 .product-grid {
-  padding-left: 5px !important;
-  padding-right: 5px !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  width: 100% !important;
+  align-items: stretch !important;
+}
+
+/* Small-screen tweak: slightly reduce title font-size to avoid overflow */
+@media (max-width:420px) {
+  .product .product-title { font-size: 14px !important; }
+}
+</style>
+<!-- END: USER FIX --> 
+
+
+<!-- START: STRONG MOBILE ALIGNMENT FIX (injected) -->
+<style id="user-fix-mobile-alignment">
+/* Make product cards fill the grid cell and pin buttons reliably */
+.product {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
   box-sizing: border-box !important;
 }
 
-/* Force product & media to behave cleanly */
-.product, .product .media-square, .product img {
+/* Ensure grid rows are uniform so cards align across the row */
+.product-grid {
+  grid-auto-rows: auto !important;
+  align-items: stretch !important;
+}
+
+/* STRONG single-line truncation for product titles */
+.product .product-title,
+div.product-title {
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+  line-height: 1.2em !important;
+  height: 1.2em !important;  /* reserve exactly one line */
+  margin: 6px 0 0 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Reserve space for price + button so the grid cell height is stable */
+.product .product-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  min-height: 56px !important;
+  box-sizing: border-box !important;
+  padding: 0 6px !important;
+}
+
+/* Pin Add to Cart to the bottom and keep consistent size */
+.product .add-btn,
+.product button.add-btn {
+  margin-top: auto !important;
+  align-self: center !important;
+  min-width: 110px !important;
+  max-width: 90% !important;
+  height: 40px !important;
+  padding: 8px 14px !important;
+  box-sizing: border-box !important;
+}
+
+/* Small screen tweaks */
+@media (max-width: 420px) {
+  .product .product-title { font-size: 13px !important; line-height: 1.2em !important; height: 1.2em !important; }
+  .product .product-info { min-height: 56px !important; }
+  .product .add-btn { min-width: 100px !important; height: 36px !important; padding: 6px 12px !important; }
+}
+
+/* Very narrow screens: allow two-line clamp (graceful fallback) */
+@supports (-webkit-line-clamp: 2) {
+  @media (max-width: 360px) {
+    .product .product-title {
+      display: -webkit-box !important;
+      -webkit-box-orient: vertical !important;
+      -webkit-line-clamp: 2 !important;
+      white-space: normal !important;
+      overflow: hidden !important;
+      height: calc(1.2em * 2) !important;
+    }
+    .product .product-info { min-height: 72px !important; }
+  }
+}
+</style>
+<!-- END: STRONG MOBILE ALIGNMENT FIX -->
+
+
+<!-- Compact spacing override added by ChatGPT to lift price & button -->
+<style id="chatgpt-compact-product-spacing">
+/* Collapse any extra forced heights and tighten gaps */
+.product, .product-card {
+  min-height: 0 !important;
+  height: auto !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+  justify-content: flex-start !important;
+}
+
+/* Make image and info sit tightly */
+.product .media-square,
+.product img,
+.product .product-image,
+.product .image-wrapper {
   margin: 0 !important;
   padding: 0 !important;
-  display: block !important;
-  box-sizing: border-box !important;
-  max-width: 100% !important;
+  line-height: 0 !important;
 }
 
-/* Grid centering on wide screens (optional) */
-.content, .product-grid {
-  max-width: 1200px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-/* Equal inner spacing inside each product card */
+/* Reduce gap between title and price, and between price and button */
 .product .product-info {
-  padding-left: 6px !important;
-  padding-right: 6px !important;
-  box-sizing: border-box !important;
+  margin-top: 2px !important;
+  padding-top: 0 !important;
+  gap: 4px !important; /* small but readable */
+  min-height: 0 !important;
+  padding: 0 6px !important;
 }
 
+/* Title - reserve a single compact line only */
+.product .product-title,
+.product .product-title * {
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.2em !important;
+  height: 1.2em !important;
+  margin: 4px 0 0 0 !important;
+  font-size: 14px !important;
+}
+
+/* Price row - pulled up */
+.product .price-row,
+.product .product-info b,
+.product .product-info s {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 14px !important;
+}
+
+/* Pull Add to Cart up and reduce spacing above it */
+.product .add-btn,
+.product button.add-btn {
+  margin-top: 6px !important;
+  margin-bottom: 8px !important;
+  align-self: center !important;
+  min-width: 100px !important;
+  height: 36px !important;
+  padding: 6px 12px !important;
+}
+
+/* Reduce vertical gaps in the grid */
+.product-grid {
+  row-gap: 6px !important;
+  gap: 6px 12px !important;
+  align-items: start !important;
+}
+
+/* Last resort: if any other rule forces large spacing, override */
+[class*="card"], [class*="details"], .card-body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
 </style>
 
 </head>
@@ -2000,7 +2237,14 @@ function isVideoUrl(url=""){
       title.style.fontSize = "14px";
       title.style.textAlign = "left";
       title.style.marginTop = "8px";
-      {const fullName = String(item["Product Name"] || "");const words = fullName.trim().split(/\s+/).filter(Boolean);let shortName = fullName;if (words.length > 2) {  const third = words[2].slice(0,1);  shortName = words[0] + ' ' + words[1] + ' ' + third + '...';} else {  shortName = fullName;}title.innerText = shortName;title.title = fullName;}
+      title.innerText = item["Product Name"];
+      try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
+      try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
+      try { title.setAttribute("title", String(item["Product Name"] || "")); } catch(e){}
+      try { title.setAttribute("aria-label", String(item["Product Name"] || "")); } catch(e){}
+      // ensure truncation works even if other CSS rules interfere
+      title.style.maxWidth = '100%';
+
       infoWrapper.appendChild(title);
 
       const info = document.createElement("div");
@@ -4442,7 +4686,9 @@ content.innerHTML = "";
       title.style.fontSize = "14px";
       title.style.textAlign = "left";
       title.style.marginTop = "8px";
-      {const fullName = String(item["Product Name"] || "");const words = fullName.trim().split(/\s+/).filter(Boolean);let shortName = fullName;if (words.length > 2) {  const third = words[2].slice(0,1);  shortName = words[0] + ' ' + words[1] + ' ' + third + '...';} else {  shortName = fullName;}title.innerText = shortName;title.title = fullName;}
+      title.innerText = item["Product Name"];
+      try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
+      try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
       infoWrapper.appendChild(title);
 
       const info = document.createElement("div");
@@ -4529,6 +4775,72 @@ loadAndRenderCatalog();
   setInterval(pollFn, POLL_MS);
 })();
 </script>
+
+
+<!-- START: Auto-truncate titles to 16 alphabet characters (added by ChatGPT) -->
+<script>
+(function(){
+  // Truncate product title text so it contains at most 16 alphabetic characters (A-Z, a-z).
+  // It preserves original punctuation/spaces up to the cutoff point and appends an ellipsis.
+  function truncateTo16Alphabets(node){
+    if(!node || !node.innerText) return;
+    const original = node.innerText.trim();
+    let letters = 0;
+    let out = "";
+    for (let i = 0; i < original.length; i++){
+      const ch = original[i];
+      if (/[A-Za-z]/.test(ch)) {
+        letters++;
+      }
+      if (letters > 16) break;
+      out += ch;
+    }
+    // If we didn't hit the limit and string shorter, leave as-is
+    if (out.length === original.length) return;
+    // Trim trailing spaces/punctuation and append ellipsis
+    out = out.replace(/\s+$/,'').replace(/[-–—,:;\/\|]+$/,'');
+    node.innerText = out + '…';
+  }
+
+  function runOnce(){
+    // Target selectors commonly used in this file
+    const selectors = [
+      '.product .product-title',
+      '.product .title',
+      '.product h3',
+      '.product-title',
+      '.product-card .product-title'
+    ];
+    const els = document.querySelectorAll(selectors.join(','));
+    els.forEach(el => {
+      // Avoid re-processing elements we've already handled
+      if (el.dataset._alphaTruncated === "1") return;
+      truncateTo16Alphabets(el);
+      el.dataset._alphaTruncated = "1";
+    });
+  }
+
+  // Run on DOM ready
+  if (document.readyState === "loading") {
+    document.addEventListener('DOMContentLoaded', runOnce);
+  } else {
+    runOnce();
+  }
+
+  // Watch for dynamically injected product cards (e.g., after sheet fetch)
+  const obs = new MutationObserver((mutations) => {
+    let found = false;
+    for (const m of mutations) {
+      if (m.addedNodes && m.addedNodes.length) {
+        found = true; break;
+      }
+    }
+    if (found) runOnce();
+  });
+  obs.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+<!-- END: Auto-truncate titles -->
 
 </body>
 </html>
