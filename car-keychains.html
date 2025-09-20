@@ -551,11 +551,7 @@ body.horizontal-mode .product img{
   border-radius: 10px !important; /* sleeker corners */
   display: block !important;
 }
-\1height: 100% !important; aspect-ratio: 1 / 1 !important;
-  object-fit:contain;
-  border-radius:12px;
-  background:#000;
-}
+
 
 
 /* Flexible content */
@@ -1554,6 +1550,44 @@ body.horizontal-mode .product-grid{
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
+/* ===== FULL FORCE OVERRIDE: equal 5px spacing left/right ===== */
+html, *, *::before, *::after {
+  box-sizing: border-box !important;
+}
+
+/* Product Grid container */
+.product-grid {
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Force product & media to behave cleanly */
+.product, .product .media-square, .product img {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+/* Grid centering on wide screens (optional) */
+.content, .product-grid {
+  max-width: 1200px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Equal inner spacing inside each product card */
+.product .product-info {
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+  box-sizing: border-box !important;
+}
+
 </style>
 
 </head>
@@ -1966,7 +2000,7 @@ function isVideoUrl(url=""){
       title.style.fontSize = "14px";
       title.style.textAlign = "left";
       title.style.marginTop = "8px";
-      {const fullName = String(item["Product Name"] || "");const words = fullName.trim().split(/\s+/).filter(Boolean);let shortName = fullName;if (words.length > 2) {  const third = words[2].slice(0,4);  shortName = words[0] + ' ' + words[1] + ' ' + third + '...';} else {  shortName = fullName;}title.innerText = shortName;title.title = fullName;}
+      {const fullName = String(item["Product Name"] || "");const words = fullName.trim().split(/\s+/).filter(Boolean);let shortName = fullName;if (words.length > 2) {  const third = words[2].slice(0,1);  shortName = words[0] + ' ' + words[1] + ' ' + third + '...';} else {  shortName = fullName;}title.innerText = shortName;title.title = fullName;}
       infoWrapper.appendChild(title);
 
       const info = document.createElement("div");
@@ -4408,7 +4442,7 @@ content.innerHTML = "";
       title.style.fontSize = "14px";
       title.style.textAlign = "left";
       title.style.marginTop = "8px";
-      {const fullName = String(item["Product Name"] || "");const words = fullName.trim().split(/\s+/).filter(Boolean);let shortName = fullName;if (words.length > 2) {  const third = words[2].slice(0,4);  shortName = words[0] + ' ' + words[1] + ' ' + third + '...';} else {  shortName = fullName;}title.innerText = shortName;title.title = fullName;}
+      {const fullName = String(item["Product Name"] || "");const words = fullName.trim().split(/\s+/).filter(Boolean);let shortName = fullName;if (words.length > 2) {  const third = words[2].slice(0,1);  shortName = words[0] + ' ' + words[1] + ' ' + third + '...';} else {  shortName = fullName;}title.innerText = shortName;title.title = fullName;}
       infoWrapper.appendChild(title);
 
       const info = document.createElement("div");
