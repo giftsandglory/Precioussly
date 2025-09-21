@@ -439,40 +439,55 @@ body {
 .proceed-btn:hover {
   background: #1565c0;               /* darker blue on hover */
 }
+/* -------- New / replacement styles for payment options -------- */
 .payment-method-box {
   margin-top: 20px;
-  padding: 16px;
-  border-radius: 10px;
-  background: #f9f9f9;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  padding: 6px;              /* small padding around the group */
+  border-radius: 12px;
+  background: transparent;   /* keep BG neutral; each option has its own box */
+  box-shadow: none;
   font-family: 'Roboto Slab', serif;
 }
 
+/* Each payment option becomes a slim rounded rectangle */
 .payment-option {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* text left, radio right */
+  gap: 12px;
+  padding: 12px 14px;
   margin-bottom: 10px;
-  font-size: 15px;
-  font-weight: 500;
+  border: 1.5px solid rgba(0,0,0,0.08); /* subtle default border */
+  border-radius: 10px;                  /* slight curve */
+  background: #fff;
   cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .08s ease;
+  user-select: none;
 }
 
-/* ✅ ULTRA-PREMIUM RADIO BUTTON DESIGN */
-.payment-option input[type="radio"] {
-  display: none;
+/* Make the .payment-text use left side */
+.payment-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+  flex: 1;               /* ensures text takes left space */
+  text-align: left;
 }
 
+/* Keep original custom-radio visuals but ensure it appears on right */
 .custom-radio {
   width: 20px;
   height: 20px;
-  border: 2.5px solid #2874f0;
+  border: 2.5px solid #cfcfcf; /* default gray border */
   border-radius: 50%;
   position: relative;
-  margin-right: 12px;
   display: inline-block;
+  flex: 0 0 auto;
 }
 
-.payment-option input[type="radio"]:checked + .custom-radio::before {
+/* checked appearance (the inner dot) - we will use JS to toggle parent class,
+   but keep this selector for inputs immediately followed by .custom-radio if used */
+.payment-option input[type="radio"]:checked + .payment-text + .custom-radio::before {
   content: '';
   width: 10px;
   height: 10px;
@@ -484,10 +499,18 @@ body {
   transform: translate(-50%, -50%);
 }
 
-button {
-  font-family: inherit;
-  cursor: pointer;
+/* Style for selected box (added by JS) */
+.payment-option.selected {
+  border-color: #2874f0;
+  box-shadow: 0 6px 18px rgba(40,116,240,0.08);
+  transform: translateY(-1px);
 }
+
+/* Make sure clicking anywhere on the label triggers the radio (native behavior) */
+.payment-option input[type="radio"] {
+  display: none; /* radio control is hidden (we use custom-radio) */
+}
+
 
 /* POLISHED ADDRESS POPUP */
 .address-popup-overlay {
@@ -1314,6 +1337,13 @@ button.remove-btn:hover {
   z-index: 4000;            /* keep it above page content */
 }
 
+/* COD charges ke liye halka red */
+.cod-chip {
+  color: #d9534f;   /* halka red shade */
+  font-weight: 600; /* thoda bold for visibility */
+}
+
+
 </style>
 </head>
 <body>
@@ -1430,17 +1460,25 @@ button.remove-btn:hover {
   <div class="summary-row"><span>Delivery Fee</span><span><span class="spinner"></span></span></div>
   <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span><span class="spinner"></span></span></div>
 </div>
+<!-- Payment section: place this where the old .payment-method-box block was -->
+<div class="payment-method-heading" style="margin-top: 18px; margin-bottom: 8px;">
+  <div style="font-weight:700; font-size:15px;">Select Payment Method</div>
+</div>
+
 <div class="payment-method-box" id="paymentMethodBox">
   <label class="payment-option">
     <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
-    <span class="custom-radio"></span>
-    Pay via Razorpay
+    <span class="payment-text">Pay via Razorpay</span>
+    <span class="custom-radio" aria-hidden="true"></span>
   </label>
 
   <label class="payment-option">
     <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
-    <span class="custom-radio"></span> <span id="codLabelText">Cash on Delivery</span></label>
+    <span class="payment-text">Cash on Delivery</span>
+    <span class="custom-radio" aria-hidden="true"></span>
+  </label>
 </div>
+
 <div id="minimumNotice" style="display: none; text-align: center; color: #d9534f; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
 </div><!-- Fast Delivery Notice (left-aligned, above pay button) -->
 <div id="fastDeliveryRow" style="display:flex;align-items:center;gap:0px;margin-top:0px;margin-bottom:0px;line-height:1;">
@@ -1792,22 +1830,16 @@ function confirmAddress() {
       } catch(e) { window.codCharge = window.codCharge || 0; }
 
       // Update COD label text dynamically
+            // Update COD label text safely (do not insert extra DOM nodes)
       try {
         var codInput = document.querySelector('input[name="paymentMethod"][value="cod"]');
         if (codInput) {
-          var codLabel = codInput.parentElement;
-          // ensure a span exists for text
-          if (!codLabel.querySelector('#codLabelText')) {
-            var radioSpan = codLabel.querySelector('.custom-radio');
-            if (radioSpan) {
-              radioSpan.insertAdjacentHTML('afterend', ' <span id="codLabelText"></span>');
-              // remove trailing text nodes if any
-            }
-          }
-          var lbl = codLabel.querySelector('#codLabelText');
-          if (lbl) lbl.textContent = 'Cash on Delivery';
+          // update the existing .payment-text span inside the label
+          var textSpan = codInput.parentElement.querySelector('.payment-text');
+          if (textSpan) textSpan.textContent = 'Cash on Delivery';
         }
-      } catch(e) {}
+      } catch (e) {}
+
 
       // Show on screen
       document.getElementById("summaryBox").innerHTML = `
@@ -2763,7 +2795,8 @@ if (couponToUse && document.getElementById("couponInput")) {
   document.getElementById("summaryBox").innerHTML = `
     <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
     <div class="summary-row"><span>Delivery Fee</span><span>${feeText}</span></div>
-    ${codFee ? `<div class="summary-row"><span>COD Charges</span><span>₹${codFee}</span></div>` : ""}
+    ${codFee ? `<div class="summary-row"><span>COD Charges</span><span class="cod-chip">₹${codFee}</span></div>` : ""}
+
     ${discount ? `<div class="summary-row"><span>Coupon (${couponToUse.code})</span><span>-₹${discount}</span></div>` : ""}
     <div class="summary-row" style="font-weight: bold; font-size: 18px;"><span>Order Total</span><span>₹${grand}</span></div>
   `;
@@ -2995,14 +3028,14 @@ if (couponToUse && document.getElementById("couponInput")) {
 <div class="address-popup-overlay" id="cod95Popup" style="display:none;">
   <div class="address-popup-box" style="text-align:center;max-width:320px;">
     <div style="font-size:18px;font-weight:700;margin-bottom:6px;">
-      Pay ₹1 now, rest to Delivery Partner
+      Pay ₹95 now, rest to Delivery Partner
     </div>
     <div style="font-size:15px;color:#444;margin-bottom:14px;">
        Remaining amount will be collected by the delivery partner at doorstep.
     </div>
     <div class="button-row" style="flex-direction:column;gap:10px;margin-top:12px;">
       <button class="popup-razorpay-btn" onclick="startCOD95WithSpinner(this)" style="background:#2874f0;color:#fff;border:none;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
-        <span class="btn-label">Pay ₹1 now</span>
+        <span class="btn-label">Pay ₹95 now</span>
         <span class="btn-spinner" aria-hidden="true"></span>
       </button>
       <button class="popup-razorpay-btn btn--outline" onclick="closeCOD95Popup()" style="background:#fff;color:#000;border:1.4px solid #000;border-radius:12px;padding:12px;font-size:16px;font-family:'Roboto Slab',serif;">
@@ -4750,6 +4783,41 @@ function buildRazorpayNotes(){
 
   // Expose for manual use if needed
   window.repairCartVideos = repairMediaCards;
+})();
+</script>
+<script>
+// Ensure visual selected class toggles for payment labels
+(function(){
+  function refreshSelected() {
+    document.querySelectorAll('.payment-option').forEach(function(lbl){
+      lbl.classList.remove('selected');
+    });
+    const checked = document.querySelector('input[name="paymentMethod"]:checked');
+    if (checked && checked.parentElement && checked.parentElement.classList.contains('payment-option')) {
+      checked.parentElement.classList.add('selected');
+    }
+  }
+
+  // on page load
+  document.addEventListener('DOMContentLoaded', refreshSelected);
+
+  // whenever any payment radio changes
+  document.addEventListener('change', function(e){
+    if (e.target && e.target.name === 'paymentMethod') {
+      refreshSelected();
+    }
+  });
+
+  // also make label clickable (for some edge-cases when text nodes were rearranged)
+  document.querySelectorAll('.payment-option').forEach(function(lbl){
+    lbl.addEventListener('click', function(e){
+      const input = lbl.querySelector('input[type="radio"]');
+      if (input && !input.checked) {
+        input.checked = true;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+  });
 })();
 </script>
 
