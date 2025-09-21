@@ -2746,35 +2746,7 @@ function toggleMenu() {
   const submenu = document.getElementById(id);
   submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
 }
-fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
-  .then(res => res.json())
-  .then(data => {
-    const strip = document.getElementById("imageStrip");
-    data.forEach(row => {
-      const url = row["(media_url)"];
-      if (!url) return;
 
-      let el;
-      if (url.trim().endsWith(".mp4")) {
-        el = document.createElement("video");
-        el.src = url.trim();
-        el.controls = true;
-        el.muted = true;
-        el.loop = true;
-        el.playsInline = true;
-      } else {
-        el = document.createElement("img");
-        el.src = url.trim();
-      }
-
-      el.className = "strip-media";
-      strip.appendChild(el);
-      setTimeout(() => {
-  const itemWidth = strip.children[0]?.offsetWidth || 0;
-  if (itemWidth) strip.scrollLeft = itemWidth;
-}, 300);
-    });
-  });
 
 function renderIGDots(container, total, currentIndex, maxVisible = 5){
   if(!container) return;
@@ -2831,7 +2803,7 @@ let dots = [];
 const slider = document.getElementById("fadeSlider");
 const dotsContainer = document.getElementById("fadeDots");
 
-fetch("https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1")
+fetch("")
   .then(res => res.json())
   .then(data => {
     data.forEach((row, index) => {
@@ -4735,5 +4707,79 @@ try {
   };
 })();
 </script>
+<script id="hero-swr-cache">
+(function(){
+  const URL_HERO = "https://opensheet.elk.sh/1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc/Sheet1";
+  const CACHE_KEY_HERO = "swr::heroSheet";
+  const slider = document.getElementById("fadeSlider");
+  const dotsContainer = document.getElementById("fadeDots");
+  const counter = document.getElementById("fadeCounter");
+  let slides = [], dots = [], currentIndex = 0;
+
+  function same(a,b){ try{return JSON.stringify(a)===JSON.stringify(b);}catch(e){return false;} }
+  function readCache(){ try{return JSON.parse(localStorage.getItem(CACHE_KEY_HERO))||null;}catch(e){return null;} }
+  function writeCache(data){ try{localStorage.setItem(CACHE_KEY_HERO, JSON.stringify(data));}catch(e){} }
+
+  function render(data){
+    if(!Array.isArray(data)) return;
+    slider.innerHTML = ""; dotsContainer.innerHTML = ""; slides = []; dots = [];
+    data.forEach((row, index) => {
+      const url = (row["(media_url)"]||"").trim(); if(!url) return;
+      const link = (row["Linked"]||row["linked"]||row["Link"]||row["link"]||"").trim();
+      const wrap = document.createElement(link ? "a" : "div");
+      wrap.className = "fade-slide" + (index===0?" active":"");
+      if(link){ wrap.href = link; wrap.style.cursor = "pointer"; }
+      let media;
+      if(url.toLowerCase().endsWith(".mp4")){
+        media = document.createElement("video");
+        media.src = url; media.loop = true; media.muted = true; media.autoplay = true; media.playsInline = true;
+      } else {
+        media = document.createElement("img");
+        media.src = url; media.alt = "";
+      }
+      media.style.width = "100%"; media.style.height = "100%"; media.style.objectFit = "cover";
+      wrap.appendChild(media);
+      slider.appendChild(wrap);
+      slides.push(wrap);
+
+      const dot = document.createElement("div");
+      dot.className = "fade-dot" + (index===0?" active":"");
+      dot.addEventListener("click", ()=>showSlide(index));
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
+    });
+    updateCounter();
+  }
+
+  function updateCounter(){
+    counter.textContent = (currentIndex+1) + "/" + slides.length;
+  }
+
+  function showSlide(i){
+    slides[currentIndex]?.classList.remove("active");
+    dots[currentIndex]?.classList.remove("active");
+    currentIndex = i;
+    slides[currentIndex]?.classList.add("active");
+    dots[currentIndex]?.classList.add("active");
+    updateCounter();
+  }
+
+  function fromNetwork(){
+    return fetch(URL_HERO, {cache:"no-store"}).then(r=>r.json()).then(fresh=>{
+      const cached = readCache();
+      if(!cached || !same(cached,fresh)){
+        writeCache(fresh);
+        render(fresh);
+      }
+    }).catch(()=>{});
+  }
+
+  // SWR logic
+  const cache = readCache();
+  if(cache){ render(cache); fromNetwork(); } else { fromNetwork(); }
+
+})();
+</script>
+
 </body>
 </html>
