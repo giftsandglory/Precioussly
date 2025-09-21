@@ -3409,7 +3409,7 @@ function applyDirectionFromSheet(rows){
       const obs = new MutationObserver(() => {
         const isOpen = window.getComputedStyle(popup).display === 'flex';
         if (isOpen && !(history.state && history.state.popupOpen)) {
-          try { history.pushState({ popupOpen: true }, "", location.href); } catch(e) {}
+          try { history.replaceState({ popupOpen: true }, "", location.href); } catch(e) {}
         }
       });
       obs.observe(popup, { attributes: true, attributeFilter: ['style', 'class'] });
@@ -3771,7 +3771,7 @@ if (popup){
     window.openPopup = function() {
       try {
         if (!history.state || !history.state.__popup) {
-          history.pushState({ __popup: true }, "", location.href);
+          history.replaceState({ __popup: true }, "", location.href);
         }
       } catch (e) {}
       return __origOpenPopup.apply(this, arguments);
@@ -3863,7 +3863,7 @@ if (popup){
   if (profEl) {
     const pushIfNeeded = () => {
       if (profileOpen() && !(history.state && history.state.__profile)) {
-        try { history.pushState({ __profile: true }, "", location.href); } catch(e){}
+        try { history.replaceState({ __profile: true }, "", location.href); } catch(e){}
       }
     };
     const mo = new MutationObserver(pushIfNeeded);
@@ -3890,7 +3890,7 @@ if (popup){
   if (prodEl) {
     const mo2 = new MutationObserver(() => {
       if (productOpen() && !(history.state && history.state.__product)) {
-        try { history.pushState({ __product: true }, "", location.href); } catch(e){}
+        try { history.replaceState({ __product: true }, "", location.href); } catch(e){}
       }
     });
     mo2.observe(prodEl, { attributes: true, attributeFilter: ['class','style'] });
