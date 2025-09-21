@@ -2531,6 +2531,10 @@ down-toggle {
     outline: none !important;
   }
 </style>
+<style id="instant-display-fixes">
+  img, video { transition: none !important; }
+  .popup-box, .pp-card, .pp-overlay, .overlay { transition: none !important; }
+</style>
 </head>
 <body>
 </div>
@@ -4658,157 +4662,53 @@ try {
     try { return SHEET_PATTERNS.some(p => String(u).includes(p)); } catch { return false; }
   };
 
-  const NAV = (performance.getEntriesByType && performance.getEntriesByType('navigation') && performance.getEntriesByType('navigation')[0]) || {};
-  const isHardReload = NAV.type === 'reload' || NAV.type === 'back_forward';
-
   const noCacheParam = !!(location.search && location.search.indexOf('nocache=1') !== -1);
 
   let isUserDragging = false;
-  const dragSelectors = ['.cat-strip', '.bestsellers', '.ff-track', '.insta-track', '.happy-row'];
-  function setDragListeners(){
-    dragSelectors.forEach(sel=>{
-      document.querySelectorAll(sel).forEach(el=>{
-        if (el.__swr_listeners) return;
-        el.__swr_listeners = true;
-        el.addEventListener('pointerdown', ()=> isUserDragging = true, {passive:true});
-        el.addEventListener('touchstart', ()=> isUserDragging = true, {passive:true});
-        window.addEventListener('pointerup', ()=> {
-          if (isUserDragging){
-            isUserDragging = false;
-            window.dispatchEvent(new CustomEvent('swr:dragend'));
-          }
-        }, {passive:true});
-        window.addEventListener('touchend', ()=> {
-          if (isUserDragging){
-            isUserDragging = false;
-            window.dispatchEvent(new CustomEvent('swr:dragend'));
-          }
-        }, {passive:true});
-      });
-    });
-  }
-  setDragListeners();
-  const mo = new MutationObserver(()=> setDragListeners());
-  mo.observe(document.documentElement || document.body, { childList:true, subtree:true });
+  window.addEventListener('pointerdown', ()=> isUserDragging = true, {passive:true});
+  window.addEventListener('pointerup', ()=> isUserDragging = false, {passive:true});
+  window.addEventListener('touchstart', ()=> isUserDragging = true, {passive:true});
+  window.addEventListener('touchend', ()=> isUserDragging = false, {passive:true});
 
   function cacheKey(url){ return 'swr::' + url; }
   function readCache(url){
     try{ const raw = localStorage.getItem(cacheKey(url)); return raw ? JSON.parse(raw) : null; }catch{ return null; }
   }
   function writeCache(url, data){
-    try{ localStorage.setItem(cacheKey(url), JSON.stringify({ts:Date.now(), data: data})); }catch(e){ console.warn('SWR cache write failed', e); }
+    try{ localStorage.setItem(cacheKey(url), JSON.stringify({ts:Date.now(), data:data})); }catch(e){}
   }
-
   function isSame(a,b){ try{ return JSON.stringify(a) === JSON.stringify(b); }catch{ return false; } }
-
-  const pendingUpdates = new Map(); // url -> data
-
-  window.addEventListener('swr:dragend', function(){
-    for (const [url, data] of pendingUpdates.entries()){
-      pendingUpdates.delete(url);
-      applyUpdate(url, data);
-    }
-  });
-
-  function snapshotScrollPositions(){
-    const els = document.querySelectorAll('.cat-strip, .bestsellers, .ff-track, .insta-track, .happy-row');
-    const arr = [];
-    els.forEach((el, idx)=>{
-      arr.push({selector: getCssPath(el), scrollLeft: el.scrollLeft});
-    });
-    return arr;
-  }
-  function restoreScrollPositions(snaps){
-    requestAnimationFrame(()=>{
-      snaps.forEach(s=>{
-        const el = document.querySelector(s.selector);
-        if (el) el.scrollLeft = s.scrollLeft;
-      });
-    });
-  }
-  function getCssPath(el){
-    if (!el) return '';
-    if (el.id) return '#' + el.id;
-    const parts = [];
-    while (el && el.nodeType === 1 && el !== document.body){
-      let part = el.nodeName.toLowerCase();
-      if (el.className){
-        const cls = String(el.className).trim().split(/\s+/)[0];
-        if (cls) part += '.' + cls;
-      }
-      const parent = el.parentElement;
-      if (parent){
-        const siblings = Array.from(parent.children).filter(c=>c.nodeName===el.nodeName);
-        if (siblings.length > 1){
-          const idx = Array.prototype.indexOf.call(parent.children, el) + 1;
-          part += `:nth-child(${idx})`;
-        }
-      }
-      parts.unshift(part);
-      el = el.parentElement;
-    }
-    return parts.join(' > ');
-  }
 
   function applyUpdate(url, data){
     writeCache(url, data);
-
-    const snaps = snapshotScrollPositions();
-
     try{
-      if (String(url).includes('opensheet.elk.sh') || String(url).includes('/gviz/tq')) {
-        if (typeof window.loadCategories === 'function') try{ window.loadCategories(); }catch(e){console.warn(e);}
-        if (typeof window.loadHero === 'function') try{ window.loadHero(); }catch(e){console.warn(e);}
-        if (typeof window.reloadCoupons === 'function') try{ window.reloadCoupons(); }catch(e){  }
-        if (typeof window.reloadHappy === 'function') try{ window.reloadHappy(); }catch(e){  }
-        document.dispatchEvent(new CustomEvent('swr:cache:update', {detail:{url, data}}));
-      } else {
-        document.dispatchEvent(new CustomEvent('swr:cache:update', {detail:{url, data}}));
-      }
-    }catch(e){ console.warn('applyUpdate error', e); }
-
-    setTimeout(()=> restoreScrollPositions(snaps), 120);
+      if (typeof window.loadCategories === 'function') window.loadCategories();
+      if (typeof window.loadHero === 'function') window.loadHero();
+      if (typeof window.reloadCoupons === 'function') window.reloadCoupons();
+      if (typeof window.reloadHappy === 'function') window.reloadHappy();
+      document.dispatchEvent(new CustomEvent('swr:cache:update', {detail:{url, data}}));
+    }catch(e){}
   }
 
-  const pollingSet = new Set();
-  function ensurePolling(url){
-    if (pollingSet.has(url)) return;
-    pollingSet.add(url);
-    setInterval(()=> {
-      swrNetworkFetch(url).catch(()=>{});
-    }, 3000);
-  }
-
-  async function swrNetworkFetch(url, init){
-    try{
-      const r = await ORIGINAL_FETCH(url, init);
-      const ct = r.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        const json = await r.clone().json();
-        const prev = readCache(url);
-        if (!prev || !isSame(prev.data, json)){
-          if (isUserDragging){
-            pendingUpdates.set(url, json);
-          } else {
-            applyUpdate(url, json);
-          }
-        }
-        return json;
-      } else {
-        const txt = await r.clone().text();
-        try{
-          const parsed = (typeof parseGviz === 'function') ? parseGviz(txt) : JSON.parse(txt);
-          const prev = readCache(url);
-          if (!prev || !isSame(prev.data, parsed)){
-            if (isUserDragging) pendingUpdates.set(url, parsed); else applyUpdate(url, parsed);
-          }
-          return parsed;
-        }catch(e){
-          return txt;
-        }
+  async function networkFetch(url, init){
+    const r = await ORIGINAL_FETCH(url, init);
+    const ct = r.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      const json = await r.clone().json();
+      const prev = readCache(url);
+      if (!prev || !isSame(prev.data, json)) applyUpdate(url, json);
+      return json;
+    } else {
+      const txt = await r.clone().text();
+      let parsed;
+      try {
+        parsed = (typeof parseGviz === 'function') ? parseGviz(txt) : JSON.parse(txt);
+      } catch(e) {
+        parsed = txt;
       }
-    }catch(e){
-      throw e;
+      const prev = readCache(url);
+      if (!prev || !isSame(prev.data, parsed)) applyUpdate(url, parsed);
+      return parsed;
     }
   }
 
@@ -4817,112 +4717,22 @@ try {
       const url = (typeof input === 'string') ? input : (input && input.url) || '';
       if (!isSheetUrl(url)) return ORIGINAL_FETCH(input, init);
 
-      const forceNetwork = noCacheParam || isHardReload;
-
       const cached = readCache(url);
-      if (!forceNetwork && cached && cached.data){
+      if (cached && cached.data && !noCacheParam){
+        // Serve instantly from cache
         const body = JSON.stringify(cached.data);
-        swrNetworkFetch(url, init).catch(()=>{});
-        const resp = new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' }});
-        return Promise.resolve(resp);
+        // Trigger background revalidation
+        networkFetch(url, init).catch(()=>{});
+        return Promise.resolve(new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' }}));
       } else {
-        return ORIGINAL_FETCH(input, init).then(async (r)=>{
-          try{
-            const ct = r.headers.get('content-type') || '';
-            let parsed = null;
-            if (ct.includes('application/json')) parsed = await r.clone().json();
-            else {
-              const txt = await r.clone().text();
-              try{ parsed = (typeof parseGviz==='function') ? parseGviz(txt) : JSON.parse(txt); }catch{ parsed = txt; }
-            }
-            if (parsed !== null) writeCache(url, parsed);
-            if (!isUserDragging) applyUpdate(url, parsed); else pendingUpdates.set(url, parsed);
-          }catch(e){  }
-          return r;
-        });
+        return networkFetch(url, init).then(data => 
+          new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' }})
+        );
       }
     }catch(e){
       return ORIGINAL_FETCH(input, init);
     }
   };
-
-  window.loadAndRenderCatalog = async function(){
-    try{
-      const snaps = snapshotScrollPositions();
-
-      const content = document.getElementById('categorySection') || document.getElementById('content') || null;
-      if (content) content.innerHTML = '';
-
-      if (typeof window.loadCategories === 'function') { try{ await window.loadCategories(); }catch(e){console.warn(e);} }
-      if (typeof window.loadHero === 'function') { try{ await window.loadHero(); }catch(e){console.warn(e);} }
-      if (typeof window.reloadCoupons === 'function') { try{ await window.reloadCoupons(); }catch(e){console.warn(e);} } else {
-        try{ if (window.couponSheetURL) fetch(window.couponSheetURL).then(r=>r.json()).then(data=> { const container = document.getElementById('couponContainer'); if (container){ container.innerHTML=''; data.forEach(c=>{ if (!c.Title || !c.MinAmount || !c.Code || !c.Discount) return; const html = `<div class="coupon-card"><h3>${c.Title}</h3><p>Buy for min of ₹${c.MinAmount}</p><div class="code-row"><div class="code-box">${c.Code}</div><div class="copy-btn" onclick=\"navigator.clipboard.writeText('${c.Code}')\"><svg viewBox=\"0 0 24 24\"><rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\" ry=\"2\"/></svg></div></div></div>`; container.innerHTML += html; }); } }); }catch(e){} }
-      if (typeof window.reloadHappy === 'function') { try{ await window.reloadHappy(); }catch(e){console.warn(e);} } else {
-        if (typeof window.SHEET_ID !== 'undefined') {
-          try{ fetch(`https://opensheet.elk.sh/${window.SHEET_ID}/Sheet1`).then(r=>r.json()).then(rows=>{ const rowEl = document.getElementById('happyRow'); if (rowEl){ rowEl.innerHTML=''; rows.forEach(r=>{ const photo = r.photo||r.Photo||r.image||''; if(!photo) return; const div = document.createElement('div'); div.className='happy-card'; div.innerHTML = `<img class="happy-photo" src="${photo}"><div class="happy-id">${r.insta||r.handle||''}</div>`; rowEl.appendChild(div); }); } }); }catch(e){}
-      }
-
-      document.dispatchEvent(new CustomEvent('swr:render:done'));
-
-      setTimeout(()=> restoreScrollPositions(snaps), 120);
-    }catch(e){ console.warn('loadAndRenderCatalog error', e); }
-  };
-
-  if (typeof window.reloadCoupons !== 'function'){
-    window.reloadCoupons = async function(){
-      try{
-        if (!window.couponSheetURL) return;
-        const data = await fetch(window.couponSheetURL).then(r=>r.json());
-        const container = document.getElementById("couponContainer");
-        if (!container) return;
-        container.innerHTML = '';
-        data.forEach(c => {
-          if (!c.Title || !c.MinAmount || !c.Code || !c.Discount) return;
-          const html = `<div class="coupon-card"><h3>${c.Title}</h3><p>Buy for min of ₹${c.MinAmount}</p><div class="code-row"><div class="code-box">${c.Code}</div><div class="copy-btn" onclick="navigator.clipboard.writeText('${c.Code}')"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/></svg></div></div></div>`;
-          container.innerHTML += html;
-        });
-      }catch(e){ console.warn(e); }
-    };
-  }
-
-  if (typeof window.reloadHappy !== 'function'){
-    window.reloadHappy = async function(){
-      try{
-        const possible = Array.from(document.querySelectorAll('script')).map(s=>s.textContent||'').join('|||');
-        const m = possible.match(/opensheet\.elk\.sh\/([A-Za-z0-9_-]+)/);
-        const sheet = m ? `https://opensheet.elk.sh/${m[1]}/Sheet1` : null;
-        if (!sheet) return;
-        const rows = await fetch(sheet).then(r=>r.json());
-        const rowEl = document.getElementById('happyRow');
-        if (!rowEl) return;
-        rowEl.innerHTML = '';
-        rows.forEach(r=>{
-          const photo = (r.photo||r.Photo||r.image||'').trim();
-          if(!photo) return;
-          const card = document.createElement('div'); card.className='happy-card';
-          const img = document.createElement('img'); img.className='happy-photo'; img.src = photo; card.appendChild(img);
-          const cap = document.createElement('div'); cap.className='happy-id'; cap.textContent = r.insta || r.instagram || r.handle || ''; card.appendChild(cap);
-          rowEl.appendChild(card);
-        });
-      }catch(e){ console.warn(e); }
-    };
-  }
-
-  try{
-    const scriptsText = Array.from(document.querySelectorAll('script')).map(s=>s.src || s.textContent || '').join(' ');
-    const urls = new Set();
-    (scriptsText.match(/https?:\/\/[^\s'"]+/g) || []).forEach(u=>{
-      if (isSheetUrl(u)) urls.add(u.split('?')[0]);
-    });
-    urls.forEach(u=>{ ensurePolling(u); });
-  }catch(e){}
-
-  document.addEventListener('DOMContentLoaded', ()=> {
-    try{
-      if (typeof window.loadAndRenderCatalog === 'function') window.loadAndRenderCatalog();
-    }catch(e){}
-  });
-
 })();
 </script>
 </body>
