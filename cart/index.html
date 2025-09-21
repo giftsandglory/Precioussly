@@ -1434,7 +1434,7 @@ button.remove-btn:hover {
   <label class="payment-option">
     <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
     <span class="custom-radio"></span>
-    Pay via Razorpay (Free Delivery)
+    Pay via Razorpay
   </label>
 
   <label class="payment-option">
@@ -1805,7 +1805,7 @@ function confirmAddress() {
             }
           }
           var lbl = codLabel.querySelector('#codLabelText');
-          if (lbl) lbl.textContent = 'Cash on Delivery (+₹' + window.codCharge + ')';
+          if (lbl) lbl.textContent = 'Cash on Delivery';
         }
       } catch(e) {}
 
