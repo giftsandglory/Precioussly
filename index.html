@@ -1131,6 +1131,12 @@ down-toggle {
 
 #categorySection .cat-card .label{display:block;}
 
+
+.happy-card img {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
 </style>
 <style>
 
@@ -1852,6 +1858,8 @@ down-toggle {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap:12px;
   padding: 0 12px 4px;
+
+  align-items: flex-start;
 }
 @media (max-width: 720px){
   .happy-row{
@@ -1860,7 +1868,9 @@ down-toggle {
     overflow-x:auto;
     -webkit-overflow-scrolling: touch;
     padding: 0 12px 4px;
-  }
+  
+  align-items: flex-start;
+}
   .happy-card{ flex: 0 0 72%; max-width: 260px; }
 }
 .happy-card{
@@ -1922,6 +1932,8 @@ down-toggle {
 #happySection .happy-row{
   padding-left: 7px !important;
   padding-right: 7px !important;
+
+  align-items: flex-start;
 }
 </style>
 <style id="instagram-banner-css">
@@ -2493,7 +2505,9 @@ down-toggle {
     padding-left: 7px !important;
     padding-right: 7px !important;
     overflow-x: auto;
-  }
+  
+  align-items: flex-start;
+}
 </style>
 <style id="happy-id-link-fix">
 
@@ -4015,20 +4029,16 @@ try {
             img.src = photo;
             card.appendChild(img);
           }
-          let cap;
+          // Only show the Instagram handle element when we actually have a handle.
           if (handle) {
-            cap = document.createElement('a');
+            const cap = document.createElement('a');
             cap.className = 'happy-id';
             cap.href = `https://instagram.com/${handle}`;
             cap.target = '_blank';
             cap.rel = 'noopener';
             cap.textContent = '@' + handle;
-          } else {
-            cap = document.createElement('div');
-            cap.className = 'happy-id';
-            cap.textContent = '';
+            card.appendChild(cap);
           }
-          card.appendChild(cap);
 
           if (buyUrl) {
             const btn = document.createElement('a');
