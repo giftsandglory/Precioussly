@@ -4407,6 +4407,96 @@ loadAndRenderCatalog();
 })();
 </script>
 
+
+<!-- Popup history handling fixes: use replaceState (no extra history entries) -->
+<script>
+(function(){
+  const POPUP_ID = 'productPopup';
+  const popupEl = () => document.getElementById(POPUP_ID);
+
+  function slugify(name){
+    return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
+  }
+
+  // Ensure a base history state exists (mark whether popup initially open)
+  try {
+    const initialHasP = !!(new URLSearchParams(location.search).get('p'));
+    const baseState = Object.assign({}, history.state || {}, { __base: true, popupOpen: initialHasP });
+    history.replaceState(baseState, "", location.href);
+  } catch(e){ /* ignore */ }
+
+  // Wrap existing openPopup to use replaceState (no pushState)
+  const origOpen = window.openPopup;
+  if (typeof origOpen === 'function') {
+    window.openPopup = function(images, name, mrp, price, stock, desc){
+      // call original implementation first to render popup
+      try { const res = origOpen.apply(this, arguments); } catch(e){ console.warn("openPopup original failed:", e); }
+
+      // set URL param to ?p=slug using replaceState so no new history entry is created
+      try {
+        const slug = slugify(name);
+        const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
+        const nextState = Object.assign({}, history.state || {}, { __base: true, popupOpen: true });
+        history.replaceState(nextState, "", newUrl);
+      } catch (e) { console.warn("replaceState openPopup failed:", e); }
+    };
+  }
+
+  // Wrap closePopup to remove ?p param via replaceState
+  const origClose = window.closePopup;
+  window.closePopup = function(){
+    // call any existing close logic
+    try { if (typeof origClose === 'function') origClose.apply(this, arguments); } catch(e){ console.warn("closePopup original failed:", e); }
+
+    // hide popup UI if still visible (safe-guard)
+    try {
+      const el = popupEl();
+      if (el){
+        el.classList.remove('is-open');
+        el.style.display = 'none';
+        document.body.classList.remove('noscroll');
+      }
+    } catch(e){}
+
+    // replace history to remove param
+    try {
+      const nextState = Object.assign({}, history.state || {}, { __base: true, popupOpen: false });
+      history.replaceState(nextState, "", location.pathname);
+    } catch (e) { console.warn("replaceState closePopup failed:", e); }
+  };
+
+  // Popstate handler: make sure popup visibility follows state.popupOpen
+  window.addEventListener('popstate', function(ev){
+    const st = ev.state || {};
+    const el = popupEl();
+    const isVisible = el && (el.classList.contains('is-open') || getComputedStyle(el).display !== 'none');
+    if (st.popupOpen) {
+      // ensure popup is open (try maybeOpenFromURL if available)
+      if (!isVisible) {
+        const p = new URLSearchParams(location.search).get('p');
+        if (p && typeof maybeOpenFromURL === 'function') {
+          try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
+        } else {
+          // fallback: just show popup element if present
+          try {
+            if (el){ el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+          } catch(e){}
+        }
+      }
+    } else {
+      // ensure popup is closed
+      if (isVisible) {
+        try { 
+          if (el){ el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); }
+        } catch(e){}
+      }
+    }
+  }, false);
+
+})();
+</script>
+<!-- End history-fix -->
+
 </body>
 </html>
 
