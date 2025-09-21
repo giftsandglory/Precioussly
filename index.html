@@ -2919,32 +2919,61 @@ slider.addEventListener("mouseleave", () => { mouseDown = false; });
 
 </script>
 <script>
-window.couponSheetURL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
+(function(){
+  const COUPON_URL = "https://opensheet.elk.sh/1AthYJZwY7oCU27aerHzMk8NosYdo2iprEVZmdOGxkXs/Sheet1";
+  const CACHE_KEY = "swr::coupons";
+  const container = document.getElementById("couponContainer");
 
-fetch(couponSheetURL)
-  .then(res => res.json())
-  .then(data => {
-    const container = document.getElementById("couponContainer");
-    data.forEach(c => {
+  function same(a,b){ try{return JSON.stringify(a)===JSON.stringify(b);}catch(e){return false;} }
+  function readCache(){ try{return JSON.parse(localStorage.getItem(CACHE_KEY))||null;}catch(e){return null;} }
+  function writeCache(data){ try{localStorage.setItem(CACHE_KEY,JSON.stringify(data));}catch(e){} }
+
+  function renderCoupons(data){
+    if(!container) return;
+    container.innerHTML = "";
+    (data||[]).forEach(c=>{
       if (!c.Title || !c.MinAmount || !c.Code || !c.Discount) return;
-      const html = `
-        <div class="coupon-card">
-<h3>${c.Title}</h3>
-<p>Buy for min of ₹${c.MinAmount}</p>
-<div class="code-row">
-<div class="code-box">${c.Code}</div>
-<div class="copy-btn" onclick="navigator.clipboard.writeText('${c.Code}')">
-<svg viewBox="0 0 24 24">
-<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-<path d="M5 15H4a2 2 0 0 1-2-2V4
-                         a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-</svg>
-</div>
-</div>
-</div>`;
-      container.innerHTML += html;
+      container.insertAdjacentHTML("beforeend", `
+        <div class="coupon-card" style="opacity:0;transform:translateY(6px);transition:opacity .25s ease,transform .25s ease;">
+          <h3>${c.Title}</h3>
+          <p>Buy for min of ₹${c.MinAmount}</p>
+          <div class="code-row">
+            <div class="code-box">${c.Code}</div>
+            <div class="copy-btn" data-copy="${c.Code}">
+              <svg viewBox="0 0 24 24">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4
+                              a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      `);
     });
-  });
+    requestAnimationFrame(()=>{
+      container.querySelectorAll(".coupon-card").forEach(card=>{
+        card.style.opacity = "1";
+        card.style.transform = "none";
+      });
+    });
+  }
+
+  function fromNetwork(){
+    return fetch(COUPON_URL,{cache:"no-store"})
+      .then(r=>r.json())
+      .then(fresh=>{
+        const cached = readCache();
+        if(!cached || !same(cached,fresh)){
+          writeCache(fresh);
+          renderCoupons(fresh);
+        }
+      }).catch(()=>{});
+  }
+
+  const cached = readCache();
+  if(cached){ renderCoupons(cached); fromNetwork(); }
+  else { fromNetwork().then(()=>{}); }
+})();
 </script>
 <script>
 (function(){
