@@ -1343,6 +1343,110 @@ button.remove-btn:hover {
   font-weight: 600; /* thoda bold for visibility */
 }
 
+/* ---- Razorpay image inside payment option (non-layout, absolute) ---- */
+/* Put this near your other .payment-option rules */
+.payment-option {
+  position: relative; /* needed so the absolute image is anchored to the label */
+  overflow: visible;  /* allow image to overflow if you nudge it visually */
+}
+
+/* CSS variables for easy future adjustments */
+.payment-option .payment-img {
+  --pay-img-w: 40px;               /* width of the image box (change to scale) */
+  --pay-img-h: 40px;               /* height of the image box */
+  --pay-img-right: 52px;           /* distance from right edge of label (tweak left/right) */
+  --pay-img-top-offset: 50%;       /* vertical anchor (50% = centered) */
+
+  position: absolute;
+  right: var(--pay-img-right);
+  top: var(--pay-img-top-offset);  /* will use transform to vertically center */
+  transform: translateY(-50%);     /* centers the image vertically relative to top */
+  width: var(--pay-img-w);
+  height: var(--pay-img-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;            /* image won't steal clicks from label */
+  z-index: 2;                      /* ensure it sits above background but below UI overlays */
+}
+
+/* the img itself: contain inside wrapper (does not affect layout) */
+.payment-option .payment-img img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* prevents distortion */
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* small responsive tweak: reduce image size on very small screens */
+@media (max-width: 360px) {
+  .payment-option .payment-img {
+    --pay-img-w: 110px;
+    --pay-img-h: 110px;
+    --pay-img-right: 80px;
+  }
+}
+/* ---- Cash on Delivery image ---- */
+.payment-option {
+  position: relative;
+}
+
+.payment-option .payment-img-cod {
+  --cod-img-w: 45px;       /* image width */
+  --cod-img-h: 45px;       /* image height */
+  --cod-img-left: 160px;    /* distance from left edge (adjust for spacing) */
+  --cod-img-top-offset: 50%;
+
+  position: absolute;
+  left: var(--cod-img-left);
+  top: var(--cod-img-top-offset);
+  transform: translateY(-50%);
+  width: var(--cod-img-w);
+  height: var(--cod-img-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.payment-option .payment-img-cod img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+/* ===== Fix for radio inner-dot (works even when .payment-img exists) ===== */
+/* Ensure custom radio sits above the positioned images */
+.payment-option .custom-radio {
+  z-index: 3;                 /* above .payment-img (which uses z-index:2) */
+  background-color: #fff;     /* keeps circle background consistent */
+  box-sizing: border-box;
+}
+
+/* Use a general sibling so the dot still appears if an image sits between text & .custom-radio */
+.payment-option input[type="radio"]:checked ~ .custom-radio::before,
+.payment-option.selected .custom-radio::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background-color: #2874f0;  /* blue fill color (same as your theme) */
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;                 /* above the .custom-radio itself */
+  pointer-events: none;
+  display: block;
+}
+
+/* Small transition/visual polish (optional) */
+.payment-option .custom-radio::before {
+  transition: transform .12s ease, opacity .12s ease;
+}
 
 </style>
 </head>
@@ -1467,16 +1571,31 @@ button.remove-btn:hover {
 
 <div class="payment-method-box" id="paymentMethodBox">
   <label class="payment-option">
-    <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
-    <span class="payment-text">Pay via Razorpay</span>
-    <span class="custom-radio" aria-hidden="true"></span>
-  </label>
+  <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
+  <span class="payment-text">Pay via Razorpay</span>
+
+  <!-- IMAGE (placed INSIDE same label, to the right) -->
+  <span class="payment-img" aria-hidden="true">
+    <img src="https://i.postimg.cc/1zL2FnVd/Remove-background-project.png" alt="Razorpay logo" />
+  </span>
+
+  <!-- Custom radio circle (MUST be last for CSS sibling selector) -->
+  <span class="custom-radio" aria-hidden="true"></span>
+</label>
+
 
   <label class="payment-option">
-    <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
-    <span class="payment-text">Cash on Delivery</span>
-    <span class="custom-radio" aria-hidden="true"></span>
-  </label>
+  <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
+
+  <!-- IMAGE just before the text -->
+  <span class="payment-img-cod" aria-hidden="true">
+    <img src="https://i.postimg.cc/YqhPdzNP/Adobe-Express-file-1.png" alt="COD icon" />
+  </span>
+
+  <span class="payment-text">Cash on Delivery</span>
+  <span class="custom-radio" aria-hidden="true"></span>
+</label>
+
 </div>
 
 <div id="minimumNotice" style="display: none; text-align: center; color: #d9534f; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
