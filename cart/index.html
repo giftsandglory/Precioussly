@@ -1447,7 +1447,18 @@ button.remove-btn:hover {
 .payment-option .custom-radio::before {
   transition: transform .12s ease, opacity .12s ease;
 }
+/* Razorpay payment logo */
+.payment-option .payment-img {
+  margin-left: 8px;            /* small spacing from text */
+  display: flex;
+  align-items: center;
+}
 
+.payment-option .payment-img img {
+  height: 120px;               /* scales with text size */
+  width: auto;                 /* keeps aspect ratio */
+  object-fit: contain;
+}
 </style>
 </head>
 <body>
