@@ -453,7 +453,7 @@ body {
 .payment-option {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* left: content group, right: radio */
+  justify-content: space-between; /* text left, radio right */
   gap: 12px;
   padding: 12px 14px;
   margin-bottom: 10px;
@@ -463,17 +463,6 @@ body {
   cursor: pointer;
   transition: border-color .18s ease, box-shadow .18s ease, transform .08s ease;
   user-select: none;
-  position: relative; /* anchor if image inside needs absolute fallback (not required) */
-  box-sizing: border-box;
-}
-
-/* Left-side content group (text + optional icon) */
-.payment-option .left {
-  display: flex;
-  align-items: center;
-  gap: 10px;        /* space between text and logo */
-  flex: 1;          /* takes all remaining space to push radio to right */
-  min-width: 0;     /* prevents overflow when text is long on small screens */
 }
 
 /* Make the .payment-text use left side */
@@ -481,33 +470,8 @@ body {
   font-size: 15px;
   font-weight: 600;
   color: #111;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; /* prevents wrapping and overflow on narrow screens */
-}
-
-/* Payment images (Razorpay, COD) - easy to tweak with variables */
-.payment-option .payment-img,
-.payment-option .payment-img-cod {
-  --pay-img-w: 56px;   /* change this to resize logo */
-  width: var(--pay-img-w);
-  height: auto;
-  flex-shrink: 0;      /* don't let logo shrink */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none; /* don't steal clicks */
-  user-select: none;
-}
-
-/* Image containment */
-.payment-option .payment-img img,
-.payment-option .payment-img-cod img {
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-  display: block;
-  -webkit-user-drag: none;
+  flex: 1;               /* ensures text takes left space */
+  text-align: left;
 }
 
 /* Keep original custom-radio visuals but ensure it appears on right */
@@ -519,18 +483,11 @@ body {
   position: relative;
   display: inline-block;
   flex: 0 0 auto;
-  background-color: #fff; /* keep circle background consistent */
-  box-sizing: border-box;
 }
 
-/* Hide native radio — we'll use the custom circle */
-.payment-option input[type="radio"] {
-  display: none;
-}
-
-/* Use general sibling so the dot appears even if an image is between text & .custom-radio */
-.payment-option input[type="radio"]:checked ~ .custom-radio::before,
-.payment-option.selected .custom-radio::before {
+/* checked appearance (the inner dot) - we will use JS to toggle parent class,
+   but keep this selector for inputs immediately followed by .custom-radio if used */
+.payment-option input[type="radio"]:checked + .payment-text + .custom-radio::before {
   content: '';
   width: 10px;
   height: 10px;
@@ -540,9 +497,6 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 4;
-  pointer-events: none;
-  display: block;
 }
 
 /* Style for selected box (added by JS) */
@@ -552,33 +506,10 @@ body {
   transform: translateY(-1px);
 }
 
-/* Small-screen adjustments */
-@media (max-width: 420px) {
-  .payment-option {
-    padding: 10px 12px;
-  }
-  .payment-option .payment-img,
-  .payment-option .payment-img-cod {
-    --pay-img-w: 48px; /* slightly smaller on narrow screens */
-  }
-  .payment-text { font-size: 14px; }
+/* Make sure clicking anywhere on the label triggers the radio (native behavior) */
+.payment-option input[type="radio"] {
+  display: none; /* radio control is hidden (we use custom-radio) */
 }
-
-/* Very small phones */
-@media (max-width: 360px) {
-  .payment-option .payment-img,
-  .payment-option .payment-img-cod {
-    --pay-img-w: 44px;
-  }
-  .payment-text { font-size: 14px; white-space: normal; } /* allow wrap if needed */
-}
-
-/* Optional: clickable whole label hover/active */
-.payment-option:active { transform: translateY(0); } /* remove large press shift */
-.payment-option:focus-within { box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
-
-/* Accessibility: make sure custom-radio has enough hit area on touch */
-.payment-option .custom-radio { margin-left: 8px; }
 
 
 /* POLISHED ADDRESS POPUP */
@@ -1421,9 +1352,9 @@ button.remove-btn:hover {
 
 /* CSS variables for easy future adjustments */
 .payment-option .payment-img {
-  --pay-img-w: 40px;               /* width of the image box (change to scale) */
-  --pay-img-h: 40px;               /* height of the image box */
-  --pay-img-right: 52px;           /* distance from right edge of label (tweak left/right) */
+  --pay-img-w: 60px;               /* width of the image box (change to scale) */
+  --pay-img-h: 60px;               /* height of the image box */
+  --pay-img-right: 80px;           /* distance from right edge of label (tweak left/right) */
   --pay-img-top-offset: 50%;       /* vertical anchor (50% = centered) */
 
   position: absolute;
@@ -1639,31 +1570,33 @@ button.remove-btn:hover {
 </div>
 
 <div class="payment-method-box" id="paymentMethodBox">
-  <!-- Razorpay Option -->
   <label class="payment-option">
-    <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
-    <div class="left">
-      <span class="payment-text">Pay via Razorpay</span>
-      <span class="payment-img" aria-hidden="true">
-        <img src="https://i.postimg.cc/1zL2FnVd/Remove-background-project.png" alt="Razorpay logo" />
-      </span>
-    </div>
-    <span class="custom-radio" aria-hidden="true"></span>
-  </label>
+  <input type="radio" name="paymentMethod" value="razorpay" checked onchange="updatePaymentMethod()" />
+  <span class="payment-text">Pay via Razorpay</span>
 
-  <!-- Cash on Delivery Option -->
+  <!-- IMAGE (placed INSIDE same label, to the right) -->
+  <span class="payment-img" aria-hidden="true">
+    <img src="https://i.postimg.cc/1zL2FnVd/Remove-background-project.png" alt="Razorpay logo" />
+  </span>
+
+  <!-- Custom radio circle (MUST be last for CSS sibling selector) -->
+  <span class="custom-radio" aria-hidden="true"></span>
+</label>
+
+
   <label class="payment-option">
-    <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
-    <div class="left">
-      <span class="payment-text">Cash on Delivery</span>
-      <span class="payment-img-cod" aria-hidden="true">
-        <img src="https://i.postimg.cc/YqhPdzNP/Adobe-Express-file-1.png" alt="COD icon" />
-      </span>
-    </div>
-    <span class="custom-radio" aria-hidden="true"></span>
-  </label>
+  <input type="radio" name="paymentMethod" value="cod" onchange="updatePaymentMethod()" />
+
+  <!-- IMAGE just before the text -->
+  <span class="payment-img-cod" aria-hidden="true">
+    <img src="https://i.postimg.cc/YqhPdzNP/Adobe-Express-file-1.png" alt="COD icon" />
+  </span>
+
+  <span class="payment-text">Cash on Delivery</span>
+  <span class="custom-radio" aria-hidden="true"></span>
+</label>
+
 </div>
-
 
 <div id="minimumNotice" style="display: none; text-align: center; color: #d9534f; font-family: 'Roboto Slab', serif; font-weight: 400; font-size: 14px; margin-top: 10px;">
 </div><!-- Fast Delivery Notice (left-aligned, above pay button) -->
@@ -4424,6 +4357,17 @@ window.closeHeaderSearch = closeHeaderSearch;
 }
 .processing-title{ font-size:20px; font-weight:800; color:#111; margin:8px 0 6px; }
 .processing-sub{ font-size:14px; color:#333; margin:0 10px 10px; line-height:1.45; }
+
+/* === Fix: Equal size for Razorpay and COD boxes === */
+.payment-option {
+  min-height: 64px;  /* ensures both have same height */
+  display: flex;
+  align-items: center;
+}
+.payment-option .payment-text {
+  flex: 1;
+}
+
 </style>
 <div class="payment-processing-overlay" id="paymentProcessingOverlay">
   <div class="payment-processing-box">
