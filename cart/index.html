@@ -1372,8 +1372,8 @@ button.remove-btn:hover {
 
 /* the img itself: contain inside wrapper (does not affect layout) */
 .payment-option .payment-img img {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 75px;
+  max-height: 75px;
   object-fit: contain; /* prevents distortion */
   display: block;
   user-select: none;
@@ -1447,18 +1447,7 @@ button.remove-btn:hover {
 .payment-option .custom-radio::before {
   transition: transform .12s ease, opacity .12s ease;
 }
-/* Razorpay payment logo */
-.payment-option .payment-img {
-  margin-left: 8px;            /* small spacing from text */
-  display: flex;
-  align-items: center;
-}
 
-.payment-option .payment-img img {
-  height: 120px;               /* scales with text size */
-  width: auto;                 /* keeps aspect ratio */
-  object-fit: contain;
-}
 </style>
 </head>
 <body>
@@ -1587,7 +1576,7 @@ button.remove-btn:hover {
 
   <!-- IMAGE (placed INSIDE same label, to the right) -->
   <span class="payment-img" aria-hidden="true">
-    <img src="https://i.postimg.cc/1zL2FnVd/Remove-background-project.png" alt="Razorpay logo" />
+    <img src="https://i.postimg.cc/ydbkz4dc/Razorpay-icon.png" alt="Razorpay logo" />
   </span>
 
   <!-- Custom radio circle (MUST be last for CSS sibling selector) -->
