@@ -356,7 +356,7 @@ body.noscroll {
   transform-origin: center;
   will-change: transform, opacity;
   transition:
-    transform 420ms cubic-bezier(.22,1,.36,1),
+    transform 1400ms cubic-bezier(.22,1,.36,1),
     opacity 420ms ease;
   contain: layout paint style;
 }
@@ -1080,8 +1080,7 @@ body.horizontal-mode .product-grid{
   position: relative !important;
   overflow: hidden !important;
   min-height: 300px !important;
-  /* Allow vertical pan (so page scroll still works) AND allow browser pinch-zoom */
-  touch-action: pan-y pinch-zoom !important;
+  touch-action: pan-y !important;
   cursor: grab;
 }
 #popupSlider.dragging{ cursor: grabbing; }
@@ -1090,7 +1089,7 @@ body.horizontal-mode .product-grid{
   gap: 10px;
   width: 100%;
   height: 100%;
-  transition: transform 260ms cubic-bezier(.22,1,.36,1);
+  transition: transform 1400ms cubic-bezier(.22,1,.36,1);
   will-change: transform;
 }
 #popupSlider .popup-slide{
@@ -1185,7 +1184,7 @@ body.horizontal-mode .product-grid{
   transform: translateZ(0) scale(1);
   transition:
     opacity 220ms ease,
-    transform 420ms cubic-bezier(.22,1,.36,1),
+    transform 1400ms cubic-bezier(.22,1,.36,1),
     box-shadow 1400ms cubic-bezier(.22,1,.36,1);
   will-change: transform, opacity;
 }
@@ -1235,7 +1234,7 @@ body.horizontal-mode .product-grid{
   opacity: 0.9 !important;
   transform: scale(1) !important;
   transition:
-    transform 420ms cubic-bezier(.22,1,.36,1),
+    transform 1400ms cubic-bezier(.22,1,.36,1),
     opacity 220ms ease !important;
 }
 
@@ -1904,20 +1903,9 @@ div.product-title {
 </script>
 
 <script>
-/*
-  Paste this entire script in place of your old script.
-  It will:
-  1) fetch every tab in TAB_NAMES using opensheet.elk.sh
-  2) combine results and render sections & products into #content
-  3) respect visibility / section hiding rules
-  4) use safe event listeners to call addToCartFromGrid() and openPopup()
-*/
-
 const PASTED_SHEET_LINK =
   "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
-
-// 👇 Multiple tab names yahan likho
-const TAB_NAMES = ["crochets"];
+const TAB_NAME = "crochets"; // 👈 Yahan apna tab name likho (e.g. "Products", "Necklace")😎😎😎😎
 
 const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
 if (!idMatch) {
@@ -1925,13 +1913,17 @@ if (!idMatch) {
 }
 const sheetId = idMatch ? idMatch[1] : "";
 
-/* --------------------- helper functions (keeps your original behavior) --------------------- */
+const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(TAB_NAME)}`;
+console.log("✅ Final working Sheet URL:", DATA_URL);
+
+const SHEET_URL = DATA_URL;
+
 function isHidden(row){
   const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
   for (const k of keys){
     if (row.hasOwnProperty(k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
-      if (v.includes("hide")) return true;   // hide when cell contains "hide"
+      if (v.includes("hide")) return true;   // ✅ hide when cell contains "hide"
       if (v.length) return false;
     }
   }
@@ -1955,99 +1947,57 @@ function isVideoUrl(url=""){
   return u.endsWith(".mp4") || u.endsWith(".webm") || u.endsWith(".mov");
 }
 
-/* --------------------- main: fetch all tabs and render --------------------- */
-async function fetchTab(tabName){
-  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
-  console.log("Fetching tab:", tabName, DATA_URL);
-  const res = await fetch(DATA_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
-  const data = await res.json();
-  // tag each row with source tab (optional, useful for debugging)
-  data.forEach(row => { row.__tabName = tabName; });
-  return data;
-}
-
-async function loadAndRenderAllTabs(){
+(async function () {
   try {
-    if (!sheetId) throw new Error("Missing sheetId.");
-    // build array of fetch promises
-    const fetchPromises = TAB_NAMES.map(t => fetchTab(t).catch(err => {
-      console.error("Failed to fetch tab:", t, err);
-      return []; // continue even if one tab fails
-    }));
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
 
-    const allResults = await Promise.all(fetchPromises);
-    // flatten into single list while preserving order of tabs
-    const combined = allResults.flat();
-
-    // If your project uses applyDirectionFromSheet when first loaded, call it with combined
     if (typeof applyDirectionFromSheet === "function") {
-      try { applyDirectionFromSheet(combined); } catch (e) { console.warn("applyDirectionFromSheet failed:", e); }
+      applyDirectionFromSheet(data);
     }
 
-    renderCombinedData(combined);
-  } catch (err) {
-    console.error("Failed to load products:", err);
-  }
-}
+    window.catalogData = data;
 
-/* --------------------- renderer (based on your original render logic) --------------------- */
-function renderCombinedData(data){
-  window.catalogData = data;
-  const content = document.getElementById("content");
-  if (!content) {
-    console.error("No #content container found.");
-    return;
-  }
+    const content = document.getElementById("content");
+    let currentSection = "";
+    let sectionWrapper;
+    let currentSectionHidden = false;
 
-  content.innerHTML = ""; // clear first
+    data.forEach((item) => {
+      if (item["Section"]) {
+        currentSection = item["Section"];
+        const secVis = String(item["visibility"] || item["Visibility"] || "")
+          .trim()
+          .toLowerCase();
+        currentSectionHidden = secVis.includes("hide");
+        if (currentSectionHidden) { sectionWrapper = null; return; }
 
-  let currentSection = "";
-  let sectionWrapper = null;
-  let currentSectionHidden = false;
+        const sectionTitle = document.createElement("div");
+        sectionTitle.className = "section-title";
+        sectionTitle.innerText = currentSection;
+        content.appendChild(sectionTitle);
 
-  data.forEach((item) => {
-    // if row defines a Section header
-    if (item["Section"]) {
-      currentSection = item["Section"];
-      const secVis = String(item["visibility"] || item["Visibility"] || "")
-        .trim()
-        .toLowerCase();
-      currentSectionHidden = secVis.includes("hide");
-      if (currentSectionHidden) {
-        sectionWrapper = null;
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
         return;
       }
 
-      // create section title
-      const sectionTitle = document.createElement("div");
-      sectionTitle.className = "section-title";
-      sectionTitle.innerText = currentSection;
-      content.appendChild(sectionTitle);
+      if (currentSectionHidden) return;
+      if (isHidden(item)) return;
+      if (!item["Product Name"]) return;
 
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      content.appendChild(sectionWrapper);
-      return;
-    }
+      const product = document.createElement("div");
+      product.className = "product";
 
-    if (currentSectionHidden) return;
-    if (isHidden(item)) return;
-    if (!item["Product Name"]) return;
-
-    const product = document.createElement("div");
-    product.className = "product";
-
-    product.addEventListener("click", (e) => {
-      // don't open popup when clicking controls inside product card
-      if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-      const allPhotos = [
-        item["photo 1"],
-        item["photo 2"],
-        item["photo 3"],
-        item["photo 4"],
-      ].filter(Boolean);
-      if (typeof openPopup === "function") {
+      product.addEventListener("click", (e) => {
+        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+        const allPhotos = [
+          item["photo 1"],
+          item["photo 2"],
+          item["photo 3"],
+          item["photo 4"],
+        ].filter(Boolean);
         openPopup(
           allPhotos,
           item["Product Name"],
@@ -2056,146 +2006,126 @@ function renderCombinedData(data){
           item["in stock"],
           getSheetDescription(item)
         );
-      } else {
-        console.warn("openPopup is not defined.");
-      }
-    });
-
-    (function(){
-      const url1 = (item["photo 1"] || "").trim();
-      let el;
-      if (isVideoUrl(url1)) {
-        const v = document.createElement("video");
-        v.src = url1;
-        v.muted = true;
-        v.autoplay = true;
-        v.loop = true;
-        v.playsInline = true;
-        v.preload = "metadata";
-        v.style.width = "100%";
-        v.style.height = "100%";
-        v.style.objectFit = "contain";
-        v.disablePictureInPicture = true;
-        v.setAttribute("muted","");
-        v.setAttribute("webkit-playsinline","true");
-        v.setAttribute("playsinline","true");
-        v.style.pointerEvents = "none"; // allow card click to bubble
-        v.style.cursor = "default";
-        el = v;
-      } else {
-        const img = document.createElement("img");
-        img.src = url1;
-        img.alt = item["Product Name"];
-        img.style.pointerEvents = "none";
-        img.style.cursor = "default";
-        el = img;
-      }
-      const wrap = document.createElement('div');
-      wrap.className = 'media-square';
-      wrap.appendChild(el);
-      product.appendChild(wrap);
-    })();
-
-    if (item["Badge"]) {
-      const badge = document.createElement("div");
-      badge.className = "badge";
-      badge.innerText = item["Badge"];
-      product.appendChild(badge);
-    }
-
-    const infoWrapper = document.createElement("div");
-    infoWrapper.style.padding = "0 6px";
-
-    const title = document.createElement("div");
-    title.className = "product-title";
-    title.style.fontSize = "14px";
-    title.style.textAlign = "center";
-    title.style.marginTop = "8px";
-    title.innerText = item["Product Name"];
-    try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
-    try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
-    title.style.maxWidth = '100%';
-
-    infoWrapper.appendChild(title);
-
-    const info = document.createElement("div");
-    info.className = "product-info";
-
-    let priceHTML = "";
-    if (item["MRP"] && item["Selling Price"]) {
-      priceHTML = `
-        <div style="
-          text-align:center;
-          font-size:14px;
-          font-weight:bold;
-          display:flex; justify-content:center;
-          gap:6px;
-          align-items:center;
-          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-        ">
-          <span>₹${item["Selling Price"]}</span>
-          <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-        </div>
-      `;
-    }
-
-    if (+item["in stock"] === 0) {
-      info.innerHTML = `
-        ${priceHTML}
-      `;
-      const outBtn = document.createElement("button");
-      outBtn.className = "add-btn";
-      outBtn.disabled = true;
-      outBtn.style.background = "#f1f1f1";
-      outBtn.style.color = "#888";
-      outBtn.style.border = "1px solid #ccc";
-      outBtn.innerText = "Out of Stock";
-      info.appendChild(outBtn);
-    } else {
-      const productData = {
-        photo: item["photo 1"],
-        name: item["Product Name"],
-        mrp: item["MRP"],
-        price: item["Selling Price"],
-      };
-
-      info.innerHTML = priceHTML;
-      const addBtn = document.createElement("button");
-      addBtn.className = "add-btn";
-      addBtn.innerText = "Add to Cart";
-      // safe event listener (no JSON.stringify in onclick attribute)
-      addBtn.addEventListener("click", (ev) => {
-        ev.stopPropagation(); // prevent card click opening popup
-        if (typeof addToCartFromGrid === "function") {
-          addToCartFromGrid(addBtn, productData);
-        } else {
-          console.warn("addToCartFromGrid is not defined.");
-        }
       });
 
-      info.appendChild(addBtn);
+      (function(){
+        const url1 = (item["photo 1"] || "").trim();
+        let el;
+        if (isVideoUrl(url1)) {
+          const v = document.createElement("video");
+          v.src = url1;
+          v.muted = true;
+          v.autoplay = true;
+          v.loop = true;
+          v.playsInline = true;
+          v.preload = "metadata";
+          v.style.width = "100%";
+          v.style.height = "100%";
+          v.style.objectFit = "contain";
+          v.disablePictureInPicture = true;
+          v.setAttribute("muted","");
+          v.setAttribute("webkit-playsinline","true");
+          v.setAttribute("playsinline","true");
+          v.style.pointerEvents = "none"; // allow card click to bubble
+          v.style.cursor = "default";
+          el = v;
+        } else {
+          const img = document.createElement("img");
+          img.src = url1;
+          img.alt = item["Product Name"];
+          img.style.pointerEvents = "none";
+          img.style.cursor = "default";
+          el = img;
+        }
+        const wrap = document.createElement('div');
+        wrap.className = 'media-square';
+        wrap.appendChild(el);
+        product.appendChild(wrap);
+      })();
+
+      if (item["Badge"]) {
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.innerText = item["Badge"];
+        product.appendChild(badge);
+      }
+
+      const infoWrapper = document.createElement("div");
+      infoWrapper.style.padding = "0 6px";
+
+      const title = document.createElement("div");
+      title.className = "product-title";
+      title.style.fontSize = "14px";
+      title.style.textAlign = "center";
+      title.style.marginTop = "8px";
+      title.innerText = item["Product Name"];
+      try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
+      try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
+      try { title.setAttribute("title", String(item["Product Name"] || "")); } catch(e){}
+      try { title.setAttribute("aria-label", String(item["Product Name"] || "")); } catch(e){}
+      title.style.maxWidth = '100%';
+
+      infoWrapper.appendChild(title);
+
+      const info = document.createElement("div");
+      info.className = "product-info";
+
+      let priceHTML = "";
+      if (item["MRP"] && item["Selling Price"]) {
+        priceHTML = `
+          <div style="
+            text-align:center;
+            font-size:14px;
+            font-weight:bold;
+            display:flex; justify-content:center;
+            gap:6px;
+            align-items:center;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+          ">
+            <span>₹${item["Selling Price"]}</span>
+            <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+          </div>
+        `;
+      }
+
+      if (+item["in stock"] === 0) {
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
+        `;
+      } else {
+        const productData = {
+          photo: item["photo 1"],
+          name: item["Product Name"],
+          mrp: item["MRP"],
+          price: item["Selling Price"],
+        };
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(
+            productData
+          )})'>Add to Cart</button>
+        `;
+      }
+
+      infoWrapper.appendChild(info);
+      product.appendChild(infoWrapper);
+
+      if (!sectionWrapper) {
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+      }
+      sectionWrapper.appendChild(product);
+    });
+
+    if (typeof maybeOpenFromURL === "function") {
+      maybeOpenFromURL();
     }
-
-    infoWrapper.appendChild(info);
-    product.appendChild(infoWrapper);
-
-    if (!sectionWrapper) {
-      // if no section header was present, create a default wrapper
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      content.appendChild(sectionWrapper);
-    }
-    sectionWrapper.appendChild(product);
-  });
-
-  // if you have a function that opens product based on URL params
-  if (typeof maybeOpenFromURL === "function") {
-    try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
+  } catch (err) {
+    console.error("Failed to load products:", err);
   }
-}
-
-/* --------------------- start --------------------- */
-loadAndRenderAllTabs();
+})();
 </script>
 
 <script>
@@ -3479,7 +3409,7 @@ function applyDirectionFromSheet(rows){
       const obs = new MutationObserver(() => {
         const isOpen = window.getComputedStyle(popup).display === 'flex';
         if (isOpen && !(history.state && history.state.popupOpen)) {
-          try { history.pushState({ popupOpen: true }, "", location.href); } catch(e) {}
+          try { history.replaceState({ popupOpen: true }, "", location.href); } catch(e) {}
         }
       });
       obs.observe(popup, { attributes: true, attributeFilter: ['style', 'class'] });
@@ -3534,7 +3464,23 @@ function applyDirectionFromSheet(rows){
 })();
 </script>
 
-
+<style id="photo-nav-buttons-css">
+.popup-media { position: relative !important; touch-action: pinch-zoom !important; }
+#popupSlider { touch-action: pinch-zoom !important; cursor: auto !important; }
+.photo-nav-btn{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:44px; height:44px; border-radius:50%;
+  background:rgba(120,120,120,0.72);
+  border:1px solid rgba(0,0,0,0.18);
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+  display:flex; justify-content:center; align-items:center; justify-content:center;
+  cursor:pointer; user-select:none; outline:none;
+}
+.photo-nav-btn svg{ width:20px; height:20px; stroke:#fff; }
+.photo-prev{ left:12px; }
+.photo-next{ right:12px; }
+.photo-nav-btn[disabled]{ opacity:0.45; pointer-events:none; }
+</style>
 
 <script id="openPopup-left-right-override">
 (function(){
@@ -3640,135 +3586,6 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     var track = document.createElement("div");
     track.className = "popup-track";
     slider.appendChild(track);
-// START: touch / pointer swipe handlers (inserted by ChatGPT)
-(function bindPopupSwipe(track, slider, goToFn){
-  if (!track || !slider) return;
-
-  let startX = 0;
-  let lastX = 0;
-  let dragging = false;
-  let currentTranslate = 0;
-  let baseIndex = 0;
-
-  const widthWithGap = () => (slider.getBoundingClientRect().width + 10); // matches width() in file
-
-  function setTranslate(x, animate){
-    if (animate) track.style.transition = ''; // restore (will be set by goTo)
-    else track.style.transition = 'none';
-    track.style.transform = `translateX(${x}px)`;
-  }
-
-  function pointerStart(clientX){
-    startX = clientX;
-    lastX = clientX;
-    dragging = true;
-    slider.classList.add('dragging');
-    // compute base translate from current transform
-    const cur = track.style.transform || '';
-    const m = cur.match(/translateX\((-?\d+)px\)/);
-    currentTranslate = m ? parseInt(m[1], 10) : 0;
-    baseIndex = Math.round(Math.abs(currentTranslate) / Math.max(1, widthWithGap()));
-    setTranslate(currentTranslate, false);
-  }
-
-  function pointerMove(clientX){
-    if (!dragging) return;
-    const dx = clientX - lastX;
-    lastX = clientX;
-    const totalDx = clientX - startX;
-    // simple rubber-band at edges
-    const maxTranslate = 0;
-    const minTranslate = - (Math.max(0, (track.children.length - 1)) * widthWithGap());
-    let next = currentTranslate + totalDx;
-    if (next > maxTranslate + 80) next = maxTranslate + 80;
-    if (next < minTranslate - 80) next = minTranslate - 80;
-    setTranslate(next, false);
-  }
-
-  function pointerEnd(){
-    if (!dragging) return;
-    dragging = false;
-    slider.classList.remove('dragging');
-    // decide swipe
-    const totalDx = lastX - startX;
-    const threshold = Math.min(60, widthWithGap() * 0.15); // px
-    const cur = track.style.transform || '';
-    const m = cur.match(/translateX\((-?\d+)px\)/);
-    const curTranslate = m ? parseInt(m[1], 10) : 0;
-    const idx = Math.round(Math.abs(curTranslate) / widthWithGap());
-
-    if (totalDx < -threshold) {
-      // swiped left -> next
-      goToFn(idx + 1, true);
-    } else if (totalDx > threshold) {
-      // swiped right -> prev
-      goToFn(idx - 1, true);
-    } else {
-      // small move -> snap back
-      goToFn(idx, true);
-    }
-  }
-
-  // use pointer events where supported, otherwise touch/mouse fallback
-  slider.addEventListener('pointerdown', (e) => {
-  // only primary button / touch
-  if (e.pointerType === 'mouse' && e.button !== 0) return;
-
-  // IMPORTANT:
-  // Do NOT call preventDefault() for touch pointer events.
-  // Calling preventDefault() on touch blocks the browser's pinch-to-zoom.
-  // Only prevent default for mouse if needed.
-  if (e.pointerType === 'mouse') {
-    e.preventDefault();
-  }
-
-  pointerStart(e.clientX);
-
-  const move = (ev) => { pointerMove(ev.clientX); };
-  const up = () => {
-    pointerEnd();
-    window.removeEventListener('pointermove', move);
-    window.removeEventListener('pointerup', up);
-  };
-  window.addEventListener('pointermove', move, {passive:false});
-  window.addEventListener('pointerup', up, {passive:true});
-}, {passive:false});
-    window.addEventListener('pointerup', up, {passive:true});
-  }, {passive:false});
-
-  // fallback for touch-only devices (some browsers)
-  slider.addEventListener('touchstart', (e) => {
-    const t = e.touches[0];
-    if (!t) return;
-    pointerStart(t.clientX);
-  }, {passive:true});
-
-  slider.addEventListener('touchmove', (e) => {
-    const t = e.touches[0];
-    if (!t) return;
-    pointerMove(t.clientX);
-  }, {passive:false});
-
-  slider.addEventListener('touchend', (e) => {
-    pointerEnd();
-  }, {passive:true});
-
-})(track, slider, function(i, animate){
-  // safe call to goTo function already defined in your openPopup scope
-  try { goTo(i, animate); } catch(e) {
-    // if goTo isn't available (should be), fallback: clamp and set transform
-    const w = (slider.getBoundingClientRect().width + 10);
-    const slides = track.children.length || 1;
-    if (i < 0) i = 0;
-    if (i > slides - 1) i = slides.length - 1;
-    track.style.transition = animate ? '' : 'none';
-    track.style.transform = "translateX(" + (-i * w) + "px)";
-    // update dots if present
-    try { if (typeof setActiveDot === 'function') setActiveDot(i); } catch(e){}
-  }
-});
-// END: touch / pointer swipe handlers
-
 
 var slides = [], dots = [];
 images.forEach(function(url, i) {
@@ -3793,13 +3610,12 @@ images.forEach(function(url, i) {
     el = v;
   } else {
     var img = document.createElement("img");
-img.src = clean;
-img.className = "popup-slide";
-img.setAttribute("draggable","false");
-// let the browser handle pinch at page level; do not force image to capture pinch
-// either remove touchAction or set to auto:
-img.style.touchAction = "auto"; // <-- safer: explicitly allow default pinch
-el = img;
+    img.src = clean;
+    img.className = "popup-slide";
+    img.setAttribute("draggable","false");
+    img.style.touchAction = "pinch-zoom";
+    el = img;
+  }
 
   track.appendChild(el);
   slides.push(el);
@@ -3838,10 +3654,35 @@ let dur = base + extra;
 track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
       track.style.transform = "translateX(" + (-i * width()) + "px)";
       setActiveDot(i);
-      
+      refreshNavState();
     }
 
-    
+    function mkBtn(cls, label, svgPath){
+      var b = document.createElement("button");
+      b.className = "photo-nav-btn " + cls;
+      b.setAttribute("aria-label", label);
+      b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+svgPath+'"/></svg>';
+      media && media.appendChild(b);
+      return b;
+    }
+    var prevBtn = mkBtn("photo-prev", "Previous photo", "M15 18l-6-6 6-6");
+    var nextBtn = mkBtn("photo-next", "Next photo", "M9 6l6 6-6 6");
+
+    function refreshNavState(){
+      if (!prevBtn || !nextBtn) return;
+      if (slides.length <= 1){
+        prevBtn.style.display = "none";
+        nextBtn.style.display = "none";
+      } else {
+        prevBtn.style.display = "";
+        nextBtn.style.display = "";
+        prevBtn.disabled = (currentIndex === 0);
+        nextBtn.disabled = (currentIndex === slides.length - 1);
+      }
+    }
+
+    prevBtn && prevBtn.addEventListener("click", function(){ goTo(currentIndex - 1, true); });
+    nextBtn && nextBtn.addEventListener("click", function(){ goTo(currentIndex + 1, true); });
 
     slider.tabIndex = 0;
     slider.onkeydown = function(e){
@@ -3930,7 +3771,7 @@ if (popup){
     window.openPopup = function() {
       try {
         if (!history.state || !history.state.__popup) {
-          history.pushState({ __popup: true }, "", location.href);
+          history.replaceState({ __popup: true }, "", location.href);
         }
       } catch (e) {}
       return __origOpenPopup.apply(this, arguments);
@@ -4022,7 +3863,7 @@ if (popup){
   if (profEl) {
     const pushIfNeeded = () => {
       if (profileOpen() && !(history.state && history.state.__profile)) {
-        try { history.pushState({ __profile: true }, "", location.href); } catch(e){}
+        try { history.replaceState({ __profile: true }, "", location.href); } catch(e){}
       }
     };
     const mo = new MutationObserver(pushIfNeeded);
@@ -4049,7 +3890,7 @@ if (popup){
   if (prodEl) {
     const mo2 = new MutationObserver(() => {
       if (productOpen() && !(history.state && history.state.__product)) {
-        try { history.pushState({ __product: true }, "", location.href); } catch(e){}
+        try { history.replaceState({ __product: true }, "", location.href); } catch(e){}
       }
     });
     mo2.observe(prodEl, { attributes: true, attributeFilter: ['class','style'] });
@@ -4497,398 +4338,5 @@ loadAndRenderCatalog();
 })();
 </script>
 
-
-<!-- Popup history handling fixes: use replaceState (no extra history entries) -->
-<script>
-(function(){
-  const POPUP_ID = 'productPopup';
-  const popupEl = () => document.getElementById(POPUP_ID);
-
-  function slugify(name){
-    return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
-  }
-
-  // Ensure a base history state exists (mark whether popup initially open)
-  try {
-    const initialHasP = !!(new URLSearchParams(location.search).get('p'));
-    const baseState = Object.assign({}, history.state || {}, { __base: true, popupOpen: initialHasP });
-    history.replaceState(baseState, "", location.href);
-  } catch(e){ /* ignore */ }
-
-  // Wrap existing openPopup to use replaceState (no pushState)
-  const origOpen = window.openPopup;
-  if (typeof origOpen === 'function') {
-    window.openPopup = function(images, name, mrp, price, stock, desc){
-      // call original implementation first to render popup
-      try { const res = origOpen.apply(this, arguments); } catch(e){ console.warn("openPopup original failed:", e); }
-
-      // set URL param to ?p=slug using replaceState so no new history entry is created
-      try {
-        const slug = slugify(name);
-        const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-        const nextState = Object.assign({}, history.state || {}, { __base: true, popupOpen: true });
-        history.replaceState(nextState, "", newUrl);
-      } catch (e) { console.warn("replaceState openPopup failed:", e); }
-    };
-  }
-
-  // Wrap closePopup to remove ?p param via replaceState
-  const origClose = window.closePopup;
-  window.closePopup = function(){
-    // call any existing close logic
-    try { if (typeof origClose === 'function') origClose.apply(this, arguments); } catch(e){ console.warn("closePopup original failed:", e); }
-
-    // hide popup UI if still visible (safe-guard)
-    try {
-      const el = popupEl();
-      if (el){
-        el.classList.remove('is-open');
-        el.style.display = 'none';
-        document.body.classList.remove('noscroll');
-      }
-    } catch(e){}
-
-    // replace history to remove param
-    try {
-      const nextState = Object.assign({}, history.state || {}, { __base: true, popupOpen: false });
-      history.replaceState(nextState, "", location.pathname);
-    } catch (e) { console.warn("replaceState closePopup failed:", e); }
-  };
-
-  // Popstate handler: make sure popup visibility follows state.popupOpen
-  window.addEventListener('popstate', function(ev){
-    const st = ev.state || {};
-    const el = popupEl();
-    const isVisible = el && (el.classList.contains('is-open') || getComputedStyle(el).display !== 'none');
-    if (st.popupOpen) {
-      // ensure popup is open (try maybeOpenFromURL if available)
-      if (!isVisible) {
-        const p = new URLSearchParams(location.search).get('p');
-        if (p && typeof maybeOpenFromURL === 'function') {
-          try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
-        } else {
-          // fallback: just show popup element if present
-          try {
-            if (el){ el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
-          } catch(e){}
-        }
-      }
-    } else {
-      // ensure popup is closed
-      if (isVisible) {
-        try { 
-          if (el){ el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); }
-        } catch(e){}
-      }
-    }
-  }, false);
-
-})();
-</script>
-<!-- End history-fix -->
-
-
-<!-- FAST SWIPE TUNING: injected to make touch swipe feel faster & natural -->
-<script>
-(function(){
-  function tunePopupSwipe(){
-    const styleId = 'fast-swipe-overrides';
-    if (document.getElementById(styleId)) return;
-    const css = `
-      /* make track animation snappy */
-      #popupSlider .popup-track { transition: transform 260ms cubic-bezier(.22,1,.36,1) !important; }
-      /* snappier popup entry */
-      .popup-card { transition: transform 420ms cubic-bezier(.22,1,.36,1), opacity 320ms ease !important; }
-      /* faster dot scaling */
-      .popup-dot, .popup-dot.active { transition: transform 240ms cubic-bezier(.22,1,.36,1), opacity 180ms ease, box-shadow 240ms ease !important; }
-    `;
-    const st = document.createElement('style');
-    st.id = styleId;
-    st.appendChild(document.createTextNode(css));
-    document.head.appendChild(st);
-
-    // Improve pointer handling with basic velocity detection
-    const slider = document.getElementById('popupSlider');
-    if (!slider) return;
-    const track = slider.querySelector('.popup-track');
-    if (!track) return;
-
-    let startX=0, startT=0, lastX=0, dragging=false, baseTranslate=0;
-    const widthWithGap = () => Math.max(1, slider.getBoundingClientRect().width + 10);
-
-    function setTranslate(x, animate){
-      if (!animate) track.style.transition = 'none';
-      else track.style.transition = 'transform 260ms cubic-bezier(.22,1,.36,1)';
-      track.style.transform = 'translateX(' + x + 'px)';
-    }
-
-    function getCurrentTranslate(){
-      const cur = track.style.transform || '';
-      const m = cur.match(/translateX\((-?\d+(\.\d+)?)px\)/);
-      return m ? parseFloat(m[1]) : 0;
-    }
-
-    function onStart(clientX){
-      startX = clientX;
-      lastX = clientX;
-      startT = performance.now();
-      dragging = true;
-      slider.classList.add('dragging');
-      baseTranslate = getCurrentTranslate();
-      setTranslate(baseTranslate, false);
-    }
-    function onMove(clientX){
-      if(!dragging) return;
-      const totalDx = clientX - startX;
-      let next = baseTranslate + totalDx;
-      const maxTranslate = 0;
-      const minTranslate = - (Math.max(0, (track.children.length - 1)) * widthWithGap());
-      // rubber band gently
-      if (next > maxTranslate + 60) next = maxTranslate + 60 + (next - maxTranslate - 60) * 0.25;
-      if (next < minTranslate - 60) next = minTranslate - 60 + (next - minTranslate + 60) * 0.25;
-      setTranslate(next, false);
-      lastX = clientX;
-    }
-    function onEnd(clientX){
-      if(!dragging) return;
-      dragging = false;
-      slider.classList.remove('dragging');
-      const dt = Math.max(1, performance.now() - startT);
-      const dx = clientX - startX;
-      const velocity = dx / dt; // px per ms
-      const fast = Math.abs(velocity) > 0.4; // threshold for quick flick
-      const threshold = Math.min(48, widthWithGap() * 0.12);
-      const cur = getCurrentTranslate();
-      const idx = Math.round(Math.abs(cur) / widthWithGap());
-      let target = idx;
-      if (dx < -threshold || (fast && dx < 0)) target = idx + 1;
-      else if (dx > threshold || (fast && dx > 0)) target = idx - 1;
-      target = Math.max(0, Math.min(track.children.length - 1, target));
-      // Apply final transition (faster if fast flick)
-      track.style.transition = fast ? 'transform 180ms cubic-bezier(.22,1,.36,1)' : 'transform 260ms cubic-bezier(.22,1,.36,1)';
-      setTranslate(-target * widthWithGap(), true);
-      // update active dot if any
-      const dots = document.getElementById('popupDots');
-      if (dots){
-        Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === target));
-      }
-    }
-
-    // Pointer events where available
-    slider.addEventListener('pointerdown', function(e){
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      e.preventDefault();
-      onStart(e.clientX);
-      const move = (ev) => { onMove(ev.clientX); };
-      const up = (ev) => { onEnd(ev.clientX); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
-      window.addEventListener('pointermove', move, {passive:false});
-      window.addEventListener('pointerup', up, {passive:true});
-    }, {passive:false});
-
-    // touch fallback
-    slider.addEventListener('touchstart', function(e){
-      const t = e.touches && e.touches[0];
-      if(!t) return;
-      onStart(t.clientX);
-    }, {passive:true});
-    slider.addEventListener('touchmove', function(e){
-      const t = e.touches && e.touches[0];
-      if(!t) return;
-      onMove(t.clientX);
-    }, {passive:false});
-    slider.addEventListener('touchend', function(e){
-      // take last touch position if possible
-      const t = (e.changedTouches && e.changedTouches[0]) || {};
-      onEnd(t.clientX || lastX);
-    }, {passive:true});
-
-    // Resize -> snap to current index
-    window.addEventListener('resize', function(){
-      const cur = Math.round(Math.abs(getCurrentTranslate()) / widthWithGap());
-      track.style.transition = 'none';
-      setTranslate(-cur * widthWithGap(), false);
-    }, {passive:true});
-  }
-
-  // run on DOM ready and also after popup content is built
-  document.addEventListener('DOMContentLoaded', tunePopupSwipe);
-  // also try after a short delay to catch dynamic popup builds
-  setTimeout(tunePopupSwipe, 600);
-  // and run whenever popup opens (if your openPopup triggers)
-  const origOpen = window.openPopup;
-  window.openPopup = function(...args){
-    const r = (typeof origOpen === 'function') ? origOpen(...args) : undefined;
-    setTimeout(tunePopupSwipe, 60);
-    return r;
-  };
-})();
-</script>
-<!-- END FAST SWIPE TUNING -->
-
-
-<!-- BEGIN: Popup history fix (injected by ChatGPT) -->
-<script>
-(function(){
-  // Robust single-source history handling for the product popup.
-  // Behaviour:
-  //  - Opening popup uses history.replaceState to set ?p=slug (no extra history entries).
-  //  - Closing popup restores the original pathname (replaceState).
-  //  - popstate closes popup immediately if it's open.
-  //  - Safe: does not rely on other scripts' internal state; tries to call existing openPopup/closePopup.
-  function slugify(s){
-    return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
-  }
-
-  function isPopupOpen(){
-    try {
-      const el = document.getElementById('productPopup');
-      if (!el) return false;
-      return el.classList.contains('is-open') || window.getComputedStyle(el).display !== 'none';
-    } catch(e){ return false; }
-  }
-
-  function closePopupInstant(){
-    try {
-      // prefer existing closePopup if defined
-      if (typeof window._chatgpt_closePopupInstant === 'function') {
-        return window._chatgpt_closePopupInstant();
-      }
-      const popup = document.getElementById('productPopup');
-      if (!popup) return;
-      const card = popup.querySelector('.popup-card');
-      if (card) {
-        card.classList.remove('enter');
-        card.classList.add('leave');
-      }
-      popup.classList.remove('is-open');
-      popup.style.display = 'none';
-      document.body.classList.remove('noscroll');
-      // pause videos
-      try { popup.querySelectorAll('video').forEach(v=>{ v.pause(); v.currentTime = 0; }); } catch(e){}
-    } catch(e){}
-  }
-
-  // Save a reference to any existing openPopup/closePopup so other behavior stays intact
-  const origOpen = window.openPopup;
-  const origClose = window.closePopup;
-
-  // Provide a safe internal close that other injected code can call
-  window._chatgpt_closePopupInstant = function(){
-    closePopupInstant();
-  };
-
-  // Ensure base history state (mark starting URL)
-  try {
-    const base = Object.assign({}, history.state || {}, { __site_base: true });
-    history.replaceState(base, "", location.href);
-  } catch(e){}
-
-  // Override openPopup to replace URL (no history push)
-  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
-    // call original implementation first so popup appears quickly
-    if (typeof origOpen === 'function') {
-      try { origOpen.apply(this, arguments); } catch(e){ console.warn("origOpen failed:", e); }
-    }
-    try {
-      const slug = slugify(name || '');
-      const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-      // Use replaceState so we do NOT add a new history entry
-      history.replaceState(Object.assign({}, history.state || {}, { popup: true }), "", newUrl);
-    } catch(e){ console.warn("history.replaceState failed:", e); }
-  };
-
-  // Override closePopup to restore pathname using replaceState (no extra history entry)
-  window.closePopup = function(){
-    // If other scripts expected history.back() to trigger popstate, we still restore URL without adding entry.
-    closePopupInstant();
-    try {
-      history.replaceState(Object.assign({}, history.state || {}, { popup: false }), "", location.pathname);
-    } catch(e){}
-    // also call original close if it exists
-    if (typeof origClose === 'function') {
-      try { origClose.apply(this, arguments); } catch(e){ /* ignore */ }
-    }
-  };
-
-  // When user presses back/forward, close popup if open.
-  window.addEventListener('popstate', function(ev){
-    try {
-      if (isPopupOpen()) {
-        // close without touching history (we're responding to pop)
-        closePopupInstant();
-        // restore clean pathname (but do not add new history)
-        try { history.replaceState(Object.assign({}, history.state || {}, { popup: false }), "", location.pathname); } catch(e){}
-      }
-    } catch(e){}
-  });
-
-  // Also make overlay clicks close via history replace (keeps URL clean)
-  document.addEventListener('click', function(e){
-    const overlay = document.getElementById('productPopup');
-    if (!overlay) return;
-    if (e.target === overlay) {
-      window.closePopup();
-    }
-  }, {passive:true});
-
-  // If page loaded with ?p=..., try to open matching product after catalog loads.
-  // maybeOpenFromURL may already exist; keep compatibility.
-  function tryMaybeOpen(){
-    try {
-      if (typeof maybeOpenFromURL === 'function') {
-        maybeOpenFromURL();
-      } else {
-        // fallback: if there is popup param but no opener, just leave URL as-is (no history changes)
-      }
-    } catch(e){}
-  }
-  // run after a short delay, to allow other scripts to set window.catalogData
-  window.addEventListener('DOMContentLoaded', function(){ setTimeout(tryMaybeOpen, 200); });
-  setTimeout(tryMaybeOpen, 800);
-})();
-</script>
-<!-- END: Popup history fix -->
-<script>
-(function(){
-  function slugify(s){
-    return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
-  }
-
-  const origOpen = window.openPopup;
-  const origClose = window.closePopup;
-
-  // OPEN popup → pushState with ?p=slug
-  window.openPopup = function(images, name, mrp, price, stock, desc){
-    if (typeof origOpen === 'function') origOpen.apply(this, arguments);
-    try {
-      const slug = slugify(name);
-      const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-      history.pushState({popup:true}, "", newUrl);
-    } catch(e){}
-  };
-
-  // CLOSE popup → restore clean URL
-  window.closePopup = function(){
-    if (typeof origClose === 'function') origClose.apply(this, arguments);
-    try { history.pushState({}, "", location.pathname); } catch(e){}
-  };
-
-  // BACK button → if popup open, close instead of going back again
-  window.addEventListener('popstate', function(e){
-    const popup = document.getElementById('productPopup');
-    if (popup && popup.classList.contains('is-open')) {
-      if (typeof origClose === 'function') origClose();
-      else {
-        popup.classList.remove('is-open');
-        popup.style.display = 'none';
-      }
-    }
-  });
-})();
-</script>
-
 </body>
 </html>
-
-
-
