@@ -356,7 +356,7 @@ body.noscroll {
   transform-origin: center;
   will-change: transform, opacity;
   transition:
-    transform 1400ms cubic-bezier(.22,1,.36,1),
+    transform 420ms cubic-bezier(.22,1,.36,1),
     opacity 420ms ease;
   contain: layout paint style;
 }
@@ -501,6 +501,14 @@ body.noscroll {
 }
 
 .popup-dots:empty { display: none !important; }
+
+/* haptic helper pulse */
+.qty-pulse {
+  transform: scale(1.02);
+  transition: transform 120ms ease;
+  will-change: transform;
+}
+
 </style>
 <style>
 
@@ -1080,7 +1088,8 @@ body.horizontal-mode .product-grid{
   position: relative !important;
   overflow: hidden !important;
   min-height: 300px !important;
-  touch-action: pan-y !important;
+  /* Allow vertical pan (so page scroll still works) AND allow browser pinch-zoom */
+  touch-action: pan-y pinch-zoom !important;
   cursor: grab;
 }
 #popupSlider.dragging{ cursor: grabbing; }
@@ -1089,7 +1098,7 @@ body.horizontal-mode .product-grid{
   gap: 10px;
   width: 100%;
   height: 100%;
-  transition: transform 1400ms cubic-bezier(.22,1,.36,1);
+  transition: transform 260ms cubic-bezier(.22,1,.36,1);
   will-change: transform;
 }
 #popupSlider .popup-slide{
@@ -1184,7 +1193,7 @@ body.horizontal-mode .product-grid{
   transform: translateZ(0) scale(1);
   transition:
     opacity 220ms ease,
-    transform 1400ms cubic-bezier(.22,1,.36,1),
+    transform 420ms cubic-bezier(.22,1,.36,1),
     box-shadow 1400ms cubic-bezier(.22,1,.36,1);
   will-change: transform, opacity;
 }
@@ -1234,7 +1243,7 @@ body.horizontal-mode .product-grid{
   opacity: 0.9 !important;
   transform: scale(1) !important;
   transition:
-    transform 1400ms cubic-bezier(.22,1,.36,1),
+    transform 420ms cubic-bezier(.22,1,.36,1),
     opacity 220ms ease !important;
 }
 
@@ -1304,6 +1313,78 @@ body.horizontal-mode .product-grid{
   -webkit-overflow-scrolling: touch;
 }
 
+
+/* --- Improved Description UI (injected) --- */
+.desc-section {
+  background: linear-gradient(180deg, #fff, #fffefc);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(18, 18, 18, 0.06);
+  margin: 12px 8px 8px;
+}
+.desc-title {
+  font-size: 16px;
+  color: #111;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+.desc-lead {
+  font-size: 15px;
+  color: #111; font-weight: 600;
+  margin: 8px 0 10px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+.desc-content p {
+  margin: 8px 0;
+  color: #222; font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+.desc-content ul {
+  margin: 6px 0 10px 18px;
+  padding: 0;
+}
+.desc-content li {
+  margin: 8px 0;
+  font-size: 14.5px;
+  color: #111; font-weight: 600;
+  line-height: 1.5;
+  list-style: none;
+  position: relative;
+  padding-left: 24px;
+}
+.desc-content li::before{
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #ff6ea8;
+  font-weight: 700;
+  transform: translateY(1px);
+  font-size: 18px;
+}
+.features-title {
+  display: inline-block;
+  font-weight: 700;
+  color: #ff4d98;
+  margin-bottom: 6px;
+}
+#popupAddBtn {
+  background: linear-gradient(90deg, #2563eb, #1e4fd6);
+  border: none;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 10px 26px rgba(37,99,235,0.18);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+#popupAddBtn:active { transform: translateY(1px) scale(.995); box-shadow: 0 6px 16px rgba(37,99,235,0.12); }
 </style>
 
 <style id="alignment-fix-0901b">
@@ -1773,139 +1854,23 @@ div.product-title {
 </nav>
 
 <div id="content"></div>
-<script>
-(() => {
-  const ORIGINAL_FETCH = window.fetch.bind(window);
-  const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
 
-  const isSheetRequest = (input) => {
-    try {
-      const url = typeof input === "string" ? new URL(input) :
-                  (input instanceof Request ? new URL(input.url) :
-                   new URL(String(input)));
-      if (!MATCH_HOSTS.has(url.hostname)) return false;
-      if (url.hostname === "docs.google.com") {
-        return url.pathname.startsWith("/spreadsheets/");
-      }
-      if (url.hostname === "opensheet.elk.sh") return true;
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  const cacheKeyFor = (url) => `swr:${url}`;
-
-  const isCacheableResponse = (res, contentType) => {
-    if (!res || !res.ok) return false;
-    if (res.type === "opaque" || res.type === "opaqueredirect") return false;
-    if (!contentType) return false;
-    const ct = contentType.toLowerCase();
-    if (ct.includes("text/html")) return false;
-    return (
-      ct.includes("application/json") ||
-      ct.includes("text/csv") ||
-      ct.includes("text/plain")
-    );
-  };
-
-  const serializeHeaders = (headers) => {
-    try { return Array.from(headers.entries()); } catch { return []; }
-  };
-
-  const restoreHeaders = (entries) => {
-    try { return new Headers(entries || []); } catch { return new Headers(); }
-  };
-
-  const storeInCache = async (key, response) => {
-    try {
-      const ct = response.headers.get("content-type") || "";
-      if (!isCacheableResponse(response, ct)) return;
-
-      const bodyText = await response.clone().text();
-      const payload = {
-        body: bodyText,
-        status: response.status,
-        statusText: response.statusText || "",
-        headers: serializeHeaders(response.headers),
-        ts: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(payload));
-    } catch (e) {
-      console.warn("SWR cache store failed:", e);
-    }
-  };
-
-  const responseFromCache = (cachedJson) => {
-    try {
-      const cached = JSON.parse(cachedJson);
-      return new Response(cached.body, {
-        status: cached.status,
-        statusText: cached.statusText,
-        headers: restoreHeaders(cached.headers)
-      });
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchWithTimeout = (resource, init, ms = 7000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), ms);
-    const mergedInit = { ...(init || {}), signal: controller.signal };
-    return ORIGINAL_FETCH(resource, mergedInit).finally(() => clearTimeout(id));
-  };
-
-  const backgroundRevalidate = async (resource, init, key) => {
-    try {
-      const res = await fetchWithTimeout(resource, init, 7000);
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res);
-      }
-    } catch (e) {
-      console.info("SWR revalidate skipped:", e?.name || e);
-    }
-  };
-
-  window.fetch = function swrFetch(resource, init) {
-    if (!isSheetRequest(resource)) {
-      return ORIGINAL_FETCH(resource, init);
-    }
-
-    const url = (resource instanceof Request) ? resource.url : String(resource);
-    const key = cacheKeyFor(url);
-
-    const cachedJson = localStorage.getItem(key);
-
-    if (cachedJson) {
-      const cachedRes = responseFromCache(cachedJson);
-      backgroundRevalidate(resource, init, key);
-      return Promise.resolve(cachedRes.clone());
-    }
-
-    return fetchWithTimeout(resource, init, 7000).then(async (res) => {
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        storeInCache(key, res.clone());
-      }
-      return res;
-    }).catch((err) => {
-      const fallbackJson = localStorage.getItem(key);
-      if (fallbackJson) {
-        const fallbackRes = responseFromCache(fallbackJson);
-        return Promise.resolve(fallbackRes.clone());
-      }
-      return Promise.reject(err);
-    });
-  };
-})();
-</script>
 
 <script>
+/*
+  Paste this entire script in place of your old script.
+  It will:
+  1) fetch every tab in TAB_NAMES using opensheet.elk.sh
+  2) combine results and render sections & products into #content
+  3) respect visibility / section hiding rules
+  4) use safe event listeners to call addToCartFromGrid() and openPopup()
+*/
+
 const PASTED_SHEET_LINK =
   "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
-const TAB_NAME = "artificial-jewelry"; // 👈 Yahan apna tab name likho (e.g. "Products", "Necklace")😎😎😎😎
+
+// 👇 Multiple tab names yahan likho
+const TAB_NAMES = ["artificial-jewelry"];
 
 const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
 if (!idMatch) {
@@ -1913,17 +1878,13 @@ if (!idMatch) {
 }
 const sheetId = idMatch ? idMatch[1] : "";
 
-const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(TAB_NAME)}`;
-console.log("✅ Final working Sheet URL:", DATA_URL);
-
-const SHEET_URL = DATA_URL;
-
+/* --------------------- helper functions (keeps your original behavior) --------------------- */
 function isHidden(row){
   const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
   for (const k of keys){
     if (row.hasOwnProperty(k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
-      if (v.includes("hide")) return true;   // ✅ hide when cell contains "hide"
+      if (v.includes("hide")) return true;   // hide when cell contains "hide"
       if (v.length) return false;
     }
   }
@@ -1947,57 +1908,99 @@ function isVideoUrl(url=""){
   return u.endsWith(".mp4") || u.endsWith(".webm") || u.endsWith(".mov");
 }
 
-(async function () {
-  try {
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
+/* --------------------- main: fetch all tabs and render --------------------- */
+async function fetchTab(tabName){
+  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
+  console.log("Fetching tab:", tabName, DATA_URL);
+  const res = await fetch(DATA_URL);
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
+  const data = await res.json();
+  // tag each row with source tab (optional, useful for debugging)
+  data.forEach(row => { row.__tabName = tabName; });
+  return data;
+}
 
+async function loadAndRenderAllTabs(){
+  try {
+    if (!sheetId) throw new Error("Missing sheetId.");
+    // build array of fetch promises
+    const fetchPromises = TAB_NAMES.map(t => fetchTab(t).catch(err => {
+      console.error("Failed to fetch tab:", t, err);
+      return []; // continue even if one tab fails
+    }));
+
+    const allResults = await Promise.all(fetchPromises);
+    // flatten into single list while preserving order of tabs
+    const combined = allResults.flat();
+
+    // If your project uses applyDirectionFromSheet when first loaded, call it with combined
     if (typeof applyDirectionFromSheet === "function") {
-      applyDirectionFromSheet(data);
+      try { applyDirectionFromSheet(combined); } catch (e) { console.warn("applyDirectionFromSheet failed:", e); }
     }
 
-    window.catalogData = data;
+    renderCombinedData(combined);
+  } catch (err) {
+    console.error("Failed to load products:", err);
+  }
+}
 
-    const content = document.getElementById("content");
-    let currentSection = "";
-    let sectionWrapper;
-    let currentSectionHidden = false;
+/* --------------------- renderer (based on your original render logic) --------------------- */
+function renderCombinedData(data){
+  window.catalogData = data;
+  const content = document.getElementById("content");
+  if (!content) {
+    console.error("No #content container found.");
+    return;
+  }
 
-    data.forEach((item) => {
-      if (item["Section"]) {
-        currentSection = item["Section"];
-        const secVis = String(item["visibility"] || item["Visibility"] || "")
-          .trim()
-          .toLowerCase();
-        currentSectionHidden = secVis.includes("hide");
-        if (currentSectionHidden) { sectionWrapper = null; return; }
+  content.innerHTML = ""; // clear first
 
-        const sectionTitle = document.createElement("div");
-        sectionTitle.className = "section-title";
-        sectionTitle.innerText = currentSection;
-        content.appendChild(sectionTitle);
+  let currentSection = "";
+  let sectionWrapper = null;
+  let currentSectionHidden = false;
 
-        sectionWrapper = document.createElement("div");
-        sectionWrapper.className = "product-grid";
-        content.appendChild(sectionWrapper);
+  data.forEach((item) => {
+    // if row defines a Section header
+    if (item["Section"]) {
+      currentSection = item["Section"];
+      const secVis = String(item["visibility"] || item["Visibility"] || "")
+        .trim()
+        .toLowerCase();
+      currentSectionHidden = secVis.includes("hide");
+      if (currentSectionHidden) {
+        sectionWrapper = null;
         return;
       }
 
-      if (currentSectionHidden) return;
-      if (isHidden(item)) return;
-      if (!item["Product Name"]) return;
+      // create section title
+      const sectionTitle = document.createElement("div");
+      sectionTitle.className = "section-title";
+      sectionTitle.innerText = currentSection;
+      content.appendChild(sectionTitle);
 
-      const product = document.createElement("div");
-      product.className = "product";
+      sectionWrapper = document.createElement("div");
+      sectionWrapper.className = "product-grid";
+      content.appendChild(sectionWrapper);
+      return;
+    }
 
-      product.addEventListener("click", (e) => {
-        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-        const allPhotos = [
-          item["photo 1"],
-          item["photo 2"],
-          item["photo 3"],
-          item["photo 4"],
-        ].filter(Boolean);
+    if (currentSectionHidden) return;
+    if (isHidden(item)) return;
+    if (!item["Product Name"]) return;
+
+    const product = document.createElement("div");
+    product.className = "product";
+
+    product.addEventListener("click", (e) => {
+      // don't open popup when clicking controls inside product card
+      if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+      const allPhotos = [
+        item["photo 1"],
+        item["photo 2"],
+        item["photo 3"],
+        item["photo 4"],
+      ].filter(Boolean);
+      if (typeof openPopup === "function") {
         openPopup(
           allPhotos,
           item["Product Name"],
@@ -2006,126 +2009,146 @@ function isVideoUrl(url=""){
           item["in stock"],
           getSheetDescription(item)
         );
-      });
-
-      (function(){
-        const url1 = (item["photo 1"] || "").trim();
-        let el;
-        if (isVideoUrl(url1)) {
-          const v = document.createElement("video");
-          v.src = url1;
-          v.muted = true;
-          v.autoplay = true;
-          v.loop = true;
-          v.playsInline = true;
-          v.preload = "metadata";
-          v.style.width = "100%";
-          v.style.height = "100%";
-          v.style.objectFit = "contain";
-          v.disablePictureInPicture = true;
-          v.setAttribute("muted","");
-          v.setAttribute("webkit-playsinline","true");
-          v.setAttribute("playsinline","true");
-          v.style.pointerEvents = "none"; // allow card click to bubble
-          v.style.cursor = "default";
-          el = v;
-        } else {
-          const img = document.createElement("img");
-          img.src = url1;
-          img.alt = item["Product Name"];
-          img.style.pointerEvents = "none";
-          img.style.cursor = "default";
-          el = img;
-        }
-        const wrap = document.createElement('div');
-        wrap.className = 'media-square';
-        wrap.appendChild(el);
-        product.appendChild(wrap);
-      })();
-
-      if (item["Badge"]) {
-        const badge = document.createElement("div");
-        badge.className = "badge";
-        badge.innerText = item["Badge"];
-        product.appendChild(badge);
-      }
-
-      const infoWrapper = document.createElement("div");
-      infoWrapper.style.padding = "0 6px";
-
-      const title = document.createElement("div");
-      title.className = "product-title";
-      title.style.fontSize = "14px";
-      title.style.textAlign = "center";
-      title.style.marginTop = "8px";
-      title.innerText = item["Product Name"];
-      try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
-      try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
-      try { title.setAttribute("title", String(item["Product Name"] || "")); } catch(e){}
-      try { title.setAttribute("aria-label", String(item["Product Name"] || "")); } catch(e){}
-      title.style.maxWidth = '100%';
-
-      infoWrapper.appendChild(title);
-
-      const info = document.createElement("div");
-      info.className = "product-info";
-
-      let priceHTML = "";
-      if (item["MRP"] && item["Selling Price"]) {
-        priceHTML = `
-          <div style="
-            text-align:center;
-            font-size:14px;
-            font-weight:bold;
-            display:flex; justify-content:center;
-            gap:6px;
-            align-items:center;
-            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-          ">
-            <span>₹${item["Selling Price"]}</span>
-            <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-          </div>
-        `;
-      }
-
-      if (+item["in stock"] === 0) {
-        info.innerHTML = `
-          ${priceHTML}
-          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
-        `;
       } else {
-        const productData = {
-          photo: item["photo 1"],
-          name: item["Product Name"],
-          mrp: item["MRP"],
-          price: item["Selling Price"],
-        };
-        info.innerHTML = `
-          ${priceHTML}
-          <button class="add-btn" onclick='addToCartFromGrid(this, ${JSON.stringify(
-            productData
-          )})'>Add to Cart</button>
-        `;
+        console.warn("openPopup is not defined.");
       }
-
-      infoWrapper.appendChild(info);
-      product.appendChild(infoWrapper);
-
-      if (!sectionWrapper) {
-        sectionWrapper = document.createElement("div");
-        sectionWrapper.className = "product-grid";
-        content.appendChild(sectionWrapper);
-      }
-      sectionWrapper.appendChild(product);
     });
 
-    if (typeof maybeOpenFromURL === "function") {
-      maybeOpenFromURL();
+    (function(){
+      const url1 = (item["photo 1"] || "").trim();
+      let el;
+      if (isVideoUrl(url1)) {
+        const v = document.createElement("video");
+        v.src = url1;
+        v.muted = true;
+        v.autoplay = true;
+        v.loop = true;
+        v.playsInline = true;
+        v.preload = "metadata";
+        v.style.width = "100%";
+        v.style.height = "100%";
+        v.style.objectFit = "contain";
+        v.disablePictureInPicture = true;
+        v.setAttribute("muted","");
+        v.setAttribute("webkit-playsinline","true");
+        v.setAttribute("playsinline","true");
+        v.style.pointerEvents = "none"; // allow card click to bubble
+        v.style.cursor = "default";
+        el = v;
+      } else {
+        const img = document.createElement("img");
+        img.src = url1;
+        img.alt = item["Product Name"];
+        img.style.pointerEvents = "none";
+        img.style.cursor = "default";
+        el = img;
+      }
+      const wrap = document.createElement('div');
+      wrap.className = 'media-square';
+      wrap.appendChild(el);
+      product.appendChild(wrap);
+    })();
+
+    if (item["Badge"]) {
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.innerText = item["Badge"];
+      product.appendChild(badge);
     }
-  } catch (err) {
-    console.error("Failed to load products:", err);
+
+    const infoWrapper = document.createElement("div");
+    infoWrapper.style.padding = "0 6px";
+
+    const title = document.createElement("div");
+    title.className = "product-title";
+    title.style.fontSize = "14px";
+    title.style.textAlign = "center";
+    title.style.marginTop = "8px";
+    title.innerText = item["Product Name"];
+    try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
+    try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
+    title.style.maxWidth = '100%';
+
+    infoWrapper.appendChild(title);
+
+    const info = document.createElement("div");
+    info.className = "product-info";
+
+    let priceHTML = "";
+    if (item["MRP"] && item["Selling Price"]) {
+      priceHTML = `
+        <div style="
+          text-align:center;
+          font-size:14px;
+          font-weight:bold;
+          display:flex; justify-content:center;
+          gap:6px;
+          align-items:center;
+          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        ">
+          <span>₹${item["Selling Price"]}</span>
+          <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+        </div>
+      `;
+    }
+
+    if (+item["in stock"] === 0) {
+      info.innerHTML = `
+        ${priceHTML}
+      `;
+      const outBtn = document.createElement("button");
+      outBtn.className = "add-btn";
+      outBtn.disabled = true;
+      outBtn.style.background = "#f1f1f1";
+      outBtn.style.color = "#888";
+      outBtn.style.border = "1px solid #ccc";
+      outBtn.innerText = "Out of Stock";
+      info.appendChild(outBtn);
+    } else {
+      const productData = {
+        photo: item["photo 1"],
+        name: item["Product Name"],
+        mrp: item["MRP"],
+        price: item["Selling Price"],
+      };
+
+      info.innerHTML = priceHTML;
+      const addBtn = document.createElement("button");
+      addBtn.className = "add-btn";
+      addBtn.innerText = "Add to Cart";
+      // safe event listener (no JSON.stringify in onclick attribute)
+      addBtn.addEventListener("click", (ev) => {
+        ev.stopPropagation(); // prevent card click opening popup
+        if (typeof addToCartFromGrid === "function") {
+          addToCartFromGrid(addBtn, productData);
+        } else {
+          console.warn("addToCartFromGrid is not defined.");
+        }
+      });
+
+      info.appendChild(addBtn);
+    }
+
+    infoWrapper.appendChild(info);
+    product.appendChild(infoWrapper);
+
+    if (!sectionWrapper) {
+      // if no section header was present, create a default wrapper
+      sectionWrapper = document.createElement("div");
+      sectionWrapper.className = "product-grid";
+      content.appendChild(sectionWrapper);
+    }
+    sectionWrapper.appendChild(product);
+  });
+
+  // if you have a function that opens product based on URL params
+  if (typeof maybeOpenFromURL === "function") {
+    try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
   }
-})();
+}
+
+/* --------------------- start --------------------- */
+loadAndRenderAllTabs();
 </script>
 
 <script>
@@ -2172,10 +2195,6 @@ function isVideoUrl(url=""){
 
 <div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:14px; text-align:center;"></div>
 
-<div id="popupDesc" class="desc-section">
-  <div class="desc-title">Description</div>
-  <div id="popupDescText" class="desc-content"></div>
-</div>
 
 <div class="quantity-bar premium-bar">
   <button onclick="changePopupQty(-1)">
@@ -2195,9 +2214,13 @@ function isVideoUrl(url=""){
   Add to Cart
 </button>
 
-<button onclick="closePopup()" style="width:100%; margin-top:10px; background:#f0f0f0; color:#333; border:1px solid #bbb; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
-  Back
-</button>
+
+<div id="popupDesc" class="desc-section">
+  <div class="desc-title">Description</div>
+  <div id="popupDescText" class="desc-content"></div>
+</div>
+
+
 </div>
 </div>
 </div>
@@ -2337,7 +2360,17 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     };
   }
 
-  try { history.replaceState(null, "", shareUrl); } catch (e) {}
+  try {
+    // If the URL doesn't already have the same ?p param, push a history entry.
+    const curP = (new URL(location.href)).searchParams.get('p');
+    const myP = (new URL(shareUrl)).searchParams.get('p');
+    if (curP !== myP) {
+      history.pushState({ __popup: true, p: myP }, "", shareUrl);
+    } else {
+      // If page was loaded directly with ?p, ensure state marks it as popup
+      try { history.replaceState(Object.assign({}, history.state || {}, { __popup: true, p: myP}), "", shareUrl); } catch(e){}
+    }
+  } catch (e) {}
 
   document.getElementById("popupQty").innerText = "1";
 
@@ -2526,7 +2559,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const dx = e.clientX - startX;
     const dt = Math.max(1, Date.now() - lastMoveTime);
     const velocity = (e.clientX - lastMoveX) / dt;
-    const threshold = Math.min(160, width() * 0.25);
+    const threshold = Math.min(10, width() * 0.03);
     const fast = Math.abs(velocity) > 0.6;
 
     let target = currentIndex;
@@ -2568,14 +2601,46 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 }
 
+
 function changePopupQty(change) {
-  const qtyElement = document.getElementById("popupQty");
-  let current = parseInt(qtyElement.innerText);
-  current += change;
-  if (current < 1) current = 1;
-  if (current > 99) current = 99;
-  qtyElement.innerText = current;
+  try {
+    const qtyElement = document.getElementById("popupQty");
+    if (!qtyElement) return;
+    let current = parseInt(qtyElement.innerText) || 1;
+    const newVal = Math.max(1, Math.min(99, current + change));
+    // If no change, do a short soft haptic for invalid (optional) or just return
+    if (newVal === current) {
+      // soft feedback for reaching bounds (shorter vibration)
+      try { if (navigator.vibrate) navigator.vibrate(8); } catch(e){}
+      return;
+    }
+    qtyElement.innerText = newVal;
+
+    // Debounced haptic to avoid double vibration on some devices/browsers
+    (function doHaptic(){
+      try {
+        if (!('vibrate' in navigator)) return;
+        const now = (performance && performance.now) ? performance.now() : Date.now();
+        const last = window.__lastQtyVibTime || 0;
+        // Ignore vibrations occurring within 120ms of previous one (prevents double triggers)
+        if (now - last < 120) return;
+        // Use a short, crisp pulse
+        navigator.vibrate(12);
+        window.__lastQtyVibTime = now;
+      } catch (e) {
+        // swallow errors (some browsers may throw)
+      }
+    })();
+
+    // Small visual pulse to indicate change (non-intrusive)
+    try {
+      qtyElement.classList.add('qty-pulse');
+      clearTimeout(window.__qtyPulseTimer);
+      window.__qtyPulseTimer = setTimeout(() => qtyElement.classList.remove('qty-pulse'), 140);
+    } catch(e){}
+  } catch(e){ console.warn('changePopupQty error', e); }
 }
+
 
 function addToCartFromGrid(button, product) {
   const originalHTML = button.innerHTML;
@@ -2652,136 +2717,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("video").forEach(keepAliveVideo);
 });
 </script>
-<script>
 
-(() => {
-  const ORIGINAL_FETCH = window.fetch.bind(window);
-  const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
-
-  const isSheetRequest = (input) => {
-    try {
-      const url = typeof input === "string"
-        ? new URL(input)
-        : (input instanceof Request ? new URL(input.url) : new URL(String(input)));
-
-      if (!MATCH_HOSTS.has(url.hostname)) return false;
-
-      if (url.hostname === "docs.google.com") {
-        return url.pathname.startsWith("/spreadsheets/");
-      }
-      if (url.hostname === "opensheet.elk.sh") return true;
-
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  const cacheKeyFor = (url) => `swr:${url}`;
-
-  const isCacheableResponse = (res, contentType) => {
-    if (!res || !res.ok) return false;
-    if (res.type === "opaque" || res.type === "opaqueredirect") return false;
-    if (!contentType) return false;
-    const ct = contentType.toLowerCase();
-    if (ct.includes("text/html")) return false; // avoid caching error HTML
-    return (
-      ct.includes("application/json") ||
-      ct.includes("text/csv") ||
-      ct.includes("text/plain")
-    );
-  };
-
-  const serializeHeaders = (headers) => {
-    try { return Array.from(headers.entries()); } catch { return []; }
-  };
-  const restoreHeaders = (entries) => {
-    try { return new Headers(entries || []); } catch { return new Headers(); }
-  };
-
-  const storeInCache = async (key, response) => {
-    try {
-      const ct = response.headers.get("content-type") || "";
-      if (!isCacheableResponse(response, ct)) return;
-      const bodyText = await response.clone().text(); // keep .json()/.text() working
-      const payload = {
-        body: bodyText,
-        status: response.status,
-        statusText: response.statusText || "",
-        headers: serializeHeaders(response.headers),
-        ts: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(payload));
-    } catch (e) {
-      console.warn("SWR cache store failed:", e);
-    }
-  };
-
-  const responseFromCache = (cachedJson) => {
-    try {
-      const cached = JSON.parse(cachedJson);
-      return new Response(cached.body, {
-        status: cached.status,
-        statusText: cached.statusText,
-        headers: restoreHeaders(cached.headers)
-      });
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchWithTimeout = (resource, init, ms = 7000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), ms);
-    const mergedInit = { ...(init || {}), signal: controller.signal };
-    return ORIGINAL_FETCH(resource, mergedInit).finally(() => clearTimeout(id));
-  };
-
-  const backgroundRevalidate = async (resource, init, key) => {
-    try {
-      const res = await fetchWithTimeout(resource, init, 7000);
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res);
-      }
-    } catch (e) {
-      console.info("SWR revalidate skipped:", e?.name || e);
-    }
-  };
-
-  window.fetch = function swrFetch(resource, init) {
-    if (!isSheetRequest(resource)) {
-      return ORIGINAL_FETCH(resource, init);
-    }
-
-    const url = (resource instanceof Request) ? resource.url : String(resource);
-    const key = cacheKeyFor(url);
-    const cachedJson = localStorage.getItem(key);
-
-    if (cachedJson) {
-      const cachedRes = responseFromCache(cachedJson);
-      backgroundRevalidate(resource, init, key);
-      return Promise.resolve(cachedRes.clone());
-    }
-
-    return fetchWithTimeout(resource, init, 7000).then(async (res) => {
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        storeInCache(key, res.clone());
-      }
-      return res;
-    }).catch((err) => {
-      const fallbackJson = localStorage.getItem(key);
-      if (fallbackJson) {
-        const fallbackRes = responseFromCache(fallbackJson);
-        return Promise.resolve(fallbackRes.clone());
-      }
-      return Promise.reject(err);
-    });
-  };
-})();
-
-</script>
 
 <script>
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
@@ -2848,7 +2784,11 @@ function closePopup() {
     if (e.target !== card) return;
     popup.style.display = "none";
     try { popup.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; }); } catch(e){}
-  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  try {
+      // If this history entry was created for the popup, go back to remove it; otherwise, just clean URL
+      if (history.state && history.state.__popup) { history.back(); return; }
+    } catch (e) {}
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
     card.removeEventListener("transitionend", onDone);
   };
   card.addEventListener("transitionend", onDone);
@@ -3464,23 +3404,7 @@ function applyDirectionFromSheet(rows){
 })();
 </script>
 
-<style id="photo-nav-buttons-css">
-.popup-media { position: relative !important; touch-action: pinch-zoom !important; }
-#popupSlider { touch-action: pinch-zoom !important; cursor: auto !important; }
-.photo-nav-btn{
-  position:absolute; top:50%; transform:translateY(-50%);
-  width:44px; height:44px; border-radius:50%;
-  background:rgba(120,120,120,0.72);
-  border:1px solid rgba(0,0,0,0.18);
-  box-shadow:0 4px 12px rgba(0,0,0,0.25);
-  display:flex; justify-content:center; align-items:center; justify-content:center;
-  cursor:pointer; user-select:none; outline:none;
-}
-.photo-nav-btn svg{ width:20px; height:20px; stroke:#fff; }
-.photo-prev{ left:12px; }
-.photo-next{ right:12px; }
-.photo-nav-btn[disabled]{ opacity:0.45; pointer-events:none; }
-</style>
+
 
 <script id="openPopup-left-right-override">
 (function(){
@@ -3539,12 +3463,42 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     var descWrap = $("popupDesc");
     var descText = $("popupDescText");
     var fromSheet = (sheetDesc||"").trim();
-    if(descText) descText.textContent = "";
+
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function formatDescription(raw){
+      if(!raw) return '';
+      raw = raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+      // Split into paragraphs by double newline, keep single-line bullets as list items
+      const parts = raw.split(/\n{2,}/).map(p=>p.trim()).filter(Boolean);
+      let html = '';
+      parts.forEach((part, idx) => {
+        const lines = part.split('\n').map(l=>l.trim()).filter(Boolean);
+        // If most lines start with - or • or emoji bullet, treat as list
+        const bullets = lines.filter(l => /^[-•\u2022]|\u2728|🌟|✨|🌸|🌹/.test(l));
+        if(bullets.length >= 1 && bullets.length >= lines.length/2){
+          html += '<ul>';
+          lines.forEach(l => {
+            const li = l.replace(/^[-•\u2022]\s*/,'').replace(/^[\u2728\u2022\u2023\u25E6\u2023]\s*/,'');
+            html += '<li>' + escapeHtml(li) + '</li>';
+          });
+          html += '</ul>';
+        } else if(idx === 0){
+          // lead paragraph styled prominently
+          html += '<p class=\"desc-lead\">' + escapeHtml(lines.join(' ')) + '</p>';
+        } else {
+          html += '<p>' + escapeHtml(lines.join(' ')) + '</p>';
+        }
+      });
+      return html;
+    }
+
+    if(descText) descText.innerHTML = '';
     if(fromSheet.length > 0){
-      if(descWrap) descWrap.style.display = "block";
-      if(descText) descText.textContent = fromSheet;
+      if(descWrap) descWrap.style.display = 'block';
+      if(descText) descText.innerHTML = formatDescription(fromSheet);
     }else{
-      if(descWrap) descWrap.style.display = "none";
+      if(descWrap) descWrap.style.display = 'none';
     }
 
     try{
@@ -3586,6 +3540,135 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     var track = document.createElement("div");
     track.className = "popup-track";
     slider.appendChild(track);
+// START: touch / pointer swipe handlers (inserted by ChatGPT)
+(function bindPopupSwipe(track, slider, goToFn){
+  if (!track || !slider) return;
+
+  let startX = 0;
+  let lastX = 0;
+  let dragging = false;
+  let currentTranslate = 0;
+  let baseIndex = 0;
+
+  const widthWithGap = () => (slider.getBoundingClientRect().width + 10); // matches width() in file
+
+  function setTranslate(x, animate){
+    if (animate) track.style.transition = ''; // restore (will be set by goTo)
+    else track.style.transition = 'none';
+    track.style.transform = `translateX(${x}px)`;
+  }
+
+  function pointerStart(clientX){
+    startX = clientX;
+    lastX = clientX;
+    dragging = true;
+    slider.classList.add('dragging');
+    // compute base translate from current transform
+    const cur = track.style.transform || '';
+    const m = cur.match(/translateX\((-?\d+)px\)/);
+    currentTranslate = m ? parseInt(m[1], 10) : 0;
+    baseIndex = Math.round(Math.abs(currentTranslate) / Math.max(1, widthWithGap()));
+    setTranslate(currentTranslate, false);
+  }
+
+  function pointerMove(clientX){
+    if (!dragging) return;
+    const dx = clientX - lastX;
+    lastX = clientX;
+    const totalDx = clientX - startX;
+    // simple rubber-band at edges
+    const maxTranslate = 0;
+    const minTranslate = - (Math.max(0, (track.children.length - 1)) * widthWithGap());
+    let next = currentTranslate + totalDx;
+    if (next > maxTranslate + 80) next = maxTranslate + 80;
+    if (next < minTranslate - 80) next = minTranslate - 80;
+    setTranslate(next, false);
+  }
+
+  function pointerEnd(){
+    if (!dragging) return;
+    dragging = false;
+    slider.classList.remove('dragging');
+    // decide swipe
+    const totalDx = lastX - startX;
+    const threshold = Math.min(10, widthWithGap() * 0.03); // px
+    const cur = track.style.transform || '';
+    const m = cur.match(/translateX\((-?\d+)px\)/);
+    const curTranslate = m ? parseInt(m[1], 10) : 0;
+    const idx = Math.round(Math.abs(curTranslate) / widthWithGap());
+
+    if (totalDx < -threshold) {
+      // swiped left -> next
+      goToFn(idx + 1, true);
+    } else if (totalDx > threshold) {
+      // swiped right -> prev
+      goToFn(idx - 1, true);
+    } else {
+      // small move -> snap back
+      goToFn(idx, true);
+    }
+  }
+
+  // use pointer events where supported, otherwise touch/mouse fallback
+  slider.addEventListener('pointerdown', (e) => {
+  // only primary button / touch
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+  // IMPORTANT:
+  // Do NOT call preventDefault() for touch pointer events.
+  // Calling preventDefault() on touch blocks the browser's pinch-to-zoom.
+  // Only prevent default for mouse if needed.
+  if (e.pointerType === 'mouse') {
+    e.preventDefault();
+  }
+
+  pointerStart(e.clientX);
+
+  const move = (ev) => { pointerMove(ev.clientX); };
+  const up = () => {
+    pointerEnd();
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+  };
+  window.addEventListener('pointermove', move, {passive:false});
+  window.addEventListener('pointerup', up, {passive:true});
+}, {passive:false});
+    window.addEventListener('pointerup', up, {passive:true});
+  }, {passive:false});
+
+  // fallback for touch-only devices (some browsers)
+  slider.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (!t) return;
+    pointerStart(t.clientX);
+  }, {passive:true});
+
+  slider.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    if (!t) return;
+    pointerMove(t.clientX);
+  }, {passive:false});
+
+  slider.addEventListener('touchend', (e) => {
+    pointerEnd();
+  }, {passive:true});
+
+})(track, slider, function(i, animate){
+  // safe call to goTo function already defined in your openPopup scope
+  try { goTo(i, animate); } catch(e) {
+    // if goTo isn't available (should be), fallback: clamp and set transform
+    const w = (slider.getBoundingClientRect().width + 10);
+    const slides = track.children.length || 1;
+    if (i < 0) i = 0;
+    if (i > slides - 1) i = slides.length - 1;
+    track.style.transition = animate ? '' : 'none';
+    track.style.transform = "translateX(" + (-i * w) + "px)";
+    // update dots if present
+    try { if (typeof setActiveDot === 'function') setActiveDot(i); } catch(e){}
+  }
+});
+// END: touch / pointer swipe handlers
+
 
 var slides = [], dots = [];
 images.forEach(function(url, i) {
@@ -3610,12 +3693,13 @@ images.forEach(function(url, i) {
     el = v;
   } else {
     var img = document.createElement("img");
-    img.src = clean;
-    img.className = "popup-slide";
-    img.setAttribute("draggable","false");
-    img.style.touchAction = "pinch-zoom";
-    el = img;
-  }
+img.src = clean;
+img.className = "popup-slide";
+img.setAttribute("draggable","false");
+// let the browser handle pinch at page level; do not force image to capture pinch
+// either remove touchAction or set to auto:
+img.style.touchAction = "auto"; // <-- safer: explicitly allow default pinch
+el = img;
 
   track.appendChild(el);
   slides.push(el);
@@ -3654,35 +3738,10 @@ let dur = base + extra;
 track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
       track.style.transform = "translateX(" + (-i * width()) + "px)";
       setActiveDot(i);
-      refreshNavState();
+      
     }
 
-    function mkBtn(cls, label, svgPath){
-      var b = document.createElement("button");
-      b.className = "photo-nav-btn " + cls;
-      b.setAttribute("aria-label", label);
-      b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+svgPath+'"/></svg>';
-      media && media.appendChild(b);
-      return b;
-    }
-    var prevBtn = mkBtn("photo-prev", "Previous photo", "M15 18l-6-6 6-6");
-    var nextBtn = mkBtn("photo-next", "Next photo", "M9 6l6 6-6 6");
-
-    function refreshNavState(){
-      if (!prevBtn || !nextBtn) return;
-      if (slides.length <= 1){
-        prevBtn.style.display = "none";
-        nextBtn.style.display = "none";
-      } else {
-        prevBtn.style.display = "";
-        nextBtn.style.display = "";
-        prevBtn.disabled = (currentIndex === 0);
-        nextBtn.disabled = (currentIndex === slides.length - 1);
-      }
-    }
-
-    prevBtn && prevBtn.addEventListener("click", function(){ goTo(currentIndex - 1, true); });
-    nextBtn && nextBtn.addEventListener("click", function(){ goTo(currentIndex + 1, true); });
+    
 
     slider.tabIndex = 0;
     slider.onkeydown = function(e){
@@ -3903,143 +3962,6 @@ if (popup){
 })();
 </script>
 
-<script>
-(() => {
-  const ORIGINAL_FETCH = window.fetch.bind(window);
-  const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
-
-  const isSheetRequest = (input) => {
-    try {
-      const url = typeof input === "string" ? new URL(input) :
-                  (input instanceof Request ? new URL(input.url) :
-                   new URL(String(input)));
-      if (!MATCH_HOSTS.has(url.hostname)) return false;
-      if (url.hostname === "docs.google.com") {
-        return url.pathname.startsWith("/spreadsheets/");
-      }
-      if (url.hostname === "opensheet.elk.sh") return true;
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  const cacheKeyFor = (url) => `swr:${url}`;
-
-  const isCacheableResponse = (res, contentType) => {
-    if (!res || !res.ok) return false;
-    if (res.type === "opaque" || res.type === "opaqueredirect") return false;
-    if (!contentType) return false;
-    const ct = contentType.toLowerCase();
-    if (ct.includes("text/html")) return false;
-    return (
-      ct.includes("application/json") ||
-      ct.includes("text/csv") ||
-      ct.includes("text/plain")
-    );
-  };
-
-  const serializeHeaders = (headers) => { try { return Array.from(headers.entries()); } catch { return []; } };
-  const restoreHeaders = (entries) => { try { return new Headers(entries || []); } catch { return new Headers(); } };
-
-  const storeInCache = async (key, response) => {
-    try {
-      const ct = response.headers.get("content-type") || "";
-      if (!isCacheableResponse(response, ct)) return;
-
-      const bodyText = await response.clone().text();
-      const payload = {
-        body: bodyText,
-        status: response.status,
-        statusText: response.statusText || "",
-        headers: serializeHeaders(response.headers),
-        ts: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(payload));
-      try {
-        window.dispatchEvent(new CustomEvent('swr:cache:update', { detail: { key, ts: payload.ts } }));
-      } catch (e) {  }
-    } catch (e) {
-      console.warn("SWR cache store failed:", e);
-    }
-  };
-
-  const responseFromCache = (cachedJson) => {
-    try {
-      const cached = JSON.parse(cachedJson);
-      return new Response(cached.body, {
-        status: cached.status,
-        statusText: cached.statusText,
-        headers: restoreHeaders(cached.headers)
-      });
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchWithTimeout = (resource, init, ms = 7000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), ms);
-    const mergedInit = { ...(init || {}), signal: controller.signal };
-    return ORIGINAL_FETCH(resource, mergedInit).finally(() => clearTimeout(id));
-  };
-
-  const backgroundRevalidate = async (resource, init, key) => {
-    try {
-      const res = await fetchWithTimeout(resource, init, 7000);
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res);
-      }
-    } catch (e) {
-      console.info("SWR revalidate skipped:", e?.name || e);
-    }
-  };
-
-  const isReloadNavigation = () => {
-    try {
-      const navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
-      if (navEntries && navEntries[0]) return navEntries[0].type === 'reload';
-      if (performance.navigation) return performance.navigation.type === 1;
-    } catch (e) {}
-    return false;
-  };
-
-  window.fetch = function swrFetch(resource, init) {
-    if (!isSheetRequest(resource)) {
-      return ORIGINAL_FETCH(resource, init);
-    }
-
-    const url = (resource instanceof Request) ? resource.url : String(resource);
-    const key = cacheKeyFor(url);
-    const cachedJson = localStorage.getItem(key);
-
-    const forceNetwork = isReloadNavigation() ||
-                         (typeof location !== "undefined" && location.search && location.search.includes("nocache=1"));
-
-    if (cachedJson && !forceNetwork) {
-      const cachedRes = responseFromCache(cachedJson);
-      backgroundRevalidate(resource, init, key);
-      return Promise.resolve(cachedRes.clone());
-    }
-
-    return fetchWithTimeout(resource, init, 7000).then(async (res) => {
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res.clone());
-      }
-      return res;
-    }).catch((err) => {
-      const fallbackJson = localStorage.getItem(key);
-      if (fallbackJson) {
-        const fallbackRes = responseFromCache(fallbackJson);
-        return Promise.resolve(fallbackRes.clone());
-      }
-      return Promise.reject(err);
-    });
-  };
-})();
-</script>
 
 <script>
 
@@ -4055,232 +3977,328 @@ window._userInteracting = false;
     setTimeout(()=> window._userInteracting = false, 250);
   }, {passive:true});
 })();
-async function loadAndRenderCatalog() {
+// -------------------- START: SWR-enabled loadAndRenderCatalog + poller --------------------
+/*
+  Replaces previous loadAndRenderCatalog implementation.
+  - Uses localStorage cache keyed by SHEET_URL
+  - Renders cached data immediately, then fetches fresh data in background
+  - Force network on reload (F5) or ?nocache=1
+  - Fires 'swr:cache:update' when new cache arrives
+  - Polls every 3s while page visible (single poller only)
+  - Defers rendering while window._userInteracting is truthy
+  - Restores horizontal scrollLeft for .product-grid
+*/
+
+async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
+  // Basic safety
   try {
     if (typeof SHEET_URL === "undefined") {
       console.warn("SHEET_URL is not defined. Define SHEET_URL to point to your Google Sheet JSON URL.");
       return;
     }
 
-    const res = await fetch(SHEET_URL, {cache: "no-store"});
-    const data = await res.json();
+    const content = document.getElementById("content");
+    if (!content) return;
 
-    
-
+    // Preserve existing scroll positions
+    let prevScrolls = [];
     try {
-      const latestSnapshot = JSON.stringify((data || []).map(d => (d['Product Name']||'') + '::' + (d['Selling Price']||'')));
-      if (window._lastSnapshot === latestSnapshot) {
-        return;
-      }
-      window._lastSnapshot = latestSnapshot;
-    } catch(e){}
-if (typeof applyDirectionFromSheet === "function") {
-      applyDirectionFromSheet(data);
+      const prevGrids = Array.from(content.querySelectorAll('.product-grid'));
+      prevScrolls = prevGrids.map(g => g.scrollLeft || 0);
+    } catch (e) { prevScrolls = []; }
+
+    // If user interacting (dragging) -> defer whole load & render
+    if (window._userInteracting) {
+      if (window._swr_delayed_retry) clearTimeout(window._swr_delayed_retry);
+      window._swr_delayed_retry = setTimeout(() => {
+        if (!window._userInteracting) loadAndRenderCatalog(opts);
+      }, 800);
+      return;
     }
-    window.catalogData = data;
 
-    
-const content = document.getElementById("content");
-if (!content) return;
+    // Compose cache key based on SHEET_URL
+    const cacheKey = `swr:sheet:${SHEET_URL}`;
 
-if (window._userInteracting) {
-  if (window._swr_delayed_retry) clearTimeout(window._swr_delayed_retry);
-  window._swr_delayed_retry = setTimeout(() => {
-    if (!window._userInteracting) loadAndRenderCatalog();
-  }, 800);
-  return;
-}
+    // Helper: the DOM render logic extracted from your original function.
+    // It takes 'data' array and writes into #content (clears and builds UI).
+    function renderFromData(data) {
+      // Clear content and rebuild exactly like your original code
+      content.innerHTML = "";
 
-const prevGrids = Array.from(content.querySelectorAll('.product-grid'));
-const prevScrolls = prevGrids.map(g => g.scrollLeft || 0);
+      let currentSection = "";
+      let sectionWrapper = null;
+      let currentSectionHidden = false;
 
-content.innerHTML = "";
+      (data || []).forEach((item) => {
+        if (item && item["Section"]) {
+          currentSection = item["Section"];
+          const secVis = String(item["visibility"] || item["Visibility"] || "")
+            .trim()
+            .toLowerCase();
+          currentSectionHidden = secVis.includes("hide");
+          if (currentSectionHidden) { sectionWrapper = null; return; }
 
-    let currentSection = "";
-    let sectionWrapper = null;
-    let currentSectionHidden = false;
+          const sectionTitle = document.createElement("div");
+          sectionTitle.className = "section-title";
+          sectionTitle.innerText = currentSection;
+          content.appendChild(sectionTitle);
 
-    data.forEach((item) => {
-      if (item["Section"]) {
-        currentSection = item["Section"];
-        const secVis = String(item["visibility"] || item["Visibility"] || "")
-          .trim()
-          .toLowerCase();
-        currentSectionHidden = secVis.includes("hide");
-        if (currentSectionHidden) { sectionWrapper = null; return; }
-
-        const sectionTitle = document.createElement("div");
-        sectionTitle.className = "section-title";
-        sectionTitle.innerText = currentSection;
-        content.appendChild(sectionTitle);
-
-        sectionWrapper = document.createElement("div");
-        sectionWrapper.className = "product-grid";
-        content.appendChild(sectionWrapper);
-        return;
-      }
-
-      if (currentSectionHidden) return;
-      if (typeof isHidden === "function" && isHidden(item)) return;
-      if (!item["Product Name"]) return;
-
-      const product = document.createElement("div");
-      product.className = "product";
-
-      product.addEventListener("click", (e) => {
-        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-        const allPhotos = [
-          item["photo 1"],
-          item["photo 2"],
-          item["photo 3"],
-          item["photo 4"],
-        ].filter(Boolean);
-        if (typeof openPopup === "function") {
-          openPopup(
-            allPhotos,
-            item["Product Name"],
-            item["MRP"],
-            item["Selling Price"],
-            item["in stock"],
-            (typeof getSheetDescription === "function" ? getSheetDescription(item) : "")
-          );
+          sectionWrapper = document.createElement("div");
+          sectionWrapper.className = "product-grid";
+          content.appendChild(sectionWrapper);
+          return;
         }
+
+        if (currentSectionHidden) return;
+        if (typeof isHidden === "function" && isHidden(item)) return;
+        if (!item || !item["Product Name"]) return;
+
+        const product = document.createElement("div");
+        product.className = "product";
+
+        product.addEventListener("click", (e) => {
+          if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+          const allPhotos = [
+            item["photo 1"],
+            item["photo 2"],
+            item["photo 3"],
+            item["photo 4"],
+          ].filter(Boolean);
+          if (typeof openPopup === "function") {
+            openPopup(
+              allPhotos,
+              item["Product Name"],
+              item["MRP"],
+              item["Selling Price"],
+              item["in stock"],
+              (typeof getSheetDescription === "function" ? getSheetDescription(item) : "")
+            );
+          }
+        });
+
+        (function(){
+          const url1 = (item["photo 1"] || "").trim();
+          let el;
+          if (typeof isVideoUrl === "function" && isVideoUrl(url1)) {
+            const v = document.createElement("video");
+            v.src = url1;
+            v.muted = true;
+            v.autoplay = true;
+            v.loop = true;
+            v.playsInline = true;
+            v.preload = "metadata";
+            v.style.width = "100%";
+            v.style.height = "100%";
+            v.style.objectFit = "contain";
+            v.disablePictureInPicture = true;
+            v.setAttribute("muted","");
+            v.setAttribute("webkit-playsinline","true");
+            v.setAttribute("playsinline","true");
+            v.style.pointerEvents = "none";
+            v.style.cursor = "default";
+            el = v;
+          } else {
+            const img = document.createElement("img");
+            img.src = url1;
+            img.alt = item["Product Name"] || "";
+            img.style.pointerEvents = "none";
+            img.style.cursor = "default";
+            el = img;
+          }
+          const wrap = document.createElement('div');
+          wrap.className = 'media-square';
+          wrap.appendChild(el);
+          product.appendChild(wrap);
+        })();
+
+        if (item["Badge"]) {
+          const badge = document.createElement("div");
+          badge.className = "badge";
+          badge.innerText = item["Badge"];
+          product.appendChild(badge);
+        }
+
+        const infoWrapper = document.createElement("div");
+        infoWrapper.style.padding = "0 6px";
+
+        const title = document.createElement("div");
+        title.className = "product-title";
+        title.style.fontSize = "14px";
+        title.style.textAlign = "center";
+        title.style.marginTop = "8px";
+        title.innerText = item["Product Name"];
+        try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
+        try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
+        infoWrapper.appendChild(title);
+
+        const info = document.createElement("div");
+        info.className = "product-info";
+
+        let priceHTML = "";
+        if (item["MRP"] && item["Selling Price"]) {
+          priceHTML = `
+            <div style="
+              text-align:center;
+              font-size:14px;
+              font-weight:bold;
+              display:flex; justify-content:center;
+              gap:6px;
+              align-items:center;
+              white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+            ">
+              <span>₹${item["Selling Price"]}</span>
+              <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+            </div>
+          `;
+        }
+
+        if (+item["in stock"] === 0) {
+          info.innerHTML = `
+            ${priceHTML}
+            <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
+          `;
+        } else {
+          const productData = {
+            photo: item["photo 1"],
+            name: item["Product Name"],
+            mrp: item["MRP"],
+            price: item["Selling Price"],
+          };
+          // NOTE: keep using addToCartFromGrid if defined
+          info.innerHTML = `
+            ${priceHTML}
+            <button class="add-btn" onclick='if(typeof addToCartFromGrid==="function"){addToCartFromGrid(this, ${JSON.stringify(productData)})}'>Add to Cart</button>
+          `;
+        }
+
+        infoWrapper.appendChild(info);
+        product.appendChild(infoWrapper);
+
+        if (!sectionWrapper) {
+          sectionWrapper = document.createElement("div");
+          sectionWrapper.className = "product-grid";
+          content.appendChild(sectionWrapper);
+        }
+        sectionWrapper.appendChild(product);
       });
 
-      (function(){
-        const url1 = (item["photo 1"] || "").trim();
-        let el;
-        if (typeof isVideoUrl === "function" && isVideoUrl(url1)) {
-          const v = document.createElement("video");
-          v.src = url1;
-          v.muted = true;
-          v.autoplay = true;
-          v.loop = true;
-          v.playsInline = true;
-          v.preload = "metadata";
-          v.style.width = "100%";
-          v.style.height = "100%";
-          v.style.objectFit = "contain";
-          v.disablePictureInPicture = true;
-          v.setAttribute("muted","");
-          v.setAttribute("webkit-playsinline","true");
-          v.setAttribute("playsinline","true");
-          v.style.pointerEvents = "none";
-          v.style.cursor = "default";
-          el = v;
-        } else {
-          const img = document.createElement("img");
-          img.src = url1;
-          img.alt = item["Product Name"] || "";
-          img.style.pointerEvents = "none";
-          img.style.cursor = "default";
-          el = img;
-        }
-        const wrap = document.createElement('div');
-        wrap.className = 'media-square';
-        wrap.appendChild(el);
-        product.appendChild(wrap);
-      })();
-
-      if (item["Badge"]) {
-        const badge = document.createElement("div");
-        badge.className = "badge";
-        badge.innerText = item["Badge"];
-        product.appendChild(badge);
-      }
-
-      const infoWrapper = document.createElement("div");
-      infoWrapper.style.padding = "0 6px";
-
-      const title = document.createElement("div");
-      title.className = "product-title";
-      title.style.fontSize = "14px";
-      title.style.textAlign = "center";
-      title.style.marginTop = "8px";
-      title.innerText = item["Product Name"];
-      try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
-      try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
-      infoWrapper.appendChild(title);
-
-      const info = document.createElement("div");
-      info.className = "product-info";
-
-      let priceHTML = "";
-      if (item["MRP"] && item["Selling Price"]) {
-        priceHTML = `
-          <div style="
-            text-align:center;
-            font-size:14px;
-            font-weight:bold;
-            display:flex; justify-content:center;
-            gap:6px;
-            align-items:center;
-            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-          ">
-            <span>₹${item["Selling Price"]}</span>
-            <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-          </div>
-        `;
-      }
-
-      if (+item["in stock"] === 0) {
-        info.innerHTML = `
-          ${priceHTML}
-          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
-        `;
-      } else {
-        const productData = {
-          photo: item["photo 1"],
-          name: item["Product Name"],
-          mrp: item["MRP"],
-          price: item["Selling Price"],
-        };
-        info.innerHTML = `
-          ${priceHTML}
-          <button class="add-btn" onclick='if(typeof addToCartFromGrid==="function"){addToCartFromGrid(this, ${JSON.stringify(productData)})}'>Add to Cart</button>
-        `;
-      }
-
-      infoWrapper.appendChild(info);
-      product.appendChild(infoWrapper);
-
-      if (!sectionWrapper) {
-        sectionWrapper = document.createElement("div");
-        sectionWrapper.className = "product-grid";
-        content.appendChild(sectionWrapper);
-      }
-      sectionWrapper.appendChild(product);
-    });
-
-    
-
-try {
-  const newGrids = Array.from(content.querySelectorAll('.product-grid'));
-  newGrids.forEach((g, i) => {
-    if (typeof prevScrolls[i] === 'number') {
-      requestAnimationFrame(() => { g.scrollLeft = prevScrolls[i]; });
+      // After DOM update, restore previous scroll positions
+      try {
+        const newGrids = Array.from(content.querySelectorAll('.product-grid'));
+        newGrids.forEach((g, i) => {
+          if (typeof prevScrolls[i] === 'number') {
+            requestAnimationFrame(() => { g.scrollLeft = prevScrolls[i]; });
+          }
+        });
+      } catch (e) {}
+      if (typeof maybeOpenFromURL === "function") maybeOpenFromURL();
+      // Re-activate/keep videos alive if you have that function
+      try { document.querySelectorAll("video").forEach(v => { if (typeof keepAliveVideo === "function") keepAliveVideo(v); }); } catch(e){}
     }
-  });
-} catch(e) {  }
-if (typeof maybeOpenFromURL === "function") maybeOpenFromURL();
+
+    // ------------- Show cached data immediately (SWR)
+    let cachedJSON = null;
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      if (raw) cachedJSON = JSON.parse(raw);
+    } catch (e) { /* ignore parse / quota errors */ }
+
+    if (cachedJSON && !opts.forceNetwork) {
+      try {
+        // Render from cache immediately
+        renderFromData(cachedJSON);
+      } catch (e) {
+        console.warn("SWR: render from cache failed", e);
+      }
+    }
+
+    // Decide whether to force network:
+    let force = !!opts.forceNetwork;
+    try {
+      // ?nocache=1 forces network
+      if (new URL(location.href).searchParams.get("nocache") === "1") force = true;
+    } catch (e) {}
+    try {
+      // Detect reload (F5) via navigation entries
+      const navEntries = performance.getEntriesByType && performance.getEntriesByType("navigation");
+      if (navEntries && navEntries[0] && navEntries[0].type === "reload") force = true;
+    } catch (e) {}
+
+    // Prevent concurrent fetches
+    if (window.__swrFetchInFlight) return;
+    window.__swrFetchInFlight = true;
+
+    // Fetch fresh data
+    try {
+      const fetchInit = force ? { cache: "no-store" } : { cache: "no-cache" };
+      const res = await fetch(SHEET_URL, fetchInit);
+      const data = await (res.ok ? res.json() : []);
+      // Normalize: ensure it's an array
+      const normalized = Array.isArray(data) ? data : [];
+
+      // Compare with current cache. If same, skip re-render.
+      const newJSON = JSON.stringify(normalized);
+      const oldJSON = localStorage.getItem(cacheKey) || "";
+
+      if (newJSON !== oldJSON) {
+        // Save new cache
+        try { localStorage.setItem(cacheKey, newJSON); } catch (e) { /* ignore quota */ }
+
+        // Fire event so other parts can react
+        try {
+          window.dispatchEvent(new CustomEvent("swr:cache:update", {
+            detail: { key: cacheKey, ts: Date.now() }
+          }));
+        } catch (e) {}
+
+        // Render only if not interacting; otherwise defer
+        if (!window._userInteracting) {
+          renderFromData(normalized);
+        } else {
+          clearTimeout(window.__swrDeferredTimer);
+          window.__swrDeferredTimer = setTimeout(() => {
+            renderFromData(normalized);
+          }, 600);
+        }
+      } else {
+        // Identical data -> do nothing (skip heavy re-render)
+      }
+
+      // Also update _lastSnapshot (keeps older snapshot logic for external compatibility)
+      try {
+        const latestSnapshot = JSON.stringify((normalized || []).map(d => (d['Product Name']||'') + '::' + (d['Selling Price']||'')));
+        window._lastSnapshot = latestSnapshot;
+        if (typeof applyDirectionFromSheet === "function") applyDirectionFromSheet(normalized);
+        window.catalogData = normalized;
+      } catch (e) {}
+    } catch (err) {
+      console.error("Failed to fetch sheet data (SWR):", err);
+    } finally {
+      window.__swrFetchInFlight = false;
+    }
 
   } catch (err) {
-    console.error("Failed to load products:", err);
+    console.error("loadAndRenderCatalog top-level error:", err);
+    window.__swrFetchInFlight = false;
   }
+} // end loadAndRenderCatalog
+
+// Start the SWR poller exactly once (every 3000ms) while visible.
+if (!window.__swrPollStarted) {
+  window.__swrPollStarted = true;
+  (function startSWRPoll(){
+    const POLL_MS = 3000;
+    setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
+    }, POLL_MS);
+  })();
 }
 
-loadAndRenderCatalog();
+// Immediately invoke once to populate UI (this replaces your earlier immediate call)
+if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
+// -------------------- END: SWR-enabled loadAndRenderCatalog + poller --------------------
 
-(function(){
-  const POLL_MS = 3000;
-  const pollFn = () => {
-    if (document.visibilityState !== 'visible') return;
-    if (typeof loadAndRenderCatalog === "function") {
-      loadAndRenderCatalog();
-    }
-  };
-  setInterval(pollFn, POLL_MS);
-})();
 </script>
 
 <script>
@@ -4338,5 +4356,737 @@ loadAndRenderCatalog();
 })();
 </script>
 
+
+
+<!-- MODIFIED popup history: pushState so browser Back goes back to base, and second Back goes to previous page -->
+<script>
+(function(){
+  const POPUP_ID = 'productPopup';
+  const popupEl = () => document.getElementById(POPUP_ID);
+
+  function slugify(name){
+    return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
+  }
+
+  // Ensure base state exists
+  try {
+    if (!history.state || !history.state.__base) {
+      history.replaceState(Object.assign({}, history.state || {}, { __base: true }), "", location.pathname + location.search);
+    }
+  } catch(e){}
+
+  // Wrap original openPopup to push a history entry when popup opens.
+  const origOpen = window.openPopup;
+  if (typeof origOpen === 'function') {
+    window.openPopup = function(images, name, mrp, price, stock, desc){
+      try { origOpen.apply(this, arguments); } catch(e){ console.warn("openPopup original failed:", e); }
+
+      try {
+        const slug = slugify(name);
+        const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
+        // push a new history entry so Back will return to base page (without ?p=)
+        history.pushState({ __popup: true }, "", newUrl);
+      } catch (e) { console.warn("pushState openPopup failed:", e); }
+    };
+  }
+
+  // Wrap closePopup: if the last history entry was pushed for popup, go back; otherwise just close and replace state
+  const origClose = window.closePopup;
+  window.closePopup = function(){
+    try {
+      if (history.state && history.state.__popup) {
+        // go back in history which will remove the ?p param
+        history.back();
+        return;
+      }
+    } catch (e) { /* ignore */ }
+
+    // fallback: call original close logic and ensure URL cleaned
+    try { if (typeof origClose === 'function') origClose.apply(this, arguments); } catch(e){ console.warn("closePopup original failed:", e); }
+    try {
+      const baseUrl = location.pathname;
+      history.replaceState(Object.assign({}, history.state || {}, { __base: true }), "", baseUrl);
+    } catch (e) { console.warn("replaceState closePopup failed:", e); }
+  };
+
+  // Popstate handler: open or close popup based on state and URL
+  window.addEventListener('popstate', function(ev){
+    const st = ev.state || {};
+    const el = popupEl();
+    const isVisible = el && (el.classList.contains('is-open') || getComputedStyle(el).display !== 'none');
+
+    // If the state indicates popup (or URL has ?p), ensure popup open
+    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
+    if (st && st.__popup || urlHasP) {
+      if (!isVisible) {
+        // Try to open from URL if helper exists
+        if (typeof maybeOpenFromURL === 'function') {
+          try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
+        } else {
+          if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+        }
+      }
+    } else {
+      // Not a popup state: ensure popup closed
+      if (isVisible) {
+        try { if (el){ el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } } catch(e){}
+      }
+    }
+  }, false);
+
+  // If clicking on overlay (outside card) and this popup was opened via pushState, go back; otherwise close.
+  const overlay = popupEl();
+  if (overlay) {
+    overlay.addEventListener('click', function(e){
+      if (e.target === overlay) {
+        try {
+          if (history.state && history.state.__popup) { history.back(); return; }
+        } catch(e){}
+        // fallback
+        try { if (typeof origClose === 'function') origClose(); } catch(e){}
+        try { overlay.classList.remove('is-open'); overlay.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
+      }
+    }, { passive: true });
+  }
+})();
+</script>
+
+
+
+<!-- FAST SWIPE TUNING: injected to make touch swipe feel faster & natural -->
+<script>
+(function(){
+  function tunePopupSwipe(){
+    const styleId = 'fast-swipe-overrides';
+    if (document.getElementById(styleId)) return;
+    const css = `
+      /* make track animation snappy */
+      #popupSlider .popup-track { transition: transform 260ms cubic-bezier(.22,1,.36,1) !important; }
+      /* snappier popup entry */
+      .popup-card { transition: transform 420ms cubic-bezier(.22,1,.36,1), opacity 320ms ease !important; }
+      /* faster dot scaling */
+      .popup-dot, .popup-dot.active { transition: transform 240ms cubic-bezier(.22,1,.36,1), opacity 180ms ease, box-shadow 240ms ease !important; }
+    `;
+    const st = document.createElement('style');
+    st.id = styleId;
+    st.appendChild(document.createTextNode(css));
+    document.head.appendChild(st);
+
+    // Improve pointer handling with basic velocity detection
+    const slider = document.getElementById('popupSlider');
+    if (!slider) return;
+    const track = slider.querySelector('.popup-track');
+    if (!track) return;
+
+    let startX=0, startT=0, lastX=0, dragging=false, baseTranslate=0;
+    const widthWithGap = () => Math.max(1, slider.getBoundingClientRect().width + 10);
+
+    function setTranslate(x, animate){
+      if (!animate) track.style.transition = 'none';
+      else track.style.transition = 'transform 260ms cubic-bezier(.22,1,.36,1)';
+      track.style.transform = 'translateX(' + x + 'px)';
+    }
+
+    function getCurrentTranslate(){
+      const cur = track.style.transform || '';
+      const m = cur.match(/translateX\((-?\d+(\.\d+)?)px\)/);
+      return m ? parseFloat(m[1]) : 0;
+    }
+
+    function onStart(clientX){
+      startX = clientX;
+      lastX = clientX;
+      startT = performance.now();
+      dragging = true;
+      slider.classList.add('dragging');
+      baseTranslate = getCurrentTranslate();
+      setTranslate(baseTranslate, false);
+    }
+    function onMove(clientX){
+      if(!dragging) return;
+      const totalDx = clientX - startX;
+      let next = baseTranslate + totalDx;
+      const maxTranslate = 0;
+      const minTranslate = - (Math.max(0, (track.children.length - 1)) * widthWithGap());
+      // rubber band gently
+      if (next > maxTranslate + 60) next = maxTranslate + 60 + (next - maxTranslate - 60) * 0.25;
+      if (next < minTranslate - 60) next = minTranslate - 60 + (next - minTranslate + 60) * 0.25;
+      setTranslate(next, false);
+      lastX = clientX;
+    }
+    function onEnd(clientX){
+      if(!dragging) return;
+      dragging = false;
+      slider.classList.remove('dragging');
+      const dt = Math.max(1, performance.now() - startT);
+      const dx = clientX - startX;
+      const velocity = dx / dt; // px per ms
+      const fast = Math.abs(velocity) > 0.4; // threshold for quick flick
+      const threshold = Math.min(10, widthWithGap() * 0.03);
+      const cur = getCurrentTranslate();
+      const idx = Math.round(Math.abs(cur) / widthWithGap());
+      let target = idx;
+      if (dx < -threshold || (fast && dx < 0)) target = idx + 1;
+      else if (dx > threshold || (fast && dx > 0)) target = idx - 1;
+      target = Math.max(0, Math.min(track.children.length - 1, target));
+      // Apply final transition (faster if fast flick)
+      track.style.transition = fast ? 'transform 180ms cubic-bezier(.22,1,.36,1)' : 'transform 260ms cubic-bezier(.22,1,.36,1)';
+      setTranslate(-target * widthWithGap(), true);
+      // update active dot if any
+      const dots = document.getElementById('popupDots');
+      if (dots){
+        Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === target));
+      }
+    }
+
+    // Pointer events where available
+    slider.addEventListener('pointerdown', function(e){
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      e.preventDefault();
+      onStart(e.clientX);
+      const move = (ev) => { onMove(ev.clientX); };
+      const up = (ev) => { onEnd(ev.clientX); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+      window.addEventListener('pointermove', move, {passive:false});
+      window.addEventListener('pointerup', up, {passive:true});
+    }, {passive:false});
+
+    // touch fallback
+    slider.addEventListener('touchstart', function(e){
+      const t = e.touches && e.touches[0];
+      if(!t) return;
+      onStart(t.clientX);
+    }, {passive:true});
+    slider.addEventListener('touchmove', function(e){
+      const t = e.touches && e.touches[0];
+      if(!t) return;
+      onMove(t.clientX);
+    }, {passive:false});
+    slider.addEventListener('touchend', function(e){
+      // take last touch position if possible
+      const t = (e.changedTouches && e.changedTouches[0]) || {};
+      onEnd(t.clientX || lastX);
+    }, {passive:true});
+
+    // Resize -> snap to current index
+    window.addEventListener('resize', function(){
+      const cur = Math.round(Math.abs(getCurrentTranslate()) / widthWithGap());
+      track.style.transition = 'none';
+      setTranslate(-cur * widthWithGap(), false);
+    }, {passive:true});
+  }
+
+  // run on DOM ready and also after popup content is built
+  document.addEventListener('DOMContentLoaded', tunePopupSwipe);
+  // also try after a short delay to catch dynamic popup builds
+  setTimeout(tunePopupSwipe, 600);
+  // and run whenever popup opens (if your openPopup triggers)
+  const origOpen = window.openPopup;
+  window.openPopup = function(...args){
+    const r = (typeof origOpen === 'function') ? origOpen(...args) : undefined;
+    setTimeout(tunePopupSwipe, 60);
+    return r;
+  };
+})();
+</script>
+<!-- END FAST SWIPE TUNING -->
+
+
+
+
+<script>
+(function(){
+  try {
+    const listingUrl = location.pathname;
+    // If there's no __intermediate or __popup in history, create a single intermediate so Back from listing goes to base.
+    const state = history.state || {};
+    if (!state.__intermediate && !state.__popup && !(state.__listing_marker)) {
+      // Ensure base exists and then push a listing marker
+      try {
+        history.replaceState(Object.assign({}, history.state || {}, { __base: true, __fromHome: true }), "", listingUrl);
+      } catch(e){}
+      try {
+        history.pushState({ __listing_marker: true }, "", listingUrl);
+      } catch(e){}
+    }
+  } catch(e){}
+})();
+</script>
+
+<!-- START: custom popup-history v4 (aggressive, forces Back -> Home when on listing with no popup) -->
+<script>
+(function(){
+  // Configuration: adjust if your listing URL path differs
+  const LISTING_KEYWORD = '/all-products';
+  const HOME_URL = location.origin + '/';
+
+  function slugify(name){
+    return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
+  }
+
+  function isListingPage() {
+    try {
+      return location.pathname.toLowerCase().indexOf(LISTING_KEYWORD) !== -1;
+    } catch(e){ return false; }
+  }
+
+  function popupElement() {
+    return document.getElementById('productPopup') || document.querySelector('.product-popup') || null;
+  }
+
+  function isPopupVisible() {
+    const el = popupElement();
+    if (!el) return false;
+    try {
+      if (el.classList.contains('is-open')) return true;
+      const disp = getComputedStyle(el).display;
+      return disp !== 'none' && disp !== 'hidden' && disp !== '';
+    } catch(e){ return false; }
+  }
+
+  // Remove any in-popup back buttons if present
+  try {
+    const candidate = document.querySelector('#productPopup .popup-back, #productPopup .back-btn, #productPopup button.back, #productPopup [id*="Back"], #productPopup .pp-back');
+    if (candidate) candidate.remove();
+  } catch(e){}
+
+  // Only run heavy logic on listing pages
+  if (!isListingPage()) {
+    return;
+  }
+
+  const listingPathNormalized = location.pathname.replace(/\/+$/,'') + '/';
+
+  // Force top two entries to be: [..previous browser entries..] [BASE_MARKER] [LISTING_MARKER(current)]
+  try {
+    history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
+    history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
+  } catch(e){ console.warn("history setup failed", e); }
+
+  // Helpers to show/hide popup if your app has helpers
+  function showPopupFromURL() {
+    // If your site already implements maybeOpenFromURL, prefer it
+    if (typeof maybeOpenFromURL === 'function') {
+      try { maybeOpenFromURL(); return; } catch(e){ console.warn("maybeOpenFromURL failed", e); }
+    }
+    // Fallback: if you have openPopup and can derive product from URL 'p' param, try to call openPopup
+    try {
+      const params = new URLSearchParams(location.search);
+      const p = params.get('p');
+      if (p && typeof window.openPopup === 'function') {
+        // Attempt to call openPopup with only the name param (best-effort)
+        try { window.openPopup([], p); } catch(e){ console.warn("openPopup invocation failed", e); }
+      } else {
+        // Try to show DOM popup directly if present
+        const el = popupElement();
+        if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+      }
+    } catch(e){}
+  }
+
+  function hidePopupImmediate() {
+    const el = popupElement();
+    if (el) {
+      try { el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
+    }
+  }
+
+  // Wrap window.openPopup to manage history without stacking multiple popup entries
+  const originalOpen = window.openPopup;
+  window.openPopup = function(images, name, mrp, price, stock, desc){
+    try {
+      if (typeof originalOpen === 'function') {
+        originalOpen.apply(this, arguments);
+      }
+    } catch(e){ console.warn("original openPopup error", e); }
+
+    try {
+      const slug = slugify(name || '');
+      const popupUrl = slug ? (listingPathNormalized + '?p=' + encodeURIComponent(slug)) : listingPathNormalized;
+
+      // Ensure listing marker exists
+      if (!(history.state && history.state.__listing)) {
+        try {
+          history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
+          history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
+        } catch(e){}
+      }
+
+      // If popup state already exists, replace it (prevents stacking); else push new popup state
+      if (history.state && history.state.__popup) {
+        history.replaceState({__popup:true, p: slug}, "", popupUrl);
+      } else {
+        history.pushState({__popup:true, p: slug}, "", popupUrl);
+      }
+    } catch(e){ console.warn("openPopup history error", e); }
+  };
+
+  // Wrap window.closePopup so it goes back to listing state (which will hide popup)
+  const originalClose = window.closePopup;
+  window.closePopup = function(){
+    try {
+      if (history.state && history.state.__popup) {
+        // go back to listing state (this triggers popstate where we hide the popup)
+        history.back();
+        return;
+      }
+    } catch(e){}
+
+    if (typeof originalClose === 'function') {
+      try { originalClose.apply(this, arguments); } catch(e){ console.warn("original closePopup error", e); }
+    } else {
+      hidePopupImmediate();
+      try { history.replaceState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search); } catch(e){}
+    }
+  };
+
+  // Intercept overlay clicks to use history.back when popup state exists
+  try {
+    const overlay = popupElement();
+    if (overlay) {
+      overlay.addEventListener('click', function(e){
+        if (e.target === overlay) {
+          try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
+          hidePopupImmediate();
+        }
+      }, { passive: true });
+    }
+  } catch(e){}
+
+  // Core popstate handler: ensures popup opens/closes correctly and ensures single-Back-to-home behavior
+  window.addEventListener('popstate', function(ev){
+    const st = ev.state || {};
+    const popupVisible = isPopupVisible();
+    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
+
+    // If state is popup or URL has p param -> ensure popup shown
+    if ((st && st.__popup) || urlHasP) {
+      if (!popupVisible) {
+        showPopupFromURL();
+      }
+      return;
+    }
+
+    // If no popup is open and we're on the listing page, redirect directly to home
+    // This makes a single Back press from listing go to home.
+    if (!popupVisible && ( (st && st.__listing) || isListingPage() )) {
+      // To avoid immediately reacting when page initially sets states, ensure this isn't the very first load
+      // If document.referrer is empty it might be direct load — but the user wants Back -> home regardless
+      try {
+        // Use replace to avoid adding extra history entry
+        location.href = HOME_URL;
+        return;
+      } catch(e){}
+    }
+
+    // If popup is visible but state is listing/no-p -> hide popup
+    if (popupVisible && ((st && st.__listing) || !urlHasP)) {
+      try { hidePopupImmediate(); } catch(e){}
+      return;
+    }
+
+  }, false);
+
+})();
+</script>
+<!-- END: custom popup-history v4 -->
+
+
+
+
+<!-- Assistant: popup / back-button fix (appended) -->
+<script id="assistant-popup-fix">
+(function(){
+  'use strict';
+  const POPUP_ID = 'productPopup';
+  function popupEl(){ return document.getElementById(POPUP_ID); }
+  function isPopupVisible(){
+    const el = popupEl(); if(!el) return false;
+    try {
+      if (el.classList && el.classList.contains('is-open')) return true;
+      const ds = (el.style && el.style.display) ? String(el.style.display).toLowerCase() : '';
+      return ds === 'flex' || ds === 'block' || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
+    } catch(e){ return false; }
+  }
+  function showDomPopup(){
+    const el = popupEl(); if(!el) return;
+    try { el.style.display = 'flex'; el.classList && el.classList.add('is-open'); document.body && document.body.classList.add('noscroll'); } catch(e){}
+  }
+  function hideDomPopup(){
+    const el = popupEl(); if(!el) return;
+    try { el.classList && el.classList.remove('is-open'); el.style.display = 'none'; document.body && document.body.classList.remove('noscroll'); } catch(e){}
+  }
+  function slugify(name){ return String(name||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,''); }
+
+  // Wrap openPopup (or provide a wrapper if it doesn't exist)
+  const origOpen = window.openPopup;
+  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
+    if (typeof origOpen === 'function') {
+      try { origOpen.apply(this, arguments); } catch(e){ console.warn('openPopup original error', e); showDomPopup(); }
+    } else {
+      showDomPopup();
+    }
+
+    // push history entry with ?p=slug so back button removes it
+    try {
+      const slug = slugify(name);
+      const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
+      const curP = (new URL(location.href)).searchParams.get('p') || null;
+      const newP = slug || null;
+      if (curP !== newP) {
+        history.pushState({__popup:true, p: newP}, '', newUrl);
+      } else {
+        history.replaceState(Object.assign({}, history.state || {}, {__popup:true, p:newP}), '', newUrl);
+      }
+    } catch(e){ console.warn('history push failed', e); }
+  };
+
+  // Wrap closePopup to use history.back when popup state exists
+  const origClose = window.closePopup;
+  window.closePopup = function(){
+    try {
+      if (history.state && history.state.__popup) {
+        history.back();
+        return;
+      }
+    } catch(e){}
+    if (typeof origClose === 'function') {
+      try { origClose.apply(this, arguments); } catch(e){ console.warn('closePopup original failed', e); }
+    }
+    hideDomPopup();
+    try { history.replaceState(Object.assign({}, history.state || {}, {__listing:true}), '', location.pathname); } catch(e){}
+  };
+
+  // Overlay clicks: prefer history.back so popstate handler will hide
+  document.addEventListener('click', function(e){
+    const overlay = popupEl();
+    if (!overlay) return;
+    if (e.target === overlay) {
+      try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
+      hideDomPopup();
+    }
+  }, true);
+
+  // Popstate: show popup when URL has ?p, hide when not.
+  window.addEventListener('popstate', function(ev){
+    let urlHasP = false;
+    try { urlHasP = (new URL(location.href)).searchParams.has('p'); } catch(e){}
+    const visible = isPopupVisible();
+    if (urlHasP) {
+      if (!visible) {
+        if (typeof maybeOpenFromURL === 'function') {
+          try { maybeOpenFromURL(); return; } catch(e){ console.warn('maybeOpenFromURL failed', e); }
+        }
+        showDomPopup();
+      }
+    } else {
+      if (visible) {
+        hideDomPopup();
+        return;
+      }
+    }
+  }, false);
+
+  // ESC key fallback for non-history cases
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      if (isPopupVisible()) {
+        window.closePopup();
+        e.preventDefault();
+      }
+    }
+  }, false);
+
+  // On load, if URL has ?p ensure popup opens (best-effort)
+  try {
+    if ((new URL(location.href)).searchParams.has('p')) {
+      if (typeof maybeOpenFromURL === 'function') {
+        setTimeout(()=>{ try{ maybeOpenFromURL(); }catch(e){} }, 60);
+      } else {
+        setTimeout(showDomPopup, 60);
+      }
+    }
+  } catch(e){}
+
+})();
+</script>
+<!-- End Assistant popup/back-button fix -->
+
+
+<!-- BEGIN assistant: reliable back-button popup handler -->
+<script>
+(function(){
+  const POPUP_ID = 'productPopup';
+  function popupEl(){ return document.getElementById(POPUP_ID); }
+  function isPopupVisible(){
+    const el = popupEl(); if(!el) return false;
+    try {
+      return el.classList.contains('is-open') || (el.style && (el.style.display === 'flex' || el.style.display === 'block')) || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
+    } catch(e){ return false; }
+  }
+  function showPopupImmediate(){
+    const el = popupEl(); if(!el) return;
+    el.style.display = 'flex';
+    el.classList && el.classList.add('is-open');
+    document.body && document.body.classList.add('noscroll');
+    window.__popupOpen = true;
+  }
+  function hidePopupImmediate(){
+    const el = popupEl(); if(!el) return;
+    el.classList && el.classList.remove('is-open');
+    el.style.display = 'none';
+    document.body && document.body.classList.remove('noscroll');
+    window.__popupOpen = false;
+  }
+
+  // Ensure openPopup sets a flag and pushes a popup state (best-effort)
+  const origOpen = window.openPopup;
+  window.openPopup = function(...args){
+    try {
+      if (typeof origOpen === 'function') origOpen.apply(this, args);
+    } catch(e){ console.warn('openPopup original failed', e); }
+    try {
+      // mark open
+      window.__popupOpen = true;
+      // push a popup history state so Back first closes popup
+      const cur = new URL(location.href);
+      if (!cur.searchParams.has('p')) {
+        // use a lightweight param to reflect popup; don't replace user's deeper URL if present
+        cur.searchParams.set('p', 'item');
+        try { history.pushState({__popup:true}, '', cur.toString()); } catch(e){}
+      } else {
+        try { history.replaceState(Object.assign({}, history.state || {}, {__popup:true}), '', location.href); } catch(e){}
+      }
+    } catch(e){}
+    // ensure popup visible in DOM in case original missed it
+    try { showPopupImmediate(); } catch(e){}
+  };
+
+  // Wrap closePopup to hide and keep user on listing (prevent immediate navigation away)
+  const origClose = window.closePopup;
+  window.closePopup = function(...args){
+    try {
+      if (typeof origClose === 'function') origClose.apply(this, args);
+    } catch(e){ console.warn('closePopup original failed', e); }
+    try {
+      hidePopupImmediate();
+      // after closing, re-insert a harmless listing state so user won't jump away on next Back
+      try { history.replaceState({__listing:true}, '', location.pathname + location.search); } catch(e){}
+    } catch(e){}
+  };
+
+  // When popstate occurs, if popup is open, close it and then push a listing state to keep user on page
+  window.addEventListener('popstate', function(ev){
+    try {
+      if (isPopupVisible() || window.__popupOpen) {
+        // Hide popup instead of letting browser go back
+        hidePopupImmediate();
+        // Give the browser a stable state that represents the listing (so further Back goes to previous site)
+        try { history.pushState({__listing_preserved:true}, '', location.pathname + location.search); } catch(e){}
+      }
+    } catch(e){}
+  }, false);
+
+  // Overlay clicks: prefer history.back so popstate runs (keeps behavior consistent)
+  document.addEventListener('click', function(e){
+    const overlay = popupEl();
+    if (!overlay) return;
+    if (e.target === overlay) {
+      try {
+        if (window.__popupOpen) { history.back(); return; }
+      } catch(e){}
+      hidePopupImmediate();
+    }
+  }, true);
+
+  // ESC key closes popup
+  document.addEventListener('keydown', function(e){
+    if ((e.key === 'Escape' || e.key === 'Esc') && (isPopupVisible() || window.__popupOpen)) {
+      try { history.back(); } catch(e){}
+    }
+  }, false);
+
+  // If page loaded with ?p param, try to open popup (non-destructive)
+  try {
+    const params = new URL(location.href).searchParams;
+    if (params.has('p')) {
+      // slightly delay to let other scripts finish
+      setTimeout(()=>{ try { showPopupImmediate(); } catch(e){} }, 80);
+    }
+  } catch(e){}
+})();
+</script>
+<!-- END assistant: reliable back-button popup handler -->
+</script>
+<!-- and ends just before the next <script> tag. -->
+
+<!-- REPLACE it with the following: -->
+<script>
+(() => {
+  const ORIGINAL_FETCH = window.fetch.bind(window);
+  const SHEET_ID = "1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA";
+  const MATCH_URL = `https://opensheet.elk.sh/${SHEET_ID}`;
+
+  const cacheKeyFor = (url) => `swr:${url}`;
+
+  const isCacheableResponse = (res) => {
+    if (!res || !res.ok) return false;
+    const ct = res.headers.get("content-type") || "";
+    return ct.toLowerCase().includes("application/json");
+  };
+
+  const storeInCache = async (key, response) => {
+    try {
+      const body = await response.clone().text();
+      const payload = {
+        body,
+        status: response.status,
+        headers: Array.from(response.headers.entries()),
+        ts: Date.now()
+      };
+      localStorage.setItem(key, JSON.stringify(payload));
+    } catch (e) {}
+  };
+
+  const responseFromCache = (cachedJson) => {
+    try {
+      const cached = JSON.parse(cachedJson);
+      return new Response(cached.body, {
+        status: cached.status,
+        headers: new Headers(cached.headers)
+      });
+    } catch { return null; }
+  };
+
+  const backgroundRevalidate = async (resource, init, key) => {
+    try {
+      const res = await ORIGINAL_FETCH(resource, init);
+      if (isCacheableResponse(res)) {
+        await storeInCache(key, res);
+        window.dispatchEvent(new CustomEvent("swr:update", {detail:{key}}));
+      }
+    } catch {}
+  };
+
+  window.fetch = function(resource, init) {
+    const url = typeof resource === "string" ? resource : resource.url;
+    if (!url.startsWith(MATCH_URL)) {
+      return ORIGINAL_FETCH(resource, init);
+    }
+    const key = cacheKeyFor(url);
+    const cachedJson = localStorage.getItem(key);
+    if (cachedJson) {
+      const cachedRes = responseFromCache(cachedJson);
+      backgroundRevalidate(resource, init, key);
+      return Promise.resolve(cachedRes);
+    }
+    return ORIGINAL_FETCH(resource, init).then(async (res) => {
+      if (isCacheableResponse(res)) {
+        await storeInCache(key, res.clone());
+      }
+      return res;
+    });
+  };
+})();
+</script>
 </body>
 </html>
