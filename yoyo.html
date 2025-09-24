@@ -4945,6 +4945,125 @@ loadAndRenderCatalog();
 
 
 
+
+<!-- Assistant: popup / back-button fix (appended) -->
+<script id="assistant-popup-fix">
+(function(){
+  'use strict';
+  const POPUP_ID = 'productPopup';
+  function popupEl(){ return document.getElementById(POPUP_ID); }
+  function isPopupVisible(){
+    const el = popupEl(); if(!el) return false;
+    try {
+      if (el.classList && el.classList.contains('is-open')) return true;
+      const ds = (el.style && el.style.display) ? String(el.style.display).toLowerCase() : '';
+      return ds === 'flex' || ds === 'block' || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
+    } catch(e){ return false; }
+  }
+  function showDomPopup(){
+    const el = popupEl(); if(!el) return;
+    try { el.style.display = 'flex'; el.classList && el.classList.add('is-open'); document.body && document.body.classList.add('noscroll'); } catch(e){}
+  }
+  function hideDomPopup(){
+    const el = popupEl(); if(!el) return;
+    try { el.classList && el.classList.remove('is-open'); el.style.display = 'none'; document.body && document.body.classList.remove('noscroll'); } catch(e){}
+  }
+  function slugify(name){ return String(name||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,''); }
+
+  // Wrap openPopup (or provide a wrapper if it doesn't exist)
+  const origOpen = window.openPopup;
+  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
+    if (typeof origOpen === 'function') {
+      try { origOpen.apply(this, arguments); } catch(e){ console.warn('openPopup original error', e); showDomPopup(); }
+    } else {
+      showDomPopup();
+    }
+
+    // push history entry with ?p=slug so back button removes it
+    try {
+      const slug = slugify(name);
+      const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
+      const curP = (new URL(location.href)).searchParams.get('p') || null;
+      const newP = slug || null;
+      if (curP !== newP) {
+        history.pushState({__popup:true, p: newP}, '', newUrl);
+      } else {
+        history.replaceState(Object.assign({}, history.state || {}, {__popup:true, p:newP}), '', newUrl);
+      }
+    } catch(e){ console.warn('history push failed', e); }
+  };
+
+  // Wrap closePopup to use history.back when popup state exists
+  const origClose = window.closePopup;
+  window.closePopup = function(){
+    try {
+      if (history.state && history.state.__popup) {
+        history.back();
+        return;
+      }
+    } catch(e){}
+    if (typeof origClose === 'function') {
+      try { origClose.apply(this, arguments); } catch(e){ console.warn('closePopup original failed', e); }
+    }
+    hideDomPopup();
+    try { history.replaceState(Object.assign({}, history.state || {}, {__listing:true}), '', location.pathname); } catch(e){}
+  };
+
+  // Overlay clicks: prefer history.back so popstate handler will hide
+  document.addEventListener('click', function(e){
+    const overlay = popupEl();
+    if (!overlay) return;
+    if (e.target === overlay) {
+      try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
+      hideDomPopup();
+    }
+  }, true);
+
+  // Popstate: show popup when URL has ?p, hide when not.
+  window.addEventListener('popstate', function(ev){
+    let urlHasP = false;
+    try { urlHasP = (new URL(location.href)).searchParams.has('p'); } catch(e){}
+    const visible = isPopupVisible();
+    if (urlHasP) {
+      if (!visible) {
+        if (typeof maybeOpenFromURL === 'function') {
+          try { maybeOpenFromURL(); return; } catch(e){ console.warn('maybeOpenFromURL failed', e); }
+        }
+        showDomPopup();
+      }
+    } else {
+      if (visible) {
+        hideDomPopup();
+        return;
+      }
+    }
+  }, false);
+
+  // ESC key fallback for non-history cases
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      if (isPopupVisible()) {
+        window.closePopup();
+        e.preventDefault();
+      }
+    }
+  }, false);
+
+  // On load, if URL has ?p ensure popup opens (best-effort)
+  try {
+    if ((new URL(location.href)).searchParams.has('p')) {
+      if (typeof maybeOpenFromURL === 'function') {
+        setTimeout(()=>{ try{ maybeOpenFromURL(); }catch(e){} }, 60);
+      } else {
+        setTimeout(showDomPopup, 60);
+      }
+    }
+  } catch(e){}
+
+})();
+</script>
+<!-- End Assistant popup/back-button fix -->
+
 </body>
 </html>
 
