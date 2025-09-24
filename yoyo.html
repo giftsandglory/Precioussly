@@ -443,7 +443,7 @@ body.noscroll {
 }
 .desc-box summary::-webkit-details-marker { display: none; }
 .desc-box[open] summary { border-bottom: 1px solid rgba(0,0,0,0.06); }
-.desc-text { color: #000;
+.desc-text {
   padding: 10px 16px 14px;
   font-size: 14px;
   line-height: 1.55;
@@ -482,7 +482,7 @@ body.noscroll {
 }
 
 .popup-body,
-.desc-text { color: #000;
+.desc-text {
   scrollbar-width: none;          
   -ms-overflow-style: none;       
   overscroll-behavior: contain;   
@@ -1304,7 +1304,7 @@ body.horizontal-mode .product-grid{
   max-width: 92%;
   margin: 0 auto;
   text-align: left;         
-  color: #000;
+  color: #444;
   white-space: pre-wrap;}
 
 .popup-card{
@@ -1333,14 +1333,14 @@ body.horizontal-mode .product-grid{
 }
 .desc-lead {
   font-size: 15px;
-  color: #000;
+  color: #111; font-weight: 600;
   margin: 8px 0 10px;
   line-height: 1.55;
   font-weight: 600;
 }
 .desc-content p {
   margin: 8px 0;
-  color: #000;
+  color: #222; font-weight: 600;
   font-size: 14.5px;
   line-height: 1.6;
 }
@@ -1351,7 +1351,7 @@ body.horizontal-mode .product-grid{
 .desc-content li {
   margin: 8px 0;
   font-size: 14.5px;
-  color: #000;
+  color: #111; font-weight: 600;
   line-height: 1.5;
   list-style: none;
   position: relative;
@@ -2686,7 +2686,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const dx = e.clientX - startX;
     const dt = Math.max(1, Date.now() - lastMoveTime);
     const velocity = (e.clientX - lastMoveX) / dt;
-    const threshold = Math.min(160, width() * 0.25);
+    const threshold = Math.min(10, width() * 0.03);
     const fast = Math.abs(velocity) > 0.6;
 
     let target = currentIndex;
@@ -3847,7 +3847,7 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     slider.classList.remove('dragging');
     // decide swipe
     const totalDx = lastX - startX;
-    const threshold = Math.min(60, widthWithGap() * 0.15); // px
+    const threshold = Math.min(10, widthWithGap() * 0.03); // px
     const cur = track.style.transform || '';
     const m = cur.match(/translateX\((-?\d+)px\)/);
     const curTranslate = m ? parseInt(m[1], 10) : 0;
@@ -4819,7 +4819,7 @@ loadAndRenderCatalog();
       const dx = clientX - startX;
       const velocity = dx / dt; // px per ms
       const fast = Math.abs(velocity) > 0.4; // threshold for quick flick
-      const threshold = Math.min(48, widthWithGap() * 0.12);
+      const threshold = Math.min(10, widthWithGap() * 0.03);
       const cur = getCurrentTranslate();
       const idx = Math.round(Math.abs(cur) / widthWithGap());
       let target = idx;
