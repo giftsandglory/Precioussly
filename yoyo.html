@@ -443,7 +443,7 @@ body.noscroll {
 }
 .desc-box summary::-webkit-details-marker { display: none; }
 .desc-box[open] summary { border-bottom: 1px solid rgba(0,0,0,0.06); }
-.desc-text {
+.desc-text { color: #000;
   padding: 10px 16px 14px;
   font-size: 14px;
   line-height: 1.55;
@@ -482,7 +482,7 @@ body.noscroll {
 }
 
 .popup-body,
-.desc-text {
+.desc-text { color: #000;
   scrollbar-width: none;          
   -ms-overflow-style: none;       
   overscroll-behavior: contain;   
@@ -501,6 +501,14 @@ body.noscroll {
 }
 
 .popup-dots:empty { display: none !important; }
+
+/* haptic helper pulse */
+.qty-pulse {
+  transform: scale(1.02);
+  transition: transform 120ms ease;
+  will-change: transform;
+}
+
 </style>
 <style>
 
@@ -1296,7 +1304,7 @@ body.horizontal-mode .product-grid{
   max-width: 92%;
   margin: 0 auto;
   text-align: left;         
-  color: #444;
+  color: #000;
   white-space: pre-wrap;}
 
 .popup-card{
@@ -1305,6 +1313,78 @@ body.horizontal-mode .product-grid{
   -webkit-overflow-scrolling: touch;
 }
 
+
+/* --- Improved Description UI (injected) --- */
+.desc-section {
+  background: linear-gradient(180deg, #fff, #fffefc);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(18, 18, 18, 0.06);
+  margin: 12px 8px 8px;
+}
+.desc-title {
+  font-size: 16px;
+  color: #111;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+.desc-lead {
+  font-size: 15px;
+  color: #000;
+  margin: 8px 0 10px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+.desc-content p {
+  margin: 8px 0;
+  color: #000;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+.desc-content ul {
+  margin: 6px 0 10px 18px;
+  padding: 0;
+}
+.desc-content li {
+  margin: 8px 0;
+  font-size: 14.5px;
+  color: #000;
+  line-height: 1.5;
+  list-style: none;
+  position: relative;
+  padding-left: 24px;
+}
+.desc-content li::before{
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #ff6ea8;
+  font-weight: 700;
+  transform: translateY(1px);
+  font-size: 18px;
+}
+.features-title {
+  display: inline-block;
+  font-weight: 700;
+  color: #ff4d98;
+  margin-bottom: 6px;
+}
+#popupAddBtn {
+  background: linear-gradient(90deg, #2563eb, #1e4fd6);
+  border: none;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 10px 26px rgba(37,99,235,0.18);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+#popupAddBtn:active { transform: translateY(1px) scale(.995); box-shadow: 0 6px 16px rgba(37,99,235,0.12); }
 </style>
 
 <style id="alignment-fix-0901b">
@@ -2648,14 +2728,46 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 }
 
+
 function changePopupQty(change) {
-  const qtyElement = document.getElementById("popupQty");
-  let current = parseInt(qtyElement.innerText);
-  current += change;
-  if (current < 1) current = 1;
-  if (current > 99) current = 99;
-  qtyElement.innerText = current;
+  try {
+    const qtyElement = document.getElementById("popupQty");
+    if (!qtyElement) return;
+    let current = parseInt(qtyElement.innerText) || 1;
+    const newVal = Math.max(1, Math.min(99, current + change));
+    // If no change, do a short soft haptic for invalid (optional) or just return
+    if (newVal === current) {
+      // soft feedback for reaching bounds (shorter vibration)
+      try { if (navigator.vibrate) navigator.vibrate(8); } catch(e){}
+      return;
+    }
+    qtyElement.innerText = newVal;
+
+    // Debounced haptic to avoid double vibration on some devices/browsers
+    (function doHaptic(){
+      try {
+        if (!('vibrate' in navigator)) return;
+        const now = (performance && performance.now) ? performance.now() : Date.now();
+        const last = window.__lastQtyVibTime || 0;
+        // Ignore vibrations occurring within 120ms of previous one (prevents double triggers)
+        if (now - last < 120) return;
+        // Use a short, crisp pulse
+        navigator.vibrate(12);
+        window.__lastQtyVibTime = now;
+      } catch (e) {
+        // swallow errors (some browsers may throw)
+      }
+    })();
+
+    // Small visual pulse to indicate change (non-intrusive)
+    try {
+      qtyElement.classList.add('qty-pulse');
+      clearTimeout(window.__qtyPulseTimer);
+      window.__qtyPulseTimer = setTimeout(() => qtyElement.classList.remove('qty-pulse'), 140);
+    } catch(e){}
+  } catch(e){ console.warn('changePopupQty error', e); }
 }
+
 
 function addToCartFromGrid(button, product) {
   const originalHTML = button.innerHTML;
@@ -3607,12 +3719,42 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     var descWrap = $("popupDesc");
     var descText = $("popupDescText");
     var fromSheet = (sheetDesc||"").trim();
-    if(descText) descText.textContent = "";
+
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function formatDescription(raw){
+      if(!raw) return '';
+      raw = raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+      // Split into paragraphs by double newline, keep single-line bullets as list items
+      const parts = raw.split(/\n{2,}/).map(p=>p.trim()).filter(Boolean);
+      let html = '';
+      parts.forEach((part, idx) => {
+        const lines = part.split('\n').map(l=>l.trim()).filter(Boolean);
+        // If most lines start with - or • or emoji bullet, treat as list
+        const bullets = lines.filter(l => /^[-•\u2022]|\u2728|🌟|✨|🌸|🌹/.test(l));
+        if(bullets.length >= 1 && bullets.length >= lines.length/2){
+          html += '<ul>';
+          lines.forEach(l => {
+            const li = l.replace(/^[-•\u2022]\s*/,'').replace(/^[\u2728\u2022\u2023\u25E6\u2023]\s*/,'');
+            html += '<li>' + escapeHtml(li) + '</li>';
+          });
+          html += '</ul>';
+        } else if(idx === 0){
+          // lead paragraph styled prominently
+          html += '<p class=\"desc-lead\">' + escapeHtml(lines.join(' ')) + '</p>';
+        } else {
+          html += '<p>' + escapeHtml(lines.join(' ')) + '</p>';
+        }
+      });
+      return html;
+    }
+
+    if(descText) descText.innerHTML = '';
     if(fromSheet.length > 0){
-      if(descWrap) descWrap.style.display = "block";
-      if(descText) descText.textContent = fromSheet;
+      if(descWrap) descWrap.style.display = 'block';
+      if(descText) descText.innerHTML = formatDescription(fromSheet);
     }else{
-      if(descWrap) descWrap.style.display = "none";
+      if(descWrap) descWrap.style.display = 'none';
     }
 
     try{
