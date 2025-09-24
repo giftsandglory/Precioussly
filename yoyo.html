@@ -5064,160 +5064,112 @@ loadAndRenderCatalog();
 </script>
 <!-- End Assistant popup/back-button fix -->
 
-<!-- START: Assistant appended robust popup-history handler -->
+
+<!-- BEGIN assistant: reliable back-button popup handler -->
 <script>
 (function(){
-  'use strict';
-  // CONFIG: adjust these if your listing route differs
-  const LISTING_PATH_SEGMENT = '/yoyo'; // treat URLs containing this as the listing page requested by user
-  const HOME_URL = location.origin + '/';
-
-  function slugify(name){
-    return String(name||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
-  }
-
-  function isListingPagePath() {
-    try { return location.pathname.toLowerCase().indexOf(LISTING_PATH_SEGMENT) !== -1; } catch(e){ return false; }
-  }
-
-  function popupElement(){ return document.getElementById('productPopup'); }
-
+  const POPUP_ID = 'productPopup';
+  function popupEl(){ return document.getElementById(POPUP_ID); }
   function isPopupVisible(){
-    const el = popupElement(); if(!el) return false;
+    const el = popupEl(); if(!el) return false;
     try {
-      if (el.classList && el.classList.contains('is-open')) return true;
-      const ds = (el.style && el.style.display) ? String(el.style.display).toLowerCase() : '';
-      return ds === 'flex' || ds === 'block';
+      return el.classList.contains('is-open') || (el.style && (el.style.display === 'flex' || el.style.display === 'block')) || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
     } catch(e){ return false; }
   }
-
-  // Ensure we only run on the listing page requested by user
-  if (!isListingPagePath()) return;
-
-  // Create a base marker so clicking Back from listing goes to HOME_URL in one step
-  try {
-    // Replace current entry with a base marker, then push a listing marker
-    history.replaceState(Object.assign({}, history.state || {}, {__assistant_base:true}), "", location.pathname + location.search);
-    history.pushState(Object.assign({}, history.state || {}, {__assistant_listing:true}), "", location.pathname + location.search);
-  } catch(e){ /* ignore */ }
-
-  // Helper: open popup visually (best-effort) without relying on inner open logic
-  function showPopupVisual(){
-    const el = popupElement();
-    if (!el) return;
-    try { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); } catch(e){}
+  function showPopupImmediate(){
+    const el = popupEl(); if(!el) return;
+    el.style.display = 'flex';
+    el.classList && el.classList.add('is-open');
+    document.body && document.body.classList.add('noscroll');
+    window.__popupOpen = true;
   }
-  function hidePopupVisual(){
-    const el = popupElement();
-    if (!el) return;
-    try { el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
+  function hidePopupImmediate(){
+    const el = popupEl(); if(!el) return;
+    el.classList && el.classList.remove('is-open');
+    el.style.display = 'none';
+    document.body && document.body.classList.remove('noscroll');
+    window.__popupOpen = false;
   }
 
-  // Wrap openPopup to push a popup history entry (uses slugified product name as ?p)
-  const originalOpen = window.openPopup;
-  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
-    // call original to mount popup and set content (if available)
-    if (typeof originalOpen === 'function') {
-      try { originalOpen.apply(this, arguments); } catch(e){ console.warn('openPopup original error', e); showPopupVisual(); }
-    } else {
-      showPopupVisual();
-    }
-
-    // push history entry for popup (so Back will close it)
+  // Ensure openPopup sets a flag and pushes a popup state (best-effort)
+  const origOpen = window.openPopup;
+  window.openPopup = function(...args){
     try {
-      const slug = slugify(name) || '';
-      const popupUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-      // If there's already a popup state, replace it so we don't stack many same entries
-      if (history.state && history.state.__assistant_popup) {
-        history.replaceState({__assistant_popup:true, p: slug}, "", popupUrl);
+      if (typeof origOpen === 'function') origOpen.apply(this, args);
+    } catch(e){ console.warn('openPopup original failed', e); }
+    try {
+      // mark open
+      window.__popupOpen = true;
+      // push a popup history state so Back first closes popup
+      const cur = new URL(location.href);
+      if (!cur.searchParams.has('p')) {
+        // use a lightweight param to reflect popup; don't replace user's deeper URL if present
+        cur.searchParams.set('p', 'item');
+        try { history.pushState({__popup:true}, '', cur.toString()); } catch(e){}
       } else {
-        history.pushState({__assistant_popup:true, p: slug}, "", popupUrl);
-      }
-    } catch(e){ console.warn('history push failed', e); }
-  };
-
-  // Wrap closePopup so it uses history.back() when a popup state exists (triggers popstate -> hide)
-  const originalClose = window.closePopup;
-  window.closePopup = function(){
-    try {
-      if (history.state && history.state.__assistant_popup) {
-        history.back();
-        return;
+        try { history.replaceState(Object.assign({}, history.state || {}, {__popup:true}), '', location.href); } catch(e){}
       }
     } catch(e){}
-    // fallback close immediately
-    if (typeof originalClose === 'function') {
-      try { originalClose.apply(this, arguments); } catch(e){ console.warn('closePopup original error', e); hidePopupVisual(); }
-    } else {
-      hidePopupVisual();
-    }
-    try { history.replaceState(Object.assign({}, history.state || {}, {__assistant_listing:true}), "", location.pathname); } catch(e){}
+    // ensure popup visible in DOM in case original missed it
+    try { showPopupImmediate(); } catch(e){}
   };
 
-  // Overlay click: if overlay clicked, prefer history.back() to close popup (so URL updates)
-  document.addEventListener('click', function(ev){
-    const overlay = popupElement();
+  // Wrap closePopup to hide and keep user on listing (prevent immediate navigation away)
+  const origClose = window.closePopup;
+  window.closePopup = function(...args){
+    try {
+      if (typeof origClose === 'function') origClose.apply(this, args);
+    } catch(e){ console.warn('closePopup original failed', e); }
+    try {
+      hidePopupImmediate();
+      // after closing, re-insert a harmless listing state so user won't jump away on next Back
+      try { history.replaceState({__listing:true}, '', location.pathname + location.search); } catch(e){}
+    } catch(e){}
+  };
+
+  // When popstate occurs, if popup is open, close it and then push a listing state to keep user on page
+  window.addEventListener('popstate', function(ev){
+    try {
+      if (isPopupVisible() || window.__popupOpen) {
+        // Hide popup instead of letting browser go back
+        hidePopupImmediate();
+        // Give the browser a stable state that represents the listing (so further Back goes to previous site)
+        try { history.pushState({__listing_preserved:true}, '', location.pathname + location.search); } catch(e){}
+      }
+    } catch(e){}
+  }, false);
+
+  // Overlay clicks: prefer history.back so popstate runs (keeps behavior consistent)
+  document.addEventListener('click', function(e){
+    const overlay = popupEl();
     if (!overlay) return;
-    if (ev.target === overlay) {
-      try { if (history.state && history.state.__assistant_popup) { history.back(); return; } } catch(e){}
-      hidePopupVisual();
+    if (e.target === overlay) {
+      try {
+        if (window.__popupOpen) { history.back(); return; }
+      } catch(e){}
+      hidePopupImmediate();
     }
   }, true);
 
-  // Popstate handler: open popup when state has popup or URL has ?p; close popup when state listing/base
-  window.addEventListener('popstate', function(ev){
-    const st = ev.state || {};
-    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
-    const visible = isPopupVisible();
-
-    // If new state indicates popup or URL has p param -> ensure popup is shown
-    if ((st && st.__assistant_popup) || urlHasP) {
-      if (!visible) {
-        // Try to open via any helper that reads ?p (maybeOpenFromURL), else show visually
-        if (typeof maybeOpenFromURL === 'function') {
-          try { maybeOpenFromURL(); return; } catch(e){ console.warn('maybeOpenFromURL failed', e); showPopupVisual(); return; }
-        }
-        showPopupVisual();
-      }
-      return;
-    }
-
-    // If no popup state and not urlHasP -> ensure popup closed
-    if (visible && !(st && st.__assistant_popup) && !urlHasP) {
-      hidePopupVisual();
-      return;
-    }
-
-    // If no popup visible and state is listing/base, navigate directly to HOME_URL (single back from listing -> home)
-    if (!visible && (st && (st.__assistant_listing || st.__assistant_base) || isListingPagePath())) {
-      try {
-        if (location.href !== HOME_URL) {
-          location.href = HOME_URL;
-        }
-      } catch(e){ console.warn('redirect home failed', e); }
+  // ESC key closes popup
+  document.addEventListener('keydown', function(e){
+    if ((e.key === 'Escape' || e.key === 'Esc') && (isPopupVisible() || window.__popupOpen)) {
+      try { history.back(); } catch(e){}
     }
   }, false);
 
-  // On load: if URL already contains ?p param, try to open corresponding popup
+  // If page loaded with ?p param, try to open popup (non-destructive)
   try {
-    const params = new URLSearchParams(location.search);
-    const p = params.get('p');
-    if (p) {
-      // small timeout to allow original scripts to initialize
-      setTimeout(() => {
-        if (typeof maybeOpenFromURL === 'function') {
-          try { maybeOpenFromURL(); return; } catch(e){}
-        }
-        if (typeof window.openPopup === 'function') {
-          try { window.openPopup([], decodeURIComponent(p)); return; } catch(e){}
-        }
-        showPopupVisual();
-      }, 80);
+    const params = new URL(location.href).searchParams;
+    if (params.has('p')) {
+      // slightly delay to let other scripts finish
+      setTimeout(()=>{ try { showPopupImmediate(); } catch(e){} }, 80);
     }
   } catch(e){}
 })();
 </script>
-<!-- END: Assistant appended robust popup-history handler -->
+<!-- END assistant: reliable back-button popup handler -->
+
 </body>
 </html>
 
