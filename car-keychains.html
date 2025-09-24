@@ -501,6 +501,14 @@ body.noscroll {
 }
 
 .popup-dots:empty { display: none !important; }
+
+/* haptic helper pulse */
+.qty-pulse {
+  transform: scale(1.02);
+  transition: transform 120ms ease;
+  will-change: transform;
+}
+
 </style>
 <style>
 
@@ -1305,6 +1313,78 @@ body.horizontal-mode .product-grid{
   -webkit-overflow-scrolling: touch;
 }
 
+
+/* --- Improved Description UI (injected) --- */
+.desc-section {
+  background: linear-gradient(180deg, #fff, #fffefc);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(18, 18, 18, 0.06);
+  margin: 12px 8px 8px;
+}
+.desc-title {
+  font-size: 16px;
+  color: #111;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+.desc-lead {
+  font-size: 15px;
+  color: #111; font-weight: 600;
+  margin: 8px 0 10px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+.desc-content p {
+  margin: 8px 0;
+  color: #222; font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+.desc-content ul {
+  margin: 6px 0 10px 18px;
+  padding: 0;
+}
+.desc-content li {
+  margin: 8px 0;
+  font-size: 14.5px;
+  color: #111; font-weight: 600;
+  line-height: 1.5;
+  list-style: none;
+  position: relative;
+  padding-left: 24px;
+}
+.desc-content li::before{
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #ff6ea8;
+  font-weight: 700;
+  transform: translateY(1px);
+  font-size: 18px;
+}
+.features-title {
+  display: inline-block;
+  font-weight: 700;
+  color: #ff4d98;
+  margin-bottom: 6px;
+}
+#popupAddBtn {
+  background: linear-gradient(90deg, #2563eb, #1e4fd6);
+  border: none;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 10px 26px rgba(37,99,235,0.18);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+#popupAddBtn:active { transform: translateY(1px) scale(.995); box-shadow: 0 6px 16px rgba(37,99,235,0.12); }
 </style>
 
 <style id="alignment-fix-0901b">
@@ -1917,7 +1997,7 @@ const PASTED_SHEET_LINK =
   "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
 
 // 👇 Multiple tab names yahan likho
-const TAB_NAMES = ["car-keychains"];
+const TAB_NAMES = ["resin-jewelry", "car-keychains" , "crochets" , "artificial-jewelry"];
 
 const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
 if (!idMatch) {
@@ -2242,10 +2322,6 @@ loadAndRenderAllTabs();
 
 <div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:14px; text-align:center;"></div>
 
-<div id="popupDesc" class="desc-section">
-  <div class="desc-title">Description</div>
-  <div id="popupDescText" class="desc-content"></div>
-</div>
 
 <div class="quantity-bar premium-bar">
   <button onclick="changePopupQty(-1)">
@@ -2265,9 +2341,13 @@ loadAndRenderAllTabs();
   Add to Cart
 </button>
 
-<button onclick="closePopup()" style="width:100%; margin-top:10px; background:#f0f0f0; color:#333; border:1px solid #bbb; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
-  Back
-</button>
+
+<div id="popupDesc" class="desc-section">
+  <div class="desc-title">Description</div>
+  <div id="popupDescText" class="desc-content"></div>
+</div>
+
+
 </div>
 </div>
 </div>
@@ -2407,7 +2487,17 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     };
   }
 
-  try { history.replaceState(null, "", shareUrl); } catch (e) {}
+  try {
+    // If the URL doesn't already have the same ?p param, push a history entry.
+    const curP = (new URL(location.href)).searchParams.get('p');
+    const myP = (new URL(shareUrl)).searchParams.get('p');
+    if (curP !== myP) {
+      history.pushState({ __popup: true, p: myP }, "", shareUrl);
+    } else {
+      // If page was loaded directly with ?p, ensure state marks it as popup
+      try { history.replaceState(Object.assign({}, history.state || {}, { __popup: true, p: myP}), "", shareUrl); } catch(e){}
+    }
+  } catch (e) {}
 
   document.getElementById("popupQty").innerText = "1";
 
@@ -2596,7 +2686,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const dx = e.clientX - startX;
     const dt = Math.max(1, Date.now() - lastMoveTime);
     const velocity = (e.clientX - lastMoveX) / dt;
-    const threshold = Math.min(160, width() * 0.25);
+    const threshold = Math.min(10, width() * 0.03);
     const fast = Math.abs(velocity) > 0.6;
 
     let target = currentIndex;
@@ -2638,14 +2728,46 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 }
 
+
 function changePopupQty(change) {
-  const qtyElement = document.getElementById("popupQty");
-  let current = parseInt(qtyElement.innerText);
-  current += change;
-  if (current < 1) current = 1;
-  if (current > 99) current = 99;
-  qtyElement.innerText = current;
+  try {
+    const qtyElement = document.getElementById("popupQty");
+    if (!qtyElement) return;
+    let current = parseInt(qtyElement.innerText) || 1;
+    const newVal = Math.max(1, Math.min(99, current + change));
+    // If no change, do a short soft haptic for invalid (optional) or just return
+    if (newVal === current) {
+      // soft feedback for reaching bounds (shorter vibration)
+      try { if (navigator.vibrate) navigator.vibrate(8); } catch(e){}
+      return;
+    }
+    qtyElement.innerText = newVal;
+
+    // Debounced haptic to avoid double vibration on some devices/browsers
+    (function doHaptic(){
+      try {
+        if (!('vibrate' in navigator)) return;
+        const now = (performance && performance.now) ? performance.now() : Date.now();
+        const last = window.__lastQtyVibTime || 0;
+        // Ignore vibrations occurring within 120ms of previous one (prevents double triggers)
+        if (now - last < 120) return;
+        // Use a short, crisp pulse
+        navigator.vibrate(12);
+        window.__lastQtyVibTime = now;
+      } catch (e) {
+        // swallow errors (some browsers may throw)
+      }
+    })();
+
+    // Small visual pulse to indicate change (non-intrusive)
+    try {
+      qtyElement.classList.add('qty-pulse');
+      clearTimeout(window.__qtyPulseTimer);
+      window.__qtyPulseTimer = setTimeout(() => qtyElement.classList.remove('qty-pulse'), 140);
+    } catch(e){}
+  } catch(e){ console.warn('changePopupQty error', e); }
 }
+
 
 function addToCartFromGrid(button, product) {
   const originalHTML = button.innerHTML;
@@ -2918,7 +3040,11 @@ function closePopup() {
     if (e.target !== card) return;
     popup.style.display = "none";
     try { popup.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; }); } catch(e){}
-  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  try {
+      // If this history entry was created for the popup, go back to remove it; otherwise, just clean URL
+      if (history.state && history.state.__popup) { history.back(); return; }
+    } catch (e) {}
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
     card.removeEventListener("transitionend", onDone);
   };
   card.addEventListener("transitionend", onDone);
@@ -3479,7 +3605,7 @@ function applyDirectionFromSheet(rows){
       const obs = new MutationObserver(() => {
         const isOpen = window.getComputedStyle(popup).display === 'flex';
         if (isOpen && !(history.state && history.state.popupOpen)) {
-          try { history.pushState({ popupOpen: true }, "", location.href); } catch(e) {}
+          try { history.replaceState({ popupOpen: true }, "", location.href); } catch(e) {}
         }
       });
       obs.observe(popup, { attributes: true, attributeFilter: ['style', 'class'] });
@@ -3593,12 +3719,42 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     var descWrap = $("popupDesc");
     var descText = $("popupDescText");
     var fromSheet = (sheetDesc||"").trim();
-    if(descText) descText.textContent = "";
+
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function formatDescription(raw){
+      if(!raw) return '';
+      raw = raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+      // Split into paragraphs by double newline, keep single-line bullets as list items
+      const parts = raw.split(/\n{2,}/).map(p=>p.trim()).filter(Boolean);
+      let html = '';
+      parts.forEach((part, idx) => {
+        const lines = part.split('\n').map(l=>l.trim()).filter(Boolean);
+        // If most lines start with - or • or emoji bullet, treat as list
+        const bullets = lines.filter(l => /^[-•\u2022]|\u2728|🌟|✨|🌸|🌹/.test(l));
+        if(bullets.length >= 1 && bullets.length >= lines.length/2){
+          html += '<ul>';
+          lines.forEach(l => {
+            const li = l.replace(/^[-•\u2022]\s*/,'').replace(/^[\u2728\u2022\u2023\u25E6\u2023]\s*/,'');
+            html += '<li>' + escapeHtml(li) + '</li>';
+          });
+          html += '</ul>';
+        } else if(idx === 0){
+          // lead paragraph styled prominently
+          html += '<p class=\"desc-lead\">' + escapeHtml(lines.join(' ')) + '</p>';
+        } else {
+          html += '<p>' + escapeHtml(lines.join(' ')) + '</p>';
+        }
+      });
+      return html;
+    }
+
+    if(descText) descText.innerHTML = '';
     if(fromSheet.length > 0){
-      if(descWrap) descWrap.style.display = "block";
-      if(descText) descText.textContent = fromSheet;
+      if(descWrap) descWrap.style.display = 'block';
+      if(descText) descText.innerHTML = formatDescription(fromSheet);
     }else{
-      if(descWrap) descWrap.style.display = "none";
+      if(descWrap) descWrap.style.display = 'none';
     }
 
     try{
@@ -3691,7 +3847,7 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     slider.classList.remove('dragging');
     // decide swipe
     const totalDx = lastX - startX;
-    const threshold = Math.min(60, widthWithGap() * 0.15); // px
+    const threshold = Math.min(10, widthWithGap() * 0.03); // px
     const cur = track.style.transform || '';
     const m = cur.match(/translateX\((-?\d+)px\)/);
     const curTranslate = m ? parseInt(m[1], 10) : 0;
@@ -3930,7 +4086,7 @@ if (popup){
     window.openPopup = function() {
       try {
         if (!history.state || !history.state.__popup) {
-          history.pushState({ __popup: true }, "", location.href);
+          history.replaceState({ __popup: true }, "", location.href);
         }
       } catch (e) {}
       return __origOpenPopup.apply(this, arguments);
@@ -4022,7 +4178,7 @@ if (popup){
   if (profEl) {
     const pushIfNeeded = () => {
       if (profileOpen() && !(history.state && history.state.__profile)) {
-        try { history.pushState({ __profile: true }, "", location.href); } catch(e){}
+        try { history.replaceState({ __profile: true }, "", location.href); } catch(e){}
       }
     };
     const mo = new MutationObserver(pushIfNeeded);
@@ -4049,7 +4205,7 @@ if (popup){
   if (prodEl) {
     const mo2 = new MutationObserver(() => {
       if (productOpen() && !(history.state && history.state.__product)) {
-        try { history.pushState({ __product: true }, "", location.href); } catch(e){}
+        try { history.replaceState({ __product: true }, "", location.href); } catch(e){}
       }
     });
     mo2.observe(prodEl, { attributes: true, attributeFilter: ['class','style'] });
@@ -4498,7 +4654,8 @@ loadAndRenderCatalog();
 </script>
 
 
-<!-- Popup history handling fixes: use replaceState (no extra history entries) -->
+
+<!-- MODIFIED popup history: pushState so browser Back goes back to base, and second Back goes to previous page -->
 <script>
 (function(){
   const POPUP_ID = 'productPopup';
@@ -4508,84 +4665,89 @@ loadAndRenderCatalog();
     return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
 
-  // Ensure a base history state exists (mark whether popup initially open)
+  // Ensure base state exists
   try {
-    const initialHasP = !!(new URLSearchParams(location.search).get('p'));
-    const baseState = Object.assign({}, history.state || {}, { __base: true, popupOpen: initialHasP });
-    history.replaceState(baseState, "", location.href);
-  } catch(e){ /* ignore */ }
+    if (!history.state || !history.state.__base) {
+      history.replaceState(Object.assign({}, history.state || {}, { __base: true }), "", location.pathname + location.search);
+    }
+  } catch(e){}
 
-  // Wrap existing openPopup to use replaceState (no pushState)
+  // Wrap original openPopup to push a history entry when popup opens.
   const origOpen = window.openPopup;
   if (typeof origOpen === 'function') {
     window.openPopup = function(images, name, mrp, price, stock, desc){
-      // call original implementation first to render popup
-      try { const res = origOpen.apply(this, arguments); } catch(e){ console.warn("openPopup original failed:", e); }
+      try { origOpen.apply(this, arguments); } catch(e){ console.warn("openPopup original failed:", e); }
 
-      // set URL param to ?p=slug using replaceState so no new history entry is created
       try {
         const slug = slugify(name);
         const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-        const nextState = Object.assign({}, history.state || {}, { __base: true, popupOpen: true });
-        history.replaceState(nextState, "", newUrl);
-      } catch (e) { console.warn("replaceState openPopup failed:", e); }
+        // push a new history entry so Back will return to base page (without ?p=)
+        history.pushState({ __popup: true }, "", newUrl);
+      } catch (e) { console.warn("pushState openPopup failed:", e); }
     };
   }
 
-  // Wrap closePopup to remove ?p param via replaceState
+  // Wrap closePopup: if the last history entry was pushed for popup, go back; otherwise just close and replace state
   const origClose = window.closePopup;
   window.closePopup = function(){
-    // call any existing close logic
-    try { if (typeof origClose === 'function') origClose.apply(this, arguments); } catch(e){ console.warn("closePopup original failed:", e); }
-
-    // hide popup UI if still visible (safe-guard)
     try {
-      const el = popupEl();
-      if (el){
-        el.classList.remove('is-open');
-        el.style.display = 'none';
-        document.body.classList.remove('noscroll');
+      if (history.state && history.state.__popup) {
+        // go back in history which will remove the ?p param
+        history.back();
+        return;
       }
-    } catch(e){}
+    } catch (e) { /* ignore */ }
 
-    // replace history to remove param
+    // fallback: call original close logic and ensure URL cleaned
+    try { if (typeof origClose === 'function') origClose.apply(this, arguments); } catch(e){ console.warn("closePopup original failed:", e); }
     try {
-      const nextState = Object.assign({}, history.state || {}, { __base: true, popupOpen: false });
-      history.replaceState(nextState, "", location.pathname);
+      const baseUrl = location.pathname;
+      history.replaceState(Object.assign({}, history.state || {}, { __base: true }), "", baseUrl);
     } catch (e) { console.warn("replaceState closePopup failed:", e); }
   };
 
-  // Popstate handler: make sure popup visibility follows state.popupOpen
+  // Popstate handler: open or close popup based on state and URL
   window.addEventListener('popstate', function(ev){
     const st = ev.state || {};
     const el = popupEl();
     const isVisible = el && (el.classList.contains('is-open') || getComputedStyle(el).display !== 'none');
-    if (st.popupOpen) {
-      // ensure popup is open (try maybeOpenFromURL if available)
+
+    // If the state indicates popup (or URL has ?p), ensure popup open
+    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
+    if (st && st.__popup || urlHasP) {
       if (!isVisible) {
-        const p = new URLSearchParams(location.search).get('p');
-        if (p && typeof maybeOpenFromURL === 'function') {
+        // Try to open from URL if helper exists
+        if (typeof maybeOpenFromURL === 'function') {
           try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
         } else {
-          // fallback: just show popup element if present
-          try {
-            if (el){ el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
-          } catch(e){}
+          if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
         }
       }
     } else {
-      // ensure popup is closed
+      // Not a popup state: ensure popup closed
       if (isVisible) {
-        try { 
-          if (el){ el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); }
-        } catch(e){}
+        try { if (el){ el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } } catch(e){}
       }
     }
   }, false);
 
+  // If clicking on overlay (outside card) and this popup was opened via pushState, go back; otherwise close.
+  const overlay = popupEl();
+  if (overlay) {
+    overlay.addEventListener('click', function(e){
+      if (e.target === overlay) {
+        try {
+          if (history.state && history.state.__popup) { history.back(); return; }
+        } catch(e){}
+        // fallback
+        try { if (typeof origClose === 'function') origClose(); } catch(e){}
+        try { overlay.classList.remove('is-open'); overlay.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
+      }
+    }, { passive: true });
+  }
 })();
 </script>
-<!-- End history-fix -->
+
 
 
 <!-- FAST SWIPE TUNING: injected to make touch swipe feel faster & natural -->
@@ -4657,7 +4819,7 @@ loadAndRenderCatalog();
       const dx = clientX - startX;
       const velocity = dx / dt; // px per ms
       const fast = Math.abs(velocity) > 0.4; // threshold for quick flick
-      const threshold = Math.min(48, widthWithGap() * 0.12);
+      const threshold = Math.min(10, widthWithGap() * 0.03);
       const cur = getCurrentTranslate();
       const idx = Math.round(Math.abs(cur) / widthWithGap());
       let target = idx;
@@ -4726,166 +4888,431 @@ loadAndRenderCatalog();
 <!-- END FAST SWIPE TUNING -->
 
 
-<!-- BEGIN: Popup history fix (injected by ChatGPT) -->
+
+
 <script>
 (function(){
-  // Robust single-source history handling for the product popup.
-  // Behaviour:
-  //  - Opening popup uses history.replaceState to set ?p=slug (no extra history entries).
-  //  - Closing popup restores the original pathname (replaceState).
-  //  - popstate closes popup immediately if it's open.
-  //  - Safe: does not rely on other scripts' internal state; tries to call existing openPopup/closePopup.
-  function slugify(s){
-    return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
+  try {
+    const listingUrl = location.pathname;
+    // If there's no __intermediate or __popup in history, create a single intermediate so Back from listing goes to base.
+    const state = history.state || {};
+    if (!state.__intermediate && !state.__popup && !(state.__listing_marker)) {
+      // Ensure base exists and then push a listing marker
+      try {
+        history.replaceState(Object.assign({}, history.state || {}, { __base: true, __fromHome: true }), "", listingUrl);
+      } catch(e){}
+      try {
+        history.pushState({ __listing_marker: true }, "", listingUrl);
+      } catch(e){}
+    }
+  } catch(e){}
+})();
+</script>
+
+<!-- START: custom popup-history v4 (aggressive, forces Back -> Home when on listing with no popup) -->
+<script>
+(function(){
+  // Configuration: adjust if your listing URL path differs
+  const LISTING_KEYWORD = '/all-products';
+  const HOME_URL = location.origin + '/';
+
+  function slugify(name){
+    return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
 
-  function isPopupOpen(){
+  function isListingPage() {
     try {
-      const el = document.getElementById('productPopup');
-      if (!el) return false;
-      return el.classList.contains('is-open') || window.getComputedStyle(el).display !== 'none';
+      return location.pathname.toLowerCase().indexOf(LISTING_KEYWORD) !== -1;
     } catch(e){ return false; }
   }
 
-  function closePopupInstant(){
-    try {
-      // prefer existing closePopup if defined
-      if (typeof window._chatgpt_closePopupInstant === 'function') {
-        return window._chatgpt_closePopupInstant();
-      }
-      const popup = document.getElementById('productPopup');
-      if (!popup) return;
-      const card = popup.querySelector('.popup-card');
-      if (card) {
-        card.classList.remove('enter');
-        card.classList.add('leave');
-      }
-      popup.classList.remove('is-open');
-      popup.style.display = 'none';
-      document.body.classList.remove('noscroll');
-      // pause videos
-      try { popup.querySelectorAll('video').forEach(v=>{ v.pause(); v.currentTime = 0; }); } catch(e){}
-    } catch(e){}
+  function popupElement() {
+    return document.getElementById('productPopup') || document.querySelector('.product-popup') || null;
   }
 
-  // Save a reference to any existing openPopup/closePopup so other behavior stays intact
-  const origOpen = window.openPopup;
-  const origClose = window.closePopup;
+  function isPopupVisible() {
+    const el = popupElement();
+    if (!el) return false;
+    try {
+      if (el.classList.contains('is-open')) return true;
+      const disp = getComputedStyle(el).display;
+      return disp !== 'none' && disp !== 'hidden' && disp !== '';
+    } catch(e){ return false; }
+  }
 
-  // Provide a safe internal close that other injected code can call
-  window._chatgpt_closePopupInstant = function(){
-    closePopupInstant();
-  };
-
-  // Ensure base history state (mark starting URL)
+  // Remove any in-popup back buttons if present
   try {
-    const base = Object.assign({}, history.state || {}, { __site_base: true });
-    history.replaceState(base, "", location.href);
+    const candidate = document.querySelector('#productPopup .popup-back, #productPopup .back-btn, #productPopup button.back, #productPopup [id*="Back"], #productPopup .pp-back');
+    if (candidate) candidate.remove();
   } catch(e){}
 
-  // Override openPopup to replace URL (no history push)
-  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
-    // call original implementation first so popup appears quickly
-    if (typeof origOpen === 'function') {
-      try { origOpen.apply(this, arguments); } catch(e){ console.warn("origOpen failed:", e); }
+  // Only run heavy logic on listing pages
+  if (!isListingPage()) {
+    return;
+  }
+
+  const listingPathNormalized = location.pathname.replace(/\/+$/,'') + '/';
+
+  // Force top two entries to be: [..previous browser entries..] [BASE_MARKER] [LISTING_MARKER(current)]
+  try {
+    history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
+    history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
+  } catch(e){ console.warn("history setup failed", e); }
+
+  // Helpers to show/hide popup if your app has helpers
+  function showPopupFromURL() {
+    // If your site already implements maybeOpenFromURL, prefer it
+    if (typeof maybeOpenFromURL === 'function') {
+      try { maybeOpenFromURL(); return; } catch(e){ console.warn("maybeOpenFromURL failed", e); }
     }
+    // Fallback: if you have openPopup and can derive product from URL 'p' param, try to call openPopup
+    try {
+      const params = new URLSearchParams(location.search);
+      const p = params.get('p');
+      if (p && typeof window.openPopup === 'function') {
+        // Attempt to call openPopup with only the name param (best-effort)
+        try { window.openPopup([], p); } catch(e){ console.warn("openPopup invocation failed", e); }
+      } else {
+        // Try to show DOM popup directly if present
+        const el = popupElement();
+        if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+      }
+    } catch(e){}
+  }
+
+  function hidePopupImmediate() {
+    const el = popupElement();
+    if (el) {
+      try { el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
+    }
+  }
+
+  // Wrap window.openPopup to manage history without stacking multiple popup entries
+  const originalOpen = window.openPopup;
+  window.openPopup = function(images, name, mrp, price, stock, desc){
+    try {
+      if (typeof originalOpen === 'function') {
+        originalOpen.apply(this, arguments);
+      }
+    } catch(e){ console.warn("original openPopup error", e); }
+
     try {
       const slug = slugify(name || '');
-      const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-      // Use replaceState so we do NOT add a new history entry
-      history.replaceState(Object.assign({}, history.state || {}, { popup: true }), "", newUrl);
-    } catch(e){ console.warn("history.replaceState failed:", e); }
-  };
+      const popupUrl = slug ? (listingPathNormalized + '?p=' + encodeURIComponent(slug)) : listingPathNormalized;
 
-  // Override closePopup to restore pathname using replaceState (no extra history entry)
-  window.closePopup = function(){
-    // If other scripts expected history.back() to trigger popstate, we still restore URL without adding entry.
-    closePopupInstant();
-    try {
-      history.replaceState(Object.assign({}, history.state || {}, { popup: false }), "", location.pathname);
-    } catch(e){}
-    // also call original close if it exists
-    if (typeof origClose === 'function') {
-      try { origClose.apply(this, arguments); } catch(e){ /* ignore */ }
-    }
-  };
-
-  // When user presses back/forward, close popup if open.
-  window.addEventListener('popstate', function(ev){
-    try {
-      if (isPopupOpen()) {
-        // close without touching history (we're responding to pop)
-        closePopupInstant();
-        // restore clean pathname (but do not add new history)
-        try { history.replaceState(Object.assign({}, history.state || {}, { popup: false }), "", location.pathname); } catch(e){}
+      // Ensure listing marker exists
+      if (!(history.state && history.state.__listing)) {
+        try {
+          history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
+          history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
+        } catch(e){}
       }
-    } catch(e){}
-  });
 
-  // Also make overlay clicks close via history replace (keeps URL clean)
-  document.addEventListener('click', function(e){
-    const overlay = document.getElementById('productPopup');
-    if (!overlay) return;
-    if (e.target === overlay) {
-      window.closePopup();
-    }
-  }, {passive:true});
-
-  // If page loaded with ?p=..., try to open matching product after catalog loads.
-  // maybeOpenFromURL may already exist; keep compatibility.
-  function tryMaybeOpen(){
-    try {
-      if (typeof maybeOpenFromURL === 'function') {
-        maybeOpenFromURL();
+      // If popup state already exists, replace it (prevents stacking); else push new popup state
+      if (history.state && history.state.__popup) {
+        history.replaceState({__popup:true, p: slug}, "", popupUrl);
       } else {
-        // fallback: if there is popup param but no opener, just leave URL as-is (no history changes)
+        history.pushState({__popup:true, p: slug}, "", popupUrl);
+      }
+    } catch(e){ console.warn("openPopup history error", e); }
+  };
+
+  // Wrap window.closePopup so it goes back to listing state (which will hide popup)
+  const originalClose = window.closePopup;
+  window.closePopup = function(){
+    try {
+      if (history.state && history.state.__popup) {
+        // go back to listing state (this triggers popstate where we hide the popup)
+        history.back();
+        return;
       }
     } catch(e){}
-  }
-  // run after a short delay, to allow other scripts to set window.catalogData
-  window.addEventListener('DOMContentLoaded', function(){ setTimeout(tryMaybeOpen, 200); });
-  setTimeout(tryMaybeOpen, 800);
+
+    if (typeof originalClose === 'function') {
+      try { originalClose.apply(this, arguments); } catch(e){ console.warn("original closePopup error", e); }
+    } else {
+      hidePopupImmediate();
+      try { history.replaceState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search); } catch(e){}
+    }
+  };
+
+  // Intercept overlay clicks to use history.back when popup state exists
+  try {
+    const overlay = popupElement();
+    if (overlay) {
+      overlay.addEventListener('click', function(e){
+        if (e.target === overlay) {
+          try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
+          hidePopupImmediate();
+        }
+      }, { passive: true });
+    }
+  } catch(e){}
+
+  // Core popstate handler: ensures popup opens/closes correctly and ensures single-Back-to-home behavior
+  window.addEventListener('popstate', function(ev){
+    const st = ev.state || {};
+    const popupVisible = isPopupVisible();
+    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
+
+    // If state is popup or URL has p param -> ensure popup shown
+    if ((st && st.__popup) || urlHasP) {
+      if (!popupVisible) {
+        showPopupFromURL();
+      }
+      return;
+    }
+
+    // If no popup is open and we're on the listing page, redirect directly to home
+    // This makes a single Back press from listing go to home.
+    if (!popupVisible && ( (st && st.__listing) || isListingPage() )) {
+      // To avoid immediately reacting when page initially sets states, ensure this isn't the very first load
+      // If document.referrer is empty it might be direct load — but the user wants Back -> home regardless
+      try {
+        // Use replace to avoid adding extra history entry
+        location.href = HOME_URL;
+        return;
+      } catch(e){}
+    }
+
+    // If popup is visible but state is listing/no-p -> hide popup
+    if (popupVisible && ((st && st.__listing) || !urlHasP)) {
+      try { hidePopupImmediate(); } catch(e){}
+      return;
+    }
+
+  }, false);
+
 })();
 </script>
-<!-- END: Popup history fix -->
-<script>
+<!-- END: custom popup-history v4 -->
+
+
+
+
+<!-- Assistant: popup / back-button fix (appended) -->
+<script id="assistant-popup-fix">
 (function(){
-  function slugify(s){
-    return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
+  'use strict';
+  const POPUP_ID = 'productPopup';
+  function popupEl(){ return document.getElementById(POPUP_ID); }
+  function isPopupVisible(){
+    const el = popupEl(); if(!el) return false;
+    try {
+      if (el.classList && el.classList.contains('is-open')) return true;
+      const ds = (el.style && el.style.display) ? String(el.style.display).toLowerCase() : '';
+      return ds === 'flex' || ds === 'block' || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
+    } catch(e){ return false; }
   }
+  function showDomPopup(){
+    const el = popupEl(); if(!el) return;
+    try { el.style.display = 'flex'; el.classList && el.classList.add('is-open'); document.body && document.body.classList.add('noscroll'); } catch(e){}
+  }
+  function hideDomPopup(){
+    const el = popupEl(); if(!el) return;
+    try { el.classList && el.classList.remove('is-open'); el.style.display = 'none'; document.body && document.body.classList.remove('noscroll'); } catch(e){}
+  }
+  function slugify(name){ return String(name||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,''); }
 
+  // Wrap openPopup (or provide a wrapper if it doesn't exist)
   const origOpen = window.openPopup;
-  const origClose = window.closePopup;
+  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
+    if (typeof origOpen === 'function') {
+      try { origOpen.apply(this, arguments); } catch(e){ console.warn('openPopup original error', e); showDomPopup(); }
+    } else {
+      showDomPopup();
+    }
 
-  // OPEN popup → pushState with ?p=slug
-  window.openPopup = function(images, name, mrp, price, stock, desc){
-    if (typeof origOpen === 'function') origOpen.apply(this, arguments);
+    // push history entry with ?p=slug so back button removes it
     try {
       const slug = slugify(name);
       const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-      history.pushState({popup:true}, "", newUrl);
+      const curP = (new URL(location.href)).searchParams.get('p') || null;
+      const newP = slug || null;
+      if (curP !== newP) {
+        history.pushState({__popup:true, p: newP}, '', newUrl);
+      } else {
+        history.replaceState(Object.assign({}, history.state || {}, {__popup:true, p:newP}), '', newUrl);
+      }
+    } catch(e){ console.warn('history push failed', e); }
+  };
+
+  // Wrap closePopup to use history.back when popup state exists
+  const origClose = window.closePopup;
+  window.closePopup = function(){
+    try {
+      if (history.state && history.state.__popup) {
+        history.back();
+        return;
+      }
+    } catch(e){}
+    if (typeof origClose === 'function') {
+      try { origClose.apply(this, arguments); } catch(e){ console.warn('closePopup original failed', e); }
+    }
+    hideDomPopup();
+    try { history.replaceState(Object.assign({}, history.state || {}, {__listing:true}), '', location.pathname); } catch(e){}
+  };
+
+  // Overlay clicks: prefer history.back so popstate handler will hide
+  document.addEventListener('click', function(e){
+    const overlay = popupEl();
+    if (!overlay) return;
+    if (e.target === overlay) {
+      try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
+      hideDomPopup();
+    }
+  }, true);
+
+  // Popstate: show popup when URL has ?p, hide when not.
+  window.addEventListener('popstate', function(ev){
+    let urlHasP = false;
+    try { urlHasP = (new URL(location.href)).searchParams.has('p'); } catch(e){}
+    const visible = isPopupVisible();
+    if (urlHasP) {
+      if (!visible) {
+        if (typeof maybeOpenFromURL === 'function') {
+          try { maybeOpenFromURL(); return; } catch(e){ console.warn('maybeOpenFromURL failed', e); }
+        }
+        showDomPopup();
+      }
+    } else {
+      if (visible) {
+        hideDomPopup();
+        return;
+      }
+    }
+  }, false);
+
+  // ESC key fallback for non-history cases
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      if (isPopupVisible()) {
+        window.closePopup();
+        e.preventDefault();
+      }
+    }
+  }, false);
+
+  // On load, if URL has ?p ensure popup opens (best-effort)
+  try {
+    if ((new URL(location.href)).searchParams.has('p')) {
+      if (typeof maybeOpenFromURL === 'function') {
+        setTimeout(()=>{ try{ maybeOpenFromURL(); }catch(e){} }, 60);
+      } else {
+        setTimeout(showDomPopup, 60);
+      }
+    }
+  } catch(e){}
+
+})();
+</script>
+<!-- End Assistant popup/back-button fix -->
+
+
+<!-- BEGIN assistant: reliable back-button popup handler -->
+<script>
+(function(){
+  const POPUP_ID = 'productPopup';
+  function popupEl(){ return document.getElementById(POPUP_ID); }
+  function isPopupVisible(){
+    const el = popupEl(); if(!el) return false;
+    try {
+      return el.classList.contains('is-open') || (el.style && (el.style.display === 'flex' || el.style.display === 'block')) || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
+    } catch(e){ return false; }
+  }
+  function showPopupImmediate(){
+    const el = popupEl(); if(!el) return;
+    el.style.display = 'flex';
+    el.classList && el.classList.add('is-open');
+    document.body && document.body.classList.add('noscroll');
+    window.__popupOpen = true;
+  }
+  function hidePopupImmediate(){
+    const el = popupEl(); if(!el) return;
+    el.classList && el.classList.remove('is-open');
+    el.style.display = 'none';
+    document.body && document.body.classList.remove('noscroll');
+    window.__popupOpen = false;
+  }
+
+  // Ensure openPopup sets a flag and pushes a popup state (best-effort)
+  const origOpen = window.openPopup;
+  window.openPopup = function(...args){
+    try {
+      if (typeof origOpen === 'function') origOpen.apply(this, args);
+    } catch(e){ console.warn('openPopup original failed', e); }
+    try {
+      // mark open
+      window.__popupOpen = true;
+      // push a popup history state so Back first closes popup
+      const cur = new URL(location.href);
+      if (!cur.searchParams.has('p')) {
+        // use a lightweight param to reflect popup; don't replace user's deeper URL if present
+        cur.searchParams.set('p', 'item');
+        try { history.pushState({__popup:true}, '', cur.toString()); } catch(e){}
+      } else {
+        try { history.replaceState(Object.assign({}, history.state || {}, {__popup:true}), '', location.href); } catch(e){}
+      }
+    } catch(e){}
+    // ensure popup visible in DOM in case original missed it
+    try { showPopupImmediate(); } catch(e){}
+  };
+
+  // Wrap closePopup to hide and keep user on listing (prevent immediate navigation away)
+  const origClose = window.closePopup;
+  window.closePopup = function(...args){
+    try {
+      if (typeof origClose === 'function') origClose.apply(this, args);
+    } catch(e){ console.warn('closePopup original failed', e); }
+    try {
+      hidePopupImmediate();
+      // after closing, re-insert a harmless listing state so user won't jump away on next Back
+      try { history.replaceState({__listing:true}, '', location.pathname + location.search); } catch(e){}
     } catch(e){}
   };
 
-  // CLOSE popup → restore clean URL
-  window.closePopup = function(){
-    if (typeof origClose === 'function') origClose.apply(this, arguments);
-    try { history.pushState({}, "", location.pathname); } catch(e){}
-  };
-
-  // BACK button → if popup open, close instead of going back again
-  window.addEventListener('popstate', function(e){
-    const popup = document.getElementById('productPopup');
-    if (popup && popup.classList.contains('is-open')) {
-      if (typeof origClose === 'function') origClose();
-      else {
-        popup.classList.remove('is-open');
-        popup.style.display = 'none';
+  // When popstate occurs, if popup is open, close it and then push a listing state to keep user on page
+  window.addEventListener('popstate', function(ev){
+    try {
+      if (isPopupVisible() || window.__popupOpen) {
+        // Hide popup instead of letting browser go back
+        hidePopupImmediate();
+        // Give the browser a stable state that represents the listing (so further Back goes to previous site)
+        try { history.pushState({__listing_preserved:true}, '', location.pathname + location.search); } catch(e){}
       }
+    } catch(e){}
+  }, false);
+
+  // Overlay clicks: prefer history.back so popstate runs (keeps behavior consistent)
+  document.addEventListener('click', function(e){
+    const overlay = popupEl();
+    if (!overlay) return;
+    if (e.target === overlay) {
+      try {
+        if (window.__popupOpen) { history.back(); return; }
+      } catch(e){}
+      hidePopupImmediate();
     }
-  });
+  }, true);
+
+  // ESC key closes popup
+  document.addEventListener('keydown', function(e){
+    if ((e.key === 'Escape' || e.key === 'Esc') && (isPopupVisible() || window.__popupOpen)) {
+      try { history.back(); } catch(e){}
+    }
+  }, false);
+
+  // If page loaded with ?p param, try to open popup (non-destructive)
+  try {
+    const params = new URL(location.href).searchParams;
+    if (params.has('p')) {
+      // slightly delay to let other scripts finish
+      setTimeout(()=>{ try { showPopupImmediate(); } catch(e){} }, 80);
+    }
+  } catch(e){}
 })();
 </script>
+<!-- END assistant: reliable back-button popup handler -->
 
 </body>
 </html>
