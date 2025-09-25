@@ -2280,9 +2280,14 @@ loadAndRenderAllTabs();
 </script>
 
 <script>
+/* Robust maybeOpenFromURL — copy & paste this block */
+(function () {
   function getParam(name) {
-    const u = new URLSearchParams(location.search);
-    return u.get(name);
+    try {
+      return new URLSearchParams(location.search).get(name);
+    } catch (e) {
+      return null;
+    }
   }
 
   function slugify(s) {
@@ -2293,48 +2298,40 @@ loadAndRenderAllTabs();
       .replace(/[^a-z0-9-]/g, '');  // remove other symbols
   }
 
-  function maybeOpenFromURL() 
-{
-  try {
-    const wantedRaw = (new URL(location.href)).searchParams.get('p');
-    if (!wantedRaw) return;
-    const wanted = String(wantedRaw).trim();
-    if (!wanted) return;
+  function findItemInSource(sourceData, wanted) {
+    if (!Array.isArray(sourceData) || !sourceData.length) return null;
+    const slugWanted = slugify(decodeURIComponent(wanted));
 
-    function slugifyLocal(s){ return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,''); }
+    // 1) slug match (most reliable)
+    let item = sourceData.find(row =>
+      slugify(row["Product Name"] || row.name || '') === slugWanted
+    );
+    if (item) return item;
 
-    const sourceData = Array.isArray(window.catalogData) && window.catalogData.length ? window.catalogData
-                      : (Array.isArray(window.allProducts) ? window.allProducts : []);
-    if (!Array.isArray(sourceData) || !sourceData.length) return;
-
-    const wantedSlug = slugifyLocal(decodeURIComponent(wanted));
-    let item = sourceData.find(row => slugifyLocal(row["Product Name"] || row.name || '') === wantedSlug);
-
-    if (!item) {
-      const numeric = /^\d+$/.test(wanted);
-      if (numeric) {
-        const idKeys = ["id","ID","Id","product id","Product ID","product_id","Product_ID","sku","SKU","S.No","sno","Sno","serial","Serial"];
-        const wantedNum = String(parseInt(wanted,10));
-        for (const row of sourceData) {
-          for (const k of idKeys) {
-            if (row.hasOwnProperty(k) && row[k] != null) {
-              if (String(row[k]).trim() === wantedNum) { item = row; break; }
-            }
+    // 2) if numeric, try matching common ID-like columns or fallback to 1-based index
+    if (/^\d+$/.test(wanted)) {
+      const numeric = String(parseInt(wanted, 10));
+      const idKeys = ["id","ID","Id","product id","Product ID","product_id","Product_ID","sku","SKU","S.No","sno","Sno","serial","Serial"];
+      for (const row of sourceData) {
+        for (const k of idKeys) {
+          if (row.hasOwnProperty(k) && row[k] != null) {
+            if (String(row[k]).trim() === numeric) { return row; }
           }
-          if (item) break;
         }
-        if (!item) {
-          const idxNum = parseInt(wanted,10) - 1;
-          if (idxNum >= 0 && idxNum < sourceData.length) item = sourceData[idxNum];
-        }
-      } else {
-        const wantLower = wanted.toLowerCase();
-        item = sourceData.find(row => String(row["Product Name"] || row.name || '').toLowerCase() === wantLower);
       }
+      // fallback: 1-based index (useful when p is row number)
+      const idx = parseInt(wanted, 10) - 1;
+      if (!isNaN(idx) && idx >= 0 && idx < sourceData.length) return sourceData[idx];
     }
 
-    if (!item) return;
+    // 3) fallback: case-insensitive exact name match
+    const wantLower = String(wanted).toLowerCase();
+    item = sourceData.find(row => String(row["Product Name"] || row.name || '').toLowerCase() === wantLower);
+    return item || null;
+  }
 
+  function openFoundItem(item) {
+    if (!item) return;
     const images = [
       item["photo 1"] || item.mediaUrl || item.photo || item.image,
       item["photo 2"],
@@ -2342,24 +2339,82 @@ loadAndRenderAllTabs();
       item["photo 4"]
     ].filter(Boolean);
 
-    const mrp = Number(item["MRP"] || item.mrp || item.Mrp || 0) || undefined;
+    const mrp = Number(item["MRP"] || item.mrp || 0) || undefined;
     const price = Number(item["Selling Price"] || item.price || item.selling_price || 0) || undefined;
     const stock = Number(item["in stock"] || item.stock || item.in_stock || 1) || 1;
+    const desc = (typeof getSheetDescription === "function") ? getSheetDescription(item) : (item.description || "");
 
     if (typeof openPopup === "function") {
-      try { openPopup(images, item["Product Name"] || item.name || '', mrp, price, stock, (typeof getSheetDescription === 'function' ? getSheetDescription(item) : (item.description||''))); }
-      catch(e){ console.warn('openPopup from maybeOpenFromURL failed', e); }
-    } else {
       try {
-        const el = document.getElementById('productPopup');
-        if (el) { el.style.display = 'flex'; el.classList && el.classList.add('is-open'); document.body && document.body.classList.add('noscroll'); }
-      } catch(e){}
+        openPopup(images, item["Product Name"] || item.name || '', mrp, price, stock, desc);
+      } catch (e) {
+        console.warn("openPopup threw:", e);
+        showDOMPopupFallback();
+      }
+    } else {
+      showDOMPopupFallback();
     }
-  } catch(e){ console.warn('maybeOpenFromURL error', e); }
-}
+  }
 
+  function showDOMPopupFallback() {
+    const el = document.getElementById('productPopup');
+    if (el) {
+      try {
+        el.style.display = 'flex';
+        el.classList.add('is-open');
+        document.body.classList.add('noscroll');
+      } catch (e) {}
+    }
+  }
 
+  function maybeOpenFromURLOnce() {
+    try {
+      const wanted = getParam('p');
+      if (!wanted) return false;
+
+      const sourceData = (Array.isArray(window.catalogData) && window.catalogData.length) ? window.catalogData
+                        : (Array.isArray(window.allProducts) && window.allProducts.length ? window.allProducts : []);
+
+      if (!Array.isArray(sourceData) || !sourceData.length) return false;
+
+      const item = findItemInSource(sourceData, wanted);
+      if (!item) return false;
+
+      openFoundItem(item);
+      return true;
+    } catch (e) {
+      console.warn("maybeOpenFromURLOnce error:", e);
+      return false;
+    }
+  }
+
+  // Try immediately + retry a few times in case product data loads shortly after script runs.
+  function maybeOpenFromURLWithRetries(attempts = 5, delay = 400) {
+    let tried = 0;
+    function attempt() {
+      tried++;
+      const ok = maybeOpenFromURLOnce();
+      if (ok) return;
+      if (tried < attempts) {
+        setTimeout(attempt, delay);
+      }
+    }
+    attempt();
+  }
+
+  // Run when DOM ready — also safe if this script is placed at end of body.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => maybeOpenFromURLWithRetries());
+  } else {
+    // DOM already ready
+    maybeOpenFromURLWithRetries();
+  }
+
+  // Also expose function globally if other scripts want to call it:
+  window.maybeOpenFromURL = maybeOpenFromURLOnce;
+})();
 </script>
+
 
 <div id="productPopup">
   <div class="popup-card" onclick="event.stopPropagation()">
