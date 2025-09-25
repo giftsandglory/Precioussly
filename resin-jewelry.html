@@ -42,11 +42,11 @@
   justify-content: center;
   border-radius: 6px;
   transition: background 0.2s ease;
-  outline: none !important;               
-  box-shadow: none !important;            
-  -webkit-tap-highlight-color: transparent !important;  
-  user-select: none;                      
-  touch-action: manipulation;            
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none;
+  touch-action: manipulation;
 }
 
 .quantity-bar button:focus {
@@ -80,7 +80,7 @@ body.noscroll {
   width:100%;
   height:100%;
   aspect-ratio:1/1;
-  object-fit:cover;    
+  object-fit:cover;
   display:block;
 }
 
@@ -90,7 +90,7 @@ body.noscroll {
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;             
+  overflow: hidden;
 }
 
 .popup-slide{
@@ -102,7 +102,7 @@ body.noscroll {
   object-fit: cover;
   border-radius: 14px;
   opacity: 0;
-  transition: opacity 180ms ease-in-out;  
+  transition: opacity 180ms ease-in-out;
   pointer-events: none;
   z-index: 0;
 }
@@ -134,7 +134,7 @@ body.noscroll {
   justify-content: center;
 }
 .mini-spinner {
-  width: 16px;   
+  width: 16px;
   height: 16px;
   border: 2px solid #fff;
   border-top: 2px solid rgba(255,255,255,0.2);
@@ -156,14 +156,13 @@ body.noscroll {
     }
 
     .section-title {
-  font-size: 16px;         
-  font-weight: 400;        
+  font-size: 16px;
+  font-weight: 400;
   text-align: center;
-  padding: 14px 12px 8px;  
+  padding: 14px 12px 8px;
   background: #fff;
 }
 
-    
 .product-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -175,7 +174,6 @@ body.noscroll {
       position: relative;
     }
 
-    
   .product img {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -184,12 +182,11 @@ body.noscroll {
   transition: transform 0.3s ease;
 }
 
-    
     .badge {
   position: absolute;
   top: 6px;
   left: 6px;
-  background: rgba(11, 32, 56, 0.9); 
+  background: rgba(11, 32, 56, 0.9);
   color: #ffffff;
   font-size: 11px;
   font-weight: 600;
@@ -237,8 +234,8 @@ body.noscroll {
   transition: background 0.3s ease;
   font-family: 'Roboto Slab', serif;
 
-  width: 100px;          
-  height: 36px;          
+  width: 100px;
+  height: 36px;
   box-sizing: border-box;
 }
 
@@ -251,16 +248,15 @@ body.noscroll {
   background: #2563eb;
   transform: none;
 }
-  
 
 .site-header {
   background-color: #ffffff;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px; 
+  padding: 12px 16px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  min-height: 56px;   
+  min-height: 56px;
 }
 
 .left-section {
@@ -324,7 +320,7 @@ body.noscroll {
 }
 
 #productPopup {
-  
+
   display: none;
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.18);
@@ -350,7 +346,6 @@ body.noscroll {
   border: 1px solid rgba(0,0,0,0.08);
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
 
-  
   transform: translateY(18px) scale(.975);
   opacity: 0;
   transform-origin: center;
@@ -396,8 +391,8 @@ body.noscroll {
 
 .wh-share {
   position: absolute;
-  bottom: 12px; 
-  right: 4px;  
+  bottom: 12px;
+  right: 4px;
   width: auto;
   height: auto;
   background: transparent;
@@ -406,7 +401,7 @@ body.noscroll {
 }
 
 .wh-share img {
-  width: 40px;   
+  width: 40px;
   height: 40px;
   display: block;
   object-fit: contain;
@@ -452,19 +447,19 @@ body.noscroll {
 .desc-text li { margin: 8px 0; }
 
 .popup-card{
-  max-height: 88vh;              
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
 }
 .popup-body{
-  overflow-y: auto;               
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 10px;
 }
 
 .desc-box summary {
   position: relative;
-  padding-right: 28px;            
+  padding-right: 28px;
 }
 .desc-box summary::after{
   content: "";
@@ -474,35 +469,34 @@ body.noscroll {
   width: 8px; height: 8px;
   border-right: 2px solid #222;
   border-bottom: 2px solid #222;
-  transform: translateY(-60%) rotate(-45deg); 
+  transform: translateY(-60%) rotate(-45deg);
   transition: transform .2s ease;
 }
 .desc-box[open] summary::after{
-  transform: translateY(-30%) rotate(45deg);  
+  transform: translateY(-30%) rotate(45deg);
 }
 
 .popup-body,
 .desc-text {
-  scrollbar-width: none;          
-  -ms-overflow-style: none;       
-  overscroll-behavior: contain;   
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
 }
 .popup-body::-webkit-scrollbar,
 .desc-text::-webkit-scrollbar {
   width: 0;
   height: 0;
-  display: none;                  
+  display: none;
   background: transparent;
 }
 #cartCountBadge {
   font-family: 'Roboto Slab', serif !important;
-  font-weight: 200; 
-  font-size: 14px;  
+  font-weight: 200;
+  font-size: 14px;
 }
 
 .popup-dots:empty { display: none !important; }
 
-/* haptic helper pulse */
 .qty-pulse {
   transform: scale(1.02);
   transition: transform 120ms ease;
@@ -518,20 +512,20 @@ body.horizontal-mode .product-grid{
   gap: 12px !important;
 
   overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch !important; 
+  -webkit-overflow-scrolling: touch !important;
   scroll-behavior: smooth !important;
-  touch-action: auto !important; 
+  touch-action: auto !important;
   overscroll-behavior-x: contain !important;
 
   scroll-snap-type: none !important;
-  padding: 10px 12px 14px 12px !important; 
+  padding: 10px 12px 14px 12px !important;
 }
 body.horizontal-mode .product-grid::-webkit-scrollbar{ height: 0; }
 body.horizontal-mode .product-grid{ scrollbar-width: none; }
 
 body.horizontal-mode .product{
-  min-width: 42vw;  
-  max-width: 230px; 
+  min-width: 42vw;
+  max-width: 230px;
   scroll-snap-align: none !important;
   display: flex !important;
   flex-direction: column !important;
@@ -542,7 +536,7 @@ body.horizontal-mode .product img{
   aspect-ratio: 1 / 1 !important;
   height: auto !important;
   object-fit: cover !important;
-  border-radius: 10px !important; 
+  border-radius: 10px !important;
   display: block !important;
 }
  aspect-ratio: 1 / 1 !important;
@@ -563,7 +557,7 @@ body.horizontal-mode .product .add-to-cart{
   margin-top: auto !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 9px 10px !important; 
+  padding: 9px 10px !important;
   font-size: 13px !important;
   border-radius: 10px !important;
 }
@@ -573,9 +567,9 @@ body.horizontal-mode .product .title{
   font-size: 14px !important;
   line-height: 1.25 !important;
   margin: 7px 2px 3px !important;
-  display: -webkit-box; 
-  -webkit-line-clamp: 1; 
-  -webkit-box-orient: vertical; 
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
@@ -591,8 +585,8 @@ body.horizontal-mode.small-cards .product-grid{
   padding: 8px 10px 12px 10px !important;
 }
 body.horizontal-mode.small-cards .product{
-  min-width: 34vw !important;   
-  max-width: 200px !important;   
+  min-width: 34vw !important;
+  max-width: 200px !important;
 }
 body.horizontal-mode.small-cards .product img{
   border-radius: 10px !important;
@@ -696,8 +690,8 @@ body.horizontal-mode.small-cards .product .add-to-cart{
 .side-menu {
   position: fixed;
   inset: 0 0 0 auto;
-  width: min(70vw, 300px); 
-  max-width: 300px;       
+  width: min(70vw, 300px);
+  max-width: 300px;
   background: #fff;
   transform: translateX(100%);
   transition: transform 0.3s ease;
@@ -715,19 +709,19 @@ body.horizontal-mode.small-cards .product .add-to-cart{
   border-bottom: 1px solid #eee;
 }
 .menu-title {
-  font-size: 18px;       
-  font-weight: 600;      
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .menu-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;           
-  height: 32px;          
+  width: 32px;
+  height: 32px;
   border: 1px solid #111;
-  border-radius: 10px;   
-  font-size: 14px;       
+  border-radius: 10px;
+  font-size: 14px;
   cursor: pointer;
 }
 #menuContent {
@@ -846,7 +840,7 @@ nav.side-menu {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  min-height: 1.35em; 
+  min-height: 1.35em;
 }
 
 .product .price-row, .product-card .price-row{
@@ -863,7 +857,7 @@ nav.side-menu {
 }
 
 .product, .product-card{
-  min-height: 360px; 
+  min-height: 360px;
 }
 
 body.horizontal-mode.small-cards .product,
@@ -882,7 +876,7 @@ body.horizontal-mode.small-cards .product-card{
   display:flex !important;
   flex-direction:column !important;
   gap:6px;
-  flex: 1 1 auto; 
+  flex: 1 1 auto;
 }
 .product .product-title{
   white-space: nowrap !important;
@@ -891,7 +885,7 @@ body.horizontal-mode.small-cards .product-card{
   display: block;
   min-height: 1.35em;
 }
-.product .add-btn{  
+.product .add-btn{
   margin-top: auto !important;
 }
 </style>
@@ -923,7 +917,7 @@ body.horizontal-mode.small-cards .product-card{
 
 .product img{
   display:block;
-  margin-bottom:6px !important; 
+  margin-bottom:6px !important;
 }
 .product .product-info{
   margin-top:0 !important;
@@ -950,14 +944,14 @@ body.horizontal-mode.small-cards .product-card{
   line-height:0 !important;
 }
 .product .product-info{
-  margin-top:4px !important; 
+  margin-top:4px !important;
 }
 </style>
 
 <style>
 
 .product{
-  justify-content: flex-start !important; 
+  justify-content: flex-start !important;
 }
 
 .product .add-btn{
@@ -1008,13 +1002,13 @@ body.horizontal-mode.small-cards .product-card{
 }
 
 .product .product-info {
-  gap: 2px !important;        
-  margin-top: 0 !important;   
+  gap: 2px !important;
+  margin-top: 0 !important;
   padding: 0 6px !important;
 }
 
 .product .add-btn {
-  margin-top: 2px !important; 
+  margin-top: 2px !important;
 }
 </style>
 
@@ -1040,9 +1034,9 @@ body.horizontal-mode.small-cards .product {
 }
 
 .product-grid {
-  row-gap: 4px !important;  
-  column-gap: 12px !important; 
-  gap: 4px 12px !important; 
+  row-gap: 4px !important;
+  column-gap: 12px !important;
+  gap: 4px 12px !important;
 }
 
 .section-title {
@@ -1065,7 +1059,7 @@ body.horizontal-mode.small-cards .product {
 }
 
 .section-title:first-of-type {
-  margin-top: 12px !important;  
+  margin-top: 12px !important;
 }
 
 </style>
@@ -1073,7 +1067,7 @@ body.horizontal-mode.small-cards .product {
 <style id="pinch-zoom-fix-aug18">
 
 body.horizontal-mode .product-grid{
-  touch-action: auto !important;    
+  touch-action: auto !important;
 }
 
 @supports (touch-action: pinch-zoom) {
@@ -1088,7 +1082,7 @@ body.horizontal-mode .product-grid{
   position: relative !important;
   overflow: hidden !important;
   min-height: 300px !important;
-  /* Allow vertical pan (so page scroll still works) AND allow browser pinch-zoom */
+
   touch-action: pan-y pinch-zoom !important;
   cursor: grab;
 }
@@ -1104,10 +1098,10 @@ body.horizontal-mode .product-grid{
 #popupSlider .popup-slide{
   position: relative !important;
   inset: auto !important;
-  width: 100% !important;  
+  width: 100% !important;
   max-width: none !important;
   flex: 0 0 100% !important;
-  margin: 0;   
+  margin: 0;
   aspect-ratio: 1 / 1 !important;
   border-radius: 14px !important;
   object-fit: cover !important;
@@ -1147,7 +1141,7 @@ body.horizontal-mode .product-grid{
 .section-title::after{
   content:"" !important;
   flex:1 !important;
-  height:1px !important;              
+  height:1px !important;
   border-radius:1px !important;
   background:linear-gradient(to right, rgba(0,0,0,0), #111, rgba(0,0,0,0)) !important;
 }
@@ -1172,12 +1166,12 @@ body.horizontal-mode .product-grid{
   gap: 6px;
   padding: 4px 6px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.10);       
+  background: rgba(255, 255, 255, 0.10);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
   border: 1px solid rgba(255,255,255,0.28);
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  pointer-events: auto;                         
+  pointer-events: auto;
   z-index: 3;
 }
 
@@ -1266,17 +1260,17 @@ body.horizontal-mode .product-grid{
 <style id="dot-blue-override">
 
 .popup-dot{
-  background: linear-gradient(180deg, #b3d9ff 0%, #3399ff 100%) !important; 
+  background: linear-gradient(180deg, #b3d9ff 0%, #3399ff 100%) !important;
 }
 .popup-dot.active{
-  background: linear-gradient(180deg, #3399ff 0%, #0066cc 100%) !important; 
+  background: linear-gradient(180deg, #3399ff 0%, #0066cc 100%) !important;
 }
 </style>
 
 <style id="dot-blue-position">
 
 .popup-dots{
-  bottom: 18px !important; 
+  bottom: 18px !important;
 }
 </style>
 <style id="plain-desc-css">
@@ -1295,15 +1289,15 @@ body.horizontal-mode .product-grid{
   color: #111;
 }
 
-.desc-content{font-size: 12.5px;        
+.desc-content{font-size: 12.5px;
   line-height: 1.55;
-  height:auto; overflow:visible;           
+  height:auto; overflow:visible;
   padding: 0 4px 0;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;    
+  scrollbar-width: none;
   max-width: 92%;
   margin: 0 auto;
-  text-align: left;         
+  text-align: left;
   color: #444;
   white-space: pre-wrap;}
 
@@ -1313,8 +1307,6 @@ body.horizontal-mode .product-grid{
   -webkit-overflow-scrolling: touch;
 }
 
-
-/* --- Improved Description UI (injected) --- */
 .desc-section {
   background: linear-gradient(180deg, #fff, #fffefc);
   border-radius: 14px;
@@ -1392,7 +1384,7 @@ body.horizontal-mode .product-grid{
   #popupPrice { margin: 0 12px 10px 12px !important; }
 </style>
 <style>
-  
+
   .ig-banner-wrap{ padding: 0 12px 18px; background:#fff; }
   .ig-banner{
     background:#f6efe8; border:1px solid #f1e7df; border-radius:18px;
@@ -1458,7 +1450,7 @@ body.horizontal-mode .product-grid{
   left: 50% !important;
   right: auto !important;
   transform: translateX(-50%) !important;
-  width: calc(100vw - 30px) !important;   
+  width: calc(100vw - 30px) !important;
   max-width: 420px !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
@@ -1479,11 +1471,11 @@ body.horizontal-mode .product-grid{
 #headerSearchResults .tag{ display:none !important; }
 </style>
 <style id="instant-popup-css">
-  
+
   #productPopup { transition: none !important; }
-  .popup-card { 
-    transition: none !important; 
-    transform: none !important; 
+  .popup-card {
+    transition: none !important;
+    transform: none !important;
     opacity: 1 !important;
   }
 </style>
@@ -1505,7 +1497,7 @@ body.horizontal-mode .product-grid{
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;      
+  object-fit: cover;
   display: block;
 }
 
@@ -1569,12 +1561,12 @@ body.horizontal-mode .product-grid{
 .product .product-title {
   display: -webkit-box !important;
   -webkit-box-orient: vertical !important;
-  -webkit-line-clamp: 2;               
+  -webkit-line-clamp: 2;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  white-space: normal !important;      
+  white-space: normal !important;
   line-height: 1.2em !important;
-  max-height: calc(1.2em * 2) !important; 
+  max-height: calc(1.2em * 2) !important;
   padding-right: 6px !important;
 }
 
@@ -1619,7 +1611,7 @@ body.horizontal-mode .product-grid{
   display: block !important;
   max-width: 100% !important;
   line-height: 1.35em !important;
-  height: 1.35em !important; 
+  height: 1.35em !important;
   padding-right: 6px !important;
 }
 
@@ -1628,7 +1620,7 @@ body.horizontal-mode .product-grid{
   flex-direction: column !important;
   gap: 6px !important;
   flex: 1 1 auto !important;
-  min-height: 48px !important; 
+  min-height: 48px !important;
 }
 
 .product {
@@ -1652,7 +1644,6 @@ body.horizontal-mode .product-grid{
   .product .product-title { font-size: 14px !important; }
 }
 </style>
- 
 
 <style id="user-fix-mobile-alignment">
 
@@ -1676,7 +1667,7 @@ div.product-title {
   text-overflow: ellipsis !important;
   max-width: 100% !important;
   line-height: 1.2em !important;
-  height: 1.2em !important;  
+  height: 1.2em !important;
   margin: 6px 0 0 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
@@ -1789,7 +1780,7 @@ div.product-title {
   </div>
 
   <div id="rightIcons" style="display: flex; align-items: center; gap: 12px;">
-    
+
     <img
       src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
       alt="Search"
@@ -1798,7 +1789,6 @@ div.product-title {
       onclick="openHeaderSearch()"
     />
 
-    
     <img
       id="profileIcon"
       src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
@@ -1808,7 +1798,6 @@ div.product-title {
       style="cursor: pointer;"
     />
 
-    
     <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
       <img
         src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
@@ -1822,7 +1811,6 @@ div.product-title {
     </a>
   </div>
 
-  
   <div id="headerSearchBar" class="header-search">
     <input
       id="headerSearchInput"
@@ -1849,46 +1837,44 @@ div.product-title {
     <span class="menu-title">Menu</span>
     <span class="menu-close" onclick="toggleMenu()">✕</span>
   </div>
-  
+
   <div id="menuContent"></div>
 </nav>
 
 <div id="content"></div>
 
-
 <script>
-/*
-  Paste this entire script in place of your old script.
-  It will:
-  1) fetch every tab in TAB_NAMES using opensheet.elk.sh
-  2) combine results and render sections & products into #content
-  3) respect visibility / section hiding rules
-  4) use safe event listeners to call addToCartFromGrid() and openPopup()
-*/
-
+/* ---------- CONFIG ---------- */
 const PASTED_SHEET_LINK =
   "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
 
-// 👇 Multiple tab names yahan likho
 const TAB_NAMES = ["resin-jewelry"];
+const POLL_INTERVAL_MS = 3000; // 3 seconds polling
 
+/* ---------- sheetId extraction ---------- */
 const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
 if (!idMatch) {
   console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
 }
 const sheetId = idMatch ? idMatch[1] : "";
 
-/* --------------------- helper functions (keeps your original behavior) --------------------- */
+/* ---------- Helpers ---------- */
+function cacheKeyFor(tabName){
+  return `tabCache_${sheetId}_${tabName}`;
+}
+
 function isHidden(row){
   const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
   for (const k of keys){
-    if (row.hasOwnProperty(k) && row[k] != null){
+    if (Object.prototype.hasOwnProperty.call(row, k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
-      if (v.includes("hide")) return true;   // hide when cell contains "hide"
-      if (v.length) return false;
+      if (!v.length) return false;
+      if (v.includes("hide")) return true;
+      // any other non-empty value considered visible
+      return false;
     }
   }
-  return false; // blank means show
+  return false;
 }
 
 function getSheetDescription(row){
@@ -1908,91 +1894,201 @@ function isVideoUrl(url=""){
   return u.endsWith(".mp4") || u.endsWith(".webm") || u.endsWith(".mov");
 }
 
-/* --------------------- main: fetch all tabs and render --------------------- */
+/* ---------- GLOBAL: catalog stored per-tab for stable ordering ---------- */
+window.catalogByTab = window.catalogByTab || {}; // { tabName: [rows...] }
+
+/* ---------- FETCH / CACHE / REVALIDATION ---------- */
+/*
+  Behavior:
+  - fetchTab(tabName) returns cached data immediately (from localStorage) if present (and triggers background revalidation)
+  - revalidateTab(tabName) fetches from network, stores cache, updates window.catalogByTab, and triggers one unified re-render
+*/
+
 async function fetchTab(tabName){
-  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
-  console.log("Fetching tab:", tabName, DATA_URL);
-  const res = await fetch(DATA_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
-  const data = await res.json();
-  // tag each row with source tab (optional, useful for debugging)
-  data.forEach(row => { row.__tabName = tabName; });
-  return data;
+  const cacheKey = cacheKeyFor(tabName);
+  let cached = null;
+  try {
+    const raw = localStorage.getItem(cacheKey);
+    if (raw) cached = JSON.parse(raw);
+  } catch(e){ /* ignore parse errors */ }
+
+  // If cached exists, use it and schedule background revalidate
+  if (cached && Array.isArray(cached)) {
+    // place into per-tab store (so rebuild uses stable tab order)
+    window.catalogByTab[tabName] = cached.map((r, idx) => {
+      r.__tabName = tabName;
+      r.__tabIndex = TAB_NAMES.indexOf(tabName);
+      r.__rowIndex = idx;
+      return r;
+    });
+    // background revalidation (non-blocking)
+    setTimeout(() => {
+      revalidateTab(tabName).catch(err => {
+        console.warn("Background revalidate failed for", tabName, err);
+      });
+    }, 0);
+    // return cached immediately
+    return cached;
+  }
+
+  // No cache, fetch now
+  return await revalidateTab(tabName);
 }
 
+async function revalidateTab(tabName){
+  const cacheKey = cacheKeyFor(tabName);
+  if (!sheetId) {
+    console.error("Missing sheetId - cannot fetch", tabName);
+    return [];
+  }
+  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
+  try {
+    const res = await fetch(DATA_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
+    const data = await res.json();
+
+    // attach metadata for stable order
+    data.forEach((row, idx) => {
+      row.__tabName = tabName;
+      row.__tabIndex = TAB_NAMES.indexOf(tabName);
+      row.__rowIndex = idx;
+    });
+
+    // store cache
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+    } catch(e){ /* ignore storage errors */ }
+
+    // update per-tab store and rebuild combined view deterministically
+    window.catalogByTab[tabName] = data;
+    rebuildAndRender();
+
+    return data;
+  } catch (err) {
+    console.error("Failed to fetch tab:", tabName, err);
+    // keep previous tab data if exists; don't clear it on error
+    return window.catalogByTab[tabName] || [];
+  }
+}
+
+/* ---------- Rebuild combined dataset using fixed TAB_NAMES order and render ---------- */
+function rebuildAndRender(){
+  // Combine tabs in the exact order of TAB_NAMES
+  const combined = [];
+  TAB_NAMES.forEach((tName) => {
+    const arr = window.catalogByTab[tName];
+    if (Array.isArray(arr)) {
+      combined.push(...arr);
+    }
+  });
+
+  // optional hook
+  if (typeof applyDirectionFromSheet === "function") {
+    try { applyDirectionFromSheet(combined); } catch (e) { console.warn("applyDirectionFromSheet failed:", e); }
+  }
+
+  renderCombinedData(combined);
+}
+
+/* ---------- MAIN: initial load and polling ---------- */
 async function loadAndRenderAllTabs(){
   try {
     if (!sheetId) throw new Error("Missing sheetId.");
-    // build array of fetch promises
+
+    // Try to populate each tab from cache first and schedule network fetches
     const fetchPromises = TAB_NAMES.map(t => fetchTab(t).catch(err => {
-      console.error("Failed to fetch tab:", t, err);
-      return []; // continue even if one tab fails
+      console.error("Failed initial fetchTab (cache/network) for", t, err);
+      return [];
     }));
 
+    // Wait for all initial fetchTab calls (they either returned cached or performed network)
     const allResults = await Promise.all(fetchPromises);
-    // flatten into single list while preserving order of tabs
-    const combined = allResults.flat();
 
-    // If your project uses applyDirectionFromSheet when first loaded, call it with combined
-    if (typeof applyDirectionFromSheet === "function") {
-      try { applyDirectionFromSheet(combined); } catch (e) { console.warn("applyDirectionFromSheet failed:", e); }
-    }
+    // Ensure window.catalogByTab has all results (fetchTab already stored cached results)
+    TAB_NAMES.forEach((t, idx) => {
+      const res = allResults[idx] || window.catalogByTab[t] || [];
+      // normalize metadata
+      window.catalogByTab[t] = (res || []).map((r, i) => {
+        r.__tabName = t;
+        r.__tabIndex = idx;
+        r.__rowIndex = i;
+        return r;
+      });
+    });
 
-    renderCombinedData(combined);
+    // First deterministic render
+    rebuildAndRender();
+
+    // Start polling after initial render
+    startPolling();
+
   } catch (err) {
     console.error("Failed to load products:", err);
   }
 }
 
-/* --------------------- renderer (based on your original render logic) --------------------- */
+/* ---------- RENDERING LOGIC (stable grouping, no duplicate section titles) ---------- */
 function renderCombinedData(data){
-  window.catalogData = data;
+  window.catalogData = data; // still expose the combined view for debugging
   const content = document.getElementById("content");
   if (!content) {
     console.error("No #content container found.");
     return;
   }
 
-  content.innerHTML = ""; // clear first
+  content.innerHTML = "";
 
+  // We'll build sections as we encounter rows, but avoid duplicating a section title
   let currentSection = "";
   let sectionWrapper = null;
   let currentSectionHidden = false;
 
+  // Helper to create a new section
+  function openSection(sectionName, hidden=false){
+    currentSection = sectionName;
+    currentSectionHidden = !!hidden;
+    sectionWrapper = null;
+    if (currentSectionHidden) return;
+    const sectionTitle = document.createElement("div");
+    sectionTitle.className = "section-title";
+    sectionTitle.innerText = currentSection;
+    content.appendChild(sectionTitle);
+
+    sectionWrapper = document.createElement("div");
+    sectionWrapper.className = "product-grid";
+    content.appendChild(sectionWrapper);
+  }
+
   data.forEach((item) => {
-    // if row defines a Section header
+    // If this row is a Section marker
     if (item["Section"]) {
-      currentSection = item["Section"];
-      const secVis = String(item["visibility"] || item["Visibility"] || "")
-        .trim()
-        .toLowerCase();
-      currentSectionHidden = secVis.includes("hide");
-      if (currentSectionHidden) {
-        sectionWrapper = null;
-        return;
-      }
-
-      // create section title
-      const sectionTitle = document.createElement("div");
-      sectionTitle.className = "section-title";
-      sectionTitle.innerText = currentSection;
-      content.appendChild(sectionTitle);
-
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      content.appendChild(sectionWrapper);
+      const sectionName = String(item["Section"]).trim();
+      const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
+      const secHidden = secVis.includes("hide");
+      openSection(sectionName, secHidden);
       return;
     }
 
+    // if current section is hidden or row is hidden, skip
     if (currentSectionHidden) return;
     if (isHidden(item)) return;
     if (!item["Product Name"]) return;
+
+    // ensure section wrapper exists (for products that come before any section marker)
+    if (!sectionWrapper) {
+      openSection(""); // unnamed section
+      if (!sectionWrapper) {
+        // safety fallback
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+      }
+    }
 
     const product = document.createElement("div");
     product.className = "product";
 
     product.addEventListener("click", (e) => {
-      // don't open popup when clicking controls inside product card
       if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
       const allPhotos = [
         item["photo 1"],
@@ -2032,7 +2128,7 @@ function renderCombinedData(data){
         v.setAttribute("muted","");
         v.setAttribute("webkit-playsinline","true");
         v.setAttribute("playsinline","true");
-        v.style.pointerEvents = "none"; // allow card click to bubble
+        v.style.pointerEvents = "none";
         v.style.cursor = "default";
         el = v;
       } else {
@@ -2068,7 +2164,6 @@ function renderCombinedData(data){
     try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
     try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
     title.style.maxWidth = '100%';
-
     infoWrapper.appendChild(title);
 
     const info = document.createElement("div");
@@ -2093,9 +2188,7 @@ function renderCombinedData(data){
     }
 
     if (+item["in stock"] === 0) {
-      info.innerHTML = `
-        ${priceHTML}
-      `;
+      info.innerHTML = `${priceHTML}`;
       const outBtn = document.createElement("button");
       outBtn.className = "add-btn";
       outBtn.disabled = true;
@@ -2116,11 +2209,13 @@ function renderCombinedData(data){
       const addBtn = document.createElement("button");
       addBtn.className = "add-btn";
       addBtn.innerText = "Add to Cart";
-      // safe event listener (no JSON.stringify in onclick attribute)
       addBtn.addEventListener("click", (ev) => {
-        ev.stopPropagation(); // prevent card click opening popup
+        ev.stopPropagation();
+        try {
+          if ('vibrate' in navigator) navigator.vibrate(30);
+        } catch(e) {}
         if (typeof addToCartFromGrid === "function") {
-          addToCartFromGrid(addBtn, productData);
+            addToCartFromGrid(addBtn, productData);
         } else {
           console.warn("addToCartFromGrid is not defined.");
         }
@@ -2132,25 +2227,49 @@ function renderCombinedData(data){
     infoWrapper.appendChild(info);
     product.appendChild(infoWrapper);
 
-    if (!sectionWrapper) {
-      // if no section header was present, create a default wrapper
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      content.appendChild(sectionWrapper);
-    }
     sectionWrapper.appendChild(product);
   });
 
-  // if you have a function that opens product based on URL params
+  // optional URL open hook
   if (typeof maybeOpenFromURL === "function") {
     try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
   }
 }
 
-/* --------------------- start --------------------- */
-loadAndRenderAllTabs();
-</script>
+/* ---------- POLLING ---------- */
+let pollIntervalId = null;
+function startPolling(){
+  if (pollIntervalId) return; // already polling
+  // Revalidate all tabs every POLL_INTERVAL_MS
+  pollIntervalId = setInterval(() => {
+    TAB_NAMES.forEach(t => {
+      try {
+        revalidateTab(t).catch(e => console.warn("poll revalidate failed for", t, e));
+      } catch(e){}
+    });
+  }, POLL_INTERVAL_MS);
+}
 
+function stopPolling(){
+  if (pollIntervalId) {
+    clearInterval(pollIntervalId);
+    pollIntervalId = null;
+  }
+}
+
+/* ---------- INIT ---------- */
+loadAndRenderAllTabs();
+
+/* Optional: expose for debugging */
+window._sheetLiveHelper = {
+  reload: loadAndRenderAllTabs,
+  stopPolling,
+  startPolling,
+  revalidateTab,
+  fetchTab,
+  catalogByTab: window.catalogByTab
+};
+</script>
 <script>
   function getParam(name) {
     const u = new URLSearchParams(location.search);
@@ -2161,8 +2280,8 @@ loadAndRenderAllTabs();
     return String(s || '')
       .trim()
       .toLowerCase()
-      .replace(/[\s_]+/g, '-')      // spaces/underscores → hyphen
-      .replace(/[^a-z0-9-]/g, '');  // remove other symbols
+      .replace(/[\s_]+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
   }
 
   function maybeOpenFromURL() {
@@ -2195,7 +2314,6 @@ loadAndRenderAllTabs();
 
 <div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:14px; text-align:center;"></div>
 
-
 <div class="quantity-bar premium-bar">
   <button onclick="changePopupQty(-1)">
     <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
@@ -2214,12 +2332,10 @@ loadAndRenderAllTabs();
   Add to Cart
 </button>
 
-
 <div id="popupDesc" class="desc-section">
   <div class="desc-title">Description</div>
   <div id="popupDescText" class="desc-content"></div>
 </div>
-
 
 </div>
 </div>
@@ -2268,7 +2384,7 @@ const _videoKeepAlive = new WeakSet();
 function keepAliveVideo(v){
   if (!v || _videoKeepAlive.has(v)) return v;
 
-  v.muted = true;                 // mobile autoplay
+  v.muted = true;
   v.autoplay = true;
   v.loop = true;
   v.playsInline = true;
@@ -2361,13 +2477,11 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 
   try {
-    // If the URL doesn't already have the same ?p param, push a history entry.
     const curP = (new URL(location.href)).searchParams.get('p');
     const myP = (new URL(shareUrl)).searchParams.get('p');
     if (curP !== myP) {
       history.pushState({ __popup: true, p: myP }, "", shareUrl);
     } else {
-      // If page was loaded directly with ?p, ensure state marks it as popup
       try { history.replaceState(Object.assign({}, history.state || {}, { __popup: true, p: myP}), "", shareUrl); } catch(e){}
     }
   } catch (e) {}
@@ -2466,7 +2580,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
         const v = document.createElement("video");
         v.className = "popup-slide";
         v.src = clean;
-        keepAliveVideo(v); // <-- ensures nonstop playback
+        keepAliveVideo(v);
         el = v;
       }
       keepAliveVideo(el);
@@ -2511,7 +2625,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const prevIndex = currentIndex;
     currentIndex = i;
     const dist = Math.max(1, Math.abs(prevIndex - currentIndex));
-    const base = 1400; // base ms (slower)
+    const base = 1400;
     const extra = 200 * (dist - 1);
     let dur = base + extra;
     if (window.__fastSwipe) dur = Math.max(420, base - 120);
@@ -2589,7 +2703,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   const popup = document.getElementById("productPopup");
   if (popup) {
     const card  = popup.querySelector(".popup-card");
-    popup.style.display = "flex";      // mount
+    popup.style.display = "flex";
     requestAnimationFrame(() => {
       popup.classList.add("is-open");
       if (card) {
@@ -2602,37 +2716,37 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
 }
 
 
+/* HAPTIC HELPER: single strong haptic with debounce to avoid double vibration */
+function triggerHaptic(duration = 30, minGap = 120) {
+  try {
+    if (!('vibrate' in navigator)) return;
+    const now = (performance && performance.now) ? performance.now() : Date.now();
+    const last = window.__lastHapticTime || 0;
+    if (now - last < minGap) return;
+    navigator.vibrate(duration);
+    window.__lastHapticTime = now;
+  } catch (e) {}
+}
+
 function changePopupQty(change) {
   try {
     const qtyElement = document.getElementById("popupQty");
     if (!qtyElement) return;
     let current = parseInt(qtyElement.innerText) || 1;
     const newVal = Math.max(1, Math.min(99, current + change));
-    // If no change, do a short soft haptic for invalid (optional) or just return
     if (newVal === current) {
-      // soft feedback for reaching bounds (shorter vibration)
       try { if (navigator.vibrate) navigator.vibrate(8); } catch(e){}
       return;
     }
     qtyElement.innerText = newVal;
 
-    // Debounced haptic to avoid double vibration on some devices/browsers
     (function doHaptic(){
       try {
         if (!('vibrate' in navigator)) return;
-        const now = (performance && performance.now) ? performance.now() : Date.now();
-        const last = window.__lastQtyVibTime || 0;
-        // Ignore vibrations occurring within 120ms of previous one (prevents double triggers)
-        if (now - last < 120) return;
-        // Use a short, crisp pulse
-        navigator.vibrate(12);
-        window.__lastQtyVibTime = now;
-      } catch (e) {
-        // swallow errors (some browsers may throw)
-      }
+        navigator.vibrate(30); // strong single haptic feedback
+      } catch (e) {}
     })();
 
-    // Small visual pulse to indicate change (non-intrusive)
     try {
       qtyElement.classList.add('qty-pulse');
       clearTimeout(window.__qtyPulseTimer);
@@ -2640,7 +2754,6 @@ function changePopupQty(change) {
     } catch(e){}
   } catch(e){ console.warn('changePopupQty error', e); }
 }
-
 
 function addToCartFromGrid(button, product) {
   const originalHTML = button.innerHTML;
@@ -2654,9 +2767,9 @@ function addToCartFromGrid(button, product) {
     let cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
     const existing = cartItems.find(i => i.name === product.name);
     if (existing) {
-      existing.qty += product.qty || 1;  // ✅ Add correct qty if already exists
+      existing.qty += product.qty || 1;
     } else {
-      cartItems.push({ ...product, qty: product.qty || 1 }); // ✅ Store correct qty
+      cartItems.push({ ...product, qty: product.qty || 1 });
     }
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
@@ -2682,7 +2795,7 @@ function addToCartFromGrid(button, product) {
                    typeof window.TAB_NAME === "string";
   const canRender = typeof window.renderProducts === "function";
 
-  if (!canFetch || !canRender) return; // integrate only when your hooks exist
+  if (!canFetch || !canRender) return;
 
   let lastJSON = "";
   let inflight = false;
@@ -2707,7 +2820,7 @@ function addToCartFromGrid(button, product) {
   };
 
   tick();
-  setInterval(tick, 10000); // every 10s; adjust if needed
+  setInterval(tick, 10000);
 })();
 
 window.addEventListener("pageshow", () => {
@@ -2717,7 +2830,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("video").forEach(keepAliveVideo);
 });
 </script>
-
 
 <script>
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
@@ -2732,7 +2844,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
     .catch((err) => {
-      console.info("Announcement fetch fallback (if any) handled by SWR:", err?.name || err);
     });
 
   function updateCartBadge(animate = true) {
@@ -2751,14 +2862,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (animate && count !== prev) {
         badge.classList.remove("bounce-badge");
-        void badge.offsetWidth; // reflow
+        void badge.offsetWidth;
         badge.classList.add("bounce-badge");
         badge.addEventListener("animationend", () => {
           badge.classList.remove("bounce-badge");
         }, { once: true });
       }
     } else {
-      badge.innerText = "";      // no “0”
+      badge.innerText = "";
       badge.style.display = "none";
     }
 
@@ -2785,7 +2896,6 @@ function closePopup() {
     popup.style.display = "none";
     try { popup.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; }); } catch(e){}
   try {
-      // If this history entry was created for the popup, go back to remove it; otherwise, just clean URL
       if (history.state && history.state.__popup) { history.back(); return; }
     } catch (e) {}
     try { history.replaceState(null, "", location.pathname); } catch (e) {}
@@ -2873,14 +2983,13 @@ fetch(menuURL)
 </script>
 
 <div class="fab-stack">
-  
+
   <button id="toTopBtn" class="fab-btn" aria-label="Back to top" title="Back to top" style="display:none;">
     <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M18 15l-6-6-6 6"></path>
     </svg>
   </button>
 
-  
   <a id="waBtn" class="fab-btn" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" rel="noopener" target="_blank">
     <img src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png" alt="WhatsApp">
   </a>
@@ -2913,12 +3022,12 @@ fetch(menuURL)
 
   window.addEventListener('scroll', () => {
     const y = window.pageYOffset;
-    const delta = y - lastY; // +ve = scrolling down, -ve = up
+    const delta = y - lastY;
 
     if (atTopOrSearching()) { show(); lastY = y; return; }
 
-    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
-    else if (delta < -3) show(); // upar aate hi show
+    if (delta > 3) hide();
+    else if (delta < -3) show();
 
     lastY = y;
   }, { passive: true });
@@ -2950,8 +3059,6 @@ if (document.readyState !== "loading") updateCartBadge();
 else document.addEventListener("DOMContentLoaded", updateCartBadge);
 </script>
 
-
-
 <script>
 const CONFIG_SHEET_URL = "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
 
@@ -2960,7 +3067,7 @@ function extractSheetId(url){
 }
 function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(String(url||"")); }
 function isGviz(url){ return /\/gviz\/tq\?/i.test(String(url||"")); }
-function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(String(url||"")); }
+function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\
 
 function buildOpensheet(sheetUrl, tab){
   const id = extractSheetId(sheetUrl);
@@ -3216,10 +3323,6 @@ window.openHeaderSearch = openHeaderSearch;
 window.closeHeaderSearch = closeHeaderSearch;
 </script>
 
-
-
-
-
 <script>
 
 function applyDirectionFromSheet(rows){
@@ -3234,7 +3337,7 @@ function applyDirectionFromSheet(rows){
       document.body.classList.add("horizontal-mode");
     } else if (value === 3){
       document.body.classList.add("horizontal-mode","small-cards");
-    } // value === 1 -> normal grid (no extra class)
+    }
   }catch(e){}
 }
 
@@ -3249,7 +3352,7 @@ function applyDirectionFromSheet(rows){
 </div>
 </section>
 
-<footer id="delayedFooter" 
+<footer id="delayedFooter"
         style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
   © 2025 Precioussly. All rights reserved.
 </footer>
@@ -3264,7 +3367,7 @@ function applyDirectionFromSheet(rows){
       footer.style.position = "fixed";
       footer.style.bottom = "0";
       footer.style.width = "100%";
-      footer.style.background = "#fff";  // clean background
+      footer.style.background = "#fff";
     } else {
       footer.style.position = "relative";
       footer.style.width = "100%";
@@ -3285,7 +3388,7 @@ function applyDirectionFromSheet(rows){
   window.addEventListener("resize", adjustFooter);
 </script>
 
-<footer id="delayedFooter" 
+<footer id="delayedFooter"
         style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
   © 2025 Precioussly. All rights reserved.
 </footer>
@@ -3300,7 +3403,7 @@ function applyDirectionFromSheet(rows){
       footer.style.position = "fixed";
       footer.style.bottom = "0";
       footer.style.width = "100%";
-      footer.style.background = "#fff";  // clean background
+      footer.style.background = "#fff";
     } else {
       footer.style.position = "relative";
       footer.style.width = "100%";
@@ -3338,7 +3441,7 @@ function applyDirectionFromSheet(rows){
       try {
         if (history.state && history.state.popupOpen) {
           history.back();
-          return; // popstate listener will hide
+          return;
         }
       } catch(e){}
       hideInstant();
@@ -3404,8 +3507,6 @@ function applyDirectionFromSheet(rows){
 })();
 </script>
 
-
-
 <script id="openPopup-left-right-override">
 (function(){
   function $(id){ return document.getElementById(id); }
@@ -3469,12 +3570,10 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     function formatDescription(raw){
       if(!raw) return '';
       raw = raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-      // Split into paragraphs by double newline, keep single-line bullets as list items
       const parts = raw.split(/\n{2,}/).map(p=>p.trim()).filter(Boolean);
       let html = '';
       parts.forEach((part, idx) => {
         const lines = part.split('\n').map(l=>l.trim()).filter(Boolean);
-        // If most lines start with - or • or emoji bullet, treat as list
         const bullets = lines.filter(l => /^[-•\u2022]|\u2728|🌟|✨|🌸|🌹/.test(l));
         if(bullets.length >= 1 && bullets.length >= lines.length/2){
           html += '<ul>';
@@ -3484,7 +3583,6 @@ history.replaceState && history.replaceState(null, "", shareUrl);
           });
           html += '</ul>';
         } else if(idx === 0){
-          // lead paragraph styled prominently
           html += '<p class=\"desc-lead\">' + escapeHtml(lines.join(' ')) + '</p>';
         } else {
           html += '<p>' + escapeHtml(lines.join(' ')) + '</p>';
@@ -3540,7 +3638,6 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     var track = document.createElement("div");
     track.className = "popup-track";
     slider.appendChild(track);
-// START: touch / pointer swipe handlers (inserted by ChatGPT)
 (function bindPopupSwipe(track, slider, goToFn){
   if (!track || !slider) return;
 
@@ -3550,10 +3647,10 @@ history.replaceState && history.replaceState(null, "", shareUrl);
   let currentTranslate = 0;
   let baseIndex = 0;
 
-  const widthWithGap = () => (slider.getBoundingClientRect().width + 10); // matches width() in file
+  const widthWithGap = () => (slider.getBoundingClientRect().width + 10);
 
   function setTranslate(x, animate){
-    if (animate) track.style.transition = ''; // restore (will be set by goTo)
+    if (animate) track.style.transition = '';
     else track.style.transition = 'none';
     track.style.transform = `translateX(${x}px)`;
   }
@@ -3563,7 +3660,6 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     lastX = clientX;
     dragging = true;
     slider.classList.add('dragging');
-    // compute base translate from current transform
     const cur = track.style.transform || '';
     const m = cur.match(/translateX\((-?\d+)px\)/);
     currentTranslate = m ? parseInt(m[1], 10) : 0;
@@ -3576,7 +3672,6 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     const dx = clientX - lastX;
     lastX = clientX;
     const totalDx = clientX - startX;
-    // simple rubber-band at edges
     const maxTranslate = 0;
     const minTranslate = - (Math.max(0, (track.children.length - 1)) * widthWithGap());
     let next = currentTranslate + totalDx;
@@ -3589,35 +3684,25 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     if (!dragging) return;
     dragging = false;
     slider.classList.remove('dragging');
-    // decide swipe
     const totalDx = lastX - startX;
-    const threshold = Math.min(10, widthWithGap() * 0.03); // px
+    const threshold = Math.min(10, widthWithGap() * 0.03);
     const cur = track.style.transform || '';
     const m = cur.match(/translateX\((-?\d+)px\)/);
     const curTranslate = m ? parseInt(m[1], 10) : 0;
     const idx = Math.round(Math.abs(curTranslate) / widthWithGap());
 
     if (totalDx < -threshold) {
-      // swiped left -> next
       goToFn(idx + 1, true);
     } else if (totalDx > threshold) {
-      // swiped right -> prev
       goToFn(idx - 1, true);
     } else {
-      // small move -> snap back
       goToFn(idx, true);
     }
   }
 
-  // use pointer events where supported, otherwise touch/mouse fallback
   slider.addEventListener('pointerdown', (e) => {
-  // only primary button / touch
   if (e.pointerType === 'mouse' && e.button !== 0) return;
 
-  // IMPORTANT:
-  // Do NOT call preventDefault() for touch pointer events.
-  // Calling preventDefault() on touch blocks the browser's pinch-to-zoom.
-  // Only prevent default for mouse if needed.
   if (e.pointerType === 'mouse') {
     e.preventDefault();
   }
@@ -3636,7 +3721,6 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     window.addEventListener('pointerup', up, {passive:true});
   }, {passive:false});
 
-  // fallback for touch-only devices (some browsers)
   slider.addEventListener('touchstart', (e) => {
     const t = e.touches[0];
     if (!t) return;
@@ -3654,21 +3738,16 @@ history.replaceState && history.replaceState(null, "", shareUrl);
   }, {passive:true});
 
 })(track, slider, function(i, animate){
-  // safe call to goTo function already defined in your openPopup scope
   try { goTo(i, animate); } catch(e) {
-    // if goTo isn't available (should be), fallback: clamp and set transform
     const w = (slider.getBoundingClientRect().width + 10);
     const slides = track.children.length || 1;
     if (i < 0) i = 0;
     if (i > slides - 1) i = slides.length - 1;
     track.style.transition = animate ? '' : 'none';
     track.style.transform = "translateX(" + (-i * w) + "px)";
-    // update dots if present
     try { if (typeof setActiveDot === 'function') setActiveDot(i); } catch(e){}
   }
 });
-// END: touch / pointer swipe handlers
-
 
 var slides = [], dots = [];
 images.forEach(function(url, i) {
@@ -3696,9 +3775,7 @@ images.forEach(function(url, i) {
 img.src = clean;
 img.className = "popup-slide";
 img.setAttribute("draggable","false");
-// let the browser handle pinch at page level; do not force image to capture pinch
-// either remove touchAction or set to auto:
-img.style.touchAction = "auto"; // <-- safer: explicitly allow default pinch
+img.style.touchAction = "auto";
 el = img;
 
   track.appendChild(el);
@@ -3738,10 +3815,8 @@ let dur = base + extra;
 track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
       track.style.transform = "translateX(" + (-i * width()) + "px)";
       setActiveDot(i);
-      
-    }
 
-    
+    }
 
     slider.tabIndex = 0;
     slider.onkeydown = function(e){
@@ -3757,8 +3832,8 @@ track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.2
 var card  = popup ? popup.querySelector(".popup-card") : null;
 if (popup){
   popup.style.display = "flex";
-  popup.classList.add("is-open");           // keeps overlay visible
-  if (card) {                               // OK to keep enter (no animation now)
+  popup.classList.add("is-open");
+  if (card) {
     card.classList.remove("leave");
     card.classList.add("enter");
   }
@@ -3961,10 +4036,7 @@ if (popup){
   });
 })();
 </script>
-
-
 <script>
-
 window._userInteracting = false;
 (function(){
   const root = document;
@@ -3977,20 +4049,8 @@ window._userInteracting = false;
     setTimeout(()=> window._userInteracting = false, 250);
   }, {passive:true});
 })();
-// -------------------- START: SWR-enabled loadAndRenderCatalog + poller --------------------
-/*
-  Replaces previous loadAndRenderCatalog implementation.
-  - Uses localStorage cache keyed by SHEET_URL
-  - Renders cached data immediately, then fetches fresh data in background
-  - Force network on reload (F5) or ?nocache=1
-  - Fires 'swr:cache:update' when new cache arrives
-  - Polls every 3s while page visible (single poller only)
-  - Defers rendering while window._userInteracting is truthy
-  - Restores horizontal scrollLeft for .product-grid
-*/
 
 async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
-  // Basic safety
   try {
     if (typeof SHEET_URL === "undefined") {
       console.warn("SHEET_URL is not defined. Define SHEET_URL to point to your Google Sheet JSON URL.");
@@ -4000,29 +4060,23 @@ async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
     const content = document.getElementById("content");
     if (!content) return;
 
-    // Preserve existing scroll positions
+    // Preserve previous horizontal scroll positions for grids (if any)
     let prevScrolls = [];
     try {
       const prevGrids = Array.from(content.querySelectorAll('.product-grid'));
       prevScrolls = prevGrids.map(g => g.scrollLeft || 0);
     } catch (e) { prevScrolls = []; }
 
-    // If user interacting (dragging) -> defer whole load & render
+    // If user is interacting, postpone a non-network render attempt
     if (window._userInteracting) {
-      if (window._swr_delayed_retry) clearTimeout(window._swr_delayed_retry);
-      window._swr_delayed_retry = setTimeout(() => {
+      if (window._deferredRenderTimer) clearTimeout(window._deferredRenderTimer);
+      window._deferredRenderTimer = setTimeout(() => {
         if (!window._userInteracting) loadAndRenderCatalog(opts);
       }, 800);
       return;
     }
 
-    // Compose cache key based on SHEET_URL
-    const cacheKey = `swr:sheet:${SHEET_URL}`;
-
-    // Helper: the DOM render logic extracted from your original function.
-    // It takes 'data' array and writes into #content (clears and builds UI).
     function renderFromData(data) {
-      // Clear content and rebuild exactly like your original code
       content.innerHTML = "";
 
       let currentSection = "";
@@ -4164,7 +4218,6 @@ async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
             mrp: item["MRP"],
             price: item["Selling Price"],
           };
-          // NOTE: keep using addToCartFromGrid if defined
           info.innerHTML = `
             ${priceHTML}
             <button class="add-btn" onclick='if(typeof addToCartFromGrid==="function"){addToCartFromGrid(this, ${JSON.stringify(productData)})}'>Add to Cart</button>
@@ -4182,7 +4235,7 @@ async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
         sectionWrapper.appendChild(product);
       });
 
-      // After DOM update, restore previous scroll positions
+      // restore horizontal scrolls
       try {
         const newGrids = Array.from(content.querySelectorAll('.product-grid'));
         newGrids.forEach((g, i) => {
@@ -4192,79 +4245,64 @@ async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
         });
       } catch (e) {}
       if (typeof maybeOpenFromURL === "function") maybeOpenFromURL();
-      // Re-activate/keep videos alive if you have that function
       try { document.querySelectorAll("video").forEach(v => { if (typeof keepAliveVideo === "function") keepAliveVideo(v); }); } catch(e){}
     }
 
-    // ------------- Show cached data immediately (SWR)
+    // try to read cached JSON from localStorage
     let cachedJSON = null;
     try {
       const raw = localStorage.getItem(cacheKey);
       if (raw) cachedJSON = JSON.parse(raw);
-    } catch (e) { /* ignore parse / quota errors */ }
+    } catch (e) {  }
 
     if (cachedJSON && !opts.forceNetwork) {
       try {
-        // Render from cache immediately
         renderFromData(cachedJSON);
       } catch (e) {
-        console.warn("SWR: render from cache failed", e);
+        // rendering from cache failed; continue to network fetch
       }
     }
 
-    // Decide whether to force network:
     let force = !!opts.forceNetwork;
     try {
-      // ?nocache=1 forces network
       if (new URL(location.href).searchParams.get("nocache") === "1") force = true;
     } catch (e) {}
     try {
-      // Detect reload (F5) via navigation entries
       const navEntries = performance.getEntriesByType && performance.getEntriesByType("navigation");
       if (navEntries && navEntries[0] && navEntries[0].type === "reload") force = true;
     } catch (e) {}
 
-    // Prevent concurrent fetches
-    if (window.__swrFetchInFlight) return;
-    window.__swrFetchInFlight = true;
-
-    // Fetch fresh data
+    // perform the network fetch
     try {
       const fetchInit = force ? { cache: "no-store" } : { cache: "no-cache" };
       const res = await fetch(SHEET_URL, fetchInit);
       const data = await (res.ok ? res.json() : []);
-      // Normalize: ensure it's an array
       const normalized = Array.isArray(data) ? data : [];
 
-      // Compare with current cache. If same, skip re-render.
       const newJSON = JSON.stringify(normalized);
       const oldJSON = localStorage.getItem(cacheKey) || "";
 
       if (newJSON !== oldJSON) {
-        // Save new cache
-        try { localStorage.setItem(cacheKey, newJSON); } catch (e) { /* ignore quota */ }
+        try { localStorage.setItem(cacheKey, newJSON); } catch (e) {  }
 
-        // Fire event so other parts can react
+        // Broadcast a simple custom event that the cache changed (if listeners exist)
         try {
-          window.dispatchEvent(new CustomEvent("swr:cache:update", {
-            detail: { key: cacheKey, ts: Date.now() }
-          }));
-        } catch (e) {}
+          const ev = new CustomEvent('catalogCacheUpdated', { detail: { key: cacheKey, ts: Date.now() } });
+          window.dispatchEvent(ev);
+        } catch (e) { /* ignore */ }
 
-        // Render only if not interacting; otherwise defer
         if (!window._userInteracting) {
           renderFromData(normalized);
         } else {
-          clearTimeout(window.__swrDeferredTimer);
-          window.__swrDeferredTimer = setTimeout(() => {
+          if (window._deferredRenderTimer) clearTimeout(window._deferredRenderTimer);
+          window._deferredRenderTimer = setTimeout(() => {
             renderFromData(normalized);
           }, 600);
         }
       } else {
-        // Identical data -> do nothing (skip heavy re-render)
+        // no change
       }
 
-      // Also update _lastSnapshot (keeps older snapshot logic for external compatibility)
       try {
         const latestSnapshot = JSON.stringify((normalized || []).map(d => (d['Product Name']||'') + '::' + (d['Selling Price']||'')));
         window._lastSnapshot = latestSnapshot;
@@ -4272,34 +4310,18 @@ async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
         window.catalogData = normalized;
       } catch (e) {}
     } catch (err) {
-      console.error("Failed to fetch sheet data (SWR):", err);
-    } finally {
-      window.__swrFetchInFlight = false;
+      // fetch failed; keep existing UI (if any). Log for debugging.
+      console.error("loadAndRenderCatalog fetch error:", err);
     }
-
   } catch (err) {
     console.error("loadAndRenderCatalog top-level error:", err);
-    window.__swrFetchInFlight = false;
   }
-} // end loadAndRenderCatalog
-
-// Start the SWR poller exactly once (every 3000ms) while visible.
-if (!window.__swrPollStarted) {
-  window.__swrPollStarted = true;
-  (function startSWRPoll(){
-    const POLL_MS = 3000;
-    setInterval(() => {
-      if (document.visibilityState !== 'visible') return;
-      if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
-    }, POLL_MS);
-  })();
 }
 
-// Immediately invoke once to populate UI (this replaces your earlier immediate call)
-if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
-// -------------------- END: SWR-enabled loadAndRenderCatalog + poller --------------------
 
+if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 </script>
+
 
 <script>
 (function(){
@@ -4356,8 +4378,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 </script>
 
-
-
 <!-- MODIFIED popup history: pushState so browser Back goes back to base, and second Back goes to previous page -->
 <script>
 (function(){
@@ -4368,14 +4388,12 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
 
-  // Ensure base state exists
   try {
     if (!history.state || !history.state.__base) {
       history.replaceState(Object.assign({}, history.state || {}, { __base: true }), "", location.pathname + location.search);
     }
   } catch(e){}
 
-  // Wrap original openPopup to push a history entry when popup opens.
   const origOpen = window.openPopup;
   if (typeof origOpen === 'function') {
     window.openPopup = function(images, name, mrp, price, stock, desc){
@@ -4384,24 +4402,20 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       try {
         const slug = slugify(name);
         const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-        // push a new history entry so Back will return to base page (without ?p=)
         history.pushState({ __popup: true }, "", newUrl);
       } catch (e) { console.warn("pushState openPopup failed:", e); }
     };
   }
 
-  // Wrap closePopup: if the last history entry was pushed for popup, go back; otherwise just close and replace state
   const origClose = window.closePopup;
   window.closePopup = function(){
     try {
       if (history.state && history.state.__popup) {
-        // go back in history which will remove the ?p param
         history.back();
         return;
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) {  }
 
-    // fallback: call original close logic and ensure URL cleaned
     try { if (typeof origClose === 'function') origClose.apply(this, arguments); } catch(e){ console.warn("closePopup original failed:", e); }
     try {
       const baseUrl = location.pathname;
@@ -4409,17 +4423,14 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     } catch (e) { console.warn("replaceState closePopup failed:", e); }
   };
 
-  // Popstate handler: open or close popup based on state and URL
   window.addEventListener('popstate', function(ev){
     const st = ev.state || {};
     const el = popupEl();
     const isVisible = el && (el.classList.contains('is-open') || getComputedStyle(el).display !== 'none');
 
-    // If the state indicates popup (or URL has ?p), ensure popup open
     const urlHasP = !!(new URLSearchParams(location.search).get('p'));
     if (st && st.__popup || urlHasP) {
       if (!isVisible) {
-        // Try to open from URL if helper exists
         if (typeof maybeOpenFromURL === 'function') {
           try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
         } else {
@@ -4427,14 +4438,12 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
         }
       }
     } else {
-      // Not a popup state: ensure popup closed
       if (isVisible) {
         try { if (el){ el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } } catch(e){}
       }
     }
   }, false);
 
-  // If clicking on overlay (outside card) and this popup was opened via pushState, go back; otherwise close.
   const overlay = popupEl();
   if (overlay) {
     overlay.addEventListener('click', function(e){
@@ -4442,7 +4451,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
         try {
           if (history.state && history.state.__popup) { history.back(); return; }
         } catch(e){}
-        // fallback
         try { if (typeof origClose === 'function') origClose(); } catch(e){}
         try { overlay.classList.remove('is-open'); overlay.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
       }
@@ -4451,8 +4459,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 </script>
 
-
-
 <!-- FAST SWIPE TUNING: injected to make touch swipe feel faster & natural -->
 <script>
 (function(){
@@ -4460,11 +4466,11 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     const styleId = 'fast-swipe-overrides';
     if (document.getElementById(styleId)) return;
     const css = `
-      /* make track animation snappy */
+
       #popupSlider .popup-track { transition: transform 260ms cubic-bezier(.22,1,.36,1) !important; }
-      /* snappier popup entry */
+
       .popup-card { transition: transform 420ms cubic-bezier(.22,1,.36,1), opacity 320ms ease !important; }
-      /* faster dot scaling */
+
       .popup-dot, .popup-dot.active { transition: transform 240ms cubic-bezier(.22,1,.36,1), opacity 180ms ease, box-shadow 240ms ease !important; }
     `;
     const st = document.createElement('style');
@@ -4472,7 +4478,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     st.appendChild(document.createTextNode(css));
     document.head.appendChild(st);
 
-    // Improve pointer handling with basic velocity detection
     const slider = document.getElementById('popupSlider');
     if (!slider) return;
     const track = slider.querySelector('.popup-track');
@@ -4508,7 +4513,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       let next = baseTranslate + totalDx;
       const maxTranslate = 0;
       const minTranslate = - (Math.max(0, (track.children.length - 1)) * widthWithGap());
-      // rubber band gently
       if (next > maxTranslate + 60) next = maxTranslate + 60 + (next - maxTranslate - 60) * 0.25;
       if (next < minTranslate - 60) next = minTranslate - 60 + (next - minTranslate + 60) * 0.25;
       setTranslate(next, false);
@@ -4520,8 +4524,8 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       slider.classList.remove('dragging');
       const dt = Math.max(1, performance.now() - startT);
       const dx = clientX - startX;
-      const velocity = dx / dt; // px per ms
-      const fast = Math.abs(velocity) > 0.4; // threshold for quick flick
+      const velocity = dx / dt;
+      const fast = Math.abs(velocity) > 0.4;
       const threshold = Math.min(10, widthWithGap() * 0.03);
       const cur = getCurrentTranslate();
       const idx = Math.round(Math.abs(cur) / widthWithGap());
@@ -4529,17 +4533,14 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       if (dx < -threshold || (fast && dx < 0)) target = idx + 1;
       else if (dx > threshold || (fast && dx > 0)) target = idx - 1;
       target = Math.max(0, Math.min(track.children.length - 1, target));
-      // Apply final transition (faster if fast flick)
       track.style.transition = fast ? 'transform 180ms cubic-bezier(.22,1,.36,1)' : 'transform 260ms cubic-bezier(.22,1,.36,1)';
       setTranslate(-target * widthWithGap(), true);
-      // update active dot if any
       const dots = document.getElementById('popupDots');
       if (dots){
         Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === target));
       }
     }
 
-    // Pointer events where available
     slider.addEventListener('pointerdown', function(e){
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       e.preventDefault();
@@ -4550,7 +4551,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       window.addEventListener('pointerup', up, {passive:true});
     }, {passive:false});
 
-    // touch fallback
     slider.addEventListener('touchstart', function(e){
       const t = e.touches && e.touches[0];
       if(!t) return;
@@ -4562,12 +4562,10 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       onMove(t.clientX);
     }, {passive:false});
     slider.addEventListener('touchend', function(e){
-      // take last touch position if possible
       const t = (e.changedTouches && e.changedTouches[0]) || {};
       onEnd(t.clientX || lastX);
     }, {passive:true});
 
-    // Resize -> snap to current index
     window.addEventListener('resize', function(){
       const cur = Math.round(Math.abs(getCurrentTranslate()) / widthWithGap());
       track.style.transition = 'none';
@@ -4575,11 +4573,8 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }, {passive:true});
   }
 
-  // run on DOM ready and also after popup content is built
   document.addEventListener('DOMContentLoaded', tunePopupSwipe);
-  // also try after a short delay to catch dynamic popup builds
   setTimeout(tunePopupSwipe, 600);
-  // and run whenever popup opens (if your openPopup triggers)
   const origOpen = window.openPopup;
   window.openPopup = function(...args){
     const r = (typeof origOpen === 'function') ? origOpen(...args) : undefined;
@@ -4590,17 +4585,12 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 </script>
 <!-- END FAST SWIPE TUNING -->
 
-
-
-
 <script>
 (function(){
   try {
     const listingUrl = location.pathname;
-    // If there's no __intermediate or __popup in history, create a single intermediate so Back from listing goes to base.
     const state = history.state || {};
     if (!state.__intermediate && !state.__popup && !(state.__listing_marker)) {
-      // Ensure base exists and then push a listing marker
       try {
         history.replaceState(Object.assign({}, history.state || {}, { __base: true, __fromHome: true }), "", listingUrl);
       } catch(e){}
@@ -4615,7 +4605,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 <!-- START: custom popup-history v4 (aggressive, forces Back -> Home when on listing with no popup) -->
 <script>
 (function(){
-  // Configuration: adjust if your listing URL path differs
   const LISTING_KEYWORD = '/all-products';
   const HOME_URL = location.origin + '/';
 
@@ -4643,40 +4632,32 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     } catch(e){ return false; }
   }
 
-  // Remove any in-popup back buttons if present
   try {
     const candidate = document.querySelector('#productPopup .popup-back, #productPopup .back-btn, #productPopup button.back, #productPopup [id*="Back"], #productPopup .pp-back');
     if (candidate) candidate.remove();
   } catch(e){}
 
-  // Only run heavy logic on listing pages
   if (!isListingPage()) {
     return;
   }
 
   const listingPathNormalized = location.pathname.replace(/\/+$/,'') + '/';
 
-  // Force top two entries to be: [..previous browser entries..] [BASE_MARKER] [LISTING_MARKER(current)]
   try {
     history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
     history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
   } catch(e){ console.warn("history setup failed", e); }
 
-  // Helpers to show/hide popup if your app has helpers
   function showPopupFromURL() {
-    // If your site already implements maybeOpenFromURL, prefer it
     if (typeof maybeOpenFromURL === 'function') {
       try { maybeOpenFromURL(); return; } catch(e){ console.warn("maybeOpenFromURL failed", e); }
     }
-    // Fallback: if you have openPopup and can derive product from URL 'p' param, try to call openPopup
     try {
       const params = new URLSearchParams(location.search);
       const p = params.get('p');
       if (p && typeof window.openPopup === 'function') {
-        // Attempt to call openPopup with only the name param (best-effort)
         try { window.openPopup([], p); } catch(e){ console.warn("openPopup invocation failed", e); }
       } else {
-        // Try to show DOM popup directly if present
         const el = popupElement();
         if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
       }
@@ -4690,7 +4671,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }
   }
 
-  // Wrap window.openPopup to manage history without stacking multiple popup entries
   const originalOpen = window.openPopup;
   window.openPopup = function(images, name, mrp, price, stock, desc){
     try {
@@ -4703,7 +4683,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       const slug = slugify(name || '');
       const popupUrl = slug ? (listingPathNormalized + '?p=' + encodeURIComponent(slug)) : listingPathNormalized;
 
-      // Ensure listing marker exists
       if (!(history.state && history.state.__listing)) {
         try {
           history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
@@ -4711,7 +4690,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
         } catch(e){}
       }
 
-      // If popup state already exists, replace it (prevents stacking); else push new popup state
       if (history.state && history.state.__popup) {
         history.replaceState({__popup:true, p: slug}, "", popupUrl);
       } else {
@@ -4720,12 +4698,10 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     } catch(e){ console.warn("openPopup history error", e); }
   };
 
-  // Wrap window.closePopup so it goes back to listing state (which will hide popup)
   const originalClose = window.closePopup;
   window.closePopup = function(){
     try {
       if (history.state && history.state.__popup) {
-        // go back to listing state (this triggers popstate where we hide the popup)
         history.back();
         return;
       }
@@ -4739,7 +4715,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }
   };
 
-  // Intercept overlay clicks to use history.back when popup state exists
   try {
     const overlay = popupElement();
     if (overlay) {
@@ -4752,13 +4727,11 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }
   } catch(e){}
 
-  // Core popstate handler: ensures popup opens/closes correctly and ensures single-Back-to-home behavior
   window.addEventListener('popstate', function(ev){
     const st = ev.state || {};
     const popupVisible = isPopupVisible();
     const urlHasP = !!(new URLSearchParams(location.search).get('p'));
 
-    // If state is popup or URL has p param -> ensure popup shown
     if ((st && st.__popup) || urlHasP) {
       if (!popupVisible) {
         showPopupFromURL();
@@ -4766,19 +4739,13 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       return;
     }
 
-    // If no popup is open and we're on the listing page, redirect directly to home
-    // This makes a single Back press from listing go to home.
     if (!popupVisible && ( (st && st.__listing) || isListingPage() )) {
-      // To avoid immediately reacting when page initially sets states, ensure this isn't the very first load
-      // If document.referrer is empty it might be direct load — but the user wants Back -> home regardless
       try {
-        // Use replace to avoid adding extra history entry
         location.href = HOME_URL;
         return;
       } catch(e){}
     }
 
-    // If popup is visible but state is listing/no-p -> hide popup
     if (popupVisible && ((st && st.__listing) || !urlHasP)) {
       try { hidePopupImmediate(); } catch(e){}
       return;
@@ -4789,9 +4756,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 </script>
 <!-- END: custom popup-history v4 -->
-
-
-
 
 <!-- Assistant: popup / back-button fix (appended) -->
 <script id="assistant-popup-fix">
@@ -4817,7 +4781,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
   }
   function slugify(name){ return String(name||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,''); }
 
-  // Wrap openPopup (or provide a wrapper if it doesn't exist)
   const origOpen = window.openPopup;
   window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
     if (typeof origOpen === 'function') {
@@ -4826,7 +4789,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       showDomPopup();
     }
 
-    // push history entry with ?p=slug so back button removes it
     try {
       const slug = slugify(name);
       const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
@@ -4840,7 +4802,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     } catch(e){ console.warn('history push failed', e); }
   };
 
-  // Wrap closePopup to use history.back when popup state exists
   const origClose = window.closePopup;
   window.closePopup = function(){
     try {
@@ -4856,7 +4817,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     try { history.replaceState(Object.assign({}, history.state || {}, {__listing:true}), '', location.pathname); } catch(e){}
   };
 
-  // Overlay clicks: prefer history.back so popstate handler will hide
   document.addEventListener('click', function(e){
     const overlay = popupEl();
     if (!overlay) return;
@@ -4866,7 +4826,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }
   }, true);
 
-  // Popstate: show popup when URL has ?p, hide when not.
   window.addEventListener('popstate', function(ev){
     let urlHasP = false;
     try { urlHasP = (new URL(location.href)).searchParams.has('p'); } catch(e){}
@@ -4886,7 +4845,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }
   }, false);
 
-  // ESC key fallback for non-history cases
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape' || e.key === 'Esc') {
       if (isPopupVisible()) {
@@ -4896,7 +4854,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }
   }, false);
 
-  // On load, if URL has ?p ensure popup opens (best-effort)
   try {
     if ((new URL(location.href)).searchParams.has('p')) {
       if (typeof maybeOpenFromURL === 'function') {
@@ -4910,7 +4867,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 </script>
 <!-- End Assistant popup/back-button fix -->
-
 
 <!-- BEGIN assistant: reliable back-button popup handler -->
 <script>
@@ -4938,30 +4894,24 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     window.__popupOpen = false;
   }
 
-  // Ensure openPopup sets a flag and pushes a popup state (best-effort)
   const origOpen = window.openPopup;
   window.openPopup = function(...args){
     try {
       if (typeof origOpen === 'function') origOpen.apply(this, args);
     } catch(e){ console.warn('openPopup original failed', e); }
     try {
-      // mark open
       window.__popupOpen = true;
-      // push a popup history state so Back first closes popup
       const cur = new URL(location.href);
       if (!cur.searchParams.has('p')) {
-        // use a lightweight param to reflect popup; don't replace user's deeper URL if present
         cur.searchParams.set('p', 'item');
         try { history.pushState({__popup:true}, '', cur.toString()); } catch(e){}
       } else {
         try { history.replaceState(Object.assign({}, history.state || {}, {__popup:true}), '', location.href); } catch(e){}
       }
     } catch(e){}
-    // ensure popup visible in DOM in case original missed it
     try { showPopupImmediate(); } catch(e){}
   };
 
-  // Wrap closePopup to hide and keep user on listing (prevent immediate navigation away)
   const origClose = window.closePopup;
   window.closePopup = function(...args){
     try {
@@ -4969,24 +4919,19 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     } catch(e){ console.warn('closePopup original failed', e); }
     try {
       hidePopupImmediate();
-      // after closing, re-insert a harmless listing state so user won't jump away on next Back
       try { history.replaceState({__listing:true}, '', location.pathname + location.search); } catch(e){}
     } catch(e){}
   };
 
-  // When popstate occurs, if popup is open, close it and then push a listing state to keep user on page
   window.addEventListener('popstate', function(ev){
     try {
       if (isPopupVisible() || window.__popupOpen) {
-        // Hide popup instead of letting browser go back
         hidePopupImmediate();
-        // Give the browser a stable state that represents the listing (so further Back goes to previous site)
         try { history.pushState({__listing_preserved:true}, '', location.pathname + location.search); } catch(e){}
       }
     } catch(e){}
   }, false);
 
-  // Overlay clicks: prefer history.back so popstate runs (keeps behavior consistent)
   document.addEventListener('click', function(e){
     const overlay = popupEl();
     if (!overlay) return;
@@ -4998,96 +4943,145 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }
   }, true);
 
-  // ESC key closes popup
   document.addEventListener('keydown', function(e){
     if ((e.key === 'Escape' || e.key === 'Esc') && (isPopupVisible() || window.__popupOpen)) {
       try { history.back(); } catch(e){}
     }
   }, false);
 
-  // If page loaded with ?p param, try to open popup (non-destructive)
   try {
     const params = new URL(location.href).searchParams;
     if (params.has('p')) {
-      // slightly delay to let other scripts finish
       setTimeout(()=>{ try { showPopupImmediate(); } catch(e){} }, 80);
     }
   } catch(e){}
 })();
 </script>
-<!-- END assistant: reliable back-button popup handler -->
-</script>
-<!-- and ends just before the next <script> tag. -->
-
-<!-- REPLACE it with the following: -->
 <script>
-(() => {
-  const ORIGINAL_FETCH = window.fetch.bind(window);
-  const SHEET_ID = "1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA";
-  const MATCH_URL = `https://opensheet.elk.sh/${SHEET_ID}`;
 
-  const cacheKeyFor = (url) => `swr:${url}`;
+/* Attach haptic to add-to-cart buttons without double firing */
+(function bindAddBtnHaptics(){
+  function bindOnce(el){
+    if(!el || el.__hapticBound) return;
+    el.addEventListener('click', function(e){
+      try{ triggerHaptic(30, 120); }catch(e){}
+    }, {passive:true});
+    el.__hapticBound = true;
+  }
 
-  const isCacheableResponse = (res) => {
-    if (!res || !res.ok) return false;
-    const ct = res.headers.get("content-type") || "";
-    return ct.toLowerCase().includes("application/json");
-  };
+  // For existing buttons
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.add-btn, button.add-to-cart, #popupAddBtn').forEach(bindOnce);
+  });
 
-  const storeInCache = async (key, response) => {
-    try {
-      const body = await response.clone().text();
-      const payload = {
-        body,
-        status: response.status,
-        headers: Array.from(response.headers.entries()),
-        ts: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(payload));
-    } catch (e) {}
-  };
-
-  const responseFromCache = (cachedJson) => {
-    try {
-      const cached = JSON.parse(cachedJson);
-      return new Response(cached.body, {
-        status: cached.status,
-        headers: new Headers(cached.headers)
-      });
-    } catch { return null; }
-  };
-
-  const backgroundRevalidate = async (resource, init, key) => {
-    try {
-      const res = await ORIGINAL_FETCH(resource, init);
-      if (isCacheableResponse(res)) {
-        await storeInCache(key, res);
-        window.dispatchEvent(new CustomEvent("swr:update", {detail:{key}}));
+  // Also observe for future buttons added dynamically
+  const obs = new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      if(m.addedNodes && m.addedNodes.length){
+        m.addedNodes.forEach(function(node){
+          if(node.nodeType !== 1) return;
+          if(node.matches && node.matches('.add-btn, button.add-to-cart, #popupAddBtn')) bindOnce(node);
+          node.querySelectorAll && node.querySelectorAll('.add-btn, button.add-to-cart, #popupAddBtn').forEach(bindOnce);
+        });
       }
-    } catch {}
-  };
-
-  window.fetch = function(resource, init) {
-    const url = typeof resource === "string" ? resource : resource.url;
-    if (!url.startsWith(MATCH_URL)) {
-      return ORIGINAL_FETCH(resource, init);
-    }
-    const key = cacheKeyFor(url);
-    const cachedJson = localStorage.getItem(key);
-    if (cachedJson) {
-      const cachedRes = responseFromCache(cachedJson);
-      backgroundRevalidate(resource, init, key);
-      return Promise.resolve(cachedRes);
-    }
-    return ORIGINAL_FETCH(resource, init).then(async (res) => {
-      if (isCacheableResponse(res)) {
-        await storeInCache(key, res.clone());
-      }
-      return res;
     });
-  };
+  });
+  obs.observe(document.body, {childList:true, subtree:true});
+})();
+
+</script>
+
+<!-- AUTO-INJECTED: popup close-url-cleanup (prevents popup auto-reopen when ?p is present) -->
+<script id="assistant-injected-closepopup-fix">
+(function(){
+  try {
+    // keep original reference (may be undefined)
+    const _origClose = window.closePopup;
+    const _origHide = function(){
+      try {
+        const el = document.getElementById('productPopup');
+        if (el) {
+          el.classList.remove('is-open');
+          el.style.display = 'none';
+        }
+      } catch(e){}
+      try { document.body.classList.remove('noscroll'); } catch(e){}
+    };
+
+    function cleanupUrlRemoveP(){
+      try {
+        const url = new URL(location.href);
+        if (url.searchParams.has('p')) {
+          url.searchParams.delete('p');
+          // Also remove empty trailing '?' if any
+          let newUrl = url.pathname + url.search + url.hash;
+          // If searchParams deleted and search is empty, use pathname+hash
+          if (!url.search) newUrl = url.pathname + url.hash;
+          history.replaceState(null, "", newUrl);
+        }
+      } catch(e){}
+    }
+
+    // Replace window.closePopup with a safe wrapper
+    window.closePopup = function(){
+      try {
+        // If history indicates popup, go back to let popstate handlers run
+        if (history.state && history.state.__popup) {
+          try { history.back(); } catch(e){}
+          // after going back, ensure URL cleaned as well (in case)
+          setTimeout(cleanupUrlRemoveP, 80);
+          return;
+        }
+      } catch(e){}
+
+      // Call original close if it exists
+      try {
+        if (typeof _origClose === "function") {
+          _origClose.apply(this, arguments);
+        } else {
+          // fallback hide
+          _origHide();
+        }
+      } catch(e){
+        try { _origHide(); } catch(e){}
+      }
+
+      // Always ensure URL no longer contains ?p
+      try { cleanupUrlRemoveP(); } catch(e){}
+    };
+
+    // Ensure overlay clicks also remove ?p when they hide the popup directly
+    document.addEventListener('click', function(e){
+      try {
+        const overlay = document.getElementById('productPopup');
+        if (!overlay) return;
+        if (e.target === overlay) {
+          // if history has popup state, prefer history.back() (so back button semantics remain)
+          if (history.state && history.state.__popup) {
+            try { history.back(); } catch(e){}
+            setTimeout(cleanupUrlRemoveP, 80);
+            return;
+          }
+          // otherwise hide and clean url
+          try { overlay.classList.remove('is-open'); overlay.style.display = 'none'; } catch(e){}
+          try { document.body.classList.remove('noscroll'); } catch(e){}
+          setTimeout(cleanupUrlRemoveP, 20);
+        }
+      } catch(err){}
+    }, true);
+
+    // Also handle popstate cleanup: when user closes with back button ensure ?p removed
+    window.addEventListener('popstate', function(ev){
+      try { cleanupUrlRemoveP(); } catch(e){}
+    }, { passive: true });
+
+  } catch(e){
+    console.warn("assistant-injected-closepopup-fix failed", e);
+  }
 })();
 </script>
+<!-- END AUTO-INJECTED -->
+
 </body>
 </html>
 
