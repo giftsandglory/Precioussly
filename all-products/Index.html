@@ -5033,6 +5033,112 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 
 </script>
+
+<!-- Popup reopen guard: prevents popup from immediately reopening after a close (fixes auto-reopen bug) -->
+<script>
+(function(){
+  // If multiple popup handlers exist, this final wrapper ensures openPopup/closePopup calls
+  // are rate-limited to avoid immediate re-opening on history/popstate races.
+  try {
+    const WINDOW = window;
+    const WAIT_MS = 800; // ignore open requests within this many ms after a close
+    const origOpen = WINDOW.openPopup;
+    const origClose = WINDOW.closePopup;
+
+    // timestamp of last explicit close
+    WINDOW.__lastPopupCloseAt = WINDOW.__lastPopupCloseAt || 0;
+
+    function showDomPopupFallback() {
+      const el = document.getElementById('productPopup');
+      if (!el) return;
+      try {
+        el.style.display = 'flex';
+        el.classList && el.classList.add('is-open');
+        document.body && document.body.classList.add('noscroll');
+        WINDOW.__popupOpen = true;
+      } catch(e){}
+    }
+    function hideDomPopupFallback() {
+      const el = document.getElementById('productPopup');
+      if (!el) return;
+      try {
+        el.classList && el.classList.remove('is-open');
+        el.style.display = 'none';
+        document.body && document.body.classList.remove('noscroll');
+        WINDOW.__popupOpen = false;
+      } catch(e){}
+    }
+
+    WINDOW.openPopup = function(...args){
+      try {
+        // If popup was just closed recently, ignore accidental reopen
+        const now = Date.now();
+        if (WINDOW.__lastPopupCloseAt && (now - WINDOW.__lastPopupCloseAt) < WAIT_MS) {
+          // Do not reopen during the cooldown window.
+          // Useful for avoiding history/popstate races that re-open the popup.
+          //console.debug('openPopup suppressed (recent close)', now - WINDOW.__lastPopupCloseAt);
+          return;
+        }
+      } catch(e){}
+
+      if (typeof origOpen === 'function') {
+        try { return origOpen.apply(this, args); } catch(e){ console.warn('wrapped openPopup original failed', e); }
+      }
+      // fallback
+      showDomPopupFallback();
+    };
+
+    WINDOW.closePopup = function(...args){
+      try {
+        WINDOW.__lastPopupCloseAt = Date.now();
+      } catch(e){}
+
+      if (typeof origClose === 'function') {
+        try { return origClose.apply(this, args); } catch(e){ console.warn('wrapped closePopup original failed', e); }
+      }
+      // fallback
+      hideDomPopupFallback();
+    };
+
+    // Extra safety: intercept maybeOpenFromURL if present by wrapping it to call openPopup (so our guard applies)
+    if (typeof WINDOW.maybeOpenFromURL === 'function') {
+      const _origMaybe = WINDOW.maybeOpenFromURL;
+      WINDOW.maybeOpenFromURL = function(...a){
+        try {
+          // If recently closed, skip opening from URL
+          if (WINDOW.__lastPopupCloseAt && (Date.now() - WINDOW.__lastPopupCloseAt) < WAIT_MS) {
+            //console.debug('maybeOpenFromURL suppressed due to recent close');
+            return;
+          }
+        } catch(e){}
+        return _origMaybe.apply(this, a);
+      };
+    }
+
+    // Additionally, when overlay is clicked and code attempts to history.back(), the subsequent popstate
+    // may cause openPopup via various handlers. We already guard openPopup, but to be thorough we also
+    // listen for popstate and ignore any immediate attempts to open the popup within the cooldown window.
+    window.addEventListener('popstate', function(e){
+      try {
+        // If popup was just closed, and code attempts to open via other handlers, ensure it's suppressed.
+        if (window.__lastPopupCloseAt && (Date.now() - window.__lastPopupCloseAt) < WAIT_MS) {
+          // Some scripts call maybeOpenFromURL or showDomPopup directly on popstate.
+          // Try to proactively hide the popup to avoid flicker.
+          const el = document.getElementById('productPopup');
+          if (el && (el.classList.contains('is-open') || getComputedStyle(el).display !== 'none')) {
+            try { el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
+          }
+        }
+      } catch(e){}
+    }, true);
+
+  } catch (err) {
+    console.error('popup-guard init failed', err);
+  }
+})();
+</script>
+<!-- End popup reopen guard -->
+
 </body>
 </html>
 
