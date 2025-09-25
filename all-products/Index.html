@@ -4789,6 +4789,78 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
   } catch(e){}
 })();
 </script>
+
+<!-- BEGIN: Robust URL -> Popup handler (added by assistant) -->
+<script>
+(function(){
+  // Tries repeatedly until catalogData is available, then opens matching product for ?p=...
+  function slugify(s){ return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,''); }
+  function findItemForParam(p){
+    if(!p) return null;
+    const wantedRaw = decodeURIComponent(p);
+    const slugWanted = slugify(wantedRaw);
+    const cand = (window.catalogData || []).find(row => {
+      if(!row) return false;
+      const name = (row['Product Name'] || row['Product name'] || row['product name'] || '').toString();
+      if(!name) return false;
+      const nslug = slugify(name);
+      if(nslug === slugWanted) return true;
+      // fallback: exact case-insensitive match
+      if(name.trim().toLowerCase() === wantedRaw.trim().toLowerCase()) return true;
+      return false;
+    });
+    return cand || null;
+  }
+
+  function openFromURLOnce(){
+    try{
+      const params = new URLSearchParams(location.search);
+      const p = params.get('p');
+      if(!p) return true; // nothing to do
+      const item = findItemForParam(p);
+      if(!item) return false; // not ready yet or not found: signal to retry
+      const images = [item['photo 1'], item['photo 2'], item['photo 3'], item['photo 4']].filter(Boolean);
+      if(typeof openPopup === 'function'){
+        openPopup(images, item['Product Name'], Number(item['MRP'])||0, Number(item['Selling Price'])||0, Number(item['in stock'])||0, (typeof getSheetDescription === 'function' ? getSheetDescription(item) : ''));
+      } else {
+        // fallback: show DOM popup container
+        const overlay = document.getElementById('productPopup');
+        if(overlay){ overlay.style.display = 'flex'; overlay.classList.add('is-open'); document.body.classList.add('noscroll'); }
+      }
+      return true;
+    }catch(e){
+      console.warn('openFromURLOnce error', e);
+      return true;
+    }
+  }
+
+  // Retry loop (will stop when success or after timeout attempts)
+  let tries = 0;
+  function tryOpenLoop(){
+    const done = openFromURLOnce();
+    tries++;
+    if(done) return;
+    if(tries > 35) return; // stop after ~7 seconds
+    setTimeout(tryOpenLoop, 200);
+  }
+
+  // Start if URL has p param
+  try {
+    const hasP = (new URL(location.href)).searchParams.has('p');
+    if(hasP) tryOpenLoop();
+  } catch(e){}
+
+  // Also trigger when catalog cache updates (the app dispatches 'catalogCacheUpdated' when data changes)
+  document.addEventListener('catalogCacheUpdated', function(){ 
+    try {
+      if((new URL(location.href)).searchParams.has('p')) tryOpenLoop();
+    } catch(e){}
+  });
+
+})();
+</script>
+<!-- END: Robust URL -> Popup handler -->
+
 </body>
 </html>
 
