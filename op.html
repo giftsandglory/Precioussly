@@ -5309,60 +5309,125 @@ loadAndRenderCatalog();
 })();
 </script>
 <!-- END assistant: reliable back-button popup handler -->
-
-
-<!-- START: assistant-inserted — force-open popup when ?p=... present -->
-<script id="force-open-popup-from-param">
+<script>
+/* --- Force-open popup when ?p=slug is present (robust retry) --- */
 (function(){
-  try {
-    const hasP = (new URLSearchParams(location.search)).has('p');
-    if (!hasP) return;
-    // Try to open popup repeatedly (best-effort) to counter race conditions and aggressive redirects.
-    function tryOpenOnce(){
-      try {
-        if (typeof maybeOpenFromURL === 'function') {
-          maybeOpenFromURL();
-          return;
-        }
-        // Fallback: call openPopup with the raw p param (name slug). openPopup implementations accept (images, name, ...).
-        const raw = new URLSearchParams(location.search).get('p') || '';
-        const name = decodeURIComponent(raw);
-        if (typeof window.openPopup === 'function') {
-          try { window.openPopup([], name); } catch(e){}
-        } else {
-          // If popup DOM exists, force-show it
-          const el = document.getElementById('productPopup') || document.querySelector('.product-popup');
-          if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
-        }
-      } catch(e){}
+  const MAX_TRIES = 12;        // ~ about 12 * averageInterval ms total wait (see below)
+  const BASE_INTERVAL = 120;   // ms (will multiply slightly for backoff)
+
+  function getParam(name){
+    try { return (new URL(location.href)).searchParams.get(name); } catch(e) { return null; }
+  }
+  function slugify(s){
+    return String(s||'').trim().toLowerCase().replace(/[^a-z0-9]+/gi,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  }
+
+  async function findProductBySlug(slug){
+    if (!slug) return null;
+    const sources = (window.catalogData && Array.isArray(window.catalogData) && window.catalogData.length) ? window.catalogData
+                  : (window.allProducts && Array.isArray(window.allProducts) && window.allProducts.length) ? window.allProducts
+                  : [];
+    if (!sources.length) return null;
+
+    // Try to find by standard fields (works with rows or compact item objects)
+    for (const r of sources){
+      const name = (r["Product Name"] || r.name || r["name"] || "");
+      if (!name) continue;
+      if (slugify(name) === slug) return r;
+    }
+    return null;
+  }
+
+  function callOpenPopupWithItem(item){
+    if (!item) return false;
+    const images = [
+      item["photo 1"] || item.mediaUrl || item["Photo 1"] || item.media || ""
+    ].concat([item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean)).filter(Boolean);
+
+    const name = item["Product Name"] || item.name || item["name"] || "";
+    const mrp  = Number(item["MRP"] || item.mrp || 0);
+    const price= Number(item["Selling Price"] || item.price || 0);
+    const stock= Number(item["in stock"] || item.stock || 1);
+    const desc = (typeof getSheetDescription === 'function') ? getSheetDescription(item) : (item.description || "");
+
+    if (typeof window.openPopup === 'function') {
+      try { window.openPopup(images, name, mrp, price, stock, desc); return true; } catch(e){ console.warn('openPopup call failed', e); }
     }
 
-    // Immediate attempt + staggered retries to cover different load timings
-    tryOpenOnce();
-    [80, 300, 800, 1600, 3200, 6000].forEach(function(ms){ setTimeout(tryOpenOnce, ms); });
-
-    // Also observe for catalogData to become available and then open specifically the matching product
-    const observer = new MutationObserver(function(){
+    // last-resort DOM fallback (force show popup element)
+    const el = document.getElementById('productPopup');
+    if (el) {
       try {
-        if (window.catalogData && typeof maybeOpenFromURL === 'function') {
-          maybeOpenFromURL();
-          observer.disconnect();
-        }
-      } catch(e){}
-    });
-    observer.observe(document.documentElement || document.body, { childList:true, subtree:true, attributes:false });
+        el.style.display = 'flex';
+        el.classList.add('is-open');
+        document.body.classList.add('noscroll');
+        return true;
+      } catch(e){ console.warn('fallback show failed', e); }
+    }
+    return false;
+  }
 
-    // As an extra safety, prevent the aggressive "redirect to HOME_URL" behavior from firing
-    // by monkey-patching location.replace temporarily while we try to open the popup.
-    const originalReplace = history.replaceState;
-    try {
-      // temporarily mark that we are handling a forced popup so other scripts can check history.state if desired
-      try { history.replaceState(Object.assign({}, history.state || {}, { __assistant_force_popup: true }), "", location.href); } catch(e){}
-    } catch(e){}
+  function tryOpenFromURLWithRetry(){
+    const raw = getParam('p');
+    if (!raw) return; // nothing to do
+
+    const wantedSlug = slugify(decodeURIComponent(raw));
+    let tries = 0;
+
+    const attempt = async () => {
+      tries++;
+      // 1) try to find product from available data
+      const item = await findProductBySlug(wantedSlug);
+      if (item) {
+        // found -> call openPopup
+        const ok = callOpenPopupWithItem(item);
+        if (ok) return;
+      }
+
+      // 2) If not found, but allProducts/catalogData not loaded yet, wait & retry
+      const haveData = (Array.isArray(window.catalogData) && window.catalogData.length) || (Array.isArray(window.allProducts) && window.allProducts.length);
+      if (!haveData && tries < MAX_TRIES) {
+        const delay = BASE_INTERVAL + Math.min(500, tries * 40);
+        setTimeout(attempt, delay);
+        return;
+      }
+
+      // 3) If we still didn't find a product after retries, try best-effort: call openPopup with name param only
+      if (tries === MAX_TRIES) {
+        try {
+          if (typeof window.openPopup === 'function') {
+            try { window.openPopup([], wantedSlug); return; } catch(e) {}
+          }
+          // fallback show DOM
+          const el = document.getElementById('productPopup');
+          if (el) { el.style.display='flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+        } catch(e){ console.warn('final fallback failed', e); }
+      }
+    };
+
+    attempt();
+  }
+
+  // Run on first load + whenever popstate happens (so Back/Forward also attempts)
+  try {
+    document.addEventListener('DOMContentLoaded', tryOpenFromURLWithRetry);
   } catch(e){}
+  try {
+    // Also run immediately (in case DOMContentLoaded already fired)
+    tryOpenFromURLWithRetry();
+  } catch(e){}
+
+  window.addEventListener('popstate', function(){
+    // if URL now has ?p= attempt again
+    if ((new URL(location.href)).searchParams.has('p')) {
+      tryOpenFromURLWithRetry();
+    }
+  }, { passive: true });
 })();
 </script>
-<!-- END: assistant-inserted -->
 
 </body>
 </html>
+
+
+
