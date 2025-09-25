@@ -5033,6 +5033,131 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 
 </script>
+
+<!-- START: injected popup auto-reopen blocker (added by ChatGPT) -->
+<script>
+(function(){
+  'use strict';
+  // If user manually closed popup, this flag remains true until they click a product again.
+  window.__popupManuallyClosed = window.__popupManuallyClosed || false;
+
+  // Helper to safely call original functions
+  function safeApply(orig, ctx, args){
+    try { if (typeof orig === 'function') return orig.apply(ctx, args); } catch(e){ console.warn('safeApply error', e); }
+  }
+
+  // Wrap/override closePopup to mark manual close
+  try {
+    const _origClose = window.closePopup;
+    window.closePopup = function(){
+      try { window.__popupManuallyClosed = true; } catch(e) {}
+      return safeApply(_origClose, this, arguments);
+    };
+  } catch(e){ console.warn('closePopup wrap failed', e); }
+
+  // Also ensure clicks on overlay mark manual close
+  try {
+    document.addEventListener('click', function(ev){
+      try {
+        const overlay = document.getElementById && document.getElementById('productPopup');
+        if (!overlay) return;
+        if (ev.target === overlay) {
+          window.__popupManuallyClosed = true;
+        }
+      } catch(e){}
+    }, true);
+  } catch(e){}
+
+  // Prevent automatic openers from running while flag true
+  // Wrap maybeOpenFromURL if present
+  try {
+    const origMaybe = window.maybeOpenFromURL;
+    window.maybeOpenFromURL = function(){
+      if (window.__popupManuallyClosed) {
+        // blocked automatic open
+        return;
+      }
+      return safeApply(origMaybe, this, arguments);
+    };
+  } catch(e){}
+
+  // Wrap showDomPopup / showPopupFromURL / showPopupImmediate if present
+  try {
+    const names = ['showDomPopup','showPopupFromURL','showPopupImmediate'];
+    names.forEach(function(n){
+      const orig = window[n];
+      window[n] = function(){
+        if (window.__popupManuallyClosed) return;
+        return safeApply(orig, this, arguments);
+      };
+    });
+  } catch(e){}
+
+  // Wrap window.openPopup as final gatekeeper: block if manually closed.
+  try {
+    const origOpen = window.openPopup;
+    window.openPopup = function(){
+      if (window.__popupManuallyClosed) {
+        // If the call originates from a user click, we clear the flag earlier (see click listener below)
+        // but otherwise (automatic calls) this prevents reopening.
+        // For debugging, you can uncomment the console line:
+        // console.debug('openPopup blocked due to manual close:', arguments && arguments[1]);
+        return;
+      }
+      return safeApply(origOpen, this, arguments);
+    };
+  } catch(e){}
+
+  // If location has '?p=' on load but user already closed popup in this session, remove 'p' from URL silently
+  try {
+    if (window.__popupManuallyClosed) {
+      try {
+        const u = new URL(location.href);
+        if (u.searchParams.has('p')) {
+          u.searchParams.delete('p');
+          history.replaceState(history.state, '', u.toString());
+        }
+      } catch(e){}
+    }
+  } catch(e){}
+
+  // Capture popstate early and prevent auto-show by removing 'p' if flag is set
+  try {
+    window.addEventListener('popstate', function(ev){
+      try {
+        if (!window.__popupManuallyClosed) return;
+        const u = new URL(location.href);
+        if (u.searchParams.has('p')) {
+          u.searchParams.delete('p');
+          history.replaceState(history.state, '', u.toString());
+        }
+      } catch(e){}
+    }, true);
+  } catch(e){}
+
+  // When a user clicks a product card (manual open), clear the flag BEFORE the product's own click handler runs.
+  // We use capture:true so this runs first and allows openPopup to proceed.
+  try {
+    document.addEventListener('click', function(e){
+      try {
+        const prod = e.target.closest && e.target.closest('.product');
+        if (!prod) return;
+        // ignore clicks on add-to-cart buttons/quantity/controls inside product
+        if (e.target.closest('.add-to-cart, .add-btn, .quantity-bar, button')) return;
+        // this is a manual product click
+        window.__popupManuallyClosed = false;
+      } catch(e){}
+    }, true);
+  } catch(e){}
+
+  // Expose a dev method to reset the manual-close flag if needed
+  try {
+    window.__resetPopupManualClose = function(){ window.__popupManuallyClosed = false; };
+  } catch(e){}
+
+})();
+</script>
+<!-- END: injected popup auto-reopen blocker -->
 </body>
 </html>
 
