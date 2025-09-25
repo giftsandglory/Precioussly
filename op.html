@@ -2279,101 +2279,7 @@ function renderCombinedData(data){
 loadAndRenderAllTabs();
 </script>
 
-<script>
-  function getParam(name) {
-    const u = new URLSearchParams(location.search);
-    return u.get(name);
-  }
 
-  function slugify(s) {
-    return String(s || '')
-      .trim()
-      .toLowerCase()
-      .replace(/[\s_]+/g, '-')      // spaces/underscores → hyphen
-      .replace(/[^a-z0-9-]/g, '');  // remove other symbols
-  }
-
-function getParam(name){ return (new URLSearchParams(location.search)).get(name); }
-function norm(s){
-  try {
-    s = String(s || '');
-    s = s.normalize('NFKD').replace(/\p{Diacritic}/gu,'');
-    s = s.trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
-    s = s.replace(/-+/g,'-').replace(/^-|-$/g,'');
-    return s;
-  } catch(e){ return String(s||'').trim().toLowerCase(); }
-}
-async function maybeOpenFromURL(){
-  const p = getParam('p');
-  if (!p) return;
-  const wanted = norm(decodeURIComponent(p));
-
-  const waitForCatalog = (timeout=1500) => new Promise(resolve=>{
-    const start = Date.now();
-    (function check(){ 
-      if (Array.isArray(window.catalogData) && window.catalogData.length) return resolve(window.catalogData);
-      if (Date.now() - start > timeout) return resolve(window.catalogData || []);
-      setTimeout(check, 120);
-    })();
-  });
-
-  const source = await waitForCatalog();
-
-  if (!Array.isArray(source) || !source.length) {
-    try { 
-      const el = document.getElementById('productPopup');
-      if(el){ el.style.display='flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
-    } catch(e){}
-    return;
-  }
-
-  const candidate = source.find(row => {
-    const name = row["Product Name"] || row.name || row.title || '';
-    const route = row.route || row.Route || row.url || row.routeName || '';
-    if (norm(name) === wanted) return true;
-    if (norm(route) === wanted) return true;
-    if (String(name || '').trim().toLowerCase() === decodeURIComponent(p).trim().toLowerCase()) return true;
-    return false;
-  });
-
-  let item = candidate;
-  if (!item) {
-    item = source.find(row => {
-      const name = row["Product Name"] || row.name || '';
-      return norm(name).includes(wanted) || (String(name||'').toLowerCase().includes(decodeURIComponent(p).toLowerCase()));
-    });
-  }
-
-  if (!item) {
-    try { 
-      const el = document.getElementById('productPopup');
-      if(el){ el.style.display='flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
-    } catch(e){}
-    return;
-  }
-
-  const images = [
-    item["photo 1"] || item.mediaUrl || item.photo || item.image,
-    item["photo 2"], item["photo 3"], item["photo 4"], item.image2
-  ].filter(Boolean);
-
-  try {
-    openPopup(
-      images,
-      item["Product Name"] || item.name || item.title || decodeURIComponent(p),
-      Number(item["MRP"] || item.mrp || 0) || undefined,
-      Number(item["Selling Price"] || item.price || item.sellingPrice || 0) || undefined,
-      Number(item["in stock"] || item.stock || 1) || 1,
-      (typeof getSheetDescription === "function") ? getSheetDescription(item) : (item.description || '')
-    );
-  } catch(e){
-    const el = document.getElementById('productPopup');
-    if(el){ el.style.display='flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
-  }
-}
-
-
-</script>
 
 
 <div id="productPopup">
@@ -4091,105 +3997,7 @@ if (popup){
   </div>
 </div>
 
-<script id="pink-profile-popup-js">
-(function(){
-  const overlay = document.getElementById('profilePopupOverlay');
-  const back = document.getElementById('ppBackBtn');
-  function openPopup(){
-    if(!overlay) return;
-    overlay.classList.add('show');
-    document.body.classList.add('no-scroll');
-    overlay.setAttribute('aria-hidden','false');
-  }
-  function closePopup(){
-    overlay.classList.remove('show');
-    document.body.classList.remove('no-scroll');
-    overlay.setAttribute('aria-hidden','true');
-  }
-  const profileIcon = document.getElementById('profileIcon') ||
-    document.querySelector('img[alt="Profile"], .icon-profile, .profile-icon, [data-profile]');
-  if(profileIcon){
-    profileIcon.style.cursor = 'pointer';
-    profileIcon.addEventListener('click', openPopup, {passive:true});
-  }
-  if(back) back.addEventListener('click', closePopup);
-  if(overlay){
-    overlay.addEventListener('click', function(e){
-      if(e.target === overlay) closePopup();
-    });
-  }
-})();</script>
 
-<script>
-(function () {
-  const POPUP_ID = 'productPopup';
-  const popupEl = () => document.getElementById(POPUP_ID);
-  const isOpen = () => {
-    const el = popupEl();
-    if (!el) return false;
-    const ds = (el.style.display || '').toLowerCase();
-    return el.classList.contains('is-open') || ds === 'flex' || ds === 'block';
-  };
-
-  try {
-    if (!history.state || !history.state.__base) {
-      history.replaceState({ __base: true }, "", location.href);
-    }
-  } catch (e) {}
-
-  const __origOpenPopup = window.openPopup;
-  if (typeof __origOpenPopup === "function") {
-    window.openPopup = function() {
-      try {
-        if (!history.state || !history.state.__popup) {
-          history.replaceState({ __popup: true }, "", location.href);
-        }
-      } catch (e) {}
-      return __origOpenPopup.apply(this, arguments);
-    };
-  }
-
-  function __forceClosePopup() {
-    const el = popupEl();
-    if (!el) return;
-    el.classList.remove("is-open");
-    el.style.display = "none";
-    document.body.classList.remove("noscroll");
-  }
-
-  const __origClosePopup = window.closePopup;
-  window.closePopup = function() {
-    if (history.state && history.state.__popup) {
-      try { history.back(); } catch (e) {}
-      return;
-    }
-    __forceClosePopup();
-    if (typeof __origClosePopup === "function") {
-      try { __origClosePopup.apply(this, arguments); } catch (e) {}
-    }
-  };
-
-  window.addEventListener("popstate", function () {
-    if (isOpen()) {
-      __forceClosePopup();
-      return;
-    }
-  });
-
-  const el = popupEl();
-  if (el) {
-    el.addEventListener("click", function (e) {
-      if (e.target === el) {
-        if (history.state && history.state.__popup) {
-          try { history.back(); } catch (e2) {}
-        } else {
-          __forceClosePopup();
-        }
-      }
-    }, { passive: true });
-  }
-})();
-</script>
 
 <script>
 (function () {
@@ -5136,122 +4944,7 @@ loadAndRenderCatalog();
 </script>
 <!-- END: custom popup-history v4 -->
 
-<!-- Assistant: popup / back-button fix (appended) -->
-<script id="assistant-popup-fix">
-(function(){
-  'use strict';
-  const POPUP_ID = 'productPopup';
-  function popupEl(){ return document.getElementById(POPUP_ID); }
-  function isPopupVisible(){
-    const el = popupEl(); if(!el) return false;
-    try {
-      if (el.classList && el.classList.contains('is-open')) return true;
-      const ds = (el.style && el.style.display) ? String(el.style.display).toLowerCase() : '';
-      return ds === 'flex' || ds === 'block' || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
-    } catch(e){ return false; }
-  }
-  function showDomPopup(){
-    const el = popupEl(); if(!el) return;
-    try { el.style.display = 'flex'; el.classList && el.classList.add('is-open'); document.body && document.body.classList.add('noscroll'); } catch(e){}
-  }
-  function hideDomPopup(){
-    const el = popupEl(); if(!el) return;
-    try { el.classList && el.classList.remove('is-open'); el.style.display = 'none'; document.body && document.body.classList.remove('noscroll'); } catch(e){}
-  }
-  function slugify(name){ return String(name||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,''); }
 
-  // Wrap openPopup (or provide a wrapper if it doesn't exist)
-  const origOpen = window.openPopup;
-  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
-    if (typeof origOpen === 'function') {
-      try { origOpen.apply(this, arguments); } catch(e){ console.warn('openPopup original error', e); showDomPopup(); }
-    } else {
-      showDomPopup();
-    }
-
-    // push history entry with ?p=slug so back button removes it
-    try {
-      const slug = slugify(name);
-      const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-      const curP = (new URL(location.href)).searchParams.get('p') || null;
-      const newP = slug || null;
-      if (curP !== newP) {
-        history.pushState({__popup:true, p: newP}, '', newUrl);
-      } else {
-        history.replaceState(Object.assign({}, history.state || {}, {__popup:true, p:newP}), '', newUrl);
-      }
-    } catch(e){ console.warn('history push failed', e); }
-  };
-
-  // Wrap closePopup to use history.back when popup state exists
-  const origClose = window.closePopup;
-  window.closePopup = function(){
-    try {
-      if (history.state && history.state.__popup) {
-        history.back();
-        return;
-      }
-    } catch(e){}
-    if (typeof origClose === 'function') {
-      try { origClose.apply(this, arguments); } catch(e){ console.warn('closePopup original failed', e); }
-    }
-    hideDomPopup();
-    try { history.replaceState(Object.assign({}, history.state || {}, {__listing:true}), '', location.pathname); } catch(e){}
-  };
-
-  // Overlay clicks: prefer history.back so popstate handler will hide
-  document.addEventListener('click', function(e){
-    const overlay = popupEl();
-    if (!overlay) return;
-    if (e.target === overlay) {
-      try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
-      hideDomPopup();
-    }
-  }, true);
-
-  // Popstate: show popup when URL has ?p, hide when not.
-  window.addEventListener('popstate', function(ev){
-    let urlHasP = false;
-    try { urlHasP = (new URL(location.href)).searchParams.has('p'); } catch(e){}
-    const visible = isPopupVisible();
-    if (urlHasP) {
-      if (!visible) {
-        if (typeof maybeOpenFromURL === 'function') {
-          try { maybeOpenFromURL(); return; } catch(e){ console.warn('maybeOpenFromURL failed', e); }
-        }
-        showDomPopup();
-      }
-    } else {
-      if (visible) {
-        hideDomPopup();
-        return;
-      }
-    }
-  }, false);
-
-  // ESC key fallback for non-history cases
-  document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' || e.key === 'Esc') {
-      if (isPopupVisible()) {
-        window.closePopup();
-        e.preventDefault();
-      }
-    }
-  }, false);
-
-  // On load, if URL has ?p ensure popup opens (best-effort)
-  try {
-    if ((new URL(location.href)).searchParams.has('p')) {
-      if (typeof maybeOpenFromURL === 'function') {
-        setTimeout(()=>{ try{ maybeOpenFromURL(); }catch(e){} }, 60);
-      } else {
-        setTimeout(showDomPopup, 60);
-      }
-    }
-  } catch(e){}
-
-})();
-</script>
 <!-- End Assistant popup/back-button fix -->
 
 <!-- BEGIN assistant: reliable back-button popup handler -->
@@ -5358,6 +5051,363 @@ loadAndRenderCatalog();
 })();
 </script>
 <!-- END assistant: reliable back-button popup handler -->
+<script id="merged-clean-popup-js">
+/*
+  Clean merged popup + history + profile-popup script
+  Sections:
+   1) Utilities
+   2) Catalog loader (maybeOpenFromURL)
+   3) Popup + History wrapper (openPopup / closePopup / popstate / overlay / ESC)
+   4) Profile popup (profile icon open/close)
+*/
+
+(function () {
+  'use strict';
+
+  /* ==========================
+     1) UTILITIES
+     - getParam(name)
+     - norm(s)  -> normalized slug (diacritics removed)
+     - slugify(name) -> lightweight slug
+  ========================== */
+  function getParam(name) {
+    try {
+      return (new URL(location.href)).searchParams.get(name);
+    } catch (e) {
+      // fallback
+      const u = new URLSearchParams(location.search || '');
+      return u.get(name);
+    }
+  }
+
+  function norm(s) {
+    try {
+      s = String(s || '');
+      // normalize diacritics, convert to lower, collapse whitespace, remove non-alnum/hyphen
+      s = s.normalize('NFKD').replace(/\p{Diacritic}/gu, '');
+      s = s.trim().toLowerCase()
+            .replace(/[\s_]+/g, '-')      // spaces/underscores -> hyphen
+            .replace(/[^a-z0-9-]/g, '')   // remove other symbols
+            .replace(/-+/g, '-')          // collapse multiple hyphens
+            .replace(/^-|-$/g, '');       // trim leading/trailing hyphens
+      return s;
+    } catch (e) {
+      return String(s || '').trim().toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '');
+    }
+  }
+
+  function slugify(name) {
+    return norm(name);
+  }
+
+  /* ==========================
+     2) CATALOG / maybeOpenFromURL
+     - waits for window.catalogData (best-effort), then finds product by ?p=slug
+     - builds images array and calls openPopup(images, name, mrp, price, stock, description)
+  ========================== */
+  async function maybeOpenFromURL(timeout = 1500) {
+    const p = getParam('p');
+    if (!p) return;
+
+    const wanted = norm(decodeURIComponent(p));
+
+    // wait for catalogData to appear (best-effort)
+    const waitForCatalog = (t = timeout) => new Promise(resolve => {
+      const start = Date.now();
+      (function check() {
+        if (Array.isArray(window.catalogData) && window.catalogData.length) return resolve(window.catalogData);
+        if (Date.now() - start > t) return resolve(window.catalogData || []);
+        setTimeout(check, 120);
+      })();
+    });
+
+    const source = await waitForCatalog();
+
+    // If there's no data, just show DOM popup fallback
+    if (!Array.isArray(source) || !source.length) {
+      showDomPopup();
+      return;
+    }
+
+    // Try to find exact match by name/route
+    const candidate = source.find(row => {
+      const name = row["Product Name"] || row.name || row.title || '';
+      const route = row.route || row.Route || row.url || row.routeName || '';
+      if (norm(name) === wanted) return true;
+      if (norm(route) === wanted) return true;
+      if (String(name || '').trim().toLowerCase() === decodeURIComponent(p).trim().toLowerCase()) return true;
+      return false;
+    });
+
+    let item = candidate;
+
+    // If not found, try includes/partial match
+    if (!item) {
+      item = source.find(row => {
+        const name = row["Product Name"] || row.name || '';
+        return norm(name).includes(wanted) || (String(name || '').toLowerCase().includes(decodeURIComponent(p).toLowerCase()));
+      });
+    }
+
+    if (!item) { // still not found -> fallback show popup
+      showDomPopup();
+      return;
+    }
+
+    const images = [
+      item["photo 1"] || item.mediaUrl || item.photo || item.image,
+      item["photo 2"], item["photo 3"], item["photo 4"], item.image2
+    ].filter(Boolean);
+
+    try {
+      // prefer getSheetDescription if provided in page scope
+      const description = (typeof getSheetDescription === 'function') ? getSheetDescription(item) : (item.description || '');
+      const name = item["Product Name"] || item.name || item.title || decodeURIComponent(p);
+      const mrp = Number(item["MRP"] || item.mrp || 0) || undefined;
+      const price = Number(item["Selling Price"] || item.price || item.sellingPrice || 0) || undefined;
+      const stock = Number(item["in stock"] || item.stock || 1) || 1;
+
+      if (typeof window.openPopup === 'function') {
+        // call wrapped version (which will push history)
+        window.openPopup(images, name, mrp, price, stock, description);
+      } else {
+        // fallback DOM popup show
+        showDomPopup();
+      }
+    } catch (err) {
+      console.warn('maybeOpenFromURL -> openPopup failed', err);
+      showDomPopup();
+    }
+  }
+
+  /* ==========================
+     3) POPUP + HISTORY WRAPPER
+     - showDomPopup / hideDomPopup: show/hide popup element with id 'productPopup'
+     - wrapper around existing window.openPopup and window.closePopup to manage history
+     - overlay clicks, popstate, ESC handling
+  ========================== */
+
+  const POPUP_ID = 'productPopup';
+  function popupEl() { return document.getElementById(POPUP_ID); }
+
+  function showDomPopup() {
+    const el = popupEl();
+    if (!el) return;
+    try {
+      el.style.display = 'flex';
+      el.classList && el.classList.add('is-open');
+      document.body && document.body.classList.add('noscroll');
+    } catch (e) {}
+  }
+
+  function hideDomPopup() {
+    const el = popupEl();
+    if (!el) return;
+    try {
+      el.classList && el.classList.remove('is-open');
+      el.style.display = 'none';
+      document.body && document.body.classList.remove('noscroll');
+    } catch (e) {}
+  }
+
+  function isPopupVisible() {
+    const el = popupEl();
+    if (!el) return false;
+    try {
+      if (el.classList && el.classList.contains('is-open')) return true;
+      const ds = (el.style && el.style.display) ? String(el.style.display).toLowerCase() : '';
+      return ds === 'flex' || ds === 'block' || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // create a base history state if not present (so back behavior is sane)
+  try {
+    if (!history.state || !history.state.__base) {
+      history.replaceState({ __base: true }, "", location.href);
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // Helper to safely push/replace states
+  function pushPopupState(slug) {
+    try {
+      const curP = (new URL(location.href)).searchParams.get('p') || null;
+      const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
+      const newP = slug || null;
+      if (curP !== newP) {
+        history.pushState({ __popup: true, p: newP }, '', newUrl);
+      } else {
+        history.replaceState(Object.assign({}, history.state || {}, { __popup: true, p: newP }), '', newUrl);
+      }
+    } catch (e) {
+      console.warn('pushPopupState failed', e);
+    }
+  }
+
+  // Wrap openPopup: call original (if exists) then push state; otherwise just show DOM fallback
+  (function wrapOpenPopup() {
+    const orig = window.openPopup;
+    window.openPopup = function (images, name, mrp, price, stock, sheetDesc) {
+      // call original if present
+      if (typeof orig === 'function') {
+        try {
+          orig.apply(this, arguments);
+        } catch (e) {
+          console.warn('original openPopup error', e);
+          showDomPopup();
+        }
+      } else {
+        showDomPopup();
+      }
+
+      // push history state with slugified name
+      try {
+        const slug = slugify(name);
+        pushPopupState(slug);
+      } catch (e) {
+        console.warn('openPopup history push failed', e);
+      }
+    };
+  })();
+
+  // Wrap closePopup: prefer history.back if popup state present, otherwise force hide and call original
+  (function wrapClosePopup() {
+    const origClose = window.closePopup;
+    function forceHide() {
+      hideDomPopup();
+      try { history.replaceState(Object.assign({}, history.state || {}, { __listing: true }), '', location.pathname); } catch (e) {}
+    }
+    window.closePopup = function () {
+      try {
+        if (history.state && history.state.__popup) {
+          history.back();
+          return;
+        }
+      } catch (e) {}
+      // fallback: force hide and call orig
+      forceHide();
+      if (typeof origClose === 'function') {
+        try { origClose.apply(this, arguments); } catch (e) { console.warn('closePopup original failed', e); }
+      }
+    };
+  })();
+
+  // Clicking on overlay / backdrop should close popup (prefer history.back)
+  (function attachOverlayClicks() {
+    const el = popupEl();
+    if (!el) return;
+    el.addEventListener('click', function (e) {
+      if (e.target === el) {
+        try {
+          if (history.state && history.state.__popup) {
+            history.back();
+            return;
+          }
+        } catch (err) {}
+        hideDomPopup();
+      }
+    }, { passive: true });
+  })();
+
+  // popstate: if URL has ?p open (maybeOpenFromURL), else hide popup
+  window.addEventListener('popstate', function (ev) {
+    let urlHasP = false;
+    try {
+      urlHasP = (new URL(location.href)).searchParams.has('p');
+    } catch (e) {}
+    if (urlHasP) {
+      if (!isPopupVisible()) {
+        if (typeof maybeOpenFromURL === 'function') {
+          try { maybeOpenFromURL(); return; } catch (e) { console.warn('maybeOpenFromURL failed', e); }
+        }
+        showDomPopup();
+      }
+    } else {
+      if (isPopupVisible()) {
+        hideDomPopup();
+      }
+    }
+  }, false);
+
+  // ESC key fallback
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      if (isPopupVisible()) {
+        try { window.closePopup(); } catch (err) { hideDomPopup(); }
+        e.preventDefault();
+      }
+    }
+  }, false);
+
+  // On load: if URL has ?p, attempt to open popup (slight delay to allow catalogData or other scripts to initialise)
+  try {
+    if ((new URL(location.href)).searchParams.has('p')) {
+      // small timeout to let other scripts run
+      setTimeout(function () {
+        try {
+          if (typeof maybeOpenFromURL === 'function') {
+            maybeOpenFromURL();
+          } else {
+            showDomPopup();
+          }
+        } catch (e) {}
+      }, 60);
+    }
+  } catch (e) {}
+
+  /* ==========================
+     4) PROFILE POPUP (lightweight)
+     - find #profilePopupOverlay (or fallback selectors)
+     - attach click handlers for profile icon and overlay/back button
+  ========================== */
+  (function profilePopupModule() {
+    const overlay = document.getElementById('profilePopupOverlay');
+    const back = document.getElementById('ppBackBtn');
+
+    function openProfilePopup() {
+      if (!overlay) return;
+      overlay.classList.add('show');
+      document.body.classList.add('no-scroll');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+    function closeProfilePopup() {
+      if (!overlay) return;
+      overlay.classList.remove('show');
+      document.body.classList.remove('no-scroll');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    // find a reasonable profile icon on page if an explicit id isn't present
+    const profileIcon = document.getElementById('profileIcon') ||
+      document.querySelector('img[alt="Profile"], .icon-profile, .profile-icon, [data-profile]');
+
+    if (profileIcon) {
+      profileIcon.style.cursor = 'pointer';
+      profileIcon.addEventListener('click', openProfilePopup, { passive: true });
+    }
+    if (back) back.addEventListener('click', closeProfilePopup, { passive: true });
+    if (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closeProfilePopup();
+      }, { passive: true });
+    }
+  })();
+
+  /* ==========================
+     Helper export to window (optional)
+     - expose small helpers for debugging in console
+  ========================== */
+  try {
+    window.__popupHelpers = window.__popupHelpers || {};
+    window.__popupHelpers.showDomPopup = showDomPopup;
+    window.__popupHelpers.hideDomPopup = hideDomPopup;
+    window.__popupHelpers.maybeOpenFromURL = maybeOpenFromURL;
+  } catch (e) {}
+})();
+</script>
 
 </body>
 </html>
