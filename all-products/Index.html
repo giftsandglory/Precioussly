@@ -2469,7 +2469,8 @@ let selectedProduct = null;
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
   selectedProduct = { image: images?.[0], name, mrp, price };
 
-  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name || "")}`;
+  const shareUrl = `${location.origin}${location.pathname}?p=${slugify(name || "")}`;
+
 
   const imageUrl = images?.[0] || "";
   const line1 = `${name || ""} ${price ? "₹"+price : ""}`.trim();
@@ -5290,4 +5291,6 @@ loadAndRenderCatalog();
 
 </body>
 </html>
+
+
 
