@@ -2293,37 +2293,71 @@ loadAndRenderAllTabs();
       .replace(/[^a-z0-9-]/g, '');  // remove other symbols
   }
 
-  function maybeOpenFromURL() {
-  const wanted = getParam('p');
-  if (!wanted) return;
+  function maybeOpenFromURL() 
+{
+  try {
+    const wantedRaw = (new URL(location.href)).searchParams.get('p');
+    if (!wantedRaw) return;
+    const wanted = String(wantedRaw).trim();
+    if (!wanted) return;
 
-  const wantedSlug = slugify(decodeURIComponent(wanted));
+    function slugifyLocal(s){ return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,''); }
 
-  // Prefer the combined multi-tab data if available
-  const sourceData = window.catalogData || window.allProducts || [];
-  if (!Array.isArray(sourceData) || !sourceData.length) return;
+    const sourceData = Array.isArray(window.catalogData) && window.catalogData.length ? window.catalogData
+                      : (Array.isArray(window.allProducts) ? window.allProducts : []);
+    if (!Array.isArray(sourceData) || !sourceData.length) return;
 
-  const item = sourceData.find(row =>
-    slugify(row["Product Name"] || row.name) === wantedSlug
-  );
-  if (!item) return;
+    const wantedSlug = slugifyLocal(decodeURIComponent(wanted));
+    let item = sourceData.find(row => slugifyLocal(row["Product Name"] || row.name || '') === wantedSlug);
 
-  const images = [
-    item["photo 1"] || item.mediaUrl,
-    item["photo 2"],
-    item["photo 3"],
-    item["photo 4"]
-  ].filter(Boolean);
+    if (!item) {
+      const numeric = /^\d+$/.test(wanted);
+      if (numeric) {
+        const idKeys = ["id","ID","Id","product id","Product ID","product_id","Product_ID","sku","SKU","S.No","sno","Sno","serial","Serial"];
+        const wantedNum = String(parseInt(wanted,10));
+        for (const row of sourceData) {
+          for (const k of idKeys) {
+            if (row.hasOwnProperty(k) && row[k] != null) {
+              if (String(row[k]).trim() === wantedNum) { item = row; break; }
+            }
+          }
+          if (item) break;
+        }
+        if (!item) {
+          const idxNum = parseInt(wanted,10) - 1;
+          if (idxNum >= 0 && idxNum < sourceData.length) item = sourceData[idxNum];
+        }
+      } else {
+        const wantLower = wanted.toLowerCase();
+        item = sourceData.find(row => String(row["Product Name"] || row.name || '').toLowerCase() === wantLower);
+      }
+    }
 
-  openPopup(
-    images,
-    item["Product Name"] || item.name,
-    Number(item["MRP"] || item.mrp),
-    Number(item["Selling Price"] || item.price),
-    Number(item["in stock"] || 1),
-    typeof getSheetDescription === "function" ? getSheetDescription(item) : (item.description || "")
-  );
+    if (!item) return;
+
+    const images = [
+      item["photo 1"] || item.mediaUrl || item.photo || item.image,
+      item["photo 2"],
+      item["photo 3"],
+      item["photo 4"]
+    ].filter(Boolean);
+
+    const mrp = Number(item["MRP"] || item.mrp || item.Mrp || 0) || undefined;
+    const price = Number(item["Selling Price"] || item.price || item.selling_price || 0) || undefined;
+    const stock = Number(item["in stock"] || item.stock || item.in_stock || 1) || 1;
+
+    if (typeof openPopup === "function") {
+      try { openPopup(images, item["Product Name"] || item.name || '', mrp, price, stock, (typeof getSheetDescription === 'function' ? getSheetDescription(item) : (item.description||''))); }
+      catch(e){ console.warn('openPopup from maybeOpenFromURL failed', e); }
+    } else {
+      try {
+        const el = document.getElementById('productPopup');
+        if (el) { el.style.display = 'flex'; el.classList && el.classList.add('is-open'); document.body && document.body.classList.add('noscroll'); }
+      } catch(e){}
+    }
+  } catch(e){ console.warn('maybeOpenFromURL error', e); }
 }
+
 
 </script>
 
@@ -5309,122 +5343,6 @@ loadAndRenderCatalog();
 })();
 </script>
 <!-- END assistant: reliable back-button popup handler -->
-<script>
-/* --- Force-open popup when ?p=slug is present (robust retry) --- */
-(function(){
-  const MAX_TRIES = 12;        // ~ about 12 * averageInterval ms total wait (see below)
-  const BASE_INTERVAL = 120;   // ms (will multiply slightly for backoff)
-
-  function getParam(name){
-    try { return (new URL(location.href)).searchParams.get(name); } catch(e) { return null; }
-  }
-  function slugify(s){
-    return String(s||'').trim().toLowerCase().replace(/[^a-z0-9]+/gi,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
-  }
-
-  async function findProductBySlug(slug){
-    if (!slug) return null;
-    const sources = (window.catalogData && Array.isArray(window.catalogData) && window.catalogData.length) ? window.catalogData
-                  : (window.allProducts && Array.isArray(window.allProducts) && window.allProducts.length) ? window.allProducts
-                  : [];
-    if (!sources.length) return null;
-
-    // Try to find by standard fields (works with rows or compact item objects)
-    for (const r of sources){
-      const name = (r["Product Name"] || r.name || r["name"] || "");
-      if (!name) continue;
-      if (slugify(name) === slug) return r;
-    }
-    return null;
-  }
-
-  function callOpenPopupWithItem(item){
-    if (!item) return false;
-    const images = [
-      item["photo 1"] || item.mediaUrl || item["Photo 1"] || item.media || ""
-    ].concat([item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean)).filter(Boolean);
-
-    const name = item["Product Name"] || item.name || item["name"] || "";
-    const mrp  = Number(item["MRP"] || item.mrp || 0);
-    const price= Number(item["Selling Price"] || item.price || 0);
-    const stock= Number(item["in stock"] || item.stock || 1);
-    const desc = (typeof getSheetDescription === 'function') ? getSheetDescription(item) : (item.description || "");
-
-    if (typeof window.openPopup === 'function') {
-      try { window.openPopup(images, name, mrp, price, stock, desc); return true; } catch(e){ console.warn('openPopup call failed', e); }
-    }
-
-    // last-resort DOM fallback (force show popup element)
-    const el = document.getElementById('productPopup');
-    if (el) {
-      try {
-        el.style.display = 'flex';
-        el.classList.add('is-open');
-        document.body.classList.add('noscroll');
-        return true;
-      } catch(e){ console.warn('fallback show failed', e); }
-    }
-    return false;
-  }
-
-  function tryOpenFromURLWithRetry(){
-    const raw = getParam('p');
-    if (!raw) return; // nothing to do
-
-    const wantedSlug = slugify(decodeURIComponent(raw));
-    let tries = 0;
-
-    const attempt = async () => {
-      tries++;
-      // 1) try to find product from available data
-      const item = await findProductBySlug(wantedSlug);
-      if (item) {
-        // found -> call openPopup
-        const ok = callOpenPopupWithItem(item);
-        if (ok) return;
-      }
-
-      // 2) If not found, but allProducts/catalogData not loaded yet, wait & retry
-      const haveData = (Array.isArray(window.catalogData) && window.catalogData.length) || (Array.isArray(window.allProducts) && window.allProducts.length);
-      if (!haveData && tries < MAX_TRIES) {
-        const delay = BASE_INTERVAL + Math.min(500, tries * 40);
-        setTimeout(attempt, delay);
-        return;
-      }
-
-      // 3) If we still didn't find a product after retries, try best-effort: call openPopup with name param only
-      if (tries === MAX_TRIES) {
-        try {
-          if (typeof window.openPopup === 'function') {
-            try { window.openPopup([], wantedSlug); return; } catch(e) {}
-          }
-          // fallback show DOM
-          const el = document.getElementById('productPopup');
-          if (el) { el.style.display='flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
-        } catch(e){ console.warn('final fallback failed', e); }
-      }
-    };
-
-    attempt();
-  }
-
-  // Run on first load + whenever popstate happens (so Back/Forward also attempts)
-  try {
-    document.addEventListener('DOMContentLoaded', tryOpenFromURLWithRetry);
-  } catch(e){}
-  try {
-    // Also run immediately (in case DOMContentLoaded already fired)
-    tryOpenFromURLWithRetry();
-  } catch(e){}
-
-  window.addEventListener('popstate', function(){
-    // if URL now has ?p= attempt again
-    if ((new URL(location.href)).searchParams.has('p')) {
-      tryOpenFromURLWithRetry();
-    }
-  }, { passive: true });
-})();
-</script>
 
 </body>
 </html>
