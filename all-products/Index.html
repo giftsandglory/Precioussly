@@ -4956,7 +4956,71 @@ loadAndRenderCatalog();
   });
 })();
 </script>
+<!-- HAPTIC: single-strong vibration only for popup + grid Add-to-Cart -->
+<script>
+(function(){
+  // ---------- config ----------
+  const VIBRATE_MS = 70;        // single short pulse (adjust 60–110 as you like)
+  const DEBOUNCE_MS = 300;      // lock window to avoid duplicate triggers
 
+  let _lastVib = 0;
+  function canVibrate(){ return !!(navigator && typeof navigator.vibrate === 'function'); }
+  function triggerVibe(){
+    if (!canVibrate()) return;
+    const now = Date.now();
+    if (now - _lastVib < DEBOUNCE_MS) return;
+    _lastVib = now;
+    try { navigator.vibrate(VIBRATE_MS); } catch(e){ /* ignore */ }
+  }
+
+  // ---------- wrap addToCartFromGrid (popup + outside both call this) ----------
+  function wrapAddToCartFn(){
+    try {
+      if (typeof window.addToCartFromGrid !== 'function') return false;
+      if (window.__addToCartWrapped) return true;
+
+      const original = window.addToCartFromGrid;
+      window.addToCartFromGrid = function(button, product){
+        try { triggerVibe(); } catch(e){}
+        return original.apply(this, arguments);
+      };
+      window.__addToCartWrapped = true;
+      return true;
+    } catch(e){
+      return false;
+    }
+  }
+
+  (function tryWrap(retries = 8, delay = 120){
+    if (wrapAddToCartFn()) return;
+    if (retries <= 0) return;
+    setTimeout(() => tryWrap(retries - 1, delay), delay);
+  })();
+
+  // ---------- delegated listener for grid buttons (safety for inline onclick) ----------
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest && e.target.closest('.add-btn');
+    if (!btn) return;
+    triggerVibe();
+  }, { passive: true });
+
+  // ---------- ensure popup add button (#popupAddBtn) also wired ----------
+  function wirePopupBtn(){
+    const btn = document.getElementById('popupAddBtn');
+    if (!btn) return;
+    if (btn.dataset.haptic === '1') return;
+    btn.addEventListener('click', function(){ triggerVibe(); }, { passive: true });
+    btn.dataset.haptic = '1';
+  }
+  wirePopupBtn();
+
+  const mo = new MutationObserver(() => wirePopupBtn());
+  mo.observe(document.body, { childList: true, subtree: true });
+
+  // expose for manual use
+  window.__triggerStrongHaptic = triggerVibe;
+})();
+</script>
 </body>
 </html>
 
