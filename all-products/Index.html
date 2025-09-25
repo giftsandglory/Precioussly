@@ -1844,25 +1844,34 @@ div.product-title {
 <div id="content"></div>
 
 <script>
-
+/* ---------- CONFIG ---------- */
 const PASTED_SHEET_LINK =
   "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
 
 const TAB_NAMES = ["resin-jewelry", "car-keychains" , "crochets" , "artificial-jewelry"];
+const POLL_INTERVAL_MS = 3000; // 3 seconds polling
 
+/* ---------- sheetId extraction ---------- */
 const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
 if (!idMatch) {
   console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
 }
 const sheetId = idMatch ? idMatch[1] : "";
 
+/* ---------- Helpers ---------- */
+function cacheKeyFor(tabName){
+  return `tabCache_${sheetId}_${tabName}`;
+}
+
 function isHidden(row){
   const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
   for (const k of keys){
-    if (row.hasOwnProperty(k) && row[k] != null){
+    if (Object.prototype.hasOwnProperty.call(row, k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
+      if (!v.length) return false;
       if (v.includes("hide")) return true;
-      if (v.length) return false;
+      // any other non-empty value considered visible
+      return false;
     }
   }
   return false;
@@ -1885,39 +1894,142 @@ function isVideoUrl(url=""){
   return u.endsWith(".mp4") || u.endsWith(".webm") || u.endsWith(".mov");
 }
 
+/* ---------- GLOBAL: catalog stored per-tab for stable ordering ---------- */
+window.catalogByTab = window.catalogByTab || {}; // { tabName: [rows...] }
+
+/* ---------- FETCH / CACHE / REVALIDATION ---------- */
+/*
+  Behavior:
+  - fetchTab(tabName) returns cached data immediately (from localStorage) if present (and triggers background revalidation)
+  - revalidateTab(tabName) fetches from network, stores cache, updates window.catalogByTab, and triggers one unified re-render
+*/
+
 async function fetchTab(tabName){
-  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
-  console.log("Fetching tab:", tabName, DATA_URL);
-  const res = await fetch(DATA_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
-  const data = await res.json();
-  data.forEach(row => { row.__tabName = tabName; });
-  return data;
+  const cacheKey = cacheKeyFor(tabName);
+  let cached = null;
+  try {
+    const raw = localStorage.getItem(cacheKey);
+    if (raw) cached = JSON.parse(raw);
+  } catch(e){ /* ignore parse errors */ }
+
+  // If cached exists, use it and schedule background revalidate
+  if (cached && Array.isArray(cached)) {
+    // place into per-tab store (so rebuild uses stable tab order)
+    window.catalogByTab[tabName] = cached.map((r, idx) => {
+      r.__tabName = tabName;
+      r.__tabIndex = TAB_NAMES.indexOf(tabName);
+      r.__rowIndex = idx;
+      return r;
+    });
+    // background revalidation (non-blocking)
+    setTimeout(() => {
+      revalidateTab(tabName).catch(err => {
+        console.warn("Background revalidate failed for", tabName, err);
+      });
+    }, 0);
+    // return cached immediately
+    return cached;
+  }
+
+  // No cache, fetch now
+  return await revalidateTab(tabName);
 }
 
+async function revalidateTab(tabName){
+  const cacheKey = cacheKeyFor(tabName);
+  if (!sheetId) {
+    console.error("Missing sheetId - cannot fetch", tabName);
+    return [];
+  }
+  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
+  try {
+    const res = await fetch(DATA_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
+    const data = await res.json();
+
+    // attach metadata for stable order
+    data.forEach((row, idx) => {
+      row.__tabName = tabName;
+      row.__tabIndex = TAB_NAMES.indexOf(tabName);
+      row.__rowIndex = idx;
+    });
+
+    // store cache
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+    } catch(e){ /* ignore storage errors */ }
+
+    // update per-tab store and rebuild combined view deterministically
+    window.catalogByTab[tabName] = data;
+    rebuildAndRender();
+
+    return data;
+  } catch (err) {
+    console.error("Failed to fetch tab:", tabName, err);
+    // keep previous tab data if exists; don't clear it on error
+    return window.catalogByTab[tabName] || [];
+  }
+}
+
+/* ---------- Rebuild combined dataset using fixed TAB_NAMES order and render ---------- */
+function rebuildAndRender(){
+  // Combine tabs in the exact order of TAB_NAMES
+  const combined = [];
+  TAB_NAMES.forEach((tName) => {
+    const arr = window.catalogByTab[tName];
+    if (Array.isArray(arr)) {
+      combined.push(...arr);
+    }
+  });
+
+  // optional hook
+  if (typeof applyDirectionFromSheet === "function") {
+    try { applyDirectionFromSheet(combined); } catch (e) { console.warn("applyDirectionFromSheet failed:", e); }
+  }
+
+  renderCombinedData(combined);
+}
+
+/* ---------- MAIN: initial load and polling ---------- */
 async function loadAndRenderAllTabs(){
   try {
     if (!sheetId) throw new Error("Missing sheetId.");
+
+    // Try to populate each tab from cache first and schedule network fetches
     const fetchPromises = TAB_NAMES.map(t => fetchTab(t).catch(err => {
-      console.error("Failed to fetch tab:", t, err);
+      console.error("Failed initial fetchTab (cache/network) for", t, err);
       return [];
     }));
 
+    // Wait for all initial fetchTab calls (they either returned cached or performed network)
     const allResults = await Promise.all(fetchPromises);
-    const combined = allResults.flat();
 
-    if (typeof applyDirectionFromSheet === "function") {
-      try { applyDirectionFromSheet(combined); } catch (e) { console.warn("applyDirectionFromSheet failed:", e); }
-    }
+    // Ensure window.catalogByTab has all results (fetchTab already stored cached results)
+    TAB_NAMES.forEach((t, idx) => {
+      const res = allResults[idx] || window.catalogByTab[t] || [];
+      // normalize metadata
+      window.catalogByTab[t] = (res || []).map((r, i) => {
+        r.__tabName = t;
+        r.__tabIndex = idx;
+        r.__rowIndex = i;
+        return r;
+      });
+    });
 
-    renderCombinedData(combined);
+    // First deterministic render
+    rebuildAndRender();
+
+    // Start polling after initial render
+    startPolling();
+
   } catch (err) {
     console.error("Failed to load products:", err);
   }
 }
 
+/* ---------- RENDERING LOGIC (stable grouping, no duplicate section titles) ---------- */
 function renderCombinedData(data){
-  window.catalogData = data;
+  window.catalogData = data; // still expose the combined view for debugging
   const content = document.getElementById("content");
   if (!content) {
     console.error("No #content container found.");
@@ -1926,36 +2038,52 @@ function renderCombinedData(data){
 
   content.innerHTML = "";
 
+  // We'll build sections as we encounter rows, but avoid duplicating a section title
   let currentSection = "";
   let sectionWrapper = null;
   let currentSectionHidden = false;
 
+  // Helper to create a new section
+  function openSection(sectionName, hidden=false){
+    currentSection = sectionName;
+    currentSectionHidden = !!hidden;
+    sectionWrapper = null;
+    if (currentSectionHidden) return;
+    const sectionTitle = document.createElement("div");
+    sectionTitle.className = "section-title";
+    sectionTitle.innerText = currentSection;
+    content.appendChild(sectionTitle);
+
+    sectionWrapper = document.createElement("div");
+    sectionWrapper.className = "product-grid";
+    content.appendChild(sectionWrapper);
+  }
+
   data.forEach((item) => {
+    // If this row is a Section marker
     if (item["Section"]) {
-      currentSection = item["Section"];
-      const secVis = String(item["visibility"] || item["Visibility"] || "")
-        .trim()
-        .toLowerCase();
-      currentSectionHidden = secVis.includes("hide");
-      if (currentSectionHidden) {
-        sectionWrapper = null;
-        return;
-      }
-
-      const sectionTitle = document.createElement("div");
-      sectionTitle.className = "section-title";
-      sectionTitle.innerText = currentSection;
-      content.appendChild(sectionTitle);
-
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      content.appendChild(sectionWrapper);
+      const sectionName = String(item["Section"]).trim();
+      const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
+      const secHidden = secVis.includes("hide");
+      openSection(sectionName, secHidden);
       return;
     }
 
+    // if current section is hidden or row is hidden, skip
     if (currentSectionHidden) return;
     if (isHidden(item)) return;
     if (!item["Product Name"]) return;
+
+    // ensure section wrapper exists (for products that come before any section marker)
+    if (!sectionWrapper) {
+      openSection(""); // unnamed section
+      if (!sectionWrapper) {
+        // safety fallback
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+      }
+    }
 
     const product = document.createElement("div");
     product.className = "product";
@@ -2036,7 +2164,6 @@ function renderCombinedData(data){
     try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
     try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
     title.style.maxWidth = '100%';
-
     infoWrapper.appendChild(title);
 
     const info = document.createElement("div");
@@ -2061,9 +2188,7 @@ function renderCombinedData(data){
     }
 
     if (+item["in stock"] === 0) {
-      info.innerHTML = `
-        ${priceHTML}
-      `;
+      info.innerHTML = `${priceHTML}`;
       const outBtn = document.createElement("button");
       outBtn.className = "add-btn";
       outBtn.disabled = true;
@@ -2086,12 +2211,11 @@ function renderCombinedData(data){
       addBtn.innerText = "Add to Cart";
       addBtn.addEventListener("click", (ev) => {
         ev.stopPropagation();
-        
-      try {
-        if ('vibrate' in navigator) navigator.vibrate(30);
-      } catch(e) {}
-      if (typeof addToCartFromGrid === "function") {
-          addToCartFromGrid(addBtn, productData);
+        try {
+          if ('vibrate' in navigator) navigator.vibrate(30);
+        } catch(e) {}
+        if (typeof addToCartFromGrid === "function") {
+            addToCartFromGrid(addBtn, productData);
         } else {
           console.warn("addToCartFromGrid is not defined.");
         }
@@ -2103,22 +2227,49 @@ function renderCombinedData(data){
     infoWrapper.appendChild(info);
     product.appendChild(infoWrapper);
 
-    if (!sectionWrapper) {
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      content.appendChild(sectionWrapper);
-    }
     sectionWrapper.appendChild(product);
   });
 
+  // optional URL open hook
   if (typeof maybeOpenFromURL === "function") {
     try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
   }
 }
 
-loadAndRenderAllTabs();
-</script>
+/* ---------- POLLING ---------- */
+let pollIntervalId = null;
+function startPolling(){
+  if (pollIntervalId) return; // already polling
+  // Revalidate all tabs every POLL_INTERVAL_MS
+  pollIntervalId = setInterval(() => {
+    TAB_NAMES.forEach(t => {
+      try {
+        revalidateTab(t).catch(e => console.warn("poll revalidate failed for", t, e));
+      } catch(e){}
+    });
+  }, POLL_INTERVAL_MS);
+}
 
+function stopPolling(){
+  if (pollIntervalId) {
+    clearInterval(pollIntervalId);
+    pollIntervalId = null;
+  }
+}
+
+/* ---------- INIT ---------- */
+loadAndRenderAllTabs();
+
+/* Optional: expose for debugging */
+window._sheetLiveHelper = {
+  reload: loadAndRenderAllTabs,
+  stopPolling,
+  startPolling,
+  revalidateTab,
+  fetchTab,
+  catalogByTab: window.catalogByTab
+};
+</script>
 <script>
   function getParam(name) {
     const u = new URLSearchParams(location.search);
@@ -4167,200 +4318,6 @@ async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
   }
 }
 
-/* ---------- SWR-enabled loadAndRenderCatalog ----------
-   Paste this *before* the line:
-     if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
-   (That invocation will call this new function.)
------------------------------------------------------- */
-async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
-  try {
-    // determine a cache key scoped to the sheet (sheetId or SHEET_URL)
-    const scopeId = (typeof sheetId !== "undefined" && sheetId) ? String(sheetId) :
-                    (typeof SHEET_URL !== "undefined" && SHEET_URL) ? String(SHEET_URL) :
-                    "default";
-    const cacheKey = "swr_catalog__" + scopeId + "__v1";
-
-    const content = document.getElementById("content");
-    if (!content) return;
-
-    // preserve previous horizontal scroll positions for product grids
-    let prevScrolls = [];
-    try {
-      const prevGrids = Array.from(content.querySelectorAll(".product-grid"));
-      prevScrolls = prevGrids.map(g => g.scrollLeft || 0);
-    } catch (e) {
-      prevScrolls = [];
-    }
-
-    // if user is interacting (dragging, touching etc.) postpone non-network render attempts
-    if (window._userInteracting && !opts.forceNetwork) {
-      if (window._deferredRenderTimer) clearTimeout(window._deferredRenderTimer);
-      window._deferredRenderTimer = setTimeout(() => {
-        if (!window._userInteracting) loadAndRenderCatalog(opts);
-      }, 700);
-      return;
-    }
-
-    // Quick helper: choose renderer available in page
-    const renderFn = (typeof renderCombinedData === "function") ? renderCombinedData
-                    : (typeof window.renderFromData === "function") ? window.renderFromData
-                    : function fallbackRender(data){
-                        // minimal fallback if no renderer present
-                        content.innerHTML = "<div class='section-title'>Products</div>";
-                        const grid = document.createElement("div");
-                        grid.className = "product-grid";
-                        (data || []).forEach(it => {
-                          const p = document.createElement("div");
-                          p.className = "product";
-                          p.textContent = it["Product Name"] || it.name || "Unnamed";
-                          grid.appendChild(p);
-                        });
-                        content.appendChild(grid);
-                      };
-
-    // Try to read cached JSON from localStorage
-    let cachedJSON = null;
-    try {
-      const raw = localStorage.getItem(cacheKey);
-      if (raw) cachedJSON = JSON.parse(raw);
-    } catch (e) { cachedJSON = null; }
-
-    // SWR step 1: show cached UI immediately (unless forceNetwork)
-    if (cachedJSON && !opts.forceNetwork) {
-      try {
-        // use the page's renderer
-        renderFn(cachedJSON);
-      } catch (e) {
-        console.warn("SWR: render from cache failed", e);
-      }
-    }
-
-    // Decide if we must force network: ?nocache=1 or page reload (F5)
-    let force = !!opts.forceNetwork;
-    try {
-      if (new URL(location.href).searchParams.get("nocache") === "1") force = true;
-    } catch (e) {}
-    try {
-      const navEntries = performance.getEntriesByType && performance.getEntriesByType("navigation");
-      if (navEntries && navEntries[0] && navEntries[0].type === "reload") force = true;
-    } catch (e) {}
-
-    // Fetch network data:
-    let normalized = [];
-    try {
-      // If your page has TAB_NAMES & fetchTab (opensheet multi-tab) use those (faster for your sheet layout)
-      if (typeof TAB_NAMES !== "undefined" && Array.isArray(TAB_NAMES) && typeof fetchTab === "function" && typeof sheetId !== "undefined" && sheetId) {
-        const fetchPromises = TAB_NAMES.map(t => fetchTab(t).catch(err => { console.warn("fetchTab failed for", t, err); return []; }));
-        const allResults = await Promise.all(fetchPromises);
-        normalized = allResults.flat();
-      } else if (typeof SHEET_URL !== "undefined" && SHEET_URL) {
-        const fetchInit = force ? { cache: "no-store" } : { cache: "no-cache" };
-        const res = await fetch(SHEET_URL, fetchInit);
-        normalized = (res.ok ? await res.json() : []);
-      } else {
-        console.warn("SWR: No sheet source found (no TAB_NAMES+fetchTab or SHEET_URL).");
-        normalized = cachedJSON || [];
-      }
-    } catch (err) {
-      console.error("SWR: network fetch failed", err);
-      normalized = cachedJSON || [];
-    }
-
-    // Make sure normalized is an array
-    if (!Array.isArray(normalized)) normalized = [];
-
-    // Compare new JSON with old cached JSON
-    const newJSON = JSON.stringify(normalized);
-    const oldJSON = localStorage.getItem(cacheKey) || "";
-
-    // Create a light-weight 'snapshot' for change-detection (product name + price)
-    let latestSnapshot = "";
-    try {
-      latestSnapshot = JSON.stringify((normalized || []).map(d => (d['Product Name'] || d.name || "") + "::" + (d['Selling Price'] || d.price || "")));
-    } catch (e) { latestSnapshot = newJSON; }
-
-    const lastSnap = window._lastCatalogSnapshot || "";
-
-    // If network returned different JSON than stored in localStorage -> update cache and fire event
-    if (newJSON !== oldJSON) {
-      try { localStorage.setItem(cacheKey, newJSON); } catch (e) { /* ignore set errors */ }
-
-      // Fire the requested custom event 'swr:cache:update'
-      try {
-        const ev = new CustomEvent('swr:cache:update', { detail: { key: cacheKey, ts: Date.now() } });
-        window.dispatchEvent(ev);
-      } catch (e) { /* ignore */ }
-
-      // Render from network if snapshot changed, else skip rendering
-      if (latestSnapshot !== lastSnap) {
-        if (!window._userInteracting) {
-          try { renderFn(normalized); } catch (e) { console.warn("SWR: render from network failed", e); }
-        } else {
-          if (window._deferredRenderTimer) clearTimeout(window._deferredRenderTimer);
-          window._deferredRenderTimer = setTimeout(() => {
-            if (!window._userInteracting) {
-              try { renderFn(normalized); } catch (e) { console.warn("SWR: deferred render failed", e); }
-            }
-          }, 600);
-        }
-      } else {
-        // snapshot same even though JSON string changed (rare) — skip UI re-render
-      }
-    } else {
-      // local cache and network JSON are identical; we can skip re-rendering unless snapshot differs
-      if (!cachedJSON) {
-        // no cache earlier, but network returned data — render
-        if (latestSnapshot !== lastSnap) {
-          if (!window._userInteracting) {
-            try { renderFn(normalized); } catch (e) { console.warn("SWR: render (no cache) failed", e); }
-          } else {
-            if (window._deferredRenderTimer) clearTimeout(window._deferredRenderTimer);
-            window._deferredRenderTimer = setTimeout(() => {
-              if (!window._userInteracting) {
-                try { renderFn(normalized); } catch (e) { console.warn("SWR: deferred render (no cache) failed", e); }
-              }
-            }, 600);
-          }
-        }
-      } else {
-        // nothing changed — skip render
-      }
-    }
-
-    // Update global snapshot and catalogData for other code parts
-    try {
-      window._lastCatalogSnapshot = latestSnapshot;
-      window.catalogData = normalized;
-    } catch (e) {}
-
-    // Restore previous horizontal scroll positions (best-effort)
-    try {
-      setTimeout(() => {
-        const newGrids = Array.from(content.querySelectorAll(".product-grid"));
-        for (let i = 0; i < newGrids.length; i++) {
-          try { if (typeof prevScrolls[i] !== "undefined") newGrids[i].scrollLeft = prevScrolls[i]; } catch (e) {}
-        }
-      }, 30);
-    } catch (e) {}
-
-  } catch (err) {
-    console.error("loadAndRenderCatalog top-level error:", err);
-  }
-}
-
-/* ---------- Poller: ensure only one poller exists ---------- */
-if (!window._swrCatalogPoller) {
-  window._swrCatalogPoller = setInterval(() => {
-    // Do a cheap check: only call loader if page visible and user not interacting
-    if (document.visibilityState !== "visible") return;
-    if (window._userInteracting) return;
-
-    // Call loader (non-forced network) — loader itself will skip re-render when data identical
-    try { loadAndRenderCatalog({ forceNetwork: false }); } catch (e) {}
-  }, 3000); // every 3 seconds
-}
-
-/* End of SWR-enabled loader */
 
 if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 </script>
@@ -5033,131 +4990,43 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 
 </script>
-
-<!-- START: injected popup auto-reopen blocker (added by ChatGPT) -->
+<!-- ADD this script at the very end of your <body>, after all other scripts -->
 <script>
 (function(){
-  'use strict';
-  // If user manually closed popup, this flag remains true until they click a product again.
-  window.__popupManuallyClosed = window.__popupManuallyClosed || false;
+  // Flag to prevent auto-reopen
+  window.__popupClosedByUser = false;
 
-  // Helper to safely call original functions
-  function safeApply(orig, ctx, args){
-    try { if (typeof orig === 'function') return orig.apply(ctx, args); } catch(e){ console.warn('safeApply error', e); }
+  // Wrap original closePopup
+  const origClose = window.closePopup;
+  window.closePopup = function(){
+    window.__popupClosedByUser = true;
+    if (typeof origClose === 'function') {
+      try { origClose.apply(this, arguments); } catch(e){}
+    }
+  };
+
+  // Override maybeOpenFromURL to respect flag
+  if (typeof window.maybeOpenFromURL === 'function') {
+    const origMaybeOpen = window.maybeOpenFromURL;
+    window.maybeOpenFromURL = function(){
+      if (window.__popupClosedByUser) return;
+      return origMaybeOpen.apply(this, arguments);
+    };
   }
 
-  // Wrap/override closePopup to mark manual close
-  try {
-    const _origClose = window.closePopup;
-    window.closePopup = function(){
-      try { window.__popupManuallyClosed = true; } catch(e) {}
-      return safeApply(_origClose, this, arguments);
-    };
-  } catch(e){ console.warn('closePopup wrap failed', e); }
-
-  // Also ensure clicks on overlay mark manual close
-  try {
-    document.addEventListener('click', function(ev){
-      try {
-        const overlay = document.getElementById && document.getElementById('productPopup');
-        if (!overlay) return;
-        if (ev.target === overlay) {
-          window.__popupManuallyClosed = true;
-        }
-      } catch(e){}
-    }, true);
-  } catch(e){}
-
-  // Prevent automatic openers from running while flag true
-  // Wrap maybeOpenFromURL if present
-  try {
-    const origMaybe = window.maybeOpenFromURL;
-    window.maybeOpenFromURL = function(){
-      if (window.__popupManuallyClosed) {
-        // blocked automatic open
-        return;
+  // Prevent popstate from auto-opening popup if flag set
+  window.addEventListener('popstate', function(ev){
+    if (window.__popupClosedByUser) {
+      const popup = document.getElementById('productPopup');
+      if (popup) {
+        popup.classList.remove('is-open');
+        popup.style.display = 'none';
+        document.body.classList.remove('noscroll');
       }
-      return safeApply(origMaybe, this, arguments);
-    };
-  } catch(e){}
-
-  // Wrap showDomPopup / showPopupFromURL / showPopupImmediate if present
-  try {
-    const names = ['showDomPopup','showPopupFromURL','showPopupImmediate'];
-    names.forEach(function(n){
-      const orig = window[n];
-      window[n] = function(){
-        if (window.__popupManuallyClosed) return;
-        return safeApply(orig, this, arguments);
-      };
-    });
-  } catch(e){}
-
-  // Wrap window.openPopup as final gatekeeper: block if manually closed.
-  try {
-    const origOpen = window.openPopup;
-    window.openPopup = function(){
-      if (window.__popupManuallyClosed) {
-        // If the call originates from a user click, we clear the flag earlier (see click listener below)
-        // but otherwise (automatic calls) this prevents reopening.
-        // For debugging, you can uncomment the console line:
-        // console.debug('openPopup blocked due to manual close:', arguments && arguments[1]);
-        return;
-      }
-      return safeApply(origOpen, this, arguments);
-    };
-  } catch(e){}
-
-  // If location has '?p=' on load but user already closed popup in this session, remove 'p' from URL silently
-  try {
-    if (window.__popupManuallyClosed) {
-      try {
-        const u = new URL(location.href);
-        if (u.searchParams.has('p')) {
-          u.searchParams.delete('p');
-          history.replaceState(history.state, '', u.toString());
-        }
-      } catch(e){}
     }
-  } catch(e){}
-
-  // Capture popstate early and prevent auto-show by removing 'p' if flag is set
-  try {
-    window.addEventListener('popstate', function(ev){
-      try {
-        if (!window.__popupManuallyClosed) return;
-        const u = new URL(location.href);
-        if (u.searchParams.has('p')) {
-          u.searchParams.delete('p');
-          history.replaceState(history.state, '', u.toString());
-        }
-      } catch(e){}
-    }, true);
-  } catch(e){}
-
-  // When a user clicks a product card (manual open), clear the flag BEFORE the product's own click handler runs.
-  // We use capture:true so this runs first and allows openPopup to proceed.
-  try {
-    document.addEventListener('click', function(e){
-      try {
-        const prod = e.target.closest && e.target.closest('.product');
-        if (!prod) return;
-        // ignore clicks on add-to-cart buttons/quantity/controls inside product
-        if (e.target.closest('.add-to-cart, .add-btn, .quantity-bar, button')) return;
-        // this is a manual product click
-        window.__popupManuallyClosed = false;
-      } catch(e){}
-    }, true);
-  } catch(e){}
-
-  // Expose a dev method to reset the manual-close flag if needed
-  try {
-    window.__resetPopupManualClose = function(){ window.__popupManuallyClosed = false; };
-  } catch(e){}
-
+  }, false);
 })();
 </script>
-<!-- END: injected popup auto-reopen blocker -->
+
 </body>
 </html>
-
