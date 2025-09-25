@@ -4846,25 +4846,37 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
   }, false);
 
   document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' || e.key === 'Esc') {
-      if (isPopupVisible()) {
-        window.closePopup();
-        e.preventDefault();
-      }
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    if (isPopupVisible()) {
+      window.closePopup();
+      e.preventDefault();
     }
-  }, false);
+  }
+}, false);
 
-  try {
-    if ((new URL(location.href)).searchParams.has('p')) {
+// Patch closePopup so it marks manual close
+const _origClose = window.closePopup;
+window.closePopup = function(...args){
+  window.__popupManuallyClosed = true;   // <-- added line
+  if (typeof _origClose === "function") {
+    return _origClose.apply(this, args);
+  }
+};
+
+try {
+  if ((new URL(location.href)).searchParams.has('p')) {
+    // Only open on first load, not after manual close
+    if (!window.__popupManuallyClosed) {
       if (typeof maybeOpenFromURL === 'function') {
         setTimeout(()=>{ try{ maybeOpenFromURL(); }catch(e){} }, 60);
       } else {
         setTimeout(showDomPopup, 60);
       }
     }
-  } catch(e){}
-
+  }
+} catch(e){}
 })();
+
 </script>
 <!-- End Assistant popup/back-button fix -->
 
@@ -4990,43 +5002,8 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 
 </script>
-<!-- ADD this script at the very end of your <body>, after all other scripts -->
-<script>
-(function(){
-  // Flag to prevent auto-reopen
-  window.__popupClosedByUser = false;
-
-  // Wrap original closePopup
-  const origClose = window.closePopup;
-  window.closePopup = function(){
-    window.__popupClosedByUser = true;
-    if (typeof origClose === 'function') {
-      try { origClose.apply(this, arguments); } catch(e){}
-    }
-  };
-
-  // Override maybeOpenFromURL to respect flag
-  if (typeof window.maybeOpenFromURL === 'function') {
-    const origMaybeOpen = window.maybeOpenFromURL;
-    window.maybeOpenFromURL = function(){
-      if (window.__popupClosedByUser) return;
-      return origMaybeOpen.apply(this, arguments);
-    };
-  }
-
-  // Prevent popstate from auto-opening popup if flag set
-  window.addEventListener('popstate', function(ev){
-    if (window.__popupClosedByUser) {
-      const popup = document.getElementById('productPopup');
-      if (popup) {
-        popup.classList.remove('is-open');
-        popup.style.display = 'none';
-        document.body.classList.remove('noscroll');
-      }
-    }
-  }, false);
-})();
-</script>
-
 </body>
 </html>
+
+
+
