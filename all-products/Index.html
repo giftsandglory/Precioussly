@@ -3458,17 +3458,31 @@ function applyDirectionFromSheet(rows){
       obs.observe(popup, { attributes: true, attributeFilter: ['style', 'class'] });
     }
 
-    window.addEventListener('popstate', (ev) => {
-      if (!popup) return;
-      const isVisible = window.getComputedStyle(popup).display !== 'none';
-      if (ev.state && ev.state.popupOpen) {
-        hideInstant();
-        try { history.replaceState(null, "", location.pathname); } catch(e) {}
-      } else if (isVisible) {
-        hideInstant();
-      }
-    });
-  })();
+    window.addEventListener('popstate', function(ev){
+  const st = ev.state || {};
+  const popupVisible = isPopupVisible();
+  const urlHasP = !!(new URLSearchParams(location.search).get('p'));
+
+  if ((st && st.__popup) || urlHasP) {
+    if (!popupVisible) {
+      showPopupFromURL();
+    }
+    return;
+  }
+
+  if (popupVisible && ((st && st.__listing) || !urlHasP)) {
+    try { hidePopupImmediate(); } catch(e){}
+    return;
+  }
+}, false);
+
+<!-- And just before the closing })(); of that same script, add: -->
+try {
+  const params = new URLSearchParams(location.search);
+  if (params.has('p')) {
+    showPopupFromURL();
+  }
+} catch(e){}
 </script>
 
 <style id="dot-hide-single-v2">
@@ -5081,40 +5095,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 </script>
 <!-- END AUTO-INJECTED -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  const params = new URLSearchParams(window.location.search);
-  const slug = params.get("p");
-  if (!slug) return;
-
-  // normalize slug
-  const wanted = slug.toLowerCase().trim();
-
-  // wait for products to render
-  const checkProducts = setInterval(() => {
-    if (!window.catalogData || !window.openPopup) return;
-    const product = (window.catalogData || []).find(item => {
-      const nameSlug = String(item["Product Name"] || "")
-        .toLowerCase()
-        .replace(/[\s_]+/g,"-")
-        .replace(/[^a-z0-9-]/g,"");
-      return nameSlug === wanted;
-    });
-    if (product) {
-      clearInterval(checkProducts);
-      const photos = [product["photo 1"], product["photo 2"], product["photo 3"], product["photo 4"]].filter(Boolean);
-      window.openPopup(
-        photos,
-        product["Product Name"],
-        product["MRP"],
-        product["Selling Price"],
-        product["in stock"],
-        (typeof getSheetDescription === "function" ? getSheetDescription(product) : "")
-      );
-    }
-  }, 200);
-});
-</script>
 
 </body>
 </html>
