@@ -2462,11 +2462,7 @@ let selectedProduct = null;
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
   selectedProduct = { image: images?.[0], name, mrp, price };
 
-  // Replace the old encodeURIComponent(name) shareUrl generation with a slugified one:
-const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(
-  String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'')
-)}`;
-
+  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name || "")}`;
 
   const imageUrl = images?.[0] || "";
   const line1 = `${name || ""} ${price ? "₹"+price : ""}`.trim();
@@ -5086,69 +5082,38 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 </script>
 <!-- END AUTO-INJECTED -->
 <script>
-/* Robust opener: waits for product data (window.catalogData) and opens popup when ?p=... is present.
-   Paste this immediately before </body> so it runs after other scripts. */
-(function(){
-  function slugifyLocal(s){
-    return String(s || '').trim().toLowerCase()
-      .replace(/[\s_]+/g,'-')
-      .replace(/[^a-z0-9-]/g,'');
-  }
+document.addEventListener("DOMContentLoaded", function() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("p");
+  if (!slug) return;
 
-  function tryOpenFromParam(){
-    try {
-      const params = new URLSearchParams(location.search);
-      const p = params.get('p');
-      if (!p) return false;
+  // normalize slug
+  const wanted = slug.toLowerCase().trim();
 
-      const decoded = decodeURIComponent(p);
-      const wantedSlug = slugifyLocal(decoded);
-      const wantedLower = String(decoded || p).trim().toLowerCase();
-
-      const catalog = window.catalogData || [];
-      if (!catalog.length) return false;
-
-      const item = catalog.find(row => {
-        if (!row) return false;
-        const name = String(row["Product Name"] || row["Name"] || '').trim();
-        if (!name) return false;
-        const nameSlug = slugifyLocal(name);
-        const nameLower = name.toLowerCase().trim();
-
-        // multiple matching strategies for robustness:
-        if (nameSlug === wantedSlug) return true;         // slug <-> slug
-        if (nameLower === wantedLower) return true;       // exact name (case-insensitive)
-        if (encodeURIComponent(name) === p) return true; // if link was built via encodeURIComponent(name)
-        return false;
-      });
-
-      if (!item) return false;
-
-      const images = [ item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"] ].filter(Boolean);
-
-      if (typeof openPopup === 'function') {
-        openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]), (item["Description"] || item["description"] || ""));
-        return true;
-      } else {
-        console.warn('openPopup is not defined yet.');
-        return false;
-      }
-    } catch (err) {
-      console.warn('tryOpenFromParam error', err);
-      return false;
+  // wait for products to render
+  const checkProducts = setInterval(() => {
+    if (!window.catalogData || !window.openPopup) return;
+    const product = (window.catalogData || []).find(item => {
+      const nameSlug = String(item["Product Name"] || "")
+        .toLowerCase()
+        .replace(/[\s_]+/g,"-")
+        .replace(/[^a-z0-9-]/g,"");
+      return nameSlug === wanted;
+    });
+    if (product) {
+      clearInterval(checkProducts);
+      const photos = [product["photo 1"], product["photo 2"], product["photo 3"], product["photo 4"]].filter(Boolean);
+      window.openPopup(
+        photos,
+        product["Product Name"],
+        product["MRP"],
+        product["Selling Price"],
+        product["in stock"],
+        (typeof getSheetDescription === "function" ? getSheetDescription(product) : "")
+      );
     }
-  }
-
-  // Try immediately once (if data already present).
-  if (tryOpenFromParam()) return;
-
-  // Otherwise poll shortly until catalogData appears (timeout after 5s).
-  const start = Date.now();
-  const t = setInterval(() => {
-    if (tryOpenFromParam()) { clearInterval(t); return; }
-    if (Date.now() - start > 5000) { clearInterval(t); }
-  }, 250);
-})();
+  }, 200);
+});
 </script>
 
 </body>
