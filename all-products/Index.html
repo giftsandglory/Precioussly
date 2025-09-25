@@ -2133,78 +2133,60 @@ loadAndRenderAllTabs();
 </script>
 <script>
   function maybeOpenFromURL() {
-    try {
-      // agar catalogData abhi tak available nahi hai, thoda wait karke dobara try karenge
-      if (!window.catalogData || !Array.isArray(window.catalogData) || window.catalogData.length === 0) {
-        // 200ms baad dobara try karo — agar sheet load ho gaya toh popup open ho jayega
-        setTimeout(maybeOpenFromURL, 200);
-        return;
-      }
-
-      const raw = (new URLSearchParams(location.search)).get('p');
-      if (!raw) return;
-
-      // normalize the incoming param in multiple ways so matching zyada tolerant ho
-      const tryValues = [];
-      const decoded = (() => {
-        try { return decodeURIComponent(raw); } catch (e) { return raw; }
-      })();
-      tryValues.push(decoded);
-      tryValues.push(raw);
-      tryValues.push(decoded.replace(/\+/g, ' '));
-      tryValues.push(decoded.replace(/-/g, ' '));
-      tryValues.push(decoded.replace(/%20/g, ' '));
-      // slugify helper (same rules as rest of site)
-      const slugify = s => String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
-
-      const wantedSlug = slugify(decoded);
-
-      // Try matching with several fallbacks:
-      let item = null;
-
-      // 1) exact slug match (preferred)
-      item = window.catalogData.find(row => slugify(row["Product Name"]) === wantedSlug);
-      if (!item) {
-        // 2) try case-insensitive trimmed name match
-        const lowerSet = tryValues.map(v => String(v||'').trim().toLowerCase());
-        item = window.catalogData.find(row => {
-          const name = String(row["Product Name"] || '').trim().toLowerCase();
-          if (!name) return false;
-          if (lowerSet.includes(name)) return true;
-          // allow partial contains (helps when param is shorter/longer)
-          return lowerSet.some(v => v && (name === v || name.includes(v) || v.includes(name)));
-        });
-      }
-
-      if (!item) {
-        // 3) final fallback: try the raw slug value as-is against product name after removing punctuation
-        const normRaw = String(decoded||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
-        item = window.catalogData.find(row => {
-          const n = String(row["Product Name"] || '').toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
-          return n && (n === normRaw || n.includes(normRaw) || normRaw.includes(n));
-        });
-      }
-
-      if (!item) return;
-
-      // collect images and open popup (same args as existing openPopup)
-      const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-      try {
-        openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]), (function(){ 
-          // fallback to existing helper if available
-          try { return getSheetDescription ? getSheetDescription(item) : ''; } catch(e){ return ''; }
-        })());
-      } catch(e) {
-        // agar openPopup missing ho to bhi popup show karne ki koshish
-        try {
-          const el = document.getElementById('productPopup');
-          if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
-        } catch(e){}
-      }
-    } catch (err) {
-      console.warn('maybeOpenFromURL error', err);
+  try {
+    if (!window.catalogData || !Array.isArray(window.catalogData) || window.catalogData.length === 0) {
+      setTimeout(maybeOpenFromURL, 200);
+      return;
     }
+
+    const raw = (new URLSearchParams(location.search)).get('p');
+    if (!raw) return;
+
+    const decoded = (() => {
+      try { return decodeURIComponent(raw); } catch (e) { return raw; }
+    })();
+
+    const slugify = s => String(s||'')
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_]+/g,'-')
+      .replace(/[^a-z0-9-]/g,'');
+
+    const wantedSlug = slugify(decoded);
+
+    // 🔹 Find matching item
+    let item = window.catalogData.find(row => slugify(row["Product Name"]) === wantedSlug);
+
+    if (!item) {
+      // fallback: case insensitive compare
+      const lower = decoded.trim().toLowerCase();
+      item = window.catalogData.find(row => String(row["Product Name"]||'').trim().toLowerCase() === lower);
+    }
+
+    if (!item) {
+      // fallback: contains
+      const lower = decoded.trim().toLowerCase();
+      item = window.catalogData.find(row => String(row["Product Name"]||'').trim().toLowerCase().includes(lower));
+    }
+
+    if (!item) return; // no match
+
+    const allPhotos = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
+
+    if (typeof openPopup === "function") {
+      openPopup(
+        allPhotos,
+        item["Product Name"],
+        item["MRP"],
+        item["Selling Price"],
+        item["in stock"],
+        getSheetDescription(item)
+      );
+    }
+  } catch (e) {
+    console.error("maybeOpenFromURL failed:", e);
   }
+}
 </script>
 
 
@@ -4857,3 +4839,4 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 </script>
 </body>
 </html>
+
