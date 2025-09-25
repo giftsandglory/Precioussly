@@ -1844,25 +1844,34 @@ div.product-title {
 <div id="content"></div>
 
 <script>
-
+/* ---------- CONFIG ---------- */
 const PASTED_SHEET_LINK =
   "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
 
 const TAB_NAMES = ["resin-jewelry", "car-keychains" , "crochets" , "artificial-jewelry"];
+const POLL_INTERVAL_MS = 3000; // 3 seconds polling
 
+/* ---------- sheetId extraction ---------- */
 const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
 if (!idMatch) {
   console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
 }
 const sheetId = idMatch ? idMatch[1] : "";
 
+/* ---------- Helpers ---------- */
+function cacheKeyFor(tabName){
+  return `tabCache_${sheetId}_${tabName}`;
+}
+
 function isHidden(row){
   const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
   for (const k of keys){
-    if (row.hasOwnProperty(k) && row[k] != null){
+    if (Object.prototype.hasOwnProperty.call(row, k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
+      if (!v.length) return false;
       if (v.includes("hide")) return true;
-      if (v.length) return false;
+      // any other non-empty value considered visible
+      return false;
     }
   }
   return false;
@@ -1885,56 +1894,142 @@ function isVideoUrl(url=""){
   return u.endsWith(".mp4") || u.endsWith(".webm") || u.endsWith(".mov");
 }
 
+/* ---------- GLOBAL: catalog stored per-tab for stable ordering ---------- */
+window.catalogByTab = window.catalogByTab || {}; // { tabName: [rows...] }
+
+/* ---------- FETCH / CACHE / REVALIDATION ---------- */
+/*
+  Behavior:
+  - fetchTab(tabName) returns cached data immediately (from localStorage) if present (and triggers background revalidation)
+  - revalidateTab(tabName) fetches from network, stores cache, updates window.catalogByTab, and triggers one unified re-render
+*/
+
 async function fetchTab(tabName){
-  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
-  console.log("Fetching tab:", tabName, DATA_URL);
-  const res = await fetch(DATA_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
-  const data = await res.json();
-  data.forEach(row => { row.__tabName = tabName; });
-  return data;
+  const cacheKey = cacheKeyFor(tabName);
+  let cached = null;
+  try {
+    const raw = localStorage.getItem(cacheKey);
+    if (raw) cached = JSON.parse(raw);
+  } catch(e){ /* ignore parse errors */ }
+
+  // If cached exists, use it and schedule background revalidate
+  if (cached && Array.isArray(cached)) {
+    // place into per-tab store (so rebuild uses stable tab order)
+    window.catalogByTab[tabName] = cached.map((r, idx) => {
+      r.__tabName = tabName;
+      r.__tabIndex = TAB_NAMES.indexOf(tabName);
+      r.__rowIndex = idx;
+      return r;
+    });
+    // background revalidation (non-blocking)
+    setTimeout(() => {
+      revalidateTab(tabName).catch(err => {
+        console.warn("Background revalidate failed for", tabName, err);
+      });
+    }, 0);
+    // return cached immediately
+    return cached;
+  }
+
+  // No cache, fetch now
+  return await revalidateTab(tabName);
 }
 
-// DELETE the entire existing loadAndRenderAllTabs() function implementation
-// REPLACE it with the following SWR-based version:
+async function revalidateTab(tabName){
+  const cacheKey = cacheKeyFor(tabName);
+  if (!sheetId) {
+    console.error("Missing sheetId - cannot fetch", tabName);
+    return [];
+  }
+  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
+  try {
+    const res = await fetch(DATA_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
+    const data = await res.json();
 
-async function loadAndRenderAllTabs() {
+    // attach metadata for stable order
+    data.forEach((row, idx) => {
+      row.__tabName = tabName;
+      row.__tabIndex = TAB_NAMES.indexOf(tabName);
+      row.__rowIndex = idx;
+    });
+
+    // store cache
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+    } catch(e){ /* ignore storage errors */ }
+
+    // update per-tab store and rebuild combined view deterministically
+    window.catalogByTab[tabName] = data;
+    rebuildAndRender();
+
+    return data;
+  } catch (err) {
+    console.error("Failed to fetch tab:", tabName, err);
+    // keep previous tab data if exists; don't clear it on error
+    return window.catalogByTab[tabName] || [];
+  }
+}
+
+/* ---------- Rebuild combined dataset using fixed TAB_NAMES order and render ---------- */
+function rebuildAndRender(){
+  // Combine tabs in the exact order of TAB_NAMES
+  const combined = [];
+  TAB_NAMES.forEach((tName) => {
+    const arr = window.catalogByTab[tName];
+    if (Array.isArray(arr)) {
+      combined.push(...arr);
+    }
+  });
+
+  // optional hook
+  if (typeof applyDirectionFromSheet === "function") {
+    try { applyDirectionFromSheet(combined); } catch (e) { console.warn("applyDirectionFromSheet failed:", e); }
+  }
+
+  renderCombinedData(combined);
+}
+
+/* ---------- MAIN: initial load and polling ---------- */
+async function loadAndRenderAllTabs(){
   try {
     if (!sheetId) throw new Error("Missing sheetId.");
-    const cacheKey = "precioussly_catalog_cache_v1";
 
-    // Try reading from localStorage first (stale)
-    let cachedData = null;
-    try {
-      const raw = localStorage.getItem(cacheKey);
-      if (raw) cachedData = JSON.parse(raw);
-    } catch (e) { cachedData = null; }
-
-    if (cachedData && Array.isArray(cachedData)) {
-      window.catalogData = cachedData;
-      renderCombinedData(cachedData);
-    }
-
-    // Always revalidate in background
+    // Try to populate each tab from cache first and schedule network fetches
     const fetchPromises = TAB_NAMES.map(t => fetchTab(t).catch(err => {
-      console.error("Failed to fetch tab:", t, err);
+      console.error("Failed initial fetchTab (cache/network) for", t, err);
       return [];
     }));
-    const allResults = await Promise.all(fetchPromises);
-    const combined = allResults.flat();
 
-    try { localStorage.setItem(cacheKey, JSON.stringify(combined)); } catch (e) {}
-    window.catalogData = combined;
-    renderCombinedData(combined);
+    // Wait for all initial fetchTab calls (they either returned cached or performed network)
+    const allResults = await Promise.all(fetchPromises);
+
+    // Ensure window.catalogByTab has all results (fetchTab already stored cached results)
+    TAB_NAMES.forEach((t, idx) => {
+      const res = allResults[idx] || window.catalogByTab[t] || [];
+      // normalize metadata
+      window.catalogByTab[t] = (res || []).map((r, i) => {
+        r.__tabName = t;
+        r.__tabIndex = idx;
+        r.__rowIndex = i;
+        return r;
+      });
+    });
+
+    // First deterministic render
+    rebuildAndRender();
+
+    // Start polling after initial render
+    startPolling();
 
   } catch (err) {
     console.error("Failed to load products:", err);
   }
 }
 
-
+/* ---------- RENDERING LOGIC (stable grouping, no duplicate section titles) ---------- */
 function renderCombinedData(data){
-  window.catalogData = data;
+  window.catalogData = data; // still expose the combined view for debugging
   const content = document.getElementById("content");
   if (!content) {
     console.error("No #content container found.");
@@ -1943,36 +2038,52 @@ function renderCombinedData(data){
 
   content.innerHTML = "";
 
+  // We'll build sections as we encounter rows, but avoid duplicating a section title
   let currentSection = "";
   let sectionWrapper = null;
   let currentSectionHidden = false;
 
+  // Helper to create a new section
+  function openSection(sectionName, hidden=false){
+    currentSection = sectionName;
+    currentSectionHidden = !!hidden;
+    sectionWrapper = null;
+    if (currentSectionHidden) return;
+    const sectionTitle = document.createElement("div");
+    sectionTitle.className = "section-title";
+    sectionTitle.innerText = currentSection;
+    content.appendChild(sectionTitle);
+
+    sectionWrapper = document.createElement("div");
+    sectionWrapper.className = "product-grid";
+    content.appendChild(sectionWrapper);
+  }
+
   data.forEach((item) => {
+    // If this row is a Section marker
     if (item["Section"]) {
-      currentSection = item["Section"];
-      const secVis = String(item["visibility"] || item["Visibility"] || "")
-        .trim()
-        .toLowerCase();
-      currentSectionHidden = secVis.includes("hide");
-      if (currentSectionHidden) {
-        sectionWrapper = null;
-        return;
-      }
-
-      const sectionTitle = document.createElement("div");
-      sectionTitle.className = "section-title";
-      sectionTitle.innerText = currentSection;
-      content.appendChild(sectionTitle);
-
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      content.appendChild(sectionWrapper);
+      const sectionName = String(item["Section"]).trim();
+      const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
+      const secHidden = secVis.includes("hide");
+      openSection(sectionName, secHidden);
       return;
     }
 
+    // if current section is hidden or row is hidden, skip
     if (currentSectionHidden) return;
     if (isHidden(item)) return;
     if (!item["Product Name"]) return;
+
+    // ensure section wrapper exists (for products that come before any section marker)
+    if (!sectionWrapper) {
+      openSection(""); // unnamed section
+      if (!sectionWrapper) {
+        // safety fallback
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+      }
+    }
 
     const product = document.createElement("div");
     product.className = "product";
@@ -2053,7 +2164,6 @@ function renderCombinedData(data){
     try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
     try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
     title.style.maxWidth = '100%';
-
     infoWrapper.appendChild(title);
 
     const info = document.createElement("div");
@@ -2078,9 +2188,7 @@ function renderCombinedData(data){
     }
 
     if (+item["in stock"] === 0) {
-      info.innerHTML = `
-        ${priceHTML}
-      `;
+      info.innerHTML = `${priceHTML}`;
       const outBtn = document.createElement("button");
       outBtn.className = "add-btn";
       outBtn.disabled = true;
@@ -2103,8 +2211,11 @@ function renderCombinedData(data){
       addBtn.innerText = "Add to Cart";
       addBtn.addEventListener("click", (ev) => {
         ev.stopPropagation();
+        try {
+          if ('vibrate' in navigator) navigator.vibrate(30);
+        } catch(e) {}
         if (typeof addToCartFromGrid === "function") {
-          addToCartFromGrid(addBtn, productData);
+            addToCartFromGrid(addBtn, productData);
         } else {
           console.warn("addToCartFromGrid is not defined.");
         }
@@ -2116,22 +2227,49 @@ function renderCombinedData(data){
     infoWrapper.appendChild(info);
     product.appendChild(infoWrapper);
 
-    if (!sectionWrapper) {
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
-      content.appendChild(sectionWrapper);
-    }
     sectionWrapper.appendChild(product);
   });
 
+  // optional URL open hook
   if (typeof maybeOpenFromURL === "function") {
     try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
   }
 }
 
-loadAndRenderAllTabs();
-</script>
+/* ---------- POLLING ---------- */
+let pollIntervalId = null;
+function startPolling(){
+  if (pollIntervalId) return; // already polling
+  // Revalidate all tabs every POLL_INTERVAL_MS
+  pollIntervalId = setInterval(() => {
+    TAB_NAMES.forEach(t => {
+      try {
+        revalidateTab(t).catch(e => console.warn("poll revalidate failed for", t, e));
+      } catch(e){}
+    });
+  }, POLL_INTERVAL_MS);
+}
 
+function stopPolling(){
+  if (pollIntervalId) {
+    clearInterval(pollIntervalId);
+    pollIntervalId = null;
+  }
+}
+
+/* ---------- INIT ---------- */
+loadAndRenderAllTabs();
+
+/* Optional: expose for debugging */
+window._sheetLiveHelper = {
+  reload: loadAndRenderAllTabs,
+  stopPolling,
+  startPolling,
+  revalidateTab,
+  fetchTab,
+  catalogByTab: window.catalogByTab
+};
+</script>
 <script>
   function getParam(name) {
     const u = new URLSearchParams(location.search);
@@ -2575,6 +2713,19 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     });
     document.body.classList.add("noscroll");
   }
+}
+
+
+/* HAPTIC HELPER: single strong haptic with debounce to avoid double vibration */
+function triggerHaptic(duration = 30, minGap = 120) {
+  try {
+    if (!('vibrate' in navigator)) return;
+    const now = (performance && performance.now) ? performance.now() : Date.now();
+    const last = window.__lastHapticTime || 0;
+    if (now - last < minGap) return;
+    navigator.vibrate(duration);
+    window.__lastHapticTime = now;
+  } catch (e) {}
 }
 
 function changePopupQty(change) {
@@ -4451,162 +4602,6 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 </script>
 
-<!-- START: custom popup-history v4 (aggressive, forces Back -> Home when on listing with no popup) -->
-<script>
-(function(){
-  const LISTING_KEYWORD = '/all-products';
-  const HOME_URL = location.origin + '/';
-
-  function slugify(name){
-    return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
-  }
-
-  function isListingPage() {
-    try {
-      return location.pathname.toLowerCase().indexOf(LISTING_KEYWORD) !== -1;
-    } catch(e){ return false; }
-  }
-
-  function popupElement() {
-    return document.getElementById('productPopup') || document.querySelector('.product-popup') || null;
-  }
-
-  function isPopupVisible() {
-    const el = popupElement();
-    if (!el) return false;
-    try {
-      if (el.classList.contains('is-open')) return true;
-      const disp = getComputedStyle(el).display;
-      return disp !== 'none' && disp !== 'hidden' && disp !== '';
-    } catch(e){ return false; }
-  }
-
-  try {
-    const candidate = document.querySelector('#productPopup .popup-back, #productPopup .back-btn, #productPopup button.back, #productPopup [id*="Back"], #productPopup .pp-back');
-    if (candidate) candidate.remove();
-  } catch(e){}
-
-  if (!isListingPage()) {
-    return;
-  }
-
-  const listingPathNormalized = location.pathname.replace(/\/+$/,'') + '/';
-
-  try {
-    history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-    history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-  } catch(e){ console.warn("history setup failed", e); }
-
-  function showPopupFromURL() {
-    if (typeof maybeOpenFromURL === 'function') {
-      try { maybeOpenFromURL(); return; } catch(e){ console.warn("maybeOpenFromURL failed", e); }
-    }
-    try {
-      const params = new URLSearchParams(location.search);
-      const p = params.get('p');
-      if (p && typeof window.openPopup === 'function') {
-        try { window.openPopup([], p); } catch(e){ console.warn("openPopup invocation failed", e); }
-      } else {
-        const el = popupElement();
-        if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
-      }
-    } catch(e){}
-  }
-
-  function hidePopupImmediate() {
-    const el = popupElement();
-    if (el) {
-      try { el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
-    }
-  }
-
-  const originalOpen = window.openPopup;
-  window.openPopup = function(images, name, mrp, price, stock, desc){
-    try {
-      if (typeof originalOpen === 'function') {
-        originalOpen.apply(this, arguments);
-      }
-    } catch(e){ console.warn("original openPopup error", e); }
-
-    try {
-      const slug = slugify(name || '');
-      const popupUrl = slug ? (listingPathNormalized + '?p=' + encodeURIComponent(slug)) : listingPathNormalized;
-
-      if (!(history.state && history.state.__listing)) {
-        try {
-          history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-          history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-        } catch(e){}
-      }
-
-      if (history.state && history.state.__popup) {
-        history.replaceState({__popup:true, p: slug}, "", popupUrl);
-      } else {
-        history.pushState({__popup:true, p: slug}, "", popupUrl);
-      }
-    } catch(e){ console.warn("openPopup history error", e); }
-  };
-
-  const originalClose = window.closePopup;
-  window.closePopup = function(){
-    try {
-      if (history.state && history.state.__popup) {
-        history.back();
-        return;
-      }
-    } catch(e){}
-
-    if (typeof originalClose === 'function') {
-      try { originalClose.apply(this, arguments); } catch(e){ console.warn("original closePopup error", e); }
-    } else {
-      hidePopupImmediate();
-      try { history.replaceState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search); } catch(e){}
-    }
-  };
-
-  try {
-    const overlay = popupElement();
-    if (overlay) {
-      overlay.addEventListener('click', function(e){
-        if (e.target === overlay) {
-          try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
-          hidePopupImmediate();
-        }
-      }, { passive: true });
-    }
-  } catch(e){}
-
-  window.addEventListener('popstate', function(ev){
-    const st = ev.state || {};
-    const popupVisible = isPopupVisible();
-    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
-
-    if ((st && st.__popup) || urlHasP) {
-      if (!popupVisible) {
-        showPopupFromURL();
-      }
-      return;
-    }
-
-    if (!popupVisible && ( (st && st.__listing) || isListingPage() )) {
-      try {
-        location.href = HOME_URL;
-        return;
-      } catch(e){}
-    }
-
-    if (popupVisible && ((st && st.__listing) || !urlHasP)) {
-      try { hidePopupImmediate(); } catch(e){}
-      return;
-    }
-
-  }, false);
-
-})();
-</script>
-<!-- END: custom popup-history v4 -->
-
-<!-- Assistant: popup / back-button fix (appended) -->
 <script id="assistant-popup-fix">
 (function(){
   'use strict';
@@ -4714,6 +4709,10 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
   } catch(e){}
 
 })();
+const url = new URL(location.href);
+url.searchParams.delete('p');
+history.replaceState(history.state, '', url.pathname + url.search);
+
 </script>
 <!-- End Assistant popup/back-button fix -->
 
@@ -4806,6 +4805,148 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
   } catch(e){}
 })();
 </script>
+<script>
+
+/* Attach haptic to add-to-cart buttons without double firing */
+(function bindAddBtnHaptics(){
+  function bindOnce(el){
+    if(!el || el.__hapticBound) return;
+    el.addEventListener('click', function(e){
+      try{ triggerHaptic(30, 120); }catch(e){}
+    }, {passive:true});
+    el.__hapticBound = true;
+  }
+
+  // For existing buttons
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.add-btn, button.add-to-cart, #popupAddBtn').forEach(bindOnce);
+  });
+
+  // Also observe for future buttons added dynamically
+  const obs = new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      if(m.addedNodes && m.addedNodes.length){
+        m.addedNodes.forEach(function(node){
+          if(node.nodeType !== 1) return;
+          if(node.matches && node.matches('.add-btn, button.add-to-cart, #popupAddBtn')) bindOnce(node);
+          node.querySelectorAll && node.querySelectorAll('.add-btn, button.add-to-cart, #popupAddBtn').forEach(bindOnce);
+        });
+      }
+    });
+  });
+  obs.observe(document.body, {childList:true, subtree:true});
+})();
+
+</script>
+
+<!-- AUTO-INJECTED: popup close-url-cleanup (prevents popup auto-reopen when ?p is present) -->
+<script id="assistant-injected-closepopup-fix">
+(function(){
+  try {
+    // keep original reference (may be undefined)
+    const _origClose = window.closePopup;
+    const _origHide = function(){
+      try {
+        const el = document.getElementById('productPopup');
+        if (el) {
+          el.classList.remove('is-open');
+          el.style.display = 'none';
+        }
+      } catch(e){}
+      try { document.body.classList.remove('noscroll'); } catch(e){}
+    };
+
+    function cleanupUrlRemoveP(){
+      try {
+        const url = new URL(location.href);
+        if (url.searchParams.has('p')) {
+          url.searchParams.delete('p');
+          // Also remove empty trailing '?' if any
+          let newUrl = url.pathname + url.search + url.hash;
+          // If searchParams deleted and search is empty, use pathname+hash
+          if (!url.search) newUrl = url.pathname + url.hash;
+          history.replaceState(null, "", newUrl);
+        }
+      } catch(e){}
+    }
+
+    // Replace window.closePopup with a safe wrapper
+    window.closePopup = function(){
+      try {
+        // If history indicates popup, go back to let popstate handlers run
+        if (history.state && history.state.__popup) {
+          try { history.back(); } catch(e){}
+          // after going back, ensure URL cleaned as well (in case)
+          setTimeout(cleanupUrlRemoveP, 80);
+          return;
+        }
+      } catch(e){}
+
+      // Call original close if it exists
+      try {
+        if (typeof _origClose === "function") {
+          _origClose.apply(this, arguments);
+        } else {
+          // fallback hide
+          _origHide();
+        }
+      } catch(e){
+        try { _origHide(); } catch(e){}
+      }
+
+      // Always ensure URL no longer contains ?p
+      try { cleanupUrlRemoveP(); } catch(e){}
+    };
+
+    // Ensure overlay clicks also remove ?p when they hide the popup directly
+    document.addEventListener('click', function(e){
+      try {
+        const overlay = document.getElementById('productPopup');
+        if (!overlay) return;
+        if (e.target === overlay) {
+          // if history has popup state, prefer history.back() (so back button semantics remain)
+          if (history.state && history.state.__popup) {
+            try { history.back(); } catch(e){}
+            setTimeout(cleanupUrlRemoveP, 80);
+            return;
+          }
+          // otherwise hide and clean url
+          try { overlay.classList.remove('is-open'); overlay.style.display = 'none'; } catch(e){}
+          try { document.body.classList.remove('noscroll'); } catch(e){}
+          setTimeout(cleanupUrlRemoveP, 20);
+        }
+      } catch(err){}
+    }, true);
+
+    // Also handle popstate cleanup: when user closes with back button ensure ?p removed
+    window.addEventListener('popstate', function(ev){
+      try { cleanupUrlRemoveP(); } catch(e){}
+    }, { passive: true });
+
+  } catch(e){
+    console.warn("assistant-injected-closepopup-fix failed", e);
+  }
+})();
+</script>
+<!-- END AUTO-INJECTED -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    if (typeof maybeOpenFromURL === "function") {
+      // Always attempt popup open if ?p is present in URL
+      const params = new URLSearchParams(location.search);
+      if (params.has('p')) {
+        maybeOpenFromURL();
+      }
+    }
+  } catch (e) {
+    console.warn("Auto open from URL failed:", e);
+  }
+});
+</script>
+
 </body>
 </html>
+
+
 
