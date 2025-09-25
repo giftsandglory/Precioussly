@@ -1313,7 +1313,6 @@ body.horizontal-mode .product-grid{
   -webkit-overflow-scrolling: touch;
 }
 
-
 /* --- Improved Description UI (injected) --- */
 .desc-section {
   background: linear-gradient(180deg, #fff, #fffefc);
@@ -2322,7 +2321,6 @@ loadAndRenderAllTabs();
 
 <div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:14px; text-align:center;"></div>
 
-
 <div class="quantity-bar premium-bar">
   <button onclick="changePopupQty(-1)">
     <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
@@ -2341,12 +2339,10 @@ loadAndRenderAllTabs();
   Add to Cart
 </button>
 
-
 <div id="popupDesc" class="desc-section">
   <div class="desc-title">Description</div>
   <div id="popupDescText" class="desc-content"></div>
 </div>
-
 
 </div>
 </div>
@@ -2728,7 +2724,6 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 }
 
-
 function changePopupQty(change) {
   try {
     const qtyElement = document.getElementById("popupQty");
@@ -2767,7 +2762,6 @@ function changePopupQty(change) {
     } catch(e){}
   } catch(e){ console.warn('changePopupQty error', e); }
 }
-
 
 function addToCartFromGrid(button, product) {
   const originalHTML = button.innerHTML;
@@ -3206,8 +3200,6 @@ if (document.readyState !== "loading") updateCartBadge();
 else document.addEventListener("DOMContentLoaded", updateCartBadge);
 </script>
 
-
-
 <script>
 const CONFIG_SHEET_URL = "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
 
@@ -3472,10 +3464,6 @@ window.openHeaderSearch = openHeaderSearch;
 window.closeHeaderSearch = closeHeaderSearch;
 </script>
 
-
-
-
-
 <script>
 
 function applyDirectionFromSheet(rows){
@@ -3659,8 +3647,6 @@ function applyDirectionFromSheet(rows){
   }, true);
 })();
 </script>
-
-
 
 <script id="openPopup-left-right-override">
 (function(){
@@ -3924,7 +3910,6 @@ history.replaceState && history.replaceState(null, "", shareUrl);
   }
 });
 // END: touch / pointer swipe handlers
-
 
 var slides = [], dots = [];
 images.forEach(function(url, i) {
@@ -4653,8 +4638,6 @@ loadAndRenderCatalog();
 })();
 </script>
 
-
-
 <!-- MODIFIED popup history: pushState so browser Back goes back to base, and second Back goes to previous page -->
 <script>
 (function(){
@@ -4747,8 +4730,6 @@ loadAndRenderCatalog();
   }
 })();
 </script>
-
-
 
 <!-- FAST SWIPE TUNING: injected to make touch swipe feel faster & natural -->
 <script>
@@ -4886,9 +4867,6 @@ loadAndRenderCatalog();
 })();
 </script>
 <!-- END FAST SWIPE TUNING -->
-
-
-
 
 <script>
 (function(){
@@ -5087,9 +5065,6 @@ loadAndRenderCatalog();
 </script>
 <!-- END: custom popup-history v4 -->
 
-
-
-
 <!-- Assistant: popup / back-button fix (appended) -->
 <script id="assistant-popup-fix">
 (function(){
@@ -5208,7 +5183,6 @@ loadAndRenderCatalog();
 </script>
 <!-- End Assistant popup/back-button fix -->
 
-
 <!-- BEGIN assistant: reliable back-button popup handler -->
 <script>
 (function(){
@@ -5316,6 +5290,4 @@ loadAndRenderCatalog();
 
 </body>
 </html>
-
-
 
