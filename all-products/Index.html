@@ -4846,37 +4846,25 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
   }, false);
 
   document.addEventListener('keydown', function(e){
-  if (e.key === 'Escape' || e.key === 'Esc') {
-    if (isPopupVisible()) {
-      window.closePopup();
-      e.preventDefault();
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      if (isPopupVisible()) {
+        window.closePopup();
+        e.preventDefault();
+      }
     }
-  }
-}, false);
+  }, false);
 
-// Patch closePopup so it marks manual close
-const _origClose = window.closePopup;
-window.closePopup = function(...args){
-  window.__popupManuallyClosed = true;   // <-- added line
-  if (typeof _origClose === "function") {
-    return _origClose.apply(this, args);
-  }
-};
-
-try {
-  if ((new URL(location.href)).searchParams.has('p')) {
-    // Only open on first load, not after manual close
-    if (!window.__popupManuallyClosed) {
+  try {
+    if ((new URL(location.href)).searchParams.has('p')) {
       if (typeof maybeOpenFromURL === 'function') {
         setTimeout(()=>{ try{ maybeOpenFromURL(); }catch(e){} }, 60);
       } else {
         setTimeout(showDomPopup, 60);
       }
     }
-  }
-} catch(e){}
-})();
+  } catch(e){}
 
+})();
 </script>
 <!-- End Assistant popup/back-button fix -->
 
@@ -5002,6 +4990,98 @@ try {
 })();
 
 </script>
+
+<!-- AUTO-INJECTED: popup close-url-cleanup (prevents popup auto-reopen when ?p is present) -->
+<script id="assistant-injected-closepopup-fix">
+(function(){
+  try {
+    // keep original reference (may be undefined)
+    const _origClose = window.closePopup;
+    const _origHide = function(){
+      try {
+        const el = document.getElementById('productPopup');
+        if (el) {
+          el.classList.remove('is-open');
+          el.style.display = 'none';
+        }
+      } catch(e){}
+      try { document.body.classList.remove('noscroll'); } catch(e){}
+    };
+
+    function cleanupUrlRemoveP(){
+      try {
+        const url = new URL(location.href);
+        if (url.searchParams.has('p')) {
+          url.searchParams.delete('p');
+          // Also remove empty trailing '?' if any
+          let newUrl = url.pathname + url.search + url.hash;
+          // If searchParams deleted and search is empty, use pathname+hash
+          if (!url.search) newUrl = url.pathname + url.hash;
+          history.replaceState(null, "", newUrl);
+        }
+      } catch(e){}
+    }
+
+    // Replace window.closePopup with a safe wrapper
+    window.closePopup = function(){
+      try {
+        // If history indicates popup, go back to let popstate handlers run
+        if (history.state && history.state.__popup) {
+          try { history.back(); } catch(e){}
+          // after going back, ensure URL cleaned as well (in case)
+          setTimeout(cleanupUrlRemoveP, 80);
+          return;
+        }
+      } catch(e){}
+
+      // Call original close if it exists
+      try {
+        if (typeof _origClose === "function") {
+          _origClose.apply(this, arguments);
+        } else {
+          // fallback hide
+          _origHide();
+        }
+      } catch(e){
+        try { _origHide(); } catch(e){}
+      }
+
+      // Always ensure URL no longer contains ?p
+      try { cleanupUrlRemoveP(); } catch(e){}
+    };
+
+    // Ensure overlay clicks also remove ?p when they hide the popup directly
+    document.addEventListener('click', function(e){
+      try {
+        const overlay = document.getElementById('productPopup');
+        if (!overlay) return;
+        if (e.target === overlay) {
+          // if history has popup state, prefer history.back() (so back button semantics remain)
+          if (history.state && history.state.__popup) {
+            try { history.back(); } catch(e){}
+            setTimeout(cleanupUrlRemoveP, 80);
+            return;
+          }
+          // otherwise hide and clean url
+          try { overlay.classList.remove('is-open'); overlay.style.display = 'none'; } catch(e){}
+          try { document.body.classList.remove('noscroll'); } catch(e){}
+          setTimeout(cleanupUrlRemoveP, 20);
+        }
+      } catch(err){}
+    }, true);
+
+    // Also handle popstate cleanup: when user closes with back button ensure ?p removed
+    window.addEventListener('popstate', function(ev){
+      try { cleanupUrlRemoveP(); } catch(e){}
+    }, { passive: true });
+
+  } catch(e){
+    console.warn("assistant-injected-closepopup-fix failed", e);
+  }
+})();
+</script>
+<!-- END AUTO-INJECTED -->
+
 </body>
 </html>
 
