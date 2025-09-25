@@ -1304,7 +1304,79 @@ body.horizontal-mode .product-grid{
   max-height: 86vh;
   -webkit-overflow-scrolling: touch;
 }
+/* ----- CSS that styles the popup, the add button and description ----- */
 
+/* popup card container */
+.popup-card {
+  background: #f7f7f7;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 320px;
+  margin: 20px;
+  padding: 16px;
+  position: relative;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+
+  transform: translateY(18px) scale(.975);
+  opacity: 0;
+  transform-origin: center;
+  will-change: transform, opacity;
+  transition:
+    transform 420ms cubic-bezier(.22,1,.36,1),
+    opacity 420ms ease;
+  contain: layout paint style;
+}
+
+/* Description box (rounded white card look) */
+.desc-section {
+  margin: 8px 8px 0;
+  text-align: center;
+  background: linear-gradient(180deg, #fff, #fffefc);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(18, 18, 18, 0.06);
+  margin: 12px 8px 8px;
+}
+.desc-title {
+  font-size: 16px;
+  color: #111;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+.desc-content{
+  font-size: 12.5px;
+  line-height: 1.55;
+  height:auto; overflow:visible;
+  padding: 0 4px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: 92%;
+  margin: 0 auto;
+  text-align: left;
+  color: #444;
+  white-space: pre-wrap;
+}
+
+/* Add-to-cart button styling that creates blue gradient + 'glow' box-shadow */
+#popupAddBtn {
+  background: linear-gradient(90deg, #2563eb, #1e4fd6);
+  border: none;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 10px 26px rgba(37,99,235,0.18);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+#popupAddBtn:active {
+  transform: translateY(1px) scale(.995);
+  box-shadow: 0 6px 16px rgba(37,99,235,0.12);
+}
 </style>
 
 <style id="alignment-fix-0901b">
