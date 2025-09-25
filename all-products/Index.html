@@ -2917,7 +2917,7 @@ function closePopup() {
     if (e.target !== card) return;
     popup.style.display = "none";
     try { popup.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; }); } catch(e){}
-  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  try { if (history.state && history.state.__popup) { history.back(); } else { history.replaceState(null, "", location.pathname); } } catch (e) {}
     card.removeEventListener("transitionend", onDone);
   };
   card.addEventListener("transitionend", onDone);
@@ -3582,7 +3582,7 @@ if (wh) {
             + encodeURIComponent(shareUrl);
 }
 
-history.replaceState && history.replaceState(null, "", shareUrl);
+try{ if (!history.state || !history.state.__popup) history.pushState({__popup:true}, "", shareUrl); }catch(e){}
     } catch(e){}
 
     var qtyEl = $("popupQty"); if(qtyEl) qtyEl.innerText = "1";
@@ -4496,6 +4496,45 @@ loadAndRenderCatalog();
 })();
 </script>
 <!-- End history-fix -->
+
+
+<script>
+// Ensure back button closes product popup reliably
+(function(){
+  function isPopupOpen(){
+    const p = document.getElementById('productPopup');
+    if(!p) return false;
+    return p.classList.contains('is-open') || (p.style.display && (p.style.display === 'flex' || p.style.display === 'block'));
+  }
+  function forceClosePopup(){
+    const popup = document.getElementById('productPopup');
+    if(!popup) return;
+    popup.classList.remove('is-open');
+    popup.style.display = 'none';
+    document.body.classList.remove('noscroll');
+    try { popup.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; }); } catch(e){}
+    // remove ?p=... from URL if present without adding history entry
+    try { history.replaceState(null, '', location.pathname); } catch(e) {}
+  }
+
+  window.addEventListener('popstate', function(evt){
+    // if popup is open and the state no longer indicates popup, close it
+    if (isPopupOpen() && !(evt.state && evt.state.__popup)) {
+      forceClosePopup();
+    }
+  }, { passive: true });
+
+  // also close popup when URL param p removed (e.g., user navigated back)
+  const obs = new MutationObserver(function(){
+    if (!isPopupOpen()) return;
+    const qs = location.search || '';
+    if (!qs.includes('p=')) {
+      forceClosePopup();
+    }
+  });
+  obs.observe(document.documentElement, { subtree: false, childList: false, attributes: false });
+})();
+</script>
 
 </body>
 </html>
