@@ -2280,14 +2280,9 @@ loadAndRenderAllTabs();
 </script>
 
 <script>
-/* Robust maybeOpenFromURL — copy & paste this block */
-(function () {
   function getParam(name) {
-    try {
-      return new URLSearchParams(location.search).get(name);
-    } catch (e) {
-      return null;
-    }
+    const u = new URLSearchParams(location.search);
+    return u.get(name);
   }
 
   function slugify(s) {
@@ -2298,121 +2293,86 @@ loadAndRenderAllTabs();
       .replace(/[^a-z0-9-]/g, '');  // remove other symbols
   }
 
-  function findItemInSource(sourceData, wanted) {
-    if (!Array.isArray(sourceData) || !sourceData.length) return null;
-    const slugWanted = slugify(decodeURIComponent(wanted));
+function getParam(name){ return (new URLSearchParams(location.search)).get(name); }
+function norm(s){
+  try {
+    s = String(s || '');
+    s = s.normalize('NFKD').replace(/\p{Diacritic}/gu,'');
+    s = s.trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
+    s = s.replace(/-+/g,'-').replace(/^-|-$/g,'');
+    return s;
+  } catch(e){ return String(s||'').trim().toLowerCase(); }
+}
+async function maybeOpenFromURL(){
+  const p = getParam('p');
+  if (!p) return;
+  const wanted = norm(decodeURIComponent(p));
 
-    // 1) slug match (most reliable)
-    let item = sourceData.find(row =>
-      slugify(row["Product Name"] || row.name || '') === slugWanted
+  const waitForCatalog = (timeout=1500) => new Promise(resolve=>{
+    const start = Date.now();
+    (function check(){ 
+      if (Array.isArray(window.catalogData) && window.catalogData.length) return resolve(window.catalogData);
+      if (Date.now() - start > timeout) return resolve(window.catalogData || []);
+      setTimeout(check, 120);
+    })();
+  });
+
+  const source = await waitForCatalog();
+
+  if (!Array.isArray(source) || !source.length) {
+    try { 
+      const el = document.getElementById('productPopup');
+      if(el){ el.style.display='flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+    } catch(e){}
+    return;
+  }
+
+  const candidate = source.find(row => {
+    const name = row["Product Name"] || row.name || row.title || '';
+    const route = row.route || row.Route || row.url || row.routeName || '';
+    if (norm(name) === wanted) return true;
+    if (norm(route) === wanted) return true;
+    if (String(name || '').trim().toLowerCase() === decodeURIComponent(p).trim().toLowerCase()) return true;
+    return false;
+  });
+
+  let item = candidate;
+  if (!item) {
+    item = source.find(row => {
+      const name = row["Product Name"] || row.name || '';
+      return norm(name).includes(wanted) || (String(name||'').toLowerCase().includes(decodeURIComponent(p).toLowerCase()));
+    });
+  }
+
+  if (!item) {
+    try { 
+      const el = document.getElementById('productPopup');
+      if(el){ el.style.display='flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+    } catch(e){}
+    return;
+  }
+
+  const images = [
+    item["photo 1"] || item.mediaUrl || item.photo || item.image,
+    item["photo 2"], item["photo 3"], item["photo 4"], item.image2
+  ].filter(Boolean);
+
+  try {
+    openPopup(
+      images,
+      item["Product Name"] || item.name || item.title || decodeURIComponent(p),
+      Number(item["MRP"] || item.mrp || 0) || undefined,
+      Number(item["Selling Price"] || item.price || item.sellingPrice || 0) || undefined,
+      Number(item["in stock"] || item.stock || 1) || 1,
+      (typeof getSheetDescription === "function") ? getSheetDescription(item) : (item.description || '')
     );
-    if (item) return item;
-
-    // 2) if numeric, try matching common ID-like columns or fallback to 1-based index
-    if (/^\d+$/.test(wanted)) {
-      const numeric = String(parseInt(wanted, 10));
-      const idKeys = ["id","ID","Id","product id","Product ID","product_id","Product_ID","sku","SKU","S.No","sno","Sno","serial","Serial"];
-      for (const row of sourceData) {
-        for (const k of idKeys) {
-          if (row.hasOwnProperty(k) && row[k] != null) {
-            if (String(row[k]).trim() === numeric) { return row; }
-          }
-        }
-      }
-      // fallback: 1-based index (useful when p is row number)
-      const idx = parseInt(wanted, 10) - 1;
-      if (!isNaN(idx) && idx >= 0 && idx < sourceData.length) return sourceData[idx];
-    }
-
-    // 3) fallback: case-insensitive exact name match
-    const wantLower = String(wanted).toLowerCase();
-    item = sourceData.find(row => String(row["Product Name"] || row.name || '').toLowerCase() === wantLower);
-    return item || null;
-  }
-
-  function openFoundItem(item) {
-    if (!item) return;
-    const images = [
-      item["photo 1"] || item.mediaUrl || item.photo || item.image,
-      item["photo 2"],
-      item["photo 3"],
-      item["photo 4"]
-    ].filter(Boolean);
-
-    const mrp = Number(item["MRP"] || item.mrp || 0) || undefined;
-    const price = Number(item["Selling Price"] || item.price || item.selling_price || 0) || undefined;
-    const stock = Number(item["in stock"] || item.stock || item.in_stock || 1) || 1;
-    const desc = (typeof getSheetDescription === "function") ? getSheetDescription(item) : (item.description || "");
-
-    if (typeof openPopup === "function") {
-      try {
-        openPopup(images, item["Product Name"] || item.name || '', mrp, price, stock, desc);
-      } catch (e) {
-        console.warn("openPopup threw:", e);
-        showDOMPopupFallback();
-      }
-    } else {
-      showDOMPopupFallback();
-    }
-  }
-
-  function showDOMPopupFallback() {
+  } catch(e){
     const el = document.getElementById('productPopup');
-    if (el) {
-      try {
-        el.style.display = 'flex';
-        el.classList.add('is-open');
-        document.body.classList.add('noscroll');
-      } catch (e) {}
-    }
+    if(el){ el.style.display='flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
   }
+}
 
-  function maybeOpenFromURLOnce() {
-    try {
-      const wanted = getParam('p');
-      if (!wanted) return false;
 
-      const sourceData = (Array.isArray(window.catalogData) && window.catalogData.length) ? window.catalogData
-                        : (Array.isArray(window.allProducts) && window.allProducts.length ? window.allProducts : []);
-
-      if (!Array.isArray(sourceData) || !sourceData.length) return false;
-
-      const item = findItemInSource(sourceData, wanted);
-      if (!item) return false;
-
-      openFoundItem(item);
-      return true;
-    } catch (e) {
-      console.warn("maybeOpenFromURLOnce error:", e);
-      return false;
-    }
-  }
-
-  // Try immediately + retry a few times in case product data loads shortly after script runs.
-  function maybeOpenFromURLWithRetries(attempts = 5, delay = 400) {
-    let tried = 0;
-    function attempt() {
-      tried++;
-      const ok = maybeOpenFromURLOnce();
-      if (ok) return;
-      if (tried < attempts) {
-        setTimeout(attempt, delay);
-      }
-    }
-    attempt();
-  }
-
-  // Run when DOM ready — also safe if this script is placed at end of body.
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => maybeOpenFromURLWithRetries());
-  } else {
-    // DOM already ready
-    maybeOpenFromURLWithRetries();
-  }
-
-  // Also expose function globally if other scripts want to call it:
-  window.maybeOpenFromURL = maybeOpenFromURLOnce;
-})();
 </script>
 
 
