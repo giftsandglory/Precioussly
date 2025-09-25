@@ -2065,6 +2065,8 @@ async function loadAndRenderAllTabs(){
     }
 
     renderCombinedData(combined);
+maybeOpenFromURL();
+
   } catch (err) {
     console.error("Failed to load products:", err);
   }
@@ -2292,18 +2294,37 @@ loadAndRenderAllTabs();
   }
 
   function maybeOpenFromURL() {
-    const wanted = getParam('p');
-    if (!wanted || !window.catalogData) return;
+  const wanted = getParam('p');
+  if (!wanted) return;
 
-    const wantedSlug = slugify(decodeURIComponent(wanted));
-    const item = window.catalogData.find(row =>
-      slugify(row["Product Name"]) === wantedSlug
-    );
-    if (!item) return;
+  const wantedSlug = slugify(decodeURIComponent(wanted));
 
-    const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-    openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]), getSheetDescription(item));
-  }
+  // Prefer the combined multi-tab data if available
+  const sourceData = window.catalogData || window.allProducts || [];
+  if (!Array.isArray(sourceData) || !sourceData.length) return;
+
+  const item = sourceData.find(row =>
+    slugify(row["Product Name"] || row.name) === wantedSlug
+  );
+  if (!item) return;
+
+  const images = [
+    item["photo 1"] || item.mediaUrl,
+    item["photo 2"],
+    item["photo 3"],
+    item["photo 4"]
+  ].filter(Boolean);
+
+  openPopup(
+    images,
+    item["Product Name"] || item.name,
+    Number(item["MRP"] || item.mrp),
+    Number(item["Selling Price"] || item.price),
+    Number(item["in stock"] || 1),
+    typeof getSheetDescription === "function" ? getSheetDescription(item) : (item.description || "")
+  );
+}
+
 </script>
 
 <div id="productPopup">
