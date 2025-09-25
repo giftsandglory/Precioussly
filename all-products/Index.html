@@ -2284,19 +2284,58 @@ window._sheetLiveHelper = {
       .replace(/[^a-z0-9-]/g, '');
   }
 
-  function maybeOpenFromURL() {
-    const wanted = getParam('p');
-    if (!wanted || !window.catalogData) return;
+  // ***********************
+// Auto-open popup from ?p=slug
+// ***********************
+function maybeOpenFromURL() {
+  try {
+    const params = new URLSearchParams(location.search);
+    const slug = params.get("p");
+    if (!slug) return false;
 
-    const wantedSlug = slugify(decodeURIComponent(wanted));
-    const item = window.catalogData.find(row =>
-      slugify(row["Product Name"]) === wantedSlug
-    );
-    if (!item) return;
+    const catalog = window.catalogData || [];
 
-    const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
-    openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]), getSheetDescription(item));
+    const match = catalog.find(row => {
+      return slugifyForUrl(row["Product Name"] || "") === slug;
+    });
+
+    if (!match) {
+      // Sheet data abhi load nahi hua? Retry after 300ms
+      setTimeout(maybeOpenFromURL, 300);
+      return true;
+    }
+
+    const images = [
+      match["photo 1"],
+      match["photo 2"],
+      match["photo 3"],
+      match["photo 4"]
+    ].filter(Boolean);
+
+    if (typeof openPopup === "function") {
+      openPopup(
+        images,
+        match["Product Name"],
+        match["MRP"],
+        match["Selling Price"],
+        match["in stock"],
+        (match["Description"] || "")
+      );
+    }
+    return true;
+  } catch (e) {
+    return false;
   }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  maybeOpenFromURL();
+});
+
+window.addEventListener("popstate", function () {
+  maybeOpenFromURL();
+});
+
 </script>
 
 <div id="productPopup">
@@ -2459,30 +2498,51 @@ function injectProductSchema({name, price, mrp, image, description}) {
 
 let selectedProduct = null;
 
+// --- helper slugify function (add once at top of your script if not already there) ---
+function slugifyForUrl(s) {
+  return String(s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+}
+// ---------------------------------------------------------------------
+
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
   selectedProduct = { image: images?.[0], name, mrp, price };
 
-  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name || "")}`;
+  const slug = slugifyForUrl(name || "");
+  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(slug)}`;
 
   const imageUrl = images?.[0] || "";
-  const line1 = `${name || ""} ${price ? "₹"+price : ""}`.trim();
+  const line1 = `${name || ""} ${price ? "₹" + price : ""}`.trim();
 
-  const whEl = document.getElementById('whShare');
+  const whEl = document.getElementById("whShare");
   if (whEl) {
-    whEl.href = `https://wa.me/?text=${encodeURIComponent(imageUrl)}%0A${encodeURIComponent(line1)}%0A${encodeURIComponent(shareUrl)}`;
-    whEl.onclick = function() {
-      const d = document.getElementById('popupDetails');
+    whEl.href =
+      "https://wa.me/?text=" +
+      encodeURIComponent(imageUrl) + "%0A" +
+      encodeURIComponent(line1) + "%0A" +
+      encodeURIComponent(shareUrl);
+    whEl.onclick = function () {
+      const d = document.getElementById("popupDetails");
       if (d) d.open = false;
     };
   }
 
   try {
-    const curP = (new URL(location.href)).searchParams.get('p');
-    const myP = (new URL(shareUrl)).searchParams.get('p');
+    const curP = (new URL(location.href)).searchParams.get("p");
+    const myP = (new URL(shareUrl)).searchParams.get("p");
     if (curP !== myP) {
       history.pushState({ __popup: true, p: myP }, "", shareUrl);
     } else {
-      try { history.replaceState(Object.assign({}, history.state || {}, { __popup: true, p: myP}), "", shareUrl); } catch(e){}
+      try {
+        history.replaceState(
+          Object.assign({}, history.state || {}, { __popup: true, p: myP }),
+          "",
+          shareUrl
+        );
+      } catch (e) {}
     }
   } catch (e) {}
 
@@ -2525,7 +2585,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     price,
     mrp,
     image: images?.[0],
-    description: fromSheet
+    description: fromSheet,
   });
 
   const popupBtn = document.getElementById("popupAddBtn");
@@ -2542,7 +2602,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
           name,
           mrp,
           price,
-          qty: parseInt(document.getElementById("popupQty").innerText) || 1
+          qty: parseInt(document.getElementById("popupQty").innerText) || 1,
         });
       };
     }
@@ -2553,7 +2613,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   if (!slider) return;
 
   const existingBySrc = new Map();
-  slider.querySelectorAll("video.popup-slide[src]").forEach(v => {
+  slider.querySelectorAll("video.popup-slide[src]").forEach((v) => {
     existingBySrc.set(v.currentSrc || v.getAttribute("src"), v);
   });
 
@@ -2588,7 +2648,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
       const img = document.createElement("img");
       img.className = "popup-slide";
       img.src = clean;
-      img.alt = (name || "product");
+      img.alt = name || "product";
       el = img;
     }
 
@@ -2604,9 +2664,12 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     }
   });
 
-  if (dotsContainer){
-    dotsContainer.style.display = (slides.length <= 1) ? "none" : "inline-flex";
+  if (dotsContainer) {
+    dotsContainer.style.display =
+      slides.length <= 1 ? "none" : "inline-flex";
   }
+}
+
 
   function setActiveDot(i){
     dots.forEach((d, idx) => {
@@ -4108,6 +4171,18 @@ async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
         if (!item || !item["Product Name"]) return;
 
         const product = document.createElement("div");
+        // --- add this slugify helper once (top of script ya product render se pehle bhi daal sakte ho) ---
+function slugifyForUrl(s) {
+  return String(s || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+}
+// ---------------------------------------------------------------------
+
+product.dataset.slug = slugifyForUrl(item["Product Name"] || "");
+
         product.className = "product";
 
         product.addEventListener("click", (e) => {
