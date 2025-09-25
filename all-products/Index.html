@@ -1911,6 +1911,8 @@ async function loadAndRenderAllTabs(){
     }
 
     renderCombinedData(combined);
+setTimeout(maybeOpenFromURL, 50); // ensures data is loaded before trying
+
   } catch (err) {
     console.error("Failed to load products:", err);
   }
@@ -3338,17 +3340,7 @@ function applyDirectionFromSheet(rows){
       obs.observe(popup, { attributes: true, attributeFilter: ['style', 'class'] });
     }
 
-    window.addEventListener('popstate', (ev) => {
-      if (!popup) return;
-      const isVisible = window.getComputedStyle(popup).display !== 'none';
-      if (ev.state && ev.state.popupOpen) {
-        hideInstant();
-        try { history.replaceState(null, "", location.pathname); } catch(e) {}
-      } else if (isVisible) {
-        hideInstant();
-      }
-    });
-  })();
+    
 </script>
 
 <style id="dot-hide-single-v2">
@@ -3738,12 +3730,19 @@ if (popup){
 (function(){
   const overlay = document.getElementById('profilePopupOverlay');
   const back = document.getElementById('ppBackBtn');
-  function openPopup(){
-    if(!overlay) return;
-    overlay.classList.add('show');
-    document.body.classList.add('no-scroll');
-    overlay.setAttribute('aria-hidden','false');
+  const originalOpenPopup = window.openPopup;
+window.openPopup = function (...args) {
+  if (typeof originalOpenPopup === 'function') {
+    originalOpenPopup(...args);
   }
+  try {
+    const name = args[1] || '';
+    const slug = slugify(name);
+    const newUrl = `${location.pathname}?p=${encodeURIComponent(slug)}`;
+    history.pushState({ __popup: true }, '', newUrl);
+  } catch (e) {}
+};
+
   function closePopup(){
     overlay.classList.remove('show');
     document.body.classList.remove('no-scroll');
@@ -3910,11 +3909,7 @@ if (popup){
     mo2.observe(prodEl, { attributes: true, attributeFilter: ['class','style'] });
   }
 
-  window.addEventListener('popstate', function(){
-    if (productOpen()) { closeProduct(); return; }
-    if (profileOpen()) { closeProfile(); return; }
-  });
-})();
+  
 </script>
 <script>
 window._userInteracting = false;
@@ -4303,10 +4298,8 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     } catch (e) { console.warn("replaceState closePopup failed:", e); }
   };
 
-  window.addEventListener('popstate', function(ev){
-    const st = ev.state || {};
-    const el = popupEl();
-    const isVisible = el && (el.classList.contains('is-open') || getComputedStyle(el).display !== 'none');
+  
+
 
     const urlHasP = !!(new URLSearchParams(location.search).get('p'));
     if (st && st.__popup || urlHasP) {
@@ -4607,17 +4600,7 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }
   } catch(e){}
 
-  window.addEventListener('popstate', function(ev){
-    const st = ev.state || {};
-    const popupVisible = isPopupVisible();
-    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
-
-    if ((st && st.__popup) || urlHasP) {
-      if (!popupVisible) {
-        showPopupFromURL();
-      }
-      return;
-    }
+  
 
     if (!popupVisible && ( (st && st.__listing) || isListingPage() )) {
       try {
@@ -4706,24 +4689,8 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }
   }, true);
 
-  window.addEventListener('popstate', function(ev){
-    let urlHasP = false;
-    try { urlHasP = (new URL(location.href)).searchParams.has('p'); } catch(e){}
-    const visible = isPopupVisible();
-    if (urlHasP) {
-      if (!visible) {
-        if (typeof maybeOpenFromURL === 'function') {
-          try { maybeOpenFromURL(); return; } catch(e){ console.warn('maybeOpenFromURL failed', e); }
-        }
-        showDomPopup();
-      }
-    } else {
-      if (visible) {
-        hideDomPopup();
-        return;
-      }
-    }
-  }, false);
+  
+  
 
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape' || e.key === 'Esc') {
@@ -4803,14 +4770,7 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     } catch(e){}
   };
 
-  window.addEventListener('popstate', function(ev){
-    try {
-      if (isPopupVisible() || window.__popupOpen) {
-        hidePopupImmediate();
-        try { history.pushState({__listing_preserved:true}, '', location.pathname + location.search); } catch(e){}
-      }
-    } catch(e){}
-  }, false);
+  
 
   document.addEventListener('click', function(e){
     const overlay = popupEl();
@@ -4836,6 +4796,15 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }
   } catch(e){}
 })();
+window.addEventListener('popstate', function () {
+  const hasParam = new URLSearchParams(location.search).has('p');
+  if (!hasParam) {
+    closePopup();
+  } else {
+    maybeOpenFromURL();
+  }
+});
+
 </script>
 </body>
 </html>
