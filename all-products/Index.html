@@ -1925,37 +1925,61 @@ async function fetchTab(tabName){
 }
 
 // SWR-like fetch that uses localStorage cache + background revalidate
+// --- START: robust fetchTabWithSWR (replace existing function) ---
 async function fetchTabWithSWR(tabName){
   const cacheKey = `sheetCache_${sheetId}_${tabName}`;
   const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
 
-  // attempt to read cache
+  // try read cache immediately and keep as fallback
+  let cachedParsed = null;
   try{
     const raw = localStorage.getItem(cacheKey);
     if (raw){
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)){
         parsed.forEach(r => r.__tabName = tabName);
+        cachedParsed = parsed;
         // spawn background revalidate but don't await it here
+        // revalidate is hoisted (declared below)
         revalidate().catch(()=>{});
         return { data: parsed, fromCache: true };
       }
     }
   } catch(e){ console.warn('cache read failed', e); }
 
-  // no usable cache -> fetch live
+  // no usable cache -> try live fetch
   try{
-    const res = await fetch(DATA_URL);
+    const res = await fetch(DATA_URL, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const live = await res.json();
     try{ localStorage.setItem(cacheKey, JSON.stringify(live)); } catch(e){ /* ignore storage errors */ }
     live.forEach(r => r.__tabName = tabName);
     return { data: live, fromCache: false };
   } catch(err){
-    console.error('fetchTabWithSWR failed for', tabName, err);
-    return { data: [], fromCache: false };
+    console.error('fetchTabWithSWR: live fetch failed for', tabName, err);
+
+    // MINIMAL FIX: if we had cached data, return it as a fallback instead of returning empty []
+    if (cachedParsed && Array.isArray(cachedParsed) && cachedParsed.length > 0){
+      console.warn('fetchTabWithSWR: returning cached fallback for', tabName);
+      return { data: cachedParsed, fromCache: true, fallback: true };
+    }
+
+    // Last-resort: attempt one quick retry (very small, non-blocking)
+    try{
+      const retryRes = await fetch(DATA_URL);
+      if (retryRes && retryRes.ok){
+        const retryData = await retryRes.json();
+        try{ localStorage.setItem(cacheKey, JSON.stringify(retryData)); } catch(e){}
+        retryData.forEach(r => r.__tabName = tabName);
+        return { data: retryData, fromCache: false };
+      }
+    }catch(e){ /* ignore retry failure */ }
+
+    // If absolutely nothing works, return an empty array but mark as failed
+    return { data: [], fromCache: false, error: String(err || 'unknown') };
   }
 
+  // background revalidate (hoisted)
   async function revalidate(){
     try{
       const freshRes = await fetch(DATA_URL, { cache: 'no-store' });
@@ -1963,7 +1987,6 @@ async function fetchTabWithSWR(tabName){
       const fresh = await freshRes.json();
       try{ localStorage.setItem(cacheKey, JSON.stringify(fresh)); } catch(e){}
       fresh.forEach(r => r.__tabName = tabName);
-      // merge fresh into existing rendered data
       if (typeof renderCombinedData === 'function'){
         const existing = Array.isArray(window.catalogData) ? window.catalogData : [];
         const others = existing.filter(d => d.__tabName !== tabName);
@@ -1972,6 +1995,8 @@ async function fetchTabWithSWR(tabName){
     } catch(e){ /* silent */ }
   }
 }
+// --- END: robust fetchTabWithSWR ---
+
 
 // ---------------------- Renderer ----------------------
 function renderCombinedData(data){
@@ -2141,9 +2166,18 @@ async function loadAndRenderAllTabs(){
       try{ applyDirectionFromSheet(allData); } catch(e){ console.warn('applyDirectionFromSheet failed', e); }
     }
 
+    // 👇 FIX: prevent blank screen on transient fetch failure
+    if (!Array.isArray(allData) || allData.length === 0) {
+      console.warn('loadAndRenderAllTabs: combined fetch empty — keeping existing UI (transient failure?)');
+      return;
+    }
+
     renderCombinedData(allData);
-  } catch(e){ console.error('loadAndRenderAllTabs failed', e); }
-  finally{ _isLoading = false; }
+  } catch(e){ 
+    console.error('loadAndRenderAllTabs failed', e); 
+  } finally{ 
+    _isLoading = false; 
+  }
 }
 
 // start immediately and schedule periodic revalidation
@@ -2157,6 +2191,7 @@ async function loadAndRenderAllTabs(){
 window.reloadProductGrid = function(){ loadAndRenderAllTabs().catch(()=>{}); };
 
 /* End of product-grid-google-sheets-clean.js */
+
 </script>
 
 <script>
