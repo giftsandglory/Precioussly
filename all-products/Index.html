@@ -1090,9 +1090,10 @@ body.horizontal-mode .product-grid{
   gap: 10px;
   width: 100%;
   height: 100%;
-  transition: transform 260ms cubic-bezier(.22,1,.36,1);
+  transition: transform 420ms cubic-bezier(.25, 1, .30, 1);
   will-change: transform;
 }
+
 #popupSlider .popup-slide{
   position: relative !important;
   inset: auto !important;
@@ -2668,7 +2669,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const atLast  = currentIndex === slides.length - 1 && dx < 0;
     const damp = (atFirst || atLast) ? 0.4 : 1;
     const pos = dragStartX + dx * damp;
-    track.style.transform = `translateX(${pos}px)`;
+track.style.transform = `translateX(${pos}px) scale(0.98)`;
+
 
     lastMoveTime = Date.now();
     lastMoveX = e.clientX;
@@ -2682,7 +2684,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const dx = e.clientX - startX;
     const dt = Math.max(1, Date.now() - lastMoveTime);
     const velocity = (e.clientX - lastMoveX) / dt;
-    const threshold = Math.min(160, width() * 0.25);
+    const threshold = Math.min(20, width() * 0.01);  // sirf 3% swipe ya 20px
+
     const fast = Math.abs(velocity) > 0.6;
 
     let target = currentIndex;
@@ -2690,6 +2693,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     else if (dx > threshold || (fast && dx > 0)) target = currentIndex - 1;
 
     window.__fastSwipe = fast;
+    track.style.transform = `translateX(${-target * width()}px) scale(1)`;
+
     goTo(target, true);
     setTimeout(() => { window.__fastSwipe = false; }, 50);
     slider.releasePointerCapture?.(e.pointerId);
