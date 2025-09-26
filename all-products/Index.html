@@ -1811,7 +1811,7 @@ div.product-title {
     />
 
     
-    <a href="/cart.html" style="position: relative; display: inline-block; margin-top: 5px;">
+    <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
       <img
         src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
         alt="Cart"
@@ -2000,6 +2000,31 @@ async function fetchTabWithSWR(tabName){
 
 // ---------------------- Renderer ----------------------
 function renderCombinedData(data){
+    // --- PRESERVE POPUP SLIDER STATE: capture current index (if popup open) ---
+  let __preservedPopup = null;
+  try {
+    const popup = document.getElementById('productPopup');
+    if (popup && (popup.classList.contains('is-open') || getComputedStyle(popup).display !== 'none')) {
+      const slider = document.getElementById('popupSlider');
+      if (slider) {
+        const track = slider.querySelector('.popup-track');
+        if (track) {
+          // helper to read current translate (same pattern used by your tunePopupSwipe())
+          const cur = (track.style.transform || '');
+          const m = cur.match(/translateX\((-?\d+(\.\d+)?)px\)/);
+          const curPx = m ? parseFloat(m[1]) : 0;
+          const widthWithGap = Math.max(1, slider.getBoundingClientRect().width + 10);
+          const curIndex = Math.round(Math.abs(curPx) / widthWithGap);
+          // save index + slider width for restoration
+          __preservedPopup = { index: curIndex, width: widthWithGap, imagesCount: (track.children.length || 0) };
+        }
+      }
+    }
+  } catch (e) {
+    // fail-safe: if anything goes wrong, we just won't restore
+    __preservedPopup = null;
+  }
+
   window.catalogData = Array.isArray(data) ? data : [];
 
   // ✅ Fix: Always keep tab order stable
@@ -2139,6 +2164,37 @@ function renderCombinedData(data){
     }
     sectionWrapper.appendChild(product);
   }
+  // --- RESTORE POPUP SLIDER STATE (if we captured it) ---
+  try {
+    if (__preservedPopup && __preservedPopup.index >= 0) {
+      const popup = document.getElementById('productPopup');
+      const slider = document.getElementById('popupSlider');
+      if (popup && slider && (popup.classList.contains('is-open') || getComputedStyle(popup).display !== 'none')) {
+        const track = slider.querySelector('.popup-track');
+        if (track) {
+          // clamp index to available slides
+          const maxIdx = Math.max(0, (track.children.length - 1));
+          const idx = Math.max(0, Math.min(maxIdx, __preservedPopup.index));
+          // set translation instantly (no animation)
+          track.style.transition = 'none';
+          track.style.transform = 'translateX(' + (-idx * (slider.getBoundingClientRect().width + 10)) + 'px)';
+          // update dot classes if popup-dots exist
+          const dots = popup.querySelectorAll('.popup-dot');
+          if (dots && dots.length) {
+            dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+          }
+          // force a reflow so user sees the restored position immediately
+          void track.offsetWidth;
+          // re-enable transitions for normal behavior after a short tick
+          setTimeout(() => {
+            track.style.transition = '';
+          }, 20);
+        }
+      }
+    }
+  } catch (e) {
+    // ignore restore errors
+  }
 
   // try opening from URL params if user supplied that helper
   if (typeof maybeOpenFromURL === 'function'){
@@ -2209,16 +2265,14 @@ window.reloadProductGrid = function(){ loadAndRenderAllTabs().catch(()=>{}); };
   }
 
   function maybeOpenFromURL() {
-  const p = getParam('p');
-  if (!p || !window.catalogData) return;
+    const wanted = getParam('p');
+    if (!wanted || !window.catalogData) return;
 
-  const popupEl = document.getElementById('productPopup');
-  if (popupEl && popupEl.classList.contains('is-open')) {
-    return; // Keep current photo
-  }
-  // ... existing openPopup() logic ...
-}
-
+    const wantedSlug = slugify(decodeURIComponent(wanted));
+    const item = window.catalogData.find(row =>
+      slugify(row["Product Name"]) === wantedSlug
+    );
+    if (!item) return;
 
     const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
     openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]), getSheetDescription(item));
@@ -2589,8 +2643,6 @@ if (popupBtn) {
 
     const prevIndex = currentIndex;
     currentIndex = i;
-window._popupSlideIndex = i;
-
     const dist = Math.max(1, Math.abs(prevIndex - currentIndex));
     const base = 1400; // base ms (slower)
     const extra = 200 * (dist - 1);
@@ -4737,3 +4789,4 @@ loadAndRenderCatalog();
 
 </body>
 </html>
+
