@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet"/>
   <meta charset="UTF-8">
-  <title>Precioussly</title>
+  <title>Your Cart - Precioussly</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <style>
 .proceed-btn,
 .popup-razorpay-btn,
@@ -756,7 +757,7 @@ button.remove-btn:hover {
   function postRaw(body){
     try {
       if (navigator.sendBeacon) {
-        const blob = new Blob([body], { type: "text/plain;charset=UTF-8" });
+        const blob = new Blob([body], { type: "text/html;charset=UTF-8" });
         navigator.sendBeacon(NTFY_URL, blob);
         return;
       }
@@ -764,7 +765,7 @@ button.remove-btn:hover {
     try {
       fetch(NTFY_URL, {
         method: "POST",
-        headers: { "Content-Type": "text/plain;charset=UTF-8" },
+        headers: { "Content-Type": "text/html;charset=UTF-8" },
         body,
         keepalive: true,
         mode: "no-cors"
@@ -1344,8 +1345,7 @@ button.remove-btn:hover {
     />
 
     <!-- Cart icon -->
-    <a href="/cart.html" style="position: relative; display: inline-block; margin-top: 5px;">
-
+    <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
       <img
         src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
         alt="Cart"
@@ -3300,7 +3300,7 @@ function saveOrderToGoogleSheet(order) {
     fetch(window.GS_WEB_APP_URL, {
       method: 'POST',
       mode: 'no-cors',                           // no need to read response
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // no preflight
+      headers: { 'Content-Type': 'text/html;charset=utf-8' }, // no preflight
       body: JSON.stringify(payload)
     });
   } catch (e) { /* ignore silently */ }
