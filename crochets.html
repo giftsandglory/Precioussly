@@ -42,11 +42,11 @@
   justify-content: center;
   border-radius: 6px;
   transition: background 0.2s ease;
-  outline: none !important;
-  box-shadow: none !important;
-  -webkit-tap-highlight-color: transparent !important;
-  user-select: none;
-  touch-action: manipulation;
+  outline: none !important;               
+  box-shadow: none !important;            
+  -webkit-tap-highlight-color: transparent !important;  
+  user-select: none;                      
+  touch-action: manipulation;            
 }
 
 .quantity-bar button:focus {
@@ -80,7 +80,7 @@ body.noscroll {
   width:100%;
   height:100%;
   aspect-ratio:1/1;
-  object-fit:cover;
+  object-fit:cover;    
   display:block;
 }
 
@@ -90,7 +90,7 @@ body.noscroll {
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
+  overflow: hidden;             
 }
 
 .popup-slide{
@@ -102,7 +102,7 @@ body.noscroll {
   object-fit: cover;
   border-radius: 14px;
   opacity: 0;
-  transition: opacity 180ms ease-in-out;
+  transition: opacity 180ms ease-in-out;  
   pointer-events: none;
   z-index: 0;
 }
@@ -134,7 +134,7 @@ body.noscroll {
   justify-content: center;
 }
 .mini-spinner {
-  width: 16px;
+  width: 16px;   
   height: 16px;
   border: 2px solid #fff;
   border-top: 2px solid rgba(255,255,255,0.2);
@@ -156,13 +156,14 @@ body.noscroll {
     }
 
     .section-title {
-  font-size: 16px;
-  font-weight: 400;
+  font-size: 16px;         
+  font-weight: 400;        
   text-align: center;
-  padding: 14px 12px 8px;
+  padding: 14px 12px 8px;  
   background: #fff;
 }
 
+    
 .product-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -174,6 +175,7 @@ body.noscroll {
       position: relative;
     }
 
+    
   .product img {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -182,11 +184,12 @@ body.noscroll {
   transition: transform 0.3s ease;
 }
 
+    
     .badge {
   position: absolute;
   top: 6px;
   left: 6px;
-  background: rgba(11, 32, 56, 0.9);
+  background: rgba(11, 32, 56, 0.9); 
   color: #ffffff;
   font-size: 11px;
   font-weight: 600;
@@ -234,8 +237,8 @@ body.noscroll {
   transition: background 0.3s ease;
   font-family: 'Roboto Slab', serif;
 
-  width: 100px;
-  height: 36px;
+  width: 100px;          
+  height: 36px;          
   box-sizing: border-box;
 }
 
@@ -248,15 +251,16 @@ body.noscroll {
   background: #2563eb;
   transform: none;
 }
+  
 
 .site-header {
   background-color: #ffffff;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 12px 16px; 
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  min-height: 56px;
+  min-height: 56px;   
 }
 
 .left-section {
@@ -320,7 +324,7 @@ body.noscroll {
 }
 
 #productPopup {
-
+  
   display: none;
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.18);
@@ -346,6 +350,7 @@ body.noscroll {
   border: 1px solid rgba(0,0,0,0.08);
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
 
+  
   transform: translateY(18px) scale(.975);
   opacity: 0;
   transform-origin: center;
@@ -391,8 +396,8 @@ body.noscroll {
 
 .wh-share {
   position: absolute;
-  bottom: 12px;
-  right: 4px;
+  bottom: 12px; 
+  right: 4px;  
   width: auto;
   height: auto;
   background: transparent;
@@ -401,7 +406,7 @@ body.noscroll {
 }
 
 .wh-share img {
-  width: 40px;
+  width: 40px;   
   height: 40px;
   display: block;
   object-fit: contain;
@@ -447,19 +452,19 @@ body.noscroll {
 .desc-text li { margin: 8px 0; }
 
 .popup-card{
-  max-height: 88vh;
+  max-height: 88vh;              
   display: flex;
   flex-direction: column;
 }
 .popup-body{
-  overflow-y: auto;
+  overflow-y: auto;               
   -webkit-overflow-scrolling: touch;
   padding-bottom: 10px;
 }
 
 .desc-box summary {
   position: relative;
-  padding-right: 28px;
+  padding-right: 28px;            
 }
 .desc-box summary::after{
   content: "";
@@ -469,40 +474,33 @@ body.noscroll {
   width: 8px; height: 8px;
   border-right: 2px solid #222;
   border-bottom: 2px solid #222;
-  transform: translateY(-60%) rotate(-45deg);
+  transform: translateY(-60%) rotate(-45deg); 
   transition: transform .2s ease;
 }
 .desc-box[open] summary::after{
-  transform: translateY(-30%) rotate(45deg);
+  transform: translateY(-30%) rotate(45deg);  
 }
 
 .popup-body,
 .desc-text {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  overscroll-behavior: contain;
+  scrollbar-width: none;          
+  -ms-overflow-style: none;       
+  overscroll-behavior: contain;   
 }
 .popup-body::-webkit-scrollbar,
 .desc-text::-webkit-scrollbar {
   width: 0;
   height: 0;
-  display: none;
+  display: none;                  
   background: transparent;
 }
 #cartCountBadge {
   font-family: 'Roboto Slab', serif !important;
-  font-weight: 200;
-  font-size: 14px;
+  font-weight: 200; 
+  font-size: 14px;  
 }
 
 .popup-dots:empty { display: none !important; }
-
-.qty-pulse {
-  transform: scale(1.02);
-  transition: transform 120ms ease;
-  will-change: transform;
-}
-
 </style>
 <style>
 
@@ -512,20 +510,20 @@ body.horizontal-mode .product-grid{
   gap: 12px !important;
 
   overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch !important;
+  -webkit-overflow-scrolling: touch !important; 
   scroll-behavior: smooth !important;
-  touch-action: auto !important;
+  touch-action: auto !important; 
   overscroll-behavior-x: contain !important;
 
   scroll-snap-type: none !important;
-  padding: 10px 12px 14px 12px !important;
+  padding: 10px 12px 14px 12px !important; 
 }
 body.horizontal-mode .product-grid::-webkit-scrollbar{ height: 0; }
 body.horizontal-mode .product-grid{ scrollbar-width: none; }
 
 body.horizontal-mode .product{
-  min-width: 42vw;
-  max-width: 230px;
+  min-width: 42vw;  
+  max-width: 230px; 
   scroll-snap-align: none !important;
   display: flex !important;
   flex-direction: column !important;
@@ -536,7 +534,7 @@ body.horizontal-mode .product img{
   aspect-ratio: 1 / 1 !important;
   height: auto !important;
   object-fit: cover !important;
-  border-radius: 10px !important;
+  border-radius: 10px !important; 
   display: block !important;
 }
  aspect-ratio: 1 / 1 !important;
@@ -557,7 +555,7 @@ body.horizontal-mode .product .add-to-cart{
   margin-top: auto !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 9px 10px !important;
+  padding: 9px 10px !important; 
   font-size: 13px !important;
   border-radius: 10px !important;
 }
@@ -567,9 +565,9 @@ body.horizontal-mode .product .title{
   font-size: 14px !important;
   line-height: 1.25 !important;
   margin: 7px 2px 3px !important;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
+  display: -webkit-box; 
+  -webkit-line-clamp: 1; 
+  -webkit-box-orient: vertical; 
   overflow: hidden;
 }
 
@@ -585,8 +583,8 @@ body.horizontal-mode.small-cards .product-grid{
   padding: 8px 10px 12px 10px !important;
 }
 body.horizontal-mode.small-cards .product{
-  min-width: 34vw !important;
-  max-width: 200px !important;
+  min-width: 34vw !important;   
+  max-width: 200px !important;   
 }
 body.horizontal-mode.small-cards .product img{
   border-radius: 10px !important;
@@ -690,8 +688,8 @@ body.horizontal-mode.small-cards .product .add-to-cart{
 .side-menu {
   position: fixed;
   inset: 0 0 0 auto;
-  width: min(70vw, 300px);
-  max-width: 300px;
+  width: min(70vw, 300px); 
+  max-width: 300px;       
   background: #fff;
   transform: translateX(100%);
   transition: transform 0.3s ease;
@@ -709,19 +707,19 @@ body.horizontal-mode.small-cards .product .add-to-cart{
   border-bottom: 1px solid #eee;
 }
 .menu-title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 18px;       
+  font-weight: 600;      
 }
 
 .menu-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 32px;           
+  height: 32px;          
   border: 1px solid #111;
-  border-radius: 10px;
-  font-size: 14px;
+  border-radius: 10px;   
+  font-size: 14px;       
   cursor: pointer;
 }
 #menuContent {
@@ -840,7 +838,7 @@ nav.side-menu {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  min-height: 1.35em;
+  min-height: 1.35em; 
 }
 
 .product .price-row, .product-card .price-row{
@@ -857,7 +855,7 @@ nav.side-menu {
 }
 
 .product, .product-card{
-  min-height: 360px;
+  min-height: 360px; 
 }
 
 body.horizontal-mode.small-cards .product,
@@ -876,7 +874,7 @@ body.horizontal-mode.small-cards .product-card{
   display:flex !important;
   flex-direction:column !important;
   gap:6px;
-  flex: 1 1 auto;
+  flex: 1 1 auto; 
 }
 .product .product-title{
   white-space: nowrap !important;
@@ -885,7 +883,7 @@ body.horizontal-mode.small-cards .product-card{
   display: block;
   min-height: 1.35em;
 }
-.product .add-btn{
+.product .add-btn{  
   margin-top: auto !important;
 }
 </style>
@@ -917,7 +915,7 @@ body.horizontal-mode.small-cards .product-card{
 
 .product img{
   display:block;
-  margin-bottom:6px !important;
+  margin-bottom:6px !important; 
 }
 .product .product-info{
   margin-top:0 !important;
@@ -944,14 +942,14 @@ body.horizontal-mode.small-cards .product-card{
   line-height:0 !important;
 }
 .product .product-info{
-  margin-top:4px !important;
+  margin-top:4px !important; 
 }
 </style>
 
 <style>
 
 .product{
-  justify-content: flex-start !important;
+  justify-content: flex-start !important; 
 }
 
 .product .add-btn{
@@ -1002,13 +1000,13 @@ body.horizontal-mode.small-cards .product-card{
 }
 
 .product .product-info {
-  gap: 2px !important;
-  margin-top: 0 !important;
+  gap: 2px !important;        
+  margin-top: 0 !important;   
   padding: 0 6px !important;
 }
 
 .product .add-btn {
-  margin-top: 2px !important;
+  margin-top: 2px !important; 
 }
 </style>
 
@@ -1034,9 +1032,9 @@ body.horizontal-mode.small-cards .product {
 }
 
 .product-grid {
-  row-gap: 4px !important;
-  column-gap: 12px !important;
-  gap: 4px 12px !important;
+  row-gap: 4px !important;  
+  column-gap: 12px !important; 
+  gap: 4px 12px !important; 
 }
 
 .section-title {
@@ -1059,7 +1057,7 @@ body.horizontal-mode.small-cards .product {
 }
 
 .section-title:first-of-type {
-  margin-top: 12px !important;
+  margin-top: 12px !important;  
 }
 
 </style>
@@ -1067,7 +1065,7 @@ body.horizontal-mode.small-cards .product {
 <style id="pinch-zoom-fix-aug18">
 
 body.horizontal-mode .product-grid{
-  touch-action: auto !important;
+  touch-action: auto !important;    
 }
 
 @supports (touch-action: pinch-zoom) {
@@ -1082,7 +1080,7 @@ body.horizontal-mode .product-grid{
   position: relative !important;
   overflow: hidden !important;
   min-height: 300px !important;
-
+  /* Allow vertical pan (so page scroll still works) AND allow browser pinch-zoom */
   touch-action: pan-y pinch-zoom !important;
   cursor: grab;
 }
@@ -1092,16 +1090,17 @@ body.horizontal-mode .product-grid{
   gap: 10px;
   width: 100%;
   height: 100%;
-  transition: transform 260ms cubic-bezier(.22,1,.36,1);
+  transition: transform 420ms cubic-bezier(.25, 1, .30, 1);
   will-change: transform;
 }
+
 #popupSlider .popup-slide{
   position: relative !important;
   inset: auto !important;
-  width: 100% !important;
+  width: 100% !important;  
   max-width: none !important;
   flex: 0 0 100% !important;
-  margin: 0;
+  margin: 0;   
   aspect-ratio: 1 / 1 !important;
   border-radius: 14px !important;
   object-fit: cover !important;
@@ -1141,7 +1140,7 @@ body.horizontal-mode .product-grid{
 .section-title::after{
   content:"" !important;
   flex:1 !important;
-  height:1px !important;
+  height:1px !important;              
   border-radius:1px !important;
   background:linear-gradient(to right, rgba(0,0,0,0), #111, rgba(0,0,0,0)) !important;
 }
@@ -1166,12 +1165,12 @@ body.horizontal-mode .product-grid{
   gap: 6px;
   padding: 4px 6px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.10);       
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
   border: 1px solid rgba(255,255,255,0.28);
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  pointer-events: auto;
+  pointer-events: auto;                         
   z-index: 3;
 }
 
@@ -1260,17 +1259,17 @@ body.horizontal-mode .product-grid{
 <style id="dot-blue-override">
 
 .popup-dot{
-  background: linear-gradient(180deg, #b3d9ff 0%, #3399ff 100%) !important;
+  background: linear-gradient(180deg, #b3d9ff 0%, #3399ff 100%) !important; 
 }
 .popup-dot.active{
-  background: linear-gradient(180deg, #3399ff 0%, #0066cc 100%) !important;
+  background: linear-gradient(180deg, #3399ff 0%, #0066cc 100%) !important; 
 }
 </style>
 
 <style id="dot-blue-position">
 
 .popup-dots{
-  bottom: 18px !important;
+  bottom: 18px !important; 
 }
 </style>
 <style id="plain-desc-css">
@@ -1289,15 +1288,15 @@ body.horizontal-mode .product-grid{
   color: #111;
 }
 
-.desc-content{font-size: 12.5px;
+.desc-content{font-size: 12.5px;        
   line-height: 1.55;
-  height:auto; overflow:visible;
+  height:auto; overflow:visible;           
   padding: 0 4px 0;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  scrollbar-width: none;    
   max-width: 92%;
   margin: 0 auto;
-  text-align: left;
+  text-align: left;         
   color: #444;
   white-space: pre-wrap;}
 
@@ -1306,8 +1305,34 @@ body.horizontal-mode .product-grid{
   max-height: 86vh;
   -webkit-overflow-scrolling: touch;
 }
+/* ----- CSS that styles the popup, the add button and description ----- */
 
+/* popup card container */
+.popup-card {
+  background: #f7f7f7;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 320px;
+  margin: 20px;
+  padding: 16px;
+  position: relative;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+
+  transform: translateY(18px) scale(.975);
+  opacity: 0;
+  transform-origin: center;
+  will-change: transform, opacity;
+  transition:
+    transform 420ms cubic-bezier(.22,1,.36,1),
+    opacity 420ms ease;
+  contain: layout paint style;
+}
+
+/* Description box (rounded white card look) */
 .desc-section {
+  margin: 8px 8px 0;
+  text-align: center;
   background: linear-gradient(180deg, #fff, #fffefc);
   border-radius: 14px;
   padding: 14px;
@@ -1323,48 +1348,21 @@ body.horizontal-mode .product-grid{
   gap: 8px;
   justify-content: center;
 }
-.desc-lead {
-  font-size: 15px;
-  color: #111; font-weight: 600;
-  margin: 8px 0 10px;
+.desc-content{
+  font-size: 12.5px;
   line-height: 1.55;
-  font-weight: 600;
+  height:auto; overflow:visible;
+  padding: 0 4px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: 92%;
+  margin: 0 auto;
+  text-align: left;
+  color: #444;
+  white-space: pre-wrap;
 }
-.desc-content p {
-  margin: 8px 0;
-  color: #222; font-weight: 600;
-  font-size: 14.5px;
-  line-height: 1.6;
-}
-.desc-content ul {
-  margin: 6px 0 10px 18px;
-  padding: 0;
-}
-.desc-content li {
-  margin: 8px 0;
-  font-size: 14.5px;
-  color: #111; font-weight: 600;
-  line-height: 1.5;
-  list-style: none;
-  position: relative;
-  padding-left: 24px;
-}
-.desc-content li::before{
-  content: "•";
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: #ff6ea8;
-  font-weight: 700;
-  transform: translateY(1px);
-  font-size: 18px;
-}
-.features-title {
-  display: inline-block;
-  font-weight: 700;
-  color: #ff4d98;
-  margin-bottom: 6px;
-}
+
+/* Add-to-cart button styling that creates blue gradient + 'glow' box-shadow */
 #popupAddBtn {
   background: linear-gradient(90deg, #2563eb, #1e4fd6);
   border: none;
@@ -1376,7 +1374,10 @@ body.horizontal-mode .product-grid{
   box-shadow: 0 10px 26px rgba(37,99,235,0.18);
   transition: transform 140ms ease, box-shadow 140ms ease;
 }
-#popupAddBtn:active { transform: translateY(1px) scale(.995); box-shadow: 0 6px 16px rgba(37,99,235,0.12); }
+#popupAddBtn:active {
+  transform: translateY(1px) scale(.995);
+  box-shadow: 0 6px 16px rgba(37,99,235,0.12);
+}
 </style>
 
 <style id="alignment-fix-0901b">
@@ -1384,7 +1385,7 @@ body.horizontal-mode .product-grid{
   #popupPrice { margin: 0 12px 10px 12px !important; }
 </style>
 <style>
-
+  
   .ig-banner-wrap{ padding: 0 12px 18px; background:#fff; }
   .ig-banner{
     background:#f6efe8; border:1px solid #f1e7df; border-radius:18px;
@@ -1450,7 +1451,7 @@ body.horizontal-mode .product-grid{
   left: 50% !important;
   right: auto !important;
   transform: translateX(-50%) !important;
-  width: calc(100vw - 30px) !important;
+  width: calc(100vw - 30px) !important;   
   max-width: 420px !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
@@ -1471,11 +1472,11 @@ body.horizontal-mode .product-grid{
 #headerSearchResults .tag{ display:none !important; }
 </style>
 <style id="instant-popup-css">
-
+  
   #productPopup { transition: none !important; }
-  .popup-card {
-    transition: none !important;
-    transform: none !important;
+  .popup-card { 
+    transition: none !important; 
+    transform: none !important; 
     opacity: 1 !important;
   }
 </style>
@@ -1497,7 +1498,7 @@ body.horizontal-mode .product-grid{
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover;      
   display: block;
 }
 
@@ -1561,12 +1562,12 @@ body.horizontal-mode .product-grid{
 .product .product-title {
   display: -webkit-box !important;
   -webkit-box-orient: vertical !important;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 2;               
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  white-space: normal !important;
+  white-space: normal !important;      
   line-height: 1.2em !important;
-  max-height: calc(1.2em * 2) !important;
+  max-height: calc(1.2em * 2) !important; 
   padding-right: 6px !important;
 }
 
@@ -1611,7 +1612,7 @@ body.horizontal-mode .product-grid{
   display: block !important;
   max-width: 100% !important;
   line-height: 1.35em !important;
-  height: 1.35em !important;
+  height: 1.35em !important; 
   padding-right: 6px !important;
 }
 
@@ -1620,7 +1621,7 @@ body.horizontal-mode .product-grid{
   flex-direction: column !important;
   gap: 6px !important;
   flex: 1 1 auto !important;
-  min-height: 48px !important;
+  min-height: 48px !important; 
 }
 
 .product {
@@ -1644,6 +1645,7 @@ body.horizontal-mode .product-grid{
   .product .product-title { font-size: 14px !important; }
 }
 </style>
+ 
 
 <style id="user-fix-mobile-alignment">
 
@@ -1667,7 +1669,7 @@ div.product-title {
   text-overflow: ellipsis !important;
   max-width: 100% !important;
   line-height: 1.2em !important;
-  height: 1.2em !important;
+  height: 1.2em !important;  
   margin: 6px 0 0 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
@@ -1752,7 +1754,16 @@ div.product-title {
   justify-self: start !important;
 }
 </style>
-
+<!-- 2️⃣ ADD instant transition-disable styles in <head> -->
+<style id="instant-popup-image-css">
+#productPopup, 
+#productPopup .popup-card,
+#popupSlider .popup-slide,
+#popupSlider img.popup-slide,
+#popupSlider video.popup-slide {
+  transition: none !important;
+}
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -1780,7 +1791,7 @@ div.product-title {
   </div>
 
   <div id="rightIcons" style="display: flex; align-items: center; gap: 12px;">
-
+    
     <img
       src="https://i.postimg.cc/mZq01NH8/IMG-20250801-072508.jpg"
       alt="Search"
@@ -1789,6 +1800,7 @@ div.product-title {
       onclick="openHeaderSearch()"
     />
 
+    
     <img
       id="profileIcon"
       src="https://i.postimg.cc/1tRZMmmB/Profile-Icon.png"
@@ -1798,6 +1810,7 @@ div.product-title {
       style="cursor: pointer;"
     />
 
+    
     <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
       <img
         src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
@@ -1811,6 +1824,7 @@ div.product-title {
     </a>
   </div>
 
+  
   <div id="headerSearchBar" class="header-search">
     <input
       id="headerSearchInput"
@@ -1837,44 +1851,32 @@ div.product-title {
     <span class="menu-title">Menu</span>
     <span class="menu-close" onclick="toggleMenu()">✕</span>
   </div>
-
+  
   <div id="menuContent"></div>
 </nav>
 
 <div id="content"></div>
-
 <script>
-/* ---------- CONFIG ---------- */
-const PASTED_SHEET_LINK =
-  "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
-
+const PASTED_SHEET_LINK = "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
 const TAB_NAMES = ["crochets"];
-const POLL_INTERVAL_MS = 3000; // 3 seconds polling
 
-/* ---------- sheetId extraction ---------- */
+// extract sheetId safely
 const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-if (!idMatch) {
-  console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
-}
 const sheetId = idMatch ? idMatch[1] : "";
+if (!sheetId) console.error('❌ Invalid Google Sheet URL provided in PASTED_SHEET_LINK');
 
-/* ---------- Helpers ---------- */
-function cacheKeyFor(tabName){
-  return `tabCache_${sheetId}_${tabName}`;
-}
-
+// ---------------------- Helpers ----------------------
 function isHidden(row){
   const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
   for (const k of keys){
     if (Object.prototype.hasOwnProperty.call(row, k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
-      if (!v.length) return false;
-      if (v.includes("hide")) return true;
-      // any other non-empty value considered visible
-      return false;
+      if (!v) return false; // empty means show
+      if (v.includes('hide')) return true;
+      return false; // any other non-empty value -> show
     }
   }
-  return false;
+  return false; // default: show
 }
 
 function getSheetDescription(row){
@@ -1888,388 +1890,310 @@ function getSheetDescription(row){
   return "";
 }
 
-function isVideoUrl(url=""){
+function isVideoUrl(url = ""){
   if (!url) return false;
-  const u = url.toLowerCase();
-  return u.endsWith(".mp4") || u.endsWith(".webm") || u.endsWith(".mov");
+  const u = String(url).toLowerCase().trim();
+  return u.endsWith('.mp4') || u.endsWith('.webm') || u.endsWith('.mov');
 }
 
-/* ---------- GLOBAL: catalog stored per-tab for stable ordering ---------- */
-window.catalogByTab = window.catalogByTab || {}; // { tabName: [rows...] }
-
-/* ---------- FETCH / CACHE / REVALIDATION ---------- */
-/*
-  Behavior:
-  - fetchTab(tabName) returns cached data immediately (from localStorage) if present (and triggers background revalidation)
-  - revalidateTab(tabName) fetches from network, stores cache, updates window.catalogByTab, and triggers one unified re-render
-*/
-
-async function fetchTab(tabName){
-  const cacheKey = cacheKeyFor(tabName);
-  let cached = null;
-  try {
-    const raw = localStorage.getItem(cacheKey);
-    if (raw) cached = JSON.parse(raw);
-  } catch(e){ /* ignore parse errors */ }
-
-  // If cached exists, use it and schedule background revalidate
-  if (cached && Array.isArray(cached)) {
-    // place into per-tab store (so rebuild uses stable tab order)
-    window.catalogByTab[tabName] = cached.map((r, idx) => {
-      r.__tabName = tabName;
-      r.__tabIndex = TAB_NAMES.indexOf(tabName);
-      r.__rowIndex = idx;
-      return r;
-    });
-    // background revalidation (non-blocking)
-    setTimeout(() => {
-      revalidateTab(tabName).catch(err => {
-        console.warn("Background revalidate failed for", tabName, err);
-      });
-    }, 0);
-    // return cached immediately
-    return cached;
+// safe DOM creation helper
+function el(tag, attrs = {}, children = []){
+  const node = document.createElement(tag);
+  for (const k in attrs){
+    if (k === 'className') node.className = attrs[k];
+    else if (k === 'innerHTML') node.innerHTML = attrs[k];
+    else node.setAttribute(k, attrs[k]);
   }
-
-  // No cache, fetch now
-  return await revalidateTab(tabName);
+  (Array.isArray(children) ? children : [children]).forEach(c => { if (c) node.appendChild(c); });
+  return node;
 }
 
-async function revalidateTab(tabName){
-  const cacheKey = cacheKeyFor(tabName);
-  if (!sheetId) {
-    console.error("Missing sheetId - cannot fetch", tabName);
+// ---------------------- Fetching ----------------------
+async function fetchTab(tabName){
+  if (!sheetId) return [];
+  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
+  try{
+    const res = await fetch(DATA_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    data.forEach(r => r.__tabName = tabName);
+    return data;
+  } catch(err){
+    console.error('Failed to fetch tab', tabName, err);
     return [];
   }
-  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
-  try {
-    const res = await fetch(DATA_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
-    const data = await res.json();
-
-    // attach metadata for stable order
-    data.forEach((row, idx) => {
-      row.__tabName = tabName;
-      row.__tabIndex = TAB_NAMES.indexOf(tabName);
-      row.__rowIndex = idx;
-    });
-
-    // store cache
-    try {
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-    } catch(e){ /* ignore storage errors */ }
-
-    // update per-tab store and rebuild combined view deterministically
-    window.catalogByTab[tabName] = data;
-    rebuildAndRender();
-
-    return data;
-  } catch (err) {
-    console.error("Failed to fetch tab:", tabName, err);
-    // keep previous tab data if exists; don't clear it on error
-    return window.catalogByTab[tabName] || [];
-  }
 }
 
-/* ---------- Rebuild combined dataset using fixed TAB_NAMES order and render ---------- */
-function rebuildAndRender(){
-  // Combine tabs in the exact order of TAB_NAMES
-  const combined = [];
-  TAB_NAMES.forEach((tName) => {
-    const arr = window.catalogByTab[tName];
-    if (Array.isArray(arr)) {
-      combined.push(...arr);
+// SWR-like fetch that uses localStorage cache + background revalidate
+// --- START: robust fetchTabWithSWR (replace existing function) ---
+async function fetchTabWithSWR(tabName){
+  const cacheKey = `sheetCache_${sheetId}_${tabName}`;
+  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
+
+  // try read cache immediately and keep as fallback
+  let cachedParsed = null;
+  try{
+    const raw = localStorage.getItem(cacheKey);
+    if (raw){
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)){
+        parsed.forEach(r => r.__tabName = tabName);
+        cachedParsed = parsed;
+        // spawn background revalidate but don't await it here
+        // revalidate is hoisted (declared below)
+        revalidate().catch(()=>{});
+        return { data: parsed, fromCache: true };
+      }
     }
+  } catch(e){ console.warn('cache read failed', e); }
+
+  // no usable cache -> try live fetch
+  try{
+    const res = await fetch(DATA_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const live = await res.json();
+    try{ localStorage.setItem(cacheKey, JSON.stringify(live)); } catch(e){ /* ignore storage errors */ }
+    live.forEach(r => r.__tabName = tabName);
+    return { data: live, fromCache: false };
+  } catch(err){
+    console.error('fetchTabWithSWR: live fetch failed for', tabName, err);
+
+    // MINIMAL FIX: if we had cached data, return it as a fallback instead of returning empty []
+    if (cachedParsed && Array.isArray(cachedParsed) && cachedParsed.length > 0){
+      console.warn('fetchTabWithSWR: returning cached fallback for', tabName);
+      return { data: cachedParsed, fromCache: true, fallback: true };
+    }
+
+    // Last-resort: attempt one quick retry (very small, non-blocking)
+    try{
+      const retryRes = await fetch(DATA_URL);
+      if (retryRes && retryRes.ok){
+        const retryData = await retryRes.json();
+        try{ localStorage.setItem(cacheKey, JSON.stringify(retryData)); } catch(e){}
+        retryData.forEach(r => r.__tabName = tabName);
+        return { data: retryData, fromCache: false };
+      }
+    }catch(e){ /* ignore retry failure */ }
+
+    // If absolutely nothing works, return an empty array but mark as failed
+    return { data: [], fromCache: false, error: String(err || 'unknown') };
+  }
+
+  // background revalidate (hoisted)
+  async function revalidate(){
+    try{
+      const freshRes = await fetch(DATA_URL, { cache: 'no-store' });
+      if (!freshRes.ok) return;
+      const fresh = await freshRes.json();
+      try{ localStorage.setItem(cacheKey, JSON.stringify(fresh)); } catch(e){}
+      fresh.forEach(r => r.__tabName = tabName);
+      if (typeof renderCombinedData === 'function'){
+        const existing = Array.isArray(window.catalogData) ? window.catalogData : [];
+        const others = existing.filter(d => d.__tabName !== tabName);
+        renderCombinedData(others.concat(fresh));
+      }
+    } catch(e){ /* silent */ }
+  }
+}
+// --- END: robust fetchTabWithSWR ---
+
+
+// ---------------------- Renderer ----------------------
+function renderCombinedData(data){
+  window.catalogData = Array.isArray(data) ? data : [];
+
+  // ✅ Fix: Always keep tab order stable
+  window.catalogData.sort((a, b) => {
+    const orderA = TAB_NAMES.indexOf(a.__tabName || "");
+    const orderB = TAB_NAMES.indexOf(b.__tabName || "");
+    return orderA - orderB;
   });
 
-  // optional hook
-  if (typeof applyDirectionFromSheet === "function") {
-    try { applyDirectionFromSheet(combined); } catch (e) { console.warn("applyDirectionFromSheet failed:", e); }
-  }
+  const content = document.getElementById('content');
+  if (!content) { console.error('No #content container found.'); return; }
+  content.innerHTML = '';
 
-  renderCombinedData(combined);
-}
 
-/* ---------- MAIN: initial load and polling ---------- */
-async function loadAndRenderAllTabs(){
-  try {
-    if (!sheetId) throw new Error("Missing sheetId.");
-
-    // Try to populate each tab from cache first and schedule network fetches
-    const fetchPromises = TAB_NAMES.map(t => fetchTab(t).catch(err => {
-      console.error("Failed initial fetchTab (cache/network) for", t, err);
-      return [];
-    }));
-
-    // Wait for all initial fetchTab calls (they either returned cached or performed network)
-    const allResults = await Promise.all(fetchPromises);
-
-    // Ensure window.catalogByTab has all results (fetchTab already stored cached results)
-    TAB_NAMES.forEach((t, idx) => {
-      const res = allResults[idx] || window.catalogByTab[t] || [];
-      // normalize metadata
-      window.catalogByTab[t] = (res || []).map((r, i) => {
-        r.__tabName = t;
-        r.__tabIndex = idx;
-        r.__rowIndex = i;
-        return r;
-      });
-    });
-
-    // First deterministic render
-    rebuildAndRender();
-
-    // Start polling after initial render
-    startPolling();
-
-  } catch (err) {
-    console.error("Failed to load products:", err);
-  }
-}
-
-/* ---------- RENDERING LOGIC (stable grouping, no duplicate section titles) ---------- */
-function renderCombinedData(data){
-  window.catalogData = data; // still expose the combined view for debugging
-  const content = document.getElementById("content");
-  if (!content) {
-    console.error("No #content container found.");
-    return;
-  }
-
-  content.innerHTML = "";
-
-  // We'll build sections as we encounter rows, but avoid duplicating a section title
-  let currentSection = "";
+  let currentSection = '';
   let sectionWrapper = null;
   let currentSectionHidden = false;
 
-  // Helper to create a new section
-  function openSection(sectionName, hidden=false){
-    currentSection = sectionName;
-    currentSectionHidden = !!hidden;
-    sectionWrapper = null;
-    if (currentSectionHidden) return;
-    const sectionTitle = document.createElement("div");
-    sectionTitle.className = "section-title";
-    sectionTitle.innerText = currentSection;
-    content.appendChild(sectionTitle);
+  for (const item of window.catalogData){
+    // Section header rows
+    if (item['Section']){
+      currentSection = item['Section'];
+      const secVis = String(item['visibility'] || item['Visibility'] || '').trim().toLowerCase();
+      currentSectionHidden = secVis.includes('hide');
+      if (currentSectionHidden){ sectionWrapper = null; continue; }
 
-    sectionWrapper = document.createElement("div");
-    sectionWrapper.className = "product-grid";
-    content.appendChild(sectionWrapper);
-  }
-
-  data.forEach((item) => {
-    // If this row is a Section marker
-    if (item["Section"]) {
-      const sectionName = String(item["Section"]).trim();
-      const secVis = String(item["visibility"] || item["Visibility"] || "").trim().toLowerCase();
-      const secHidden = secVis.includes("hide");
-      openSection(sectionName, secHidden);
-      return;
+      const sectionTitle = el('div', { className: 'section-title', innerHTML: currentSection });
+      content.appendChild(sectionTitle);
+      sectionWrapper = el('div', { className: 'product-grid' });
+      content.appendChild(sectionWrapper);
+      continue;
     }
 
-    // if current section is hidden or row is hidden, skip
-    if (currentSectionHidden) return;
-    if (isHidden(item)) return;
-    if (!item["Product Name"]) return;
+    if (currentSectionHidden) continue;
+    if (isHidden(item)) continue;
+    if (!item['Product Name']) continue;
 
-    // ensure section wrapper exists (for products that come before any section marker)
-    if (!sectionWrapper) {
-      openSection(""); // unnamed section
-      if (!sectionWrapper) {
-        // safety fallback
-        sectionWrapper = document.createElement("div");
-        sectionWrapper.className = "product-grid";
-        content.appendChild(sectionWrapper);
-      }
-    }
+    const product = el('div', { className: 'product' });
 
-    const product = document.createElement("div");
-    product.className = "product";
-
-    product.addEventListener("click", (e) => {
-      if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-      const allPhotos = [
-        item["photo 1"],
-        item["photo 2"],
-        item["photo 3"],
-        item["photo 4"],
-      ].filter(Boolean);
-      if (typeof openPopup === "function") {
-        openPopup(
-          allPhotos,
-          item["Product Name"],
-          item["MRP"],
-          item["Selling Price"],
-          item["in stock"],
-          getSheetDescription(item)
-        );
-      } else {
-        console.warn("openPopup is not defined.");
+    product.addEventListener('click', (e) => {
+      if (e.target.closest('.add-to-cart, .quantity-bar, button')) return;
+      const allPhotos = [item['photo 1'], item['photo 2'], item['photo 3'], item['photo 4']].filter(Boolean);
+      if (typeof openPopup === 'function'){
+        openPopup(allPhotos, item['Product Name'], item['MRP'], item['Selling Price'], item['in stock'], getSheetDescription(item));
       }
     });
 
+    // media (img or video)
     (function(){
-      const url1 = (item["photo 1"] || "").trim();
-      let el;
-      if (isVideoUrl(url1)) {
-        const v = document.createElement("video");
+      const url1 = (item['photo 1'] || '').trim();
+      let elMedia;
+      if (isVideoUrl(url1)){
+        const v = document.createElement('video');
         v.src = url1;
         v.muted = true;
         v.autoplay = true;
         v.loop = true;
         v.playsInline = true;
-        v.preload = "metadata";
-        v.style.width = "100%";
-        v.style.height = "100%";
-        v.style.objectFit = "contain";
+        v.preload = 'metadata';
+        v.style.width = '100%';
+        v.style.height = '100%';
+        v.style.objectFit = 'contain';
         v.disablePictureInPicture = true;
-        v.setAttribute("muted","");
-        v.setAttribute("webkit-playsinline","true");
-        v.setAttribute("playsinline","true");
-        v.style.pointerEvents = "none";
-        v.style.cursor = "default";
-        el = v;
+        v.setAttribute('muted','');
+        v.setAttribute('playsinline','');
+        v.style.pointerEvents = 'none';
+        v.style.cursor = 'default';
+        elMedia = v;
       } else {
-        const img = document.createElement("img");
+        const img = document.createElement('img');
         img.src = url1;
-        img.alt = item["Product Name"];
-        img.style.pointerEvents = "none";
-        img.style.cursor = "default";
-        el = img;
+        img.alt = item['Product Name'] || '';
+        img.style.pointerEvents = 'none';
+        img.style.cursor = 'default';
+        elMedia = img;
       }
-      const wrap = document.createElement('div');
-      wrap.className = 'media-square';
-      wrap.appendChild(el);
+      const wrap = el('div', { className: 'media-square' });
+      wrap.appendChild(elMedia);
       product.appendChild(wrap);
     })();
 
-    if (item["Badge"]) {
-      const badge = document.createElement("div");
-      badge.className = "badge";
-      badge.innerText = item["Badge"];
+    if (item['Badge']){
+      const badge = el('div', { className: 'badge', innerHTML: item['Badge'] });
       product.appendChild(badge);
     }
 
-    const infoWrapper = document.createElement("div");
-    infoWrapper.style.padding = "0 6px";
+    const infoWrapper = el('div');
+    infoWrapper.style.padding = '0 6px';
 
-    const title = document.createElement("div");
-    title.className = "product-title";
-    title.style.fontSize = "14px";
-    title.style.textAlign = "center";
-    title.style.marginTop = "8px";
-    title.innerText = item["Product Name"];
-    try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
-    try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
+    const title = el('div', { className: 'product-title', innerHTML: item['Product Name'] });
+    title.style.fontSize = '14px';
+    title.style.textAlign = 'center';
+    title.style.marginTop = '8px';
     title.style.maxWidth = '100%';
+    try{ title.setAttribute('title', String(item['Product Name']||'')); }catch(e){}
+    try{ title.setAttribute('aria-label', String(item['Product Name']||'')); }catch(e){}
     infoWrapper.appendChild(title);
 
-    const info = document.createElement("div");
-    info.className = "product-info";
+    const info = el('div', { className: 'product-info' });
 
-    let priceHTML = "";
-    if (item["MRP"] && item["Selling Price"]) {
+    let priceHTML = '';
+    if (item['MRP'] && item['Selling Price']){
       priceHTML = `
-        <div style="
-          text-align:center;
-          font-size:14px;
-          font-weight:bold;
-          display:flex; justify-content:center;
-          gap:6px;
-          align-items:center;
-          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-        ">
-          <span>₹${item["Selling Price"]}</span>
-          <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-        </div>
-      `;
+        <div style="text-align:center; font-size:14px; font-weight:bold; display:flex; justify-content:center; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+          <span>₹${item['Selling Price']}</span>
+          <s style="color:#999; font-weight:normal;">₹${item['MRP']}</s>
+        </div>`;
     }
 
-    if (+item["in stock"] === 0) {
-      info.innerHTML = `${priceHTML}`;
-      const outBtn = document.createElement("button");
-      outBtn.className = "add-btn";
+    if (+item['in stock'] === 0){
+      info.innerHTML = priceHTML || '';
+      const outBtn = el('button', { className: 'add-btn' });
       outBtn.disabled = true;
-      outBtn.style.background = "#f1f1f1";
-      outBtn.style.color = "#888";
-      outBtn.style.border = "1px solid #ccc";
-      outBtn.innerText = "Out of Stock";
+      outBtn.style.background = '#f1f1f1';
+      outBtn.style.color = '#888';
+      outBtn.style.border = '1px solid #ccc';
+      outBtn.innerText = 'Out of Stock';
       info.appendChild(outBtn);
     } else {
-      const productData = {
-        photo: item["photo 1"],
-        name: item["Product Name"],
-        mrp: item["MRP"],
-        price: item["Selling Price"],
-      };
-
-      info.innerHTML = priceHTML;
-      const addBtn = document.createElement("button");
-      addBtn.className = "add-btn";
-      addBtn.innerText = "Add to Cart";
-      addBtn.addEventListener("click", (ev) => {
+      const productData = { photo: item['photo 1'], name: item['Product Name'], mrp: item['MRP'], price: item['Selling Price'] };
+      info.innerHTML = priceHTML || '';
+      const addBtn = el('button', { className: 'add-btn' });
+      addBtn.innerText = 'Add to Cart';
+      addBtn.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        try {
-          if ('vibrate' in navigator) navigator.vibrate(30);
-        } catch(e) {}
-        if (typeof addToCartFromGrid === "function") {
-            addToCartFromGrid(addBtn, productData);
-        } else {
-          console.warn("addToCartFromGrid is not defined.");
-        }
+        if (typeof addToCartFromGrid === 'function') addToCartFromGrid(addBtn, productData);
       });
-
       info.appendChild(addBtn);
     }
 
     infoWrapper.appendChild(info);
     product.appendChild(infoWrapper);
 
+    if (!sectionWrapper){
+      sectionWrapper = el('div', { className: 'product-grid' });
+      content.appendChild(sectionWrapper);
+    }
     sectionWrapper.appendChild(product);
-  });
+  }
 
-  // optional URL open hook
-  if (typeof maybeOpenFromURL === "function") {
-    try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
+  // try opening from URL params if user supplied that helper
+  if (typeof maybeOpenFromURL === 'function'){
+    try{ maybeOpenFromURL(); } catch(e){ console.warn('maybeOpenFromURL failed', e); }
   }
 }
 
-/* ---------- POLLING ---------- */
-let pollIntervalId = null;
-function startPolling(){
-  if (pollIntervalId) return; // already polling
-  // Revalidate all tabs every POLL_INTERVAL_MS
-  pollIntervalId = setInterval(() => {
-    TAB_NAMES.forEach(t => {
-      try {
-        revalidateTab(t).catch(e => console.warn("poll revalidate failed for", t, e));
-      } catch(e){}
-    });
-  }, POLL_INTERVAL_MS);
-}
+// ---------------------- Controller: load + periodic revalidate ----------------------
+let _isLoading = false;
+let _intervalHandle = null;
+const REVALIDATE_MS = 10_000; // 10s
 
-function stopPolling(){
-  if (pollIntervalId) {
-    clearInterval(pollIntervalId);
-    pollIntervalId = null;
+async function loadAndRenderAllTabs(){
+  if (!sheetId) return;
+  if (_isLoading) return; // prevent overlapping runs
+  _isLoading = true;
+  try{
+    const allData = [];
+    for (const t of TAB_NAMES){
+      const result = await fetchTabWithSWR(t);
+      if (result && Array.isArray(result.data)) allData.push(...result.data);
+    }
+
+    if (typeof applyDirectionFromSheet === 'function'){
+      try{ applyDirectionFromSheet(allData); } catch(e){ console.warn('applyDirectionFromSheet failed', e); }
+    }
+
+    // 👇 FIX: prevent blank screen on transient fetch failure
+    if (!Array.isArray(allData) || allData.length === 0) {
+      console.warn('loadAndRenderAllTabs: combined fetch empty — keeping existing UI (transient failure?)');
+      return;
+    }
+
+    renderCombinedData(allData);
+  } catch(e){ 
+    console.error('loadAndRenderAllTabs failed', e); 
+  } finally{ 
+    _isLoading = false; 
   }
 }
 
-/* ---------- INIT ---------- */
-loadAndRenderAllTabs();
+// start immediately and schedule periodic revalidation
+(function startAutoRefresh(){
+  loadAndRenderAllTabs().catch(()=>{});
+  if (_intervalHandle) clearInterval(_intervalHandle);
+  _intervalHandle = setInterval(() => { loadAndRenderAllTabs().catch(()=>{}); }, REVALIDATE_MS);
+})();
 
-/* Optional: expose for debugging */
-window._sheetLiveHelper = {
-  reload: loadAndRenderAllTabs,
-  stopPolling,
-  startPolling,
-  revalidateTab,
-  fetchTab,
-  catalogByTab: window.catalogByTab
-};
+// Optional: expose a manual reload function
+window.reloadProductGrid = function(){ loadAndRenderAllTabs().catch(()=>{}); };
+
+/* End of product-grid-google-sheets-clean.js */
+
 </script>
+
 <script>
   function getParam(name) {
     const u = new URLSearchParams(location.search);
@@ -2280,8 +2204,8 @@ window._sheetLiveHelper = {
     return String(s || '')
       .trim()
       .toLowerCase()
-      .replace(/[\s_]+/g, '-')
-      .replace(/[^a-z0-9-]/g, '');
+      .replace(/[\s_]+/g, '-')      // spaces/underscores → hyphen
+      .replace(/[^a-z0-9-]/g, '');  // remove other symbols
   }
 
   function maybeOpenFromURL() {
@@ -2312,7 +2236,12 @@ window._sheetLiveHelper = {
 </div>
 <div id="popupName" style="font-size:16px; font-weight:600; text-align:center; margin: 2px 12px 2px 12px;"></div>
 
-<div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:14px; text-align:center;"></div>
+<!-- popupPrice: hidden because price will be shown inside Add to Cart -->
+<div id="popupPrice" style="display:none; margin: 0 12px 10px 12px; font-size:20px; font-weight:800; text-align:center;"></div>
+
+
+
+
 
 <div class="quantity-bar premium-bar">
   <button onclick="changePopupQty(-1)">
@@ -2331,7 +2260,6 @@ window._sheetLiveHelper = {
 <button id="popupAddBtn" style="width:100%; background:#2563eb; color:#fff; border:1px solid #2563eb; border-radius:8px; padding:12px 16px; font-size:15px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
   Add to Cart
 </button>
-
 <div id="popupDesc" class="desc-section">
   <div class="desc-title">Description</div>
   <div id="popupDescText" class="desc-content"></div>
@@ -2384,7 +2312,7 @@ const _videoKeepAlive = new WeakSet();
 function keepAliveVideo(v){
   if (!v || _videoKeepAlive.has(v)) return v;
 
-  v.muted = true;
+  v.muted = true;                 // mobile autoplay
   v.autoplay = true;
   v.loop = true;
   v.playsInline = true;
@@ -2456,13 +2384,27 @@ function injectProductSchema({name, price, mrp, image, description}) {
     document.head.appendChild(tag);
   } catch(e) {}
 }
+// --- add this once, near the top (next to `let selectedProduct = null;`) ---
+function resetPopupScrollNow(){
+  const pb = document.querySelector("#productPopup .popup-body");
+  const pc = document.querySelector("#productPopup .popup-card");
+  if (pb) { pb.scrollTop = 0; pb.scrollLeft = 0; }
+  if (pc) pc.scrollTop = 0;
+  // ensure after rendering frame as well
+  requestAnimationFrame(() => {
+    if (pb) { pb.scrollTop = 0; pb.scrollLeft = 0; }
+    if (pc) pc.scrollTop = 0;
+  });
+}
+// --- end helper ---
 
 let selectedProduct = null;
 
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
   selectedProduct = { image: images?.[0], name, mrp, price };
 
-  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name || "")}`;
+  const shareUrl = `${location.origin}${location.pathname}?p=${slugify(name || "")}`;
+
 
   const imageUrl = images?.[0] || "";
   const line1 = `${name || ""} ${price ? "₹"+price : ""}`.trim();
@@ -2476,77 +2418,98 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     };
   }
 
-  try {
-    const curP = (new URL(location.href)).searchParams.get('p');
-    const myP = (new URL(shareUrl)).searchParams.get('p');
-    if (curP !== myP) {
-      history.pushState({ __popup: true, p: myP }, "", shareUrl);
-    } else {
-      try { history.replaceState(Object.assign({}, history.state || {}, { __popup: true, p: myP}), "", shareUrl); } catch(e){}
-    }
-  } catch (e) {}
+  try { history.replaceState(null, "", shareUrl); } catch (e) {}
 
   document.getElementById("popupQty").innerText = "1";
+  resetPopupScrollNow();
+
 
   const nmEl = document.getElementById("popupName");
   if (nmEl) nmEl.innerText = name || "";
 
-  let priceHTML = "";
-  if (mrp && price) {
-    const discount = Math.round(((mrp - price) / mrp) * 100);
-    priceHTML = `
-      <div style="font-size:14px; display:flex; justify-content:center; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-        <b>₹${price}</b>
-        <s style="color:#999;">₹${mrp}</s>
-        <span style="color:green; font-size:13px;">${discount}% off</span>
-      </div>`;
-  } else if (price) {
-    priceHTML = `<b>₹${price}</b>`;
+  // === show SELLING PRICE only, bigger & bold ===
+let priceHTML = "";
+if (price) {
+  // single large bold price, centered
+  priceHTML = `
+  <div style="width:100%; text-align:center;">
+    <span style="font-size:18px; font-weight:700; display:inline-block; transform:translateX(-1px);">₹${price}</span>
+  </div>`;
+
+} else {
+  priceHTML = `<span style="color:#999;">Price not available</span>`;
+}
+// hide standalone popup price area (we'll show price inside the button)
+const priceEl = document.getElementById("popupPrice");
+if (priceEl) {
+  priceEl.style.display = "none";
+}
+
+// description handling (unchanged logic, just tidy)
+const descWrap = document.getElementById("popupDesc");
+const descText = document.getElementById("popupDescText");
+const fromSheet = (sheetDesc || "").trim();
+
+if (descText) descText.textContent = "";
+if (fromSheet.length > 0) {
+  if (descWrap) descWrap.style.display = "block";
+  if (descText) descText.textContent = fromSheet;
+} else {
+  if (descWrap) descWrap.style.display = "none";
+}
+
+// inject structured data (keep as is)
+injectProductSchema({
+  name,
+  price,
+  mrp,
+  image: images?.[0],
+  description: fromSheet
+});
+
+// prepare price text (safe check for numeric price)
+const priceText = (price !== undefined && price !== null && price !== "" && !isNaN(Number(price)))
+  ? `₹${price}`
+  : "";
+
+// configure Add to Cart button and insert price inside it
+const popupBtn = document.getElementById("popupAddBtn");
+if (popupBtn) {
+  if (+stock === 0) {
+    popupBtn.disabled = true;
+    popupBtn.innerHTML = "Out of Stock";
+    // optional: clear onclick when out of stock
+    popupBtn.onclick = null;
+    // optional: remove price when out of stock
   } else {
-    priceHTML = `<span style="color:#999;">Price not available</span>`;
+    popupBtn.disabled = false;
+
+    // make button content flexible so text + price align nicely
+    popupBtn.style.display = "flex";
+    popupBtn.style.alignItems = "center";
+    popupBtn.style.justifyContent = "center";
+    popupBtn.style.gap = "125px";
+
+    // place label and price span (price will appear just to the right)
+    popupBtn.innerHTML = `<span style="display:inline-block; font-weight:700;">Add to Cart</span>` +
+                         (priceText ? `<span class="popup-price" style="font-weight:800; display:inline-block;">${priceText}</span>` : "");
+
+    // attach click handler to add item with chosen qty
+    popupBtn.onclick = function () {
+      const qtyEl = document.getElementById("popupQty");
+      const qty = qtyEl ? parseInt(qtyEl.innerText || "1", 10) : 1;
+
+      addToCartFromGrid(popupBtn, {
+        photo: images?.[0],
+        name,
+        mrp,
+        price,
+        qty: isNaN(qty) ? 1 : qty
+      });
+    };
   }
-  const priceEl = document.getElementById("popupPrice");
-  if (priceEl) priceEl.innerHTML = priceHTML;
+}
 
-  const descWrap = document.getElementById("popupDesc");
-  const descText = document.getElementById("popupDescText");
-  const fromSheet = (sheetDesc || "").trim();
-
-  if (descText) descText.textContent = "";
-  if (fromSheet.length > 0) {
-    if (descWrap) descWrap.style.display = "block";
-    if (descText) descText.textContent = fromSheet;
-  } else {
-    if (descWrap) descWrap.style.display = "none";
-  }
-
-  injectProductSchema({
-    name,
-    price,
-    mrp,
-    image: images?.[0],
-    description: fromSheet
-  });
-
-  const popupBtn = document.getElementById("popupAddBtn");
-  if (popupBtn) {
-    if (+stock === 0) {
-      popupBtn.disabled = true;
-      popupBtn.innerHTML = "Out of Stock";
-    } else {
-      popupBtn.disabled = false;
-      popupBtn.innerHTML = "Add to Cart";
-      popupBtn.onclick = function () {
-        addToCartFromGrid(popupBtn, {
-          photo: images?.[0],
-          name,
-          mrp,
-          price,
-          qty: parseInt(document.getElementById("popupQty").innerText) || 1
-        });
-      };
-    }
-  }
 
   const slider = document.getElementById("popupSlider");
   const dotsContainer = document.getElementById("popupDots");
@@ -2580,7 +2543,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
         const v = document.createElement("video");
         v.className = "popup-slide";
         v.src = clean;
-        keepAliveVideo(v);
+        keepAliveVideo(v); // <-- ensures nonstop playback
         el = v;
       }
       keepAliveVideo(el);
@@ -2625,7 +2588,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const prevIndex = currentIndex;
     currentIndex = i;
     const dist = Math.max(1, Math.abs(prevIndex - currentIndex));
-    const base = 1400;
+    const base = 1400; // base ms (slower)
     const extra = 200 * (dist - 1);
     let dur = base + extra;
     if (window.__fastSwipe) dur = Math.max(420, base - 120);
@@ -2659,7 +2622,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const atLast  = currentIndex === slides.length - 1 && dx < 0;
     const damp = (atFirst || atLast) ? 0.4 : 1;
     const pos = dragStartX + dx * damp;
-    track.style.transform = `translateX(${pos}px)`;
+track.style.transform = `translateX(${pos}px) scale(0.98)`;
+
 
     lastMoveTime = Date.now();
     lastMoveX = e.clientX;
@@ -2673,7 +2637,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const dx = e.clientX - startX;
     const dt = Math.max(1, Date.now() - lastMoveTime);
     const velocity = (e.clientX - lastMoveX) / dt;
-    const threshold = Math.min(10, width() * 0.03);
+    const threshold = Math.min(20, width() * 0.01);  // sirf 3% swipe ya 20px
+
     const fast = Math.abs(velocity) > 0.6;
 
     let target = currentIndex;
@@ -2681,6 +2646,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     else if (dx > threshold || (fast && dx > 0)) target = currentIndex - 1;
 
     window.__fastSwipe = fast;
+    track.style.transform = `translateX(${-target * width()}px) scale(1)`;
+
     goTo(target, true);
     setTimeout(() => { window.__fastSwipe = false; }, 50);
     slider.releasePointerCapture?.(e.pointerId);
@@ -2703,7 +2670,7 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   const popup = document.getElementById("productPopup");
   if (popup) {
     const card  = popup.querySelector(".popup-card");
-    popup.style.display = "flex";
+    popup.style.display = "flex";      // mount
     requestAnimationFrame(() => {
       popup.classList.add("is-open");
       if (card) {
@@ -2715,44 +2682,13 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 }
 
-
-/* HAPTIC HELPER: single strong haptic with debounce to avoid double vibration */
-function triggerHaptic(duration = 30, minGap = 120) {
-  try {
-    if (!('vibrate' in navigator)) return;
-    const now = (performance && performance.now) ? performance.now() : Date.now();
-    const last = window.__lastHapticTime || 0;
-    if (now - last < minGap) return;
-    navigator.vibrate(duration);
-    window.__lastHapticTime = now;
-  } catch (e) {}
-}
-
 function changePopupQty(change) {
-  try {
-    const qtyElement = document.getElementById("popupQty");
-    if (!qtyElement) return;
-    let current = parseInt(qtyElement.innerText) || 1;
-    const newVal = Math.max(1, Math.min(99, current + change));
-    if (newVal === current) {
-      try { if (navigator.vibrate) navigator.vibrate(8); } catch(e){}
-      return;
-    }
-    qtyElement.innerText = newVal;
-
-    (function doHaptic(){
-      try {
-        if (!('vibrate' in navigator)) return;
-        navigator.vibrate(30); // strong single haptic feedback
-      } catch (e) {}
-    })();
-
-    try {
-      qtyElement.classList.add('qty-pulse');
-      clearTimeout(window.__qtyPulseTimer);
-      window.__qtyPulseTimer = setTimeout(() => qtyElement.classList.remove('qty-pulse'), 140);
-    } catch(e){}
-  } catch(e){ console.warn('changePopupQty error', e); }
+  const qtyElement = document.getElementById("popupQty");
+  let current = parseInt(qtyElement.innerText);
+  current += change;
+  if (current < 1) current = 1;
+  if (current > 99) current = 99;
+  qtyElement.innerText = current;
 }
 
 function addToCartFromGrid(button, product) {
@@ -2767,9 +2703,9 @@ function addToCartFromGrid(button, product) {
     let cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
     const existing = cartItems.find(i => i.name === product.name);
     if (existing) {
-      existing.qty += product.qty || 1;
+      existing.qty += product.qty || 1;  // ✅ Add correct qty if already exists
     } else {
-      cartItems.push({ ...product, qty: product.qty || 1 });
+      cartItems.push({ ...product, qty: product.qty || 1 }); // ✅ Store correct qty
     }
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
@@ -2795,7 +2731,7 @@ function addToCartFromGrid(button, product) {
                    typeof window.TAB_NAME === "string";
   const canRender = typeof window.renderProducts === "function";
 
-  if (!canFetch || !canRender) return;
+  if (!canFetch || !canRender) return; // integrate only when your hooks exist
 
   let lastJSON = "";
   let inflight = false;
@@ -2820,7 +2756,7 @@ function addToCartFromGrid(button, product) {
   };
 
   tick();
-  setInterval(tick, 10000);
+  setInterval(tick, 10000); // every 10s; adjust if needed
 })();
 
 window.addEventListener("pageshow", () => {
@@ -2830,6 +2766,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("video").forEach(keepAliveVideo);
 });
 </script>
+
 
 <script>
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
@@ -2844,6 +2781,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
     .catch((err) => {
+      console.info("Announcement fetch fallback (if any) handled by SWR:", err?.name || err);
     });
 
   function updateCartBadge(animate = true) {
@@ -2862,14 +2800,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (animate && count !== prev) {
         badge.classList.remove("bounce-badge");
-        void badge.offsetWidth;
+        void badge.offsetWidth; // reflow
         badge.classList.add("bounce-badge");
         badge.addEventListener("animationend", () => {
           badge.classList.remove("bounce-badge");
         }, { once: true });
       }
     } else {
-      badge.innerText = "";
+      badge.innerText = "";      // no “0”
       badge.style.display = "none";
     }
 
@@ -2895,10 +2833,7 @@ function closePopup() {
     if (e.target !== card) return;
     popup.style.display = "none";
     try { popup.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; }); } catch(e){}
-  try {
-      if (history.state && history.state.__popup) { history.back(); return; }
-    } catch (e) {}
-    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
     card.removeEventListener("transitionend", onDone);
   };
   card.addEventListener("transitionend", onDone);
@@ -2983,13 +2918,14 @@ fetch(menuURL)
 </script>
 
 <div class="fab-stack">
-
+  
   <button id="toTopBtn" class="fab-btn" aria-label="Back to top" title="Back to top" style="display:none;">
     <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M18 15l-6-6-6 6"></path>
     </svg>
   </button>
 
+  
   <a id="waBtn" class="fab-btn" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" rel="noopener" target="_blank">
     <img src="https://i.postimg.cc/sxXh1J61/cropped-circle-image-1.png" alt="WhatsApp">
   </a>
@@ -3022,12 +2958,12 @@ fetch(menuURL)
 
   window.addEventListener('scroll', () => {
     const y = window.pageYOffset;
-    const delta = y - lastY;
+    const delta = y - lastY; // +ve = scrolling down, -ve = up
 
     if (atTopOrSearching()) { show(); lastY = y; return; }
 
-    if (delta > 3) hide();
-    else if (delta < -3) show();
+    if (delta > 3) hide();      // thoda bhi neeche jaoge to hide
+    else if (delta < -3) show(); // upar aate hi show
 
     lastY = y;
   }, { passive: true });
@@ -3059,6 +2995,8 @@ if (document.readyState !== "loading") updateCartBadge();
 else document.addEventListener("DOMContentLoaded", updateCartBadge);
 </script>
 
+
+
 <script>
 const CONFIG_SHEET_URL = "https://docs.google.com/spreadsheets/d/1KDbMcmLfxK1HrfmgjSf_1x1QfTsAcSvAIXQTAjYm4ew/edit?usp=drivesdk";
 
@@ -3067,7 +3005,7 @@ function extractSheetId(url){
 }
 function isOpenSheet(url){ return /opensheet\.elk\.sh/i.test(String(url||"")); }
 function isGviz(url){ return /\/gviz\/tq\?/i.test(String(url||"")); }
-function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\
+function isGoogleDocSheet(url){ return /docs\.google\.com\/spreadsheets\/d\//i.test(String(url||"")); }
 
 function buildOpensheet(sheetUrl, tab){
   const id = extractSheetId(sheetUrl);
@@ -3323,6 +3261,10 @@ window.openHeaderSearch = openHeaderSearch;
 window.closeHeaderSearch = closeHeaderSearch;
 </script>
 
+
+
+
+
 <script>
 
 function applyDirectionFromSheet(rows){
@@ -3337,7 +3279,7 @@ function applyDirectionFromSheet(rows){
       document.body.classList.add("horizontal-mode");
     } else if (value === 3){
       document.body.classList.add("horizontal-mode","small-cards");
-    }
+    } // value === 1 -> normal grid (no extra class)
   }catch(e){}
 }
 
@@ -3352,7 +3294,7 @@ function applyDirectionFromSheet(rows){
 </div>
 </section>
 
-<footer id="delayedFooter"
+<footer id="delayedFooter" 
         style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
   © 2025 Precioussly. All rights reserved.
 </footer>
@@ -3367,7 +3309,7 @@ function applyDirectionFromSheet(rows){
       footer.style.position = "fixed";
       footer.style.bottom = "0";
       footer.style.width = "100%";
-      footer.style.background = "#fff";
+      footer.style.background = "#fff";  // clean background
     } else {
       footer.style.position = "relative";
       footer.style.width = "100%";
@@ -3388,7 +3330,7 @@ function applyDirectionFromSheet(rows){
   window.addEventListener("resize", adjustFooter);
 </script>
 
-<footer id="delayedFooter"
+<footer id="delayedFooter" 
         style="display:none; text-align:center; margin-top:30px; padding:10px 0; font-size:12px; color:#555; border-top:1px solid #ddd; position:relative; bottom:0; left:0; right:0;">
   © 2025 Precioussly. All rights reserved.
 </footer>
@@ -3403,7 +3345,7 @@ function applyDirectionFromSheet(rows){
       footer.style.position = "fixed";
       footer.style.bottom = "0";
       footer.style.width = "100%";
-      footer.style.background = "#fff";
+      footer.style.background = "#fff";  // clean background
     } else {
       footer.style.position = "relative";
       footer.style.width = "100%";
@@ -3441,7 +3383,7 @@ function applyDirectionFromSheet(rows){
       try {
         if (history.state && history.state.popupOpen) {
           history.back();
-          return;
+          return; // popstate listener will hide
         }
       } catch(e){}
       hideInstant();
@@ -3452,7 +3394,7 @@ function applyDirectionFromSheet(rows){
       const obs = new MutationObserver(() => {
         const isOpen = window.getComputedStyle(popup).display === 'flex';
         if (isOpen && !(history.state && history.state.popupOpen)) {
-          try { history.replaceState({ popupOpen: true }, "", location.href); } catch(e) {}
+          try { history.pushState({ popupOpen: true }, "", location.href); } catch(e) {}
         }
       });
       obs.observe(popup, { attributes: true, attributeFilter: ['style', 'class'] });
@@ -3506,6 +3448,8 @@ function applyDirectionFromSheet(rows){
   }, true);
 })();
 </script>
+
+
 
 <script id="openPopup-left-right-override">
 (function(){
@@ -3564,39 +3508,12 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     var descWrap = $("popupDesc");
     var descText = $("popupDescText");
     var fromSheet = (sheetDesc||"").trim();
-
-    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    function formatDescription(raw){
-      if(!raw) return '';
-      raw = raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-      const parts = raw.split(/\n{2,}/).map(p=>p.trim()).filter(Boolean);
-      let html = '';
-      parts.forEach((part, idx) => {
-        const lines = part.split('\n').map(l=>l.trim()).filter(Boolean);
-        const bullets = lines.filter(l => /^[-•\u2022]|\u2728|🌟|✨|🌸|🌹/.test(l));
-        if(bullets.length >= 1 && bullets.length >= lines.length/2){
-          html += '<ul>';
-          lines.forEach(l => {
-            const li = l.replace(/^[-•\u2022]\s*/,'').replace(/^[\u2728\u2022\u2023\u25E6\u2023]\s*/,'');
-            html += '<li>' + escapeHtml(li) + '</li>';
-          });
-          html += '</ul>';
-        } else if(idx === 0){
-          html += '<p class=\"desc-lead\">' + escapeHtml(lines.join(' ')) + '</p>';
-        } else {
-          html += '<p>' + escapeHtml(lines.join(' ')) + '</p>';
-        }
-      });
-      return html;
-    }
-
-    if(descText) descText.innerHTML = '';
+    if(descText) descText.textContent = "";
     if(fromSheet.length > 0){
-      if(descWrap) descWrap.style.display = 'block';
-      if(descText) descText.innerHTML = formatDescription(fromSheet);
+      if(descWrap) descWrap.style.display = "block";
+      if(descText) descText.textContent = fromSheet;
     }else{
-      if(descWrap) descWrap.style.display = 'none';
+      if(descWrap) descWrap.style.display = "none";
     }
 
     try{
@@ -3638,6 +3555,7 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     var track = document.createElement("div");
     track.className = "popup-track";
     slider.appendChild(track);
+// START: touch / pointer swipe handlers (inserted by ChatGPT)
 (function bindPopupSwipe(track, slider, goToFn){
   if (!track || !slider) return;
 
@@ -3647,10 +3565,10 @@ history.replaceState && history.replaceState(null, "", shareUrl);
   let currentTranslate = 0;
   let baseIndex = 0;
 
-  const widthWithGap = () => (slider.getBoundingClientRect().width + 10);
+  const widthWithGap = () => (slider.getBoundingClientRect().width + 10); // matches width() in file
 
   function setTranslate(x, animate){
-    if (animate) track.style.transition = '';
+    if (animate) track.style.transition = ''; // restore (will be set by goTo)
     else track.style.transition = 'none';
     track.style.transform = `translateX(${x}px)`;
   }
@@ -3660,6 +3578,7 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     lastX = clientX;
     dragging = true;
     slider.classList.add('dragging');
+    // compute base translate from current transform
     const cur = track.style.transform || '';
     const m = cur.match(/translateX\((-?\d+)px\)/);
     currentTranslate = m ? parseInt(m[1], 10) : 0;
@@ -3672,6 +3591,7 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     const dx = clientX - lastX;
     lastX = clientX;
     const totalDx = clientX - startX;
+    // simple rubber-band at edges
     const maxTranslate = 0;
     const minTranslate = - (Math.max(0, (track.children.length - 1)) * widthWithGap());
     let next = currentTranslate + totalDx;
@@ -3684,25 +3604,35 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     if (!dragging) return;
     dragging = false;
     slider.classList.remove('dragging');
+    // decide swipe
     const totalDx = lastX - startX;
-    const threshold = Math.min(10, widthWithGap() * 0.03);
+    const threshold = Math.min(60, widthWithGap() * 0.15); // px
     const cur = track.style.transform || '';
     const m = cur.match(/translateX\((-?\d+)px\)/);
     const curTranslate = m ? parseInt(m[1], 10) : 0;
     const idx = Math.round(Math.abs(curTranslate) / widthWithGap());
 
     if (totalDx < -threshold) {
+      // swiped left -> next
       goToFn(idx + 1, true);
     } else if (totalDx > threshold) {
+      // swiped right -> prev
       goToFn(idx - 1, true);
     } else {
+      // small move -> snap back
       goToFn(idx, true);
     }
   }
 
+  // use pointer events where supported, otherwise touch/mouse fallback
   slider.addEventListener('pointerdown', (e) => {
+  // only primary button / touch
   if (e.pointerType === 'mouse' && e.button !== 0) return;
 
+  // IMPORTANT:
+  // Do NOT call preventDefault() for touch pointer events.
+  // Calling preventDefault() on touch blocks the browser's pinch-to-zoom.
+  // Only prevent default for mouse if needed.
   if (e.pointerType === 'mouse') {
     e.preventDefault();
   }
@@ -3721,6 +3651,7 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     window.addEventListener('pointerup', up, {passive:true});
   }, {passive:false});
 
+  // fallback for touch-only devices (some browsers)
   slider.addEventListener('touchstart', (e) => {
     const t = e.touches[0];
     if (!t) return;
@@ -3738,16 +3669,21 @@ history.replaceState && history.replaceState(null, "", shareUrl);
   }, {passive:true});
 
 })(track, slider, function(i, animate){
+  // safe call to goTo function already defined in your openPopup scope
   try { goTo(i, animate); } catch(e) {
+    // if goTo isn't available (should be), fallback: clamp and set transform
     const w = (slider.getBoundingClientRect().width + 10);
     const slides = track.children.length || 1;
     if (i < 0) i = 0;
     if (i > slides - 1) i = slides.length - 1;
     track.style.transition = animate ? '' : 'none';
     track.style.transform = "translateX(" + (-i * w) + "px)";
+    // update dots if present
     try { if (typeof setActiveDot === 'function') setActiveDot(i); } catch(e){}
   }
 });
+// END: touch / pointer swipe handlers
+
 
 var slides = [], dots = [];
 images.forEach(function(url, i) {
@@ -3775,7 +3711,9 @@ images.forEach(function(url, i) {
 img.src = clean;
 img.className = "popup-slide";
 img.setAttribute("draggable","false");
-img.style.touchAction = "auto";
+// let the browser handle pinch at page level; do not force image to capture pinch
+// either remove touchAction or set to auto:
+img.style.touchAction = "auto"; // <-- safer: explicitly allow default pinch
 el = img;
 
   track.appendChild(el);
@@ -3815,8 +3753,10 @@ let dur = base + extra;
 track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.22,1,.36,1)` : "none";
       track.style.transform = "translateX(" + (-i * width()) + "px)";
       setActiveDot(i);
-
+      
     }
+
+    
 
     slider.tabIndex = 0;
     slider.onkeydown = function(e){
@@ -3832,8 +3772,8 @@ track.style.transition = (animate!==false) ? `transform ${dur}ms cubic-bezier(.2
 var card  = popup ? popup.querySelector(".popup-card") : null;
 if (popup){
   popup.style.display = "flex";
-  popup.classList.add("is-open");
-  if (card) {
+  popup.classList.add("is-open");           // keeps overlay visible
+  if (card) {                               // OK to keep enter (no animation now)
     card.classList.remove("leave");
     card.classList.add("enter");
   }
@@ -3905,7 +3845,7 @@ if (popup){
     window.openPopup = function() {
       try {
         if (!history.state || !history.state.__popup) {
-          history.replaceState({ __popup: true }, "", location.href);
+          history.pushState({ __popup: true }, "", location.href);
         }
       } catch (e) {}
       return __origOpenPopup.apply(this, arguments);
@@ -3997,7 +3937,7 @@ if (popup){
   if (profEl) {
     const pushIfNeeded = () => {
       if (profileOpen() && !(history.state && history.state.__profile)) {
-        try { history.replaceState({ __profile: true }, "", location.href); } catch(e){}
+        try { history.pushState({ __profile: true }, "", location.href); } catch(e){}
       }
     };
     const mo = new MutationObserver(pushIfNeeded);
@@ -4024,7 +3964,7 @@ if (popup){
   if (prodEl) {
     const mo2 = new MutationObserver(() => {
       if (productOpen() && !(history.state && history.state.__product)) {
-        try { history.replaceState({ __product: true }, "", location.href); } catch(e){}
+        try { history.pushState({ __product: true }, "", location.href); } catch(e){}
       }
     });
     mo2.observe(prodEl, { attributes: true, attributeFilter: ['class','style'] });
@@ -4036,7 +3976,11 @@ if (popup){
   });
 })();
 </script>
+
+
+
 <script>
+
 window._userInteracting = false;
 (function(){
   const root = document;
@@ -4049,279 +3993,233 @@ window._userInteracting = false;
     setTimeout(()=> window._userInteracting = false, 250);
   }, {passive:true});
 })();
-
-async function loadAndRenderCatalog(opts = { forceNetwork: false }) {
+async function loadAndRenderCatalog() {
   try {
     if (typeof SHEET_URL === "undefined") {
       console.warn("SHEET_URL is not defined. Define SHEET_URL to point to your Google Sheet JSON URL.");
       return;
     }
 
-    const content = document.getElementById("content");
-    if (!content) return;
+    const res = await fetch(SHEET_URL, {cache: "no-store"});
+    const data = await res.json();
 
-    // Preserve previous horizontal scroll positions for grids (if any)
-    let prevScrolls = [];
+    
+
     try {
-      const prevGrids = Array.from(content.querySelectorAll('.product-grid'));
-      prevScrolls = prevGrids.map(g => g.scrollLeft || 0);
-    } catch (e) { prevScrolls = []; }
-
-    // If user is interacting, postpone a non-network render attempt
-    if (window._userInteracting) {
-      if (window._deferredRenderTimer) clearTimeout(window._deferredRenderTimer);
-      window._deferredRenderTimer = setTimeout(() => {
-        if (!window._userInteracting) loadAndRenderCatalog(opts);
-      }, 800);
-      return;
+      const latestSnapshot = JSON.stringify((data || []).map(d => (d['Product Name']||'') + '::' + (d['Selling Price']||'')));
+      if (window._lastSnapshot === latestSnapshot) {
+        return;
+      }
+      window._lastSnapshot = latestSnapshot;
+    } catch(e){}
+if (typeof applyDirectionFromSheet === "function") {
+      applyDirectionFromSheet(data);
     }
+    window.catalogData = data;
 
-    function renderFromData(data) {
-      content.innerHTML = "";
+    
+const content = document.getElementById("content");
+if (!content) return;
 
-      let currentSection = "";
-      let sectionWrapper = null;
-      let currentSectionHidden = false;
+if (window._userInteracting) {
+  if (window._swr_delayed_retry) clearTimeout(window._swr_delayed_retry);
+  window._swr_delayed_retry = setTimeout(() => {
+    if (!window._userInteracting) loadAndRenderCatalog();
+  }, 800);
+  return;
+}
 
-      (data || []).forEach((item) => {
-        if (item && item["Section"]) {
-          currentSection = item["Section"];
-          const secVis = String(item["visibility"] || item["Visibility"] || "")
-            .trim()
-            .toLowerCase();
-          currentSectionHidden = secVis.includes("hide");
-          if (currentSectionHidden) { sectionWrapper = null; return; }
+const prevGrids = Array.from(content.querySelectorAll('.product-grid'));
+const prevScrolls = prevGrids.map(g => g.scrollLeft || 0);
 
-          const sectionTitle = document.createElement("div");
-          sectionTitle.className = "section-title";
-          sectionTitle.innerText = currentSection;
-          content.appendChild(sectionTitle);
+content.innerHTML = "";
 
-          sectionWrapper = document.createElement("div");
-          sectionWrapper.className = "product-grid";
-          content.appendChild(sectionWrapper);
-          return;
+    let currentSection = "";
+    let sectionWrapper = null;
+    let currentSectionHidden = false;
+
+    data.forEach((item) => {
+      if (item["Section"]) {
+        currentSection = item["Section"];
+        const secVis = String(item["visibility"] || item["Visibility"] || "")
+          .trim()
+          .toLowerCase();
+        currentSectionHidden = secVis.includes("hide");
+        if (currentSectionHidden) { sectionWrapper = null; return; }
+
+        const sectionTitle = document.createElement("div");
+        sectionTitle.className = "section-title";
+        sectionTitle.innerText = currentSection;
+        content.appendChild(sectionTitle);
+
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+        return;
+      }
+
+      if (currentSectionHidden) return;
+      if (typeof isHidden === "function" && isHidden(item)) return;
+      if (!item["Product Name"]) return;
+
+      const product = document.createElement("div");
+      product.className = "product";
+
+      product.addEventListener("click", (e) => {
+        if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
+        const allPhotos = [
+          item["photo 1"],
+          item["photo 2"],
+          item["photo 3"],
+          item["photo 4"],
+        ].filter(Boolean);
+        if (typeof openPopup === "function") {
+          openPopup(
+            allPhotos,
+            item["Product Name"],
+            item["MRP"],
+            item["Selling Price"],
+            item["in stock"],
+            (typeof getSheetDescription === "function" ? getSheetDescription(item) : "")
+          );
         }
-
-        if (currentSectionHidden) return;
-        if (typeof isHidden === "function" && isHidden(item)) return;
-        if (!item || !item["Product Name"]) return;
-
-        const product = document.createElement("div");
-        product.className = "product";
-
-        product.addEventListener("click", (e) => {
-          if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-          const allPhotos = [
-            item["photo 1"],
-            item["photo 2"],
-            item["photo 3"],
-            item["photo 4"],
-          ].filter(Boolean);
-          if (typeof openPopup === "function") {
-            openPopup(
-              allPhotos,
-              item["Product Name"],
-              item["MRP"],
-              item["Selling Price"],
-              item["in stock"],
-              (typeof getSheetDescription === "function" ? getSheetDescription(item) : "")
-            );
-          }
-        });
-
-        (function(){
-          const url1 = (item["photo 1"] || "").trim();
-          let el;
-          if (typeof isVideoUrl === "function" && isVideoUrl(url1)) {
-            const v = document.createElement("video");
-            v.src = url1;
-            v.muted = true;
-            v.autoplay = true;
-            v.loop = true;
-            v.playsInline = true;
-            v.preload = "metadata";
-            v.style.width = "100%";
-            v.style.height = "100%";
-            v.style.objectFit = "contain";
-            v.disablePictureInPicture = true;
-            v.setAttribute("muted","");
-            v.setAttribute("webkit-playsinline","true");
-            v.setAttribute("playsinline","true");
-            v.style.pointerEvents = "none";
-            v.style.cursor = "default";
-            el = v;
-          } else {
-            const img = document.createElement("img");
-            img.src = url1;
-            img.alt = item["Product Name"] || "";
-            img.style.pointerEvents = "none";
-            img.style.cursor = "default";
-            el = img;
-          }
-          const wrap = document.createElement('div');
-          wrap.className = 'media-square';
-          wrap.appendChild(el);
-          product.appendChild(wrap);
-        })();
-
-        if (item["Badge"]) {
-          const badge = document.createElement("div");
-          badge.className = "badge";
-          badge.innerText = item["Badge"];
-          product.appendChild(badge);
-        }
-
-        const infoWrapper = document.createElement("div");
-        infoWrapper.style.padding = "0 6px";
-
-        const title = document.createElement("div");
-        title.className = "product-title";
-        title.style.fontSize = "14px";
-        title.style.textAlign = "center";
-        title.style.marginTop = "8px";
-        title.innerText = item["Product Name"];
-        try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
-        try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
-        infoWrapper.appendChild(title);
-
-        const info = document.createElement("div");
-        info.className = "product-info";
-
-        let priceHTML = "";
-        if (item["MRP"] && item["Selling Price"]) {
-          priceHTML = `
-            <div style="
-              text-align:center;
-              font-size:14px;
-              font-weight:bold;
-              display:flex; justify-content:center;
-              gap:6px;
-              align-items:center;
-              white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-            ">
-              <span>₹${item["Selling Price"]}</span>
-              <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-            </div>
-          `;
-        }
-
-        if (+item["in stock"] === 0) {
-          info.innerHTML = `
-            ${priceHTML}
-            <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
-          `;
-        } else {
-          const productData = {
-            photo: item["photo 1"],
-            name: item["Product Name"],
-            mrp: item["MRP"],
-            price: item["Selling Price"],
-          };
-          info.innerHTML = `
-            ${priceHTML}
-            <button class="add-btn" onclick='if(typeof addToCartFromGrid==="function"){addToCartFromGrid(this, ${JSON.stringify(productData)})}'>Add to Cart</button>
-          `;
-        }
-
-        infoWrapper.appendChild(info);
-        product.appendChild(infoWrapper);
-
-        if (!sectionWrapper) {
-          sectionWrapper = document.createElement("div");
-          sectionWrapper.className = "product-grid";
-          content.appendChild(sectionWrapper);
-        }
-        sectionWrapper.appendChild(product);
       });
 
-      // restore horizontal scrolls
-      try {
-        const newGrids = Array.from(content.querySelectorAll('.product-grid'));
-        newGrids.forEach((g, i) => {
-          if (typeof prevScrolls[i] === 'number') {
-            requestAnimationFrame(() => { g.scrollLeft = prevScrolls[i]; });
-          }
-        });
-      } catch (e) {}
-      if (typeof maybeOpenFromURL === "function") maybeOpenFromURL();
-      try { document.querySelectorAll("video").forEach(v => { if (typeof keepAliveVideo === "function") keepAliveVideo(v); }); } catch(e){}
-    }
-
-    // try to read cached JSON from localStorage
-    let cachedJSON = null;
-    try {
-      const raw = localStorage.getItem(cacheKey);
-      if (raw) cachedJSON = JSON.parse(raw);
-    } catch (e) {  }
-
-    if (cachedJSON && !opts.forceNetwork) {
-      try {
-        renderFromData(cachedJSON);
-      } catch (e) {
-        // rendering from cache failed; continue to network fetch
-      }
-    }
-
-    let force = !!opts.forceNetwork;
-    try {
-      if (new URL(location.href).searchParams.get("nocache") === "1") force = true;
-    } catch (e) {}
-    try {
-      const navEntries = performance.getEntriesByType && performance.getEntriesByType("navigation");
-      if (navEntries && navEntries[0] && navEntries[0].type === "reload") force = true;
-    } catch (e) {}
-
-    // perform the network fetch
-    try {
-      const fetchInit = force ? { cache: "no-store" } : { cache: "no-cache" };
-      const res = await fetch(SHEET_URL, fetchInit);
-      const data = await (res.ok ? res.json() : []);
-      const normalized = Array.isArray(data) ? data : [];
-
-      const newJSON = JSON.stringify(normalized);
-      const oldJSON = localStorage.getItem(cacheKey) || "";
-
-      if (newJSON !== oldJSON) {
-        try { localStorage.setItem(cacheKey, newJSON); } catch (e) {  }
-
-        // Broadcast a simple custom event that the cache changed (if listeners exist)
-        try {
-          const ev = new CustomEvent('catalogCacheUpdated', { detail: { key: cacheKey, ts: Date.now() } });
-          window.dispatchEvent(ev);
-        } catch (e) { /* ignore */ }
-
-        if (!window._userInteracting) {
-          renderFromData(normalized);
+      (function(){
+        const url1 = (item["photo 1"] || "").trim();
+        let el;
+        if (typeof isVideoUrl === "function" && isVideoUrl(url1)) {
+          const v = document.createElement("video");
+          v.src = url1;
+          v.muted = true;
+          v.autoplay = true;
+          v.loop = true;
+          v.playsInline = true;
+          v.preload = "metadata";
+          v.style.width = "100%";
+          v.style.height = "100%";
+          v.style.objectFit = "contain";
+          v.disablePictureInPicture = true;
+          v.setAttribute("muted","");
+          v.setAttribute("webkit-playsinline","true");
+          v.setAttribute("playsinline","true");
+          v.style.pointerEvents = "none";
+          v.style.cursor = "default";
+          el = v;
         } else {
-          if (window._deferredRenderTimer) clearTimeout(window._deferredRenderTimer);
-          window._deferredRenderTimer = setTimeout(() => {
-            renderFromData(normalized);
-          }, 600);
+          const img = document.createElement("img");
+          img.src = url1;
+          img.alt = item["Product Name"] || "";
+          img.style.pointerEvents = "none";
+          img.style.cursor = "default";
+          el = img;
         }
-      } else {
-        // no change
+        const wrap = document.createElement('div');
+        wrap.className = 'media-square';
+        wrap.appendChild(el);
+        product.appendChild(wrap);
+      })();
+
+      if (item["Badge"]) {
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.innerText = item["Badge"];
+        product.appendChild(badge);
       }
 
-      try {
-        const latestSnapshot = JSON.stringify((normalized || []).map(d => (d['Product Name']||'') + '::' + (d['Selling Price']||'')));
-        window._lastSnapshot = latestSnapshot;
-        if (typeof applyDirectionFromSheet === "function") applyDirectionFromSheet(normalized);
-        window.catalogData = normalized;
-      } catch (e) {}
-    } catch (err) {
-      // fetch failed; keep existing UI (if any). Log for debugging.
-      console.error("loadAndRenderCatalog fetch error:", err);
+      const infoWrapper = document.createElement("div");
+      infoWrapper.style.padding = "0 6px";
+
+      const title = document.createElement("div");
+      title.className = "product-title";
+      title.style.fontSize = "14px";
+      title.style.textAlign = "center";
+      title.style.marginTop = "8px";
+      title.innerText = item["Product Name"];
+      try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
+      try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
+      infoWrapper.appendChild(title);
+
+      const info = document.createElement("div");
+      info.className = "product-info";
+
+      let priceHTML = "";
+      if (item["MRP"] && item["Selling Price"]) {
+        priceHTML = `
+          <div style="
+            text-align:center;
+            font-size:14px;
+            font-weight:bold;
+            display:flex; justify-content:center;
+            gap:6px;
+            align-items:center;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+          ">
+            <span>₹${item["Selling Price"]}</span>
+            <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
+          </div>
+        `;
+      }
+
+      if (+item["in stock"] === 0) {
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" disabled style="background:#f1f1f1;color:#888;border:1px solid #ccc;">Out of Stock</button>
+        `;
+      } else {
+        const productData = {
+          photo: item["photo 1"],
+          name: item["Product Name"],
+          mrp: item["MRP"],
+          price: item["Selling Price"],
+        };
+        info.innerHTML = `
+          ${priceHTML}
+          <button class="add-btn" onclick='if(typeof addToCartFromGrid==="function"){addToCartFromGrid(this, ${JSON.stringify(productData)})}'>Add to Cart</button>
+        `;
+      }
+
+      infoWrapper.appendChild(info);
+      product.appendChild(infoWrapper);
+
+      if (!sectionWrapper) {
+        sectionWrapper = document.createElement("div");
+        sectionWrapper.className = "product-grid";
+        content.appendChild(sectionWrapper);
+      }
+      sectionWrapper.appendChild(product);
+    });
+
+    
+
+try {
+  const newGrids = Array.from(content.querySelectorAll('.product-grid'));
+  newGrids.forEach((g, i) => {
+    if (typeof prevScrolls[i] === 'number') {
+      requestAnimationFrame(() => { g.scrollLeft = prevScrolls[i]; });
     }
+  });
+} catch(e) {  }
+if (typeof maybeOpenFromURL === "function") maybeOpenFromURL();
+
   } catch (err) {
-    console.error("loadAndRenderCatalog top-level error:", err);
+    console.error("Failed to load products:", err);
   }
 }
 
+loadAndRenderCatalog();
 
-if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
+(function(){
+  const POLL_MS = 3000;
+  const pollFn = () => {
+    if (document.visibilityState !== 'visible') return;
+    if (typeof loadAndRenderCatalog === "function") {
+      loadAndRenderCatalog();
+    }
+  };
+  setInterval(pollFn, POLL_MS);
+})();
 </script>
-
 
 <script>
 (function(){
@@ -4378,7 +4276,8 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 })();
 </script>
 
-<!-- MODIFIED popup history: pushState so browser Back goes back to base, and second Back goes to previous page -->
+
+<!-- Popup history handling fixes: use replaceState (no extra history entries) -->
 <script>
 (function(){
   const POPUP_ID = 'productPopup';
@@ -4388,76 +4287,85 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
 
+  // Ensure a base history state exists (mark whether popup initially open)
   try {
-    if (!history.state || !history.state.__base) {
-      history.replaceState(Object.assign({}, history.state || {}, { __base: true }), "", location.pathname + location.search);
-    }
-  } catch(e){}
+    const initialHasP = !!(new URLSearchParams(location.search).get('p'));
+    const baseState = Object.assign({}, history.state || {}, { __base: true, popupOpen: initialHasP });
+    history.replaceState(baseState, "", location.href);
+  } catch(e){ /* ignore */ }
 
+  // Wrap existing openPopup to use replaceState (no pushState)
   const origOpen = window.openPopup;
   if (typeof origOpen === 'function') {
     window.openPopup = function(images, name, mrp, price, stock, desc){
-      try { origOpen.apply(this, arguments); } catch(e){ console.warn("openPopup original failed:", e); }
+      // call original implementation first to render popup
+      try { const res = origOpen.apply(this, arguments); } catch(e){ console.warn("openPopup original failed:", e); }
 
+      // set URL param to ?p=slug using replaceState so no new history entry is created
       try {
         const slug = slugify(name);
         const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-        history.pushState({ __popup: true }, "", newUrl);
-      } catch (e) { console.warn("pushState openPopup failed:", e); }
+        const nextState = Object.assign({}, history.state || {}, { __base: true, popupOpen: true });
+        history.replaceState(nextState, "", newUrl);
+      } catch (e) { console.warn("replaceState openPopup failed:", e); }
     };
   }
 
+  // Wrap closePopup to remove ?p param via replaceState
   const origClose = window.closePopup;
   window.closePopup = function(){
-    try {
-      if (history.state && history.state.__popup) {
-        history.back();
-        return;
-      }
-    } catch (e) {  }
-
+    // call any existing close logic
     try { if (typeof origClose === 'function') origClose.apply(this, arguments); } catch(e){ console.warn("closePopup original failed:", e); }
+
+    // hide popup UI if still visible (safe-guard)
     try {
-      const baseUrl = location.pathname;
-      history.replaceState(Object.assign({}, history.state || {}, { __base: true }), "", baseUrl);
+      const el = popupEl();
+      if (el){
+        el.classList.remove('is-open');
+        el.style.display = 'none';
+        document.body.classList.remove('noscroll');
+      }
+    } catch(e){}
+
+    // replace history to remove param
+    try {
+      const nextState = Object.assign({}, history.state || {}, { __base: true, popupOpen: false });
+      history.replaceState(nextState, "", location.pathname);
     } catch (e) { console.warn("replaceState closePopup failed:", e); }
   };
 
+  // Popstate handler: make sure popup visibility follows state.popupOpen
   window.addEventListener('popstate', function(ev){
     const st = ev.state || {};
     const el = popupEl();
     const isVisible = el && (el.classList.contains('is-open') || getComputedStyle(el).display !== 'none');
-
-    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
-    if (st && st.__popup || urlHasP) {
+    if (st.popupOpen) {
+      // ensure popup is open (try maybeOpenFromURL if available)
       if (!isVisible) {
-        if (typeof maybeOpenFromURL === 'function') {
+        const p = new URLSearchParams(location.search).get('p');
+        if (p && typeof maybeOpenFromURL === 'function') {
           try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
         } else {
-          if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+          // fallback: just show popup element if present
+          try {
+            if (el){ el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+          } catch(e){}
         }
       }
     } else {
+      // ensure popup is closed
       if (isVisible) {
-        try { if (el){ el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } } catch(e){}
+        try { 
+          if (el){ el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); }
+        } catch(e){}
       }
     }
   }, false);
 
-  const overlay = popupEl();
-  if (overlay) {
-    overlay.addEventListener('click', function(e){
-      if (e.target === overlay) {
-        try {
-          if (history.state && history.state.__popup) { history.back(); return; }
-        } catch(e){}
-        try { if (typeof origClose === 'function') origClose(); } catch(e){}
-        try { overlay.classList.remove('is-open'); overlay.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
-      }
-    }, { passive: true });
-  }
 })();
 </script>
+<!-- End history-fix -->
+
 
 <!-- FAST SWIPE TUNING: injected to make touch swipe feel faster & natural -->
 <script>
@@ -4466,11 +4374,11 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     const styleId = 'fast-swipe-overrides';
     if (document.getElementById(styleId)) return;
     const css = `
-
+      /* make track animation snappy */
       #popupSlider .popup-track { transition: transform 260ms cubic-bezier(.22,1,.36,1) !important; }
-
+      /* snappier popup entry */
       .popup-card { transition: transform 420ms cubic-bezier(.22,1,.36,1), opacity 320ms ease !important; }
-
+      /* faster dot scaling */
       .popup-dot, .popup-dot.active { transition: transform 240ms cubic-bezier(.22,1,.36,1), opacity 180ms ease, box-shadow 240ms ease !important; }
     `;
     const st = document.createElement('style');
@@ -4478,6 +4386,7 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     st.appendChild(document.createTextNode(css));
     document.head.appendChild(st);
 
+    // Improve pointer handling with basic velocity detection
     const slider = document.getElementById('popupSlider');
     if (!slider) return;
     const track = slider.querySelector('.popup-track');
@@ -4513,6 +4422,7 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       let next = baseTranslate + totalDx;
       const maxTranslate = 0;
       const minTranslate = - (Math.max(0, (track.children.length - 1)) * widthWithGap());
+      // rubber band gently
       if (next > maxTranslate + 60) next = maxTranslate + 60 + (next - maxTranslate - 60) * 0.25;
       if (next < minTranslate - 60) next = minTranslate - 60 + (next - minTranslate + 60) * 0.25;
       setTranslate(next, false);
@@ -4524,23 +4434,26 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       slider.classList.remove('dragging');
       const dt = Math.max(1, performance.now() - startT);
       const dx = clientX - startX;
-      const velocity = dx / dt;
-      const fast = Math.abs(velocity) > 0.4;
-      const threshold = Math.min(10, widthWithGap() * 0.03);
+      const velocity = dx / dt; // px per ms
+      const fast = Math.abs(velocity) > 0.4; // threshold for quick flick
+      const threshold = Math.min(48, widthWithGap() * 0.12);
       const cur = getCurrentTranslate();
       const idx = Math.round(Math.abs(cur) / widthWithGap());
       let target = idx;
       if (dx < -threshold || (fast && dx < 0)) target = idx + 1;
       else if (dx > threshold || (fast && dx > 0)) target = idx - 1;
       target = Math.max(0, Math.min(track.children.length - 1, target));
+      // Apply final transition (faster if fast flick)
       track.style.transition = fast ? 'transform 180ms cubic-bezier(.22,1,.36,1)' : 'transform 260ms cubic-bezier(.22,1,.36,1)';
       setTranslate(-target * widthWithGap(), true);
+      // update active dot if any
       const dots = document.getElementById('popupDots');
       if (dots){
         Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === target));
       }
     }
 
+    // Pointer events where available
     slider.addEventListener('pointerdown', function(e){
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       e.preventDefault();
@@ -4551,6 +4464,7 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       window.addEventListener('pointerup', up, {passive:true});
     }, {passive:false});
 
+    // touch fallback
     slider.addEventListener('touchstart', function(e){
       const t = e.touches && e.touches[0];
       if(!t) return;
@@ -4562,10 +4476,12 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
       onMove(t.clientX);
     }, {passive:false});
     slider.addEventListener('touchend', function(e){
+      // take last touch position if possible
       const t = (e.changedTouches && e.changedTouches[0]) || {};
       onEnd(t.clientX || lastX);
     }, {passive:true});
 
+    // Resize -> snap to current index
     window.addEventListener('resize', function(){
       const cur = Math.round(Math.abs(getCurrentTranslate()) / widthWithGap());
       track.style.transition = 'none';
@@ -4573,8 +4489,11 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
     }, {passive:true});
   }
 
+  // run on DOM ready and also after popup content is built
   document.addEventListener('DOMContentLoaded', tunePopupSwipe);
+  // also try after a short delay to catch dynamic popup builds
   setTimeout(tunePopupSwipe, 600);
+  // and run whenever popup opens (if your openPopup triggers)
   const origOpen = window.openPopup;
   window.openPopup = function(...args){
     const r = (typeof origOpen === 'function') ? origOpen(...args) : undefined;
@@ -4585,505 +4504,233 @@ if (typeof loadAndRenderCatalog === "function") loadAndRenderCatalog();
 </script>
 <!-- END FAST SWIPE TUNING -->
 
+
+<!-- BEGIN: Popup history fix (injected by ChatGPT) -->
 <script>
 (function(){
-  try {
-    const listingUrl = location.pathname;
-    const state = history.state || {};
-    if (!state.__intermediate && !state.__popup && !(state.__listing_marker)) {
-      try {
-        history.replaceState(Object.assign({}, history.state || {}, { __base: true, __fromHome: true }), "", listingUrl);
-      } catch(e){}
-      try {
-        history.pushState({ __listing_marker: true }, "", listingUrl);
-      } catch(e){}
-    }
-  } catch(e){}
-})();
-</script>
-
-<!-- START: custom popup-history v4 (aggressive, forces Back -> Home when on listing with no popup) -->
-<script>
-(function(){
-  const LISTING_KEYWORD = '/all-products';
-  const HOME_URL = location.origin + '/';
-
-  function slugify(name){
-    return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
+  // Robust single-source history handling for the product popup.
+  // Behaviour:
+  //  - Opening popup uses history.replaceState to set ?p=slug (no extra history entries).
+  //  - Closing popup restores the original pathname (replaceState).
+  //  - popstate closes popup immediately if it's open.
+  //  - Safe: does not rely on other scripts' internal state; tries to call existing openPopup/closePopup.
+  function slugify(s){
+    return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
 
-  function isListingPage() {
+  function isPopupOpen(){
     try {
-      return location.pathname.toLowerCase().indexOf(LISTING_KEYWORD) !== -1;
+      const el = document.getElementById('productPopup');
+      if (!el) return false;
+      return el.classList.contains('is-open') || window.getComputedStyle(el).display !== 'none';
     } catch(e){ return false; }
   }
 
-  function popupElement() {
-    return document.getElementById('productPopup') || document.querySelector('.product-popup') || null;
-  }
-
-  function isPopupVisible() {
-    const el = popupElement();
-    if (!el) return false;
+  function closePopupInstant(){
     try {
-      if (el.classList.contains('is-open')) return true;
-      const disp = getComputedStyle(el).display;
-      return disp !== 'none' && disp !== 'hidden' && disp !== '';
-    } catch(e){ return false; }
-  }
-
-  try {
-    const candidate = document.querySelector('#productPopup .popup-back, #productPopup .back-btn, #productPopup button.back, #productPopup [id*="Back"], #productPopup .pp-back');
-    if (candidate) candidate.remove();
-  } catch(e){}
-
-  if (!isListingPage()) {
-    return;
-  }
-
-  const listingPathNormalized = location.pathname.replace(/\/+$/,'') + '/';
-
-  try {
-    history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-    history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-  } catch(e){ console.warn("history setup failed", e); }
-
-  function showPopupFromURL() {
-    if (typeof maybeOpenFromURL === 'function') {
-      try { maybeOpenFromURL(); return; } catch(e){ console.warn("maybeOpenFromURL failed", e); }
-    }
-    try {
-      const params = new URLSearchParams(location.search);
-      const p = params.get('p');
-      if (p && typeof window.openPopup === 'function') {
-        try { window.openPopup([], p); } catch(e){ console.warn("openPopup invocation failed", e); }
-      } else {
-        const el = popupElement();
-        if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+      // prefer existing closePopup if defined
+      if (typeof window._chatgpt_closePopupInstant === 'function') {
+        return window._chatgpt_closePopupInstant();
       }
+      const popup = document.getElementById('productPopup');
+      if (!popup) return;
+      const card = popup.querySelector('.popup-card');
+      if (card) {
+        card.classList.remove('enter');
+        card.classList.add('leave');
+      }
+      popup.classList.remove('is-open');
+      popup.style.display = 'none';
+      document.body.classList.remove('noscroll');
+      // pause videos
+      try { popup.querySelectorAll('video').forEach(v=>{ v.pause(); v.currentTime = 0; }); } catch(e){}
     } catch(e){}
   }
 
-  function hidePopupImmediate() {
-    const el = popupElement();
-    if (el) {
-      try { el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
+  // Save a reference to any existing openPopup/closePopup so other behavior stays intact
+  const origOpen = window.openPopup;
+  const origClose = window.closePopup;
+
+  // Provide a safe internal close that other injected code can call
+  window._chatgpt_closePopupInstant = function(){
+    closePopupInstant();
+  };
+
+  // Ensure base history state (mark starting URL)
+  try {
+    const base = Object.assign({}, history.state || {}, { __site_base: true });
+    history.replaceState(base, "", location.href);
+  } catch(e){}
+
+  // Override openPopup to replace URL (no history push)
+  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
+    // call original implementation first so popup appears quickly
+    if (typeof origOpen === 'function') {
+      try { origOpen.apply(this, arguments); } catch(e){ console.warn("origOpen failed:", e); }
     }
-  }
-
-  const originalOpen = window.openPopup;
-  window.openPopup = function(images, name, mrp, price, stock, desc){
-    try {
-      if (typeof originalOpen === 'function') {
-        originalOpen.apply(this, arguments);
-      }
-    } catch(e){ console.warn("original openPopup error", e); }
-
     try {
       const slug = slugify(name || '');
-      const popupUrl = slug ? (listingPathNormalized + '?p=' + encodeURIComponent(slug)) : listingPathNormalized;
-
-      if (!(history.state && history.state.__listing)) {
-        try {
-          history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-          history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-        } catch(e){}
-      }
-
-      if (history.state && history.state.__popup) {
-        history.replaceState({__popup:true, p: slug}, "", popupUrl);
-      } else {
-        history.pushState({__popup:true, p: slug}, "", popupUrl);
-      }
-    } catch(e){ console.warn("openPopup history error", e); }
+      const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
+      // Use replaceState so we do NOT add a new history entry
+      history.replaceState(Object.assign({}, history.state || {}, { popup: true }), "", newUrl);
+    } catch(e){ console.warn("history.replaceState failed:", e); }
   };
 
-  const originalClose = window.closePopup;
+  // Override closePopup to restore pathname using replaceState (no extra history entry)
   window.closePopup = function(){
+    // If other scripts expected history.back() to trigger popstate, we still restore URL without adding entry.
+    closePopupInstant();
     try {
-      if (history.state && history.state.__popup) {
-        history.back();
-        return;
+      history.replaceState(Object.assign({}, history.state || {}, { popup: false }), "", location.pathname);
+    } catch(e){}
+    // also call original close if it exists
+    if (typeof origClose === 'function') {
+      try { origClose.apply(this, arguments); } catch(e){ /* ignore */ }
+    }
+  };
+
+  // When user presses back/forward, close popup if open.
+  window.addEventListener('popstate', function(ev){
+    try {
+      if (isPopupOpen()) {
+        // close without touching history (we're responding to pop)
+        closePopupInstant();
+        // restore clean pathname (but do not add new history)
+        try { history.replaceState(Object.assign({}, history.state || {}, { popup: false }), "", location.pathname); } catch(e){}
       }
     } catch(e){}
+  });
 
-    if (typeof originalClose === 'function') {
-      try { originalClose.apply(this, arguments); } catch(e){ console.warn("original closePopup error", e); }
-    } else {
-      hidePopupImmediate();
-      try { history.replaceState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search); } catch(e){}
+  // Also make overlay clicks close via history replace (keeps URL clean)
+  document.addEventListener('click', function(e){
+    const overlay = document.getElementById('productPopup');
+    if (!overlay) return;
+    if (e.target === overlay) {
+      window.closePopup();
     }
-  };
+  }, {passive:true});
 
-  try {
-    const overlay = popupElement();
-    if (overlay) {
-      overlay.addEventListener('click', function(e){
-        if (e.target === overlay) {
-          try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
-          hidePopupImmediate();
-        }
-      }, { passive: true });
-    }
-  } catch(e){}
-
-  window.addEventListener('popstate', function(ev){
-    const st = ev.state || {};
-    const popupVisible = isPopupVisible();
-    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
-
-    if ((st && st.__popup) || urlHasP) {
-      if (!popupVisible) {
-        showPopupFromURL();
+  // If page loaded with ?p=..., try to open matching product after catalog loads.
+  // maybeOpenFromURL may already exist; keep compatibility.
+  function tryMaybeOpen(){
+    try {
+      if (typeof maybeOpenFromURL === 'function') {
+        maybeOpenFromURL();
+      } else {
+        // fallback: if there is popup param but no opener, just leave URL as-is (no history changes)
       }
-      return;
-    }
-
-    if (!popupVisible && ( (st && st.__listing) || isListingPage() )) {
-      try {
-        location.href = HOME_URL;
-        return;
-      } catch(e){}
-    }
-
-    if (popupVisible && ((st && st.__listing) || !urlHasP)) {
-      try { hidePopupImmediate(); } catch(e){}
-      return;
-    }
-
-  }, false);
-
+    } catch(e){}
+  }
+  // run after a short delay, to allow other scripts to set window.catalogData
+  window.addEventListener('DOMContentLoaded', function(){ setTimeout(tryMaybeOpen, 200); });
+  setTimeout(tryMaybeOpen, 800);
 })();
 </script>
-<!-- END: custom popup-history v4 -->
-
-<!-- Assistant: popup / back-button fix (appended) -->
-<script id="assistant-popup-fix">
+<!-- END: Popup history fix -->
+<script>
 (function(){
-  'use strict';
-  const POPUP_ID = 'productPopup';
-  function popupEl(){ return document.getElementById(POPUP_ID); }
-  function isPopupVisible(){
-    const el = popupEl(); if(!el) return false;
-    try {
-      if (el.classList && el.classList.contains('is-open')) return true;
-      const ds = (el.style && el.style.display) ? String(el.style.display).toLowerCase() : '';
-      return ds === 'flex' || ds === 'block' || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
-    } catch(e){ return false; }
+  function slugify(s){
+    return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
-  function showDomPopup(){
-    const el = popupEl(); if(!el) return;
-    try { el.style.display = 'flex'; el.classList && el.classList.add('is-open'); document.body && document.body.classList.add('noscroll'); } catch(e){}
-  }
-  function hideDomPopup(){
-    const el = popupEl(); if(!el) return;
-    try { el.classList && el.classList.remove('is-open'); el.style.display = 'none'; document.body && document.body.classList.remove('noscroll'); } catch(e){}
-  }
-  function slugify(name){ return String(name||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,''); }
 
   const origOpen = window.openPopup;
-  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
-    if (typeof origOpen === 'function') {
-      try { origOpen.apply(this, arguments); } catch(e){ console.warn('openPopup original error', e); showDomPopup(); }
-    } else {
-      showDomPopup();
-    }
+  const origClose = window.closePopup;
 
+  // OPEN popup → pushState with ?p=slug
+  window.openPopup = function(images, name, mrp, price, stock, desc){
+    if (typeof origOpen === 'function') origOpen.apply(this, arguments);
     try {
       const slug = slugify(name);
       const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-      const curP = (new URL(location.href)).searchParams.get('p') || null;
-      const newP = slug || null;
-      if (curP !== newP) {
-        history.pushState({__popup:true, p: newP}, '', newUrl);
-      } else {
-        history.replaceState(Object.assign({}, history.state || {}, {__popup:true, p:newP}), '', newUrl);
-      }
-    } catch(e){ console.warn('history push failed', e); }
+      history.pushState({popup:true}, "", newUrl);
+    } catch(e){}
   };
 
-  const origClose = window.closePopup;
+  // CLOSE popup → restore clean URL
   window.closePopup = function(){
-    try {
-      if (history.state && history.state.__popup) {
-        history.back();
-        return;
-      }
-    } catch(e){}
-    if (typeof origClose === 'function') {
-      try { origClose.apply(this, arguments); } catch(e){ console.warn('closePopup original failed', e); }
-    }
-    hideDomPopup();
-    try { history.replaceState(Object.assign({}, history.state || {}, {__listing:true}), '', location.pathname); } catch(e){}
+    if (typeof origClose === 'function') origClose.apply(this, arguments);
+    try { history.pushState({}, "", location.pathname); } catch(e){}
   };
 
-  document.addEventListener('click', function(e){
-    const overlay = popupEl();
-    if (!overlay) return;
-    if (e.target === overlay) {
-      try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
-      hideDomPopup();
-    }
-  }, true);
-
-  window.addEventListener('popstate', function(ev){
-    let urlHasP = false;
-    try { urlHasP = (new URL(location.href)).searchParams.has('p'); } catch(e){}
-    const visible = isPopupVisible();
-    if (urlHasP) {
-      if (!visible) {
-        if (typeof maybeOpenFromURL === 'function') {
-          try { maybeOpenFromURL(); return; } catch(e){ console.warn('maybeOpenFromURL failed', e); }
-        }
-        showDomPopup();
-      }
-    } else {
-      if (visible) {
-        hideDomPopup();
-        return;
+  // BACK button → if popup open, close instead of going back again
+  window.addEventListener('popstate', function(e){
+    const popup = document.getElementById('productPopup');
+    if (popup && popup.classList.contains('is-open')) {
+      if (typeof origClose === 'function') origClose();
+      else {
+        popup.classList.remove('is-open');
+        popup.style.display = 'none';
       }
     }
-  }, false);
-
-  document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' || e.key === 'Esc') {
-      if (isPopupVisible()) {
-        window.closePopup();
-        e.preventDefault();
-      }
-    }
-  }, false);
-
-  try {
-    if ((new URL(location.href)).searchParams.has('p')) {
-      if (typeof maybeOpenFromURL === 'function') {
-        setTimeout(()=>{ try{ maybeOpenFromURL(); }catch(e){} }, 60);
-      } else {
-        setTimeout(showDomPopup, 60);
-      }
-    }
-  } catch(e){}
-
+  });
 })();
 </script>
-<!-- End Assistant popup/back-button fix -->
-
-<!-- BEGIN assistant: reliable back-button popup handler -->
+<!-- HAPTIC: single-strong vibration only for popup + grid Add-to-Cart -->
 <script>
 (function(){
-  const POPUP_ID = 'productPopup';
-  function popupEl(){ return document.getElementById(POPUP_ID); }
-  function isPopupVisible(){
-    const el = popupEl(); if(!el) return false;
-    try {
-      return el.classList.contains('is-open') || (el.style && (el.style.display === 'flex' || el.style.display === 'block')) || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
-    } catch(e){ return false; }
-  }
-  function showPopupImmediate(){
-    const el = popupEl(); if(!el) return;
-    el.style.display = 'flex';
-    el.classList && el.classList.add('is-open');
-    document.body && document.body.classList.add('noscroll');
-    window.__popupOpen = true;
-  }
-  function hidePopupImmediate(){
-    const el = popupEl(); if(!el) return;
-    el.classList && el.classList.remove('is-open');
-    el.style.display = 'none';
-    document.body && document.body.classList.remove('noscroll');
-    window.__popupOpen = false;
+  // ---------- config ----------
+  const VIBRATE_MS = 70;        // single short pulse (adjust 60–110 as you like)
+  const DEBOUNCE_MS = 300;      // lock window to avoid duplicate triggers
+
+  let _lastVib = 0;
+  function canVibrate(){ return !!(navigator && typeof navigator.vibrate === 'function'); }
+  function triggerVibe(){
+    if (!canVibrate()) return;
+    const now = Date.now();
+    if (now - _lastVib < DEBOUNCE_MS) return;
+    _lastVib = now;
+    try { navigator.vibrate(VIBRATE_MS); } catch(e){ /* ignore */ }
   }
 
-  const origOpen = window.openPopup;
-  window.openPopup = function(...args){
+  // ---------- wrap addToCartFromGrid (popup + outside both call this) ----------
+  function wrapAddToCartFn(){
     try {
-      if (typeof origOpen === 'function') origOpen.apply(this, args);
-    } catch(e){ console.warn('openPopup original failed', e); }
-    try {
-      window.__popupOpen = true;
-      const cur = new URL(location.href);
-      if (!cur.searchParams.has('p')) {
-        cur.searchParams.set('p', 'item');
-        try { history.pushState({__popup:true}, '', cur.toString()); } catch(e){}
-      } else {
-        try { history.replaceState(Object.assign({}, history.state || {}, {__popup:true}), '', location.href); } catch(e){}
-      }
-    } catch(e){}
-    try { showPopupImmediate(); } catch(e){}
-  };
+      if (typeof window.addToCartFromGrid !== 'function') return false;
+      if (window.__addToCartWrapped) return true;
 
-  const origClose = window.closePopup;
-  window.closePopup = function(...args){
-    try {
-      if (typeof origClose === 'function') origClose.apply(this, args);
-    } catch(e){ console.warn('closePopup original failed', e); }
-    try {
-      hidePopupImmediate();
-      try { history.replaceState({__listing:true}, '', location.pathname + location.search); } catch(e){}
-    } catch(e){}
-  };
+      const original = window.addToCartFromGrid;
+      window.addToCartFromGrid = function(button, product){
+        try { triggerVibe(); } catch(e){}
+        return original.apply(this, arguments);
+      };
+      window.__addToCartWrapped = true;
+      return true;
+    } catch(e){
+      return false;
+    }
+  }
 
-  window.addEventListener('popstate', function(ev){
-    try {
-      if (isPopupVisible() || window.__popupOpen) {
-        hidePopupImmediate();
-        try { history.pushState({__listing_preserved:true}, '', location.pathname + location.search); } catch(e){}
-      }
-    } catch(e){}
-  }, false);
+  (function tryWrap(retries = 8, delay = 120){
+    if (wrapAddToCartFn()) return;
+    if (retries <= 0) return;
+    setTimeout(() => tryWrap(retries - 1, delay), delay);
+  })();
 
+  // ---------- delegated listener for grid buttons (safety for inline onclick) ----------
   document.addEventListener('click', function(e){
-    const overlay = popupEl();
-    if (!overlay) return;
-    if (e.target === overlay) {
-      try {
-        if (window.__popupOpen) { history.back(); return; }
-      } catch(e){}
-      hidePopupImmediate();
-    }
-  }, true);
+    const btn = e.target.closest && e.target.closest('.add-btn');
+    if (!btn) return;
+    triggerVibe();
+  }, { passive: true });
 
-  document.addEventListener('keydown', function(e){
-    if ((e.key === 'Escape' || e.key === 'Esc') && (isPopupVisible() || window.__popupOpen)) {
-      try { history.back(); } catch(e){}
-    }
-  }, false);
-
-  try {
-    const params = new URL(location.href).searchParams;
-    if (params.has('p')) {
-      setTimeout(()=>{ try { showPopupImmediate(); } catch(e){} }, 80);
-    }
-  } catch(e){}
-})();
-</script>
-<script>
-
-/* Attach haptic to add-to-cart buttons without double firing */
-(function bindAddBtnHaptics(){
-  function bindOnce(el){
-    if(!el || el.__hapticBound) return;
-    el.addEventListener('click', function(e){
-      try{ triggerHaptic(30, 120); }catch(e){}
-    }, {passive:true});
-    el.__hapticBound = true;
+  // ---------- ensure popup add button (#popupAddBtn) also wired ----------
+  function wirePopupBtn(){
+    const btn = document.getElementById('popupAddBtn');
+    if (!btn) return;
+    if (btn.dataset.haptic === '1') return;
+    btn.addEventListener('click', function(){ triggerVibe(); }, { passive: true });
+    btn.dataset.haptic = '1';
   }
+  wirePopupBtn();
 
-  // For existing buttons
-  document.addEventListener('DOMContentLoaded', function(){
-    document.querySelectorAll('.add-btn, button.add-to-cart, #popupAddBtn').forEach(bindOnce);
-  });
+  const mo = new MutationObserver(() => wirePopupBtn());
+  mo.observe(document.body, { childList: true, subtree: true });
 
-  // Also observe for future buttons added dynamically
-  const obs = new MutationObserver(function(muts){
-    muts.forEach(function(m){
-      if(m.addedNodes && m.addedNodes.length){
-        m.addedNodes.forEach(function(node){
-          if(node.nodeType !== 1) return;
-          if(node.matches && node.matches('.add-btn, button.add-to-cart, #popupAddBtn')) bindOnce(node);
-          node.querySelectorAll && node.querySelectorAll('.add-btn, button.add-to-cart, #popupAddBtn').forEach(bindOnce);
-        });
-      }
-    });
-  });
-  obs.observe(document.body, {childList:true, subtree:true});
-})();
-
-</script>
-
-<!-- AUTO-INJECTED: popup close-url-cleanup (prevents popup auto-reopen when ?p is present) -->
-<script id="assistant-injected-closepopup-fix">
-(function(){
-  try {
-    // keep original reference (may be undefined)
-    const _origClose = window.closePopup;
-    const _origHide = function(){
-      try {
-        const el = document.getElementById('productPopup');
-        if (el) {
-          el.classList.remove('is-open');
-          el.style.display = 'none';
-        }
-      } catch(e){}
-      try { document.body.classList.remove('noscroll'); } catch(e){}
-    };
-
-    function cleanupUrlRemoveP(){
-      try {
-        const url = new URL(location.href);
-        if (url.searchParams.has('p')) {
-          url.searchParams.delete('p');
-          // Also remove empty trailing '?' if any
-          let newUrl = url.pathname + url.search + url.hash;
-          // If searchParams deleted and search is empty, use pathname+hash
-          if (!url.search) newUrl = url.pathname + url.hash;
-          history.replaceState(null, "", newUrl);
-        }
-      } catch(e){}
-    }
-
-    // Replace window.closePopup with a safe wrapper
-    window.closePopup = function(){
-      try {
-        // If history indicates popup, go back to let popstate handlers run
-        if (history.state && history.state.__popup) {
-          try { history.back(); } catch(e){}
-          // after going back, ensure URL cleaned as well (in case)
-          setTimeout(cleanupUrlRemoveP, 80);
-          return;
-        }
-      } catch(e){}
-
-      // Call original close if it exists
-      try {
-        if (typeof _origClose === "function") {
-          _origClose.apply(this, arguments);
-        } else {
-          // fallback hide
-          _origHide();
-        }
-      } catch(e){
-        try { _origHide(); } catch(e){}
-      }
-
-      // Always ensure URL no longer contains ?p
-      try { cleanupUrlRemoveP(); } catch(e){}
-    };
-
-    // Ensure overlay clicks also remove ?p when they hide the popup directly
-    document.addEventListener('click', function(e){
-      try {
-        const overlay = document.getElementById('productPopup');
-        if (!overlay) return;
-        if (e.target === overlay) {
-          // if history has popup state, prefer history.back() (so back button semantics remain)
-          if (history.state && history.state.__popup) {
-            try { history.back(); } catch(e){}
-            setTimeout(cleanupUrlRemoveP, 80);
-            return;
-          }
-          // otherwise hide and clean url
-          try { overlay.classList.remove('is-open'); overlay.style.display = 'none'; } catch(e){}
-          try { document.body.classList.remove('noscroll'); } catch(e){}
-          setTimeout(cleanupUrlRemoveP, 20);
-        }
-      } catch(err){}
-    }, true);
-
-    // Also handle popstate cleanup: when user closes with back button ensure ?p removed
-    window.addEventListener('popstate', function(ev){
-      try { cleanupUrlRemoveP(); } catch(e){}
-    }, { passive: true });
-
-  } catch(e){
-    console.warn("assistant-injected-closepopup-fix failed", e);
-  }
+  // expose for manual use
+  window.__triggerStrongHaptic = triggerVibe;
 })();
 </script>
-<!-- END AUTO-INJECTED -->
 
 </body>
 </html>
-
-
 
