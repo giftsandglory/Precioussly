@@ -1754,7 +1754,16 @@ div.product-title {
   justify-self: start !important;
 }
 </style>
-
+<!-- 2️⃣ ADD instant transition-disable styles in <head> -->
+<style id="instant-popup-image-css">
+#productPopup, 
+#productPopup .popup-card,
+#popupSlider .popup-slide,
+#popupSlider img.popup-slide,
+#popupSlider video.popup-slide {
+  transition: none !important;
+}
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -1848,167 +1857,26 @@ div.product-title {
 
 <div id="content"></div>
 <script>
-(() => {
-  const ORIGINAL_FETCH = window.fetch.bind(window);
-  const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
+const PASTED_SHEET_LINK = "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
+const TAB_NAMES = ["resin-jewelry", "car-keychains", "crochets", "artificial-jewelry"];
 
-  const isSheetRequest = (input) => {
-    try {
-      const url = typeof input === "string" ? new URL(input) :
-                  (input instanceof Request ? new URL(input.url) :
-                   new URL(String(input)));
-      if (!MATCH_HOSTS.has(url.hostname)) return false;
-      if (url.hostname === "docs.google.com") {
-        return url.pathname.startsWith("/spreadsheets/");
-      }
-      if (url.hostname === "opensheet.elk.sh") return true;
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  const cacheKeyFor = (url) => `swr:${url}`;
-
-  const isCacheableResponse = (res, contentType) => {
-    if (!res || !res.ok) return false;
-    if (res.type === "opaque" || res.type === "opaqueredirect") return false;
-    if (!contentType) return false;
-    const ct = contentType.toLowerCase();
-    if (ct.includes("text/html")) return false;
-    return (
-      ct.includes("application/json") ||
-      ct.includes("text/csv") ||
-      ct.includes("text/plain")
-    );
-  };
-
-  const serializeHeaders = (headers) => {
-    try { return Array.from(headers.entries()); } catch { return []; }
-  };
-
-  const restoreHeaders = (entries) => {
-    try { return new Headers(entries || []); } catch { return new Headers(); }
-  };
-
-  const storeInCache = async (key, response) => {
-    try {
-      const ct = response.headers.get("content-type") || "";
-      if (!isCacheableResponse(response, ct)) return;
-
-      const bodyText = await response.clone().text();
-      const payload = {
-        body: bodyText,
-        status: response.status,
-        statusText: response.statusText || "",
-        headers: serializeHeaders(response.headers),
-        ts: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(payload));
-    } catch (e) {
-      console.warn("SWR cache store failed:", e);
-    }
-  };
-
-  const responseFromCache = (cachedJson) => {
-    try {
-      const cached = JSON.parse(cachedJson);
-      return new Response(cached.body, {
-        status: cached.status,
-        statusText: cached.statusText,
-        headers: restoreHeaders(cached.headers)
-      });
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchWithTimeout = (resource, init, ms = 7000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), ms);
-    const mergedInit = { ...(init || {}), signal: controller.signal };
-    return ORIGINAL_FETCH(resource, mergedInit).finally(() => clearTimeout(id));
-  };
-
-  const backgroundRevalidate = async (resource, init, key) => {
-    try {
-      const res = await fetchWithTimeout(resource, init, 7000);
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res);
-      }
-    } catch (e) {
-      console.info("SWR revalidate skipped:", e?.name || e);
-    }
-  };
-
-  window.fetch = function swrFetch(resource, init) {
-    if (!isSheetRequest(resource)) {
-      return ORIGINAL_FETCH(resource, init);
-    }
-
-    const url = (resource instanceof Request) ? resource.url : String(resource);
-    const key = cacheKeyFor(url);
-
-    const cachedJson = localStorage.getItem(key);
-
-    if (cachedJson) {
-      const cachedRes = responseFromCache(cachedJson);
-      backgroundRevalidate(resource, init, key);
-      return Promise.resolve(cachedRes.clone());
-    }
-
-    return fetchWithTimeout(resource, init, 7000).then(async (res) => {
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        storeInCache(key, res.clone());
-      }
-      return res;
-    }).catch((err) => {
-      const fallbackJson = localStorage.getItem(key);
-      if (fallbackJson) {
-        const fallbackRes = responseFromCache(fallbackJson);
-        return Promise.resolve(fallbackRes.clone());
-      }
-      return Promise.reject(err);
-    });
-  };
-})();
-</script>
-
-<script>
-/*
-  Paste this entire script in place of your old script.
-  It will:
-  1) fetch every tab in TAB_NAMES using opensheet.elk.sh
-  2) combine results and render sections & products into #content
-  3) respect visibility / section hiding rules
-  4) use safe event listeners to call addToCartFromGrid() and openPopup()
-*/
-
-const PASTED_SHEET_LINK =
-  "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
-
-// 👇 Multiple tab names yahan likho
-const TAB_NAMES = ["resin-jewelry", "car-keychains" , "crochets" , "artificial-jewelry"];
-
+// extract sheetId safely
 const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-if (!idMatch) {
-  console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
-}
 const sheetId = idMatch ? idMatch[1] : "";
+if (!sheetId) console.error('❌ Invalid Google Sheet URL provided in PASTED_SHEET_LINK');
 
-/* --------------------- helper functions (keeps your original behavior) --------------------- */
+// ---------------------- Helpers ----------------------
 function isHidden(row){
   const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
   for (const k of keys){
-    if (row.hasOwnProperty(k) && row[k] != null){
+    if (Object.prototype.hasOwnProperty.call(row, k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
-      if (v.includes("hide")) return true;   // hide when cell contains "hide"
-      if (v.length) return false;
+      if (!v) return false; // empty means show
+      if (v.includes('hide')) return true;
+      return false; // any other non-empty value -> show
     }
   }
-  return false; // blank means show
+  return false; // default: show
 }
 
 function getSheetDescription(row){
@@ -2022,253 +1890,273 @@ function getSheetDescription(row){
   return "";
 }
 
-function isVideoUrl(url=""){
+function isVideoUrl(url = ""){
   if (!url) return false;
-  const u = url.toLowerCase();
-  return u.endsWith(".mp4") || u.endsWith(".webm") || u.endsWith(".mov");
+  const u = String(url).toLowerCase().trim();
+  return u.endsWith('.mp4') || u.endsWith('.webm') || u.endsWith('.mov');
 }
 
-/* --------------------- main: fetch all tabs and render --------------------- */
+// safe DOM creation helper
+function el(tag, attrs = {}, children = []){
+  const node = document.createElement(tag);
+  for (const k in attrs){
+    if (k === 'className') node.className = attrs[k];
+    else if (k === 'innerHTML') node.innerHTML = attrs[k];
+    else node.setAttribute(k, attrs[k]);
+  }
+  (Array.isArray(children) ? children : [children]).forEach(c => { if (c) node.appendChild(c); });
+  return node;
+}
+
+// ---------------------- Fetching ----------------------
 async function fetchTab(tabName){
+  if (!sheetId) return [];
   const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
-  console.log("Fetching tab:", tabName, DATA_URL);
-  const res = await fetch(DATA_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
-  const data = await res.json();
-  // tag each row with source tab (optional, useful for debugging)
-  data.forEach(row => { row.__tabName = tabName; });
-  return data;
+  try{
+    const res = await fetch(DATA_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    data.forEach(r => r.__tabName = tabName);
+    return data;
+  } catch(err){
+    console.error('Failed to fetch tab', tabName, err);
+    return [];
+  }
 }
 
-async function loadAndRenderAllTabs(){
-  try {
-    if (!sheetId) throw new Error("Missing sheetId.");
-    // build array of fetch promises
-    const fetchPromises = TAB_NAMES.map(t => fetchTab(t).catch(err => {
-      console.error("Failed to fetch tab:", t, err);
-      return []; // continue even if one tab fails
-    }));
+// SWR-like fetch that uses localStorage cache + background revalidate
+async function fetchTabWithSWR(tabName){
+  const cacheKey = `sheetCache_${sheetId}_${tabName}`;
+  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
 
-    const allResults = await Promise.all(fetchPromises);
-    // flatten into single list while preserving order of tabs
-    const combined = allResults.flat();
-
-    // If your project uses applyDirectionFromSheet when first loaded, call it with combined
-    if (typeof applyDirectionFromSheet === "function") {
-      try { applyDirectionFromSheet(combined); } catch (e) { console.warn("applyDirectionFromSheet failed:", e); }
+  // attempt to read cache
+  try{
+    const raw = localStorage.getItem(cacheKey);
+    if (raw){
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)){
+        parsed.forEach(r => r.__tabName = tabName);
+        // spawn background revalidate but don't await it here
+        revalidate().catch(()=>{});
+        return { data: parsed, fromCache: true };
+      }
     }
+  } catch(e){ console.warn('cache read failed', e); }
 
-    renderCombinedData(combined);
-  } catch (err) {
-    console.error("Failed to load products:", err);
+  // no usable cache -> fetch live
+  try{
+    const res = await fetch(DATA_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const live = await res.json();
+    try{ localStorage.setItem(cacheKey, JSON.stringify(live)); } catch(e){ /* ignore storage errors */ }
+    live.forEach(r => r.__tabName = tabName);
+    return { data: live, fromCache: false };
+  } catch(err){
+    console.error('fetchTabWithSWR failed for', tabName, err);
+    return { data: [], fromCache: false };
+  }
+
+  async function revalidate(){
+    try{
+      const freshRes = await fetch(DATA_URL, { cache: 'no-store' });
+      if (!freshRes.ok) return;
+      const fresh = await freshRes.json();
+      try{ localStorage.setItem(cacheKey, JSON.stringify(fresh)); } catch(e){}
+      fresh.forEach(r => r.__tabName = tabName);
+      // merge fresh into existing rendered data
+      if (typeof renderCombinedData === 'function'){
+        const existing = Array.isArray(window.catalogData) ? window.catalogData : [];
+        const others = existing.filter(d => d.__tabName !== tabName);
+        renderCombinedData(others.concat(fresh));
+      }
+    } catch(e){ /* silent */ }
   }
 }
 
-/* --------------------- renderer (based on your original render logic) --------------------- */
+// ---------------------- Renderer ----------------------
 function renderCombinedData(data){
-  window.catalogData = data;
-  const content = document.getElementById("content");
-  if (!content) {
-    console.error("No #content container found.");
-    return;
-  }
+  window.catalogData = Array.isArray(data) ? data : [];
 
-  content.innerHTML = ""; // clear first
+  // ✅ Fix: Always keep tab order stable
+  window.catalogData.sort((a, b) => {
+    const orderA = TAB_NAMES.indexOf(a.__tabName || "");
+    const orderB = TAB_NAMES.indexOf(b.__tabName || "");
+    return orderA - orderB;
+  });
 
-  let currentSection = "";
+  const content = document.getElementById('content');
+  if (!content) { console.error('No #content container found.'); return; }
+  content.innerHTML = '';
+
+
+  let currentSection = '';
   let sectionWrapper = null;
   let currentSectionHidden = false;
 
-  data.forEach((item) => {
-    // if row defines a Section header
-    if (item["Section"]) {
-      currentSection = item["Section"];
-      const secVis = String(item["visibility"] || item["Visibility"] || "")
-        .trim()
-        .toLowerCase();
-      currentSectionHidden = secVis.includes("hide");
-      if (currentSectionHidden) {
-        sectionWrapper = null;
-        return;
-      }
+  for (const item of window.catalogData){
+    // Section header rows
+    if (item['Section']){
+      currentSection = item['Section'];
+      const secVis = String(item['visibility'] || item['Visibility'] || '').trim().toLowerCase();
+      currentSectionHidden = secVis.includes('hide');
+      if (currentSectionHidden){ sectionWrapper = null; continue; }
 
-      // create section title
-      const sectionTitle = document.createElement("div");
-      sectionTitle.className = "section-title";
-      sectionTitle.innerText = currentSection;
+      const sectionTitle = el('div', { className: 'section-title', innerHTML: currentSection });
       content.appendChild(sectionTitle);
-
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
+      sectionWrapper = el('div', { className: 'product-grid' });
       content.appendChild(sectionWrapper);
-      return;
+      continue;
     }
 
-    if (currentSectionHidden) return;
-    if (isHidden(item)) return;
-    if (!item["Product Name"]) return;
+    if (currentSectionHidden) continue;
+    if (isHidden(item)) continue;
+    if (!item['Product Name']) continue;
 
-    const product = document.createElement("div");
-    product.className = "product";
+    const product = el('div', { className: 'product' });
 
-    product.addEventListener("click", (e) => {
-      // don't open popup when clicking controls inside product card
-      if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-      const allPhotos = [
-        item["photo 1"],
-        item["photo 2"],
-        item["photo 3"],
-        item["photo 4"],
-      ].filter(Boolean);
-      if (typeof openPopup === "function") {
-        openPopup(
-          allPhotos,
-          item["Product Name"],
-          item["MRP"],
-          item["Selling Price"],
-          item["in stock"],
-          getSheetDescription(item)
-        );
-      } else {
-        console.warn("openPopup is not defined.");
+    product.addEventListener('click', (e) => {
+      if (e.target.closest('.add-to-cart, .quantity-bar, button')) return;
+      const allPhotos = [item['photo 1'], item['photo 2'], item['photo 3'], item['photo 4']].filter(Boolean);
+      if (typeof openPopup === 'function'){
+        openPopup(allPhotos, item['Product Name'], item['MRP'], item['Selling Price'], item['in stock'], getSheetDescription(item));
       }
     });
 
+    // media (img or video)
     (function(){
-      const url1 = (item["photo 1"] || "").trim();
-      let el;
-      if (isVideoUrl(url1)) {
-        const v = document.createElement("video");
+      const url1 = (item['photo 1'] || '').trim();
+      let elMedia;
+      if (isVideoUrl(url1)){
+        const v = document.createElement('video');
         v.src = url1;
         v.muted = true;
         v.autoplay = true;
         v.loop = true;
         v.playsInline = true;
-        v.preload = "metadata";
-        v.style.width = "100%";
-        v.style.height = "100%";
-        v.style.objectFit = "contain";
+        v.preload = 'metadata';
+        v.style.width = '100%';
+        v.style.height = '100%';
+        v.style.objectFit = 'contain';
         v.disablePictureInPicture = true;
-        v.setAttribute("muted","");
-        v.setAttribute("webkit-playsinline","true");
-        v.setAttribute("playsinline","true");
-        v.style.pointerEvents = "none"; // allow card click to bubble
-        v.style.cursor = "default";
-        el = v;
+        v.setAttribute('muted','');
+        v.setAttribute('playsinline','');
+        v.style.pointerEvents = 'none';
+        v.style.cursor = 'default';
+        elMedia = v;
       } else {
-        const img = document.createElement("img");
+        const img = document.createElement('img');
         img.src = url1;
-        img.alt = item["Product Name"];
-        img.style.pointerEvents = "none";
-        img.style.cursor = "default";
-        el = img;
+        img.alt = item['Product Name'] || '';
+        img.style.pointerEvents = 'none';
+        img.style.cursor = 'default';
+        elMedia = img;
       }
-      const wrap = document.createElement('div');
-      wrap.className = 'media-square';
-      wrap.appendChild(el);
+      const wrap = el('div', { className: 'media-square' });
+      wrap.appendChild(elMedia);
       product.appendChild(wrap);
     })();
 
-    if (item["Badge"]) {
-      const badge = document.createElement("div");
-      badge.className = "badge";
-      badge.innerText = item["Badge"];
+    if (item['Badge']){
+      const badge = el('div', { className: 'badge', innerHTML: item['Badge'] });
       product.appendChild(badge);
     }
 
-    const infoWrapper = document.createElement("div");
-    infoWrapper.style.padding = "0 6px";
+    const infoWrapper = el('div');
+    infoWrapper.style.padding = '0 6px';
 
-    const title = document.createElement("div");
-    title.className = "product-title";
-    title.style.fontSize = "14px";
-    title.style.textAlign = "center";
-    title.style.marginTop = "8px";
-    title.innerText = item["Product Name"];
-    try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
-    try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
+    const title = el('div', { className: 'product-title', innerHTML: item['Product Name'] });
+    title.style.fontSize = '14px';
+    title.style.textAlign = 'center';
+    title.style.marginTop = '8px';
     title.style.maxWidth = '100%';
-
+    try{ title.setAttribute('title', String(item['Product Name']||'')); }catch(e){}
+    try{ title.setAttribute('aria-label', String(item['Product Name']||'')); }catch(e){}
     infoWrapper.appendChild(title);
 
-    const info = document.createElement("div");
-    info.className = "product-info";
+    const info = el('div', { className: 'product-info' });
 
-    let priceHTML = "";
-    if (item["MRP"] && item["Selling Price"]) {
+    let priceHTML = '';
+    if (item['MRP'] && item['Selling Price']){
       priceHTML = `
-        <div style="
-          text-align:center;
-          font-size:14px;
-          font-weight:bold;
-          display:flex; justify-content:center;
-          gap:6px;
-          align-items:center;
-          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-        ">
-          <span>₹${item["Selling Price"]}</span>
-          <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-        </div>
-      `;
+        <div style="text-align:center; font-size:14px; font-weight:bold; display:flex; justify-content:center; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+          <span>₹${item['Selling Price']}</span>
+          <s style="color:#999; font-weight:normal;">₹${item['MRP']}</s>
+        </div>`;
     }
 
-    if (+item["in stock"] === 0) {
-      info.innerHTML = `
-        ${priceHTML}
-      `;
-      const outBtn = document.createElement("button");
-      outBtn.className = "add-btn";
+    if (+item['in stock'] === 0){
+      info.innerHTML = priceHTML || '';
+      const outBtn = el('button', { className: 'add-btn' });
       outBtn.disabled = true;
-      outBtn.style.background = "#f1f1f1";
-      outBtn.style.color = "#888";
-      outBtn.style.border = "1px solid #ccc";
-      outBtn.innerText = "Out of Stock";
+      outBtn.style.background = '#f1f1f1';
+      outBtn.style.color = '#888';
+      outBtn.style.border = '1px solid #ccc';
+      outBtn.innerText = 'Out of Stock';
       info.appendChild(outBtn);
     } else {
-      const productData = {
-        photo: item["photo 1"],
-        name: item["Product Name"],
-        mrp: item["MRP"],
-        price: item["Selling Price"],
-      };
-
-      info.innerHTML = priceHTML;
-      const addBtn = document.createElement("button");
-      addBtn.className = "add-btn";
-      addBtn.innerText = "Add to Cart";
-      // safe event listener (no JSON.stringify in onclick attribute)
-      addBtn.addEventListener("click", (ev) => {
-        ev.stopPropagation(); // prevent card click opening popup
-        if (typeof addToCartFromGrid === "function") {
-          addToCartFromGrid(addBtn, productData);
-        } else {
-          console.warn("addToCartFromGrid is not defined.");
-        }
+      const productData = { photo: item['photo 1'], name: item['Product Name'], mrp: item['MRP'], price: item['Selling Price'] };
+      info.innerHTML = priceHTML || '';
+      const addBtn = el('button', { className: 'add-btn' });
+      addBtn.innerText = 'Add to Cart';
+      addBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (typeof addToCartFromGrid === 'function') addToCartFromGrid(addBtn, productData);
       });
-
       info.appendChild(addBtn);
     }
 
     infoWrapper.appendChild(info);
     product.appendChild(infoWrapper);
 
-    if (!sectionWrapper) {
-      // if no section header was present, create a default wrapper
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
+    if (!sectionWrapper){
+      sectionWrapper = el('div', { className: 'product-grid' });
       content.appendChild(sectionWrapper);
     }
     sectionWrapper.appendChild(product);
-  });
+  }
 
-  // if you have a function that opens product based on URL params
-  if (typeof maybeOpenFromURL === "function") {
-    try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
+  // try opening from URL params if user supplied that helper
+  if (typeof maybeOpenFromURL === 'function'){
+    try{ maybeOpenFromURL(); } catch(e){ console.warn('maybeOpenFromURL failed', e); }
   }
 }
 
-/* --------------------- start --------------------- */
-loadAndRenderAllTabs();
+// ---------------------- Controller: load + periodic revalidate ----------------------
+let _isLoading = false;
+let _intervalHandle = null;
+const REVALIDATE_MS = 10_000; // 10s
+
+async function loadAndRenderAllTabs(){
+  if (!sheetId) return;
+  if (_isLoading) return; // prevent overlapping runs
+  _isLoading = true;
+  try{
+    const allData = [];
+    for (const t of TAB_NAMES){
+      const result = await fetchTabWithSWR(t);
+      if (result && Array.isArray(result.data)) allData.push(...result.data);
+    }
+
+    if (typeof applyDirectionFromSheet === 'function'){
+      try{ applyDirectionFromSheet(allData); } catch(e){ console.warn('applyDirectionFromSheet failed', e); }
+    }
+
+    renderCombinedData(allData);
+  } catch(e){ console.error('loadAndRenderAllTabs failed', e); }
+  finally{ _isLoading = false; }
+}
+
+// start immediately and schedule periodic revalidation
+(function startAutoRefresh(){
+  loadAndRenderAllTabs().catch(()=>{});
+  if (_intervalHandle) clearInterval(_intervalHandle);
+  _intervalHandle = setInterval(() => { loadAndRenderAllTabs().catch(()=>{}); }, REVALIDATE_MS);
+})();
+
+// Optional: expose a manual reload function
+window.reloadProductGrid = function(){ loadAndRenderAllTabs().catch(()=>{}); };
+
+/* End of product-grid-google-sheets-clean.js */
 </script>
 
 <script>
@@ -2843,136 +2731,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("video").forEach(keepAliveVideo);
 });
 </script>
-<script>
 
-(() => {
-  const ORIGINAL_FETCH = window.fetch.bind(window);
-  const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
-
-  const isSheetRequest = (input) => {
-    try {
-      const url = typeof input === "string"
-        ? new URL(input)
-        : (input instanceof Request ? new URL(input.url) : new URL(String(input)));
-
-      if (!MATCH_HOSTS.has(url.hostname)) return false;
-
-      if (url.hostname === "docs.google.com") {
-        return url.pathname.startsWith("/spreadsheets/");
-      }
-      if (url.hostname === "opensheet.elk.sh") return true;
-
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  const cacheKeyFor = (url) => `swr:${url}`;
-
-  const isCacheableResponse = (res, contentType) => {
-    if (!res || !res.ok) return false;
-    if (res.type === "opaque" || res.type === "opaqueredirect") return false;
-    if (!contentType) return false;
-    const ct = contentType.toLowerCase();
-    if (ct.includes("text/html")) return false; // avoid caching error HTML
-    return (
-      ct.includes("application/json") ||
-      ct.includes("text/csv") ||
-      ct.includes("text/plain")
-    );
-  };
-
-  const serializeHeaders = (headers) => {
-    try { return Array.from(headers.entries()); } catch { return []; }
-  };
-  const restoreHeaders = (entries) => {
-    try { return new Headers(entries || []); } catch { return new Headers(); }
-  };
-
-  const storeInCache = async (key, response) => {
-    try {
-      const ct = response.headers.get("content-type") || "";
-      if (!isCacheableResponse(response, ct)) return;
-      const bodyText = await response.clone().text(); // keep .json()/.text() working
-      const payload = {
-        body: bodyText,
-        status: response.status,
-        statusText: response.statusText || "",
-        headers: serializeHeaders(response.headers),
-        ts: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(payload));
-    } catch (e) {
-      console.warn("SWR cache store failed:", e);
-    }
-  };
-
-  const responseFromCache = (cachedJson) => {
-    try {
-      const cached = JSON.parse(cachedJson);
-      return new Response(cached.body, {
-        status: cached.status,
-        statusText: cached.statusText,
-        headers: restoreHeaders(cached.headers)
-      });
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchWithTimeout = (resource, init, ms = 7000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), ms);
-    const mergedInit = { ...(init || {}), signal: controller.signal };
-    return ORIGINAL_FETCH(resource, mergedInit).finally(() => clearTimeout(id));
-  };
-
-  const backgroundRevalidate = async (resource, init, key) => {
-    try {
-      const res = await fetchWithTimeout(resource, init, 7000);
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res);
-      }
-    } catch (e) {
-      console.info("SWR revalidate skipped:", e?.name || e);
-    }
-  };
-
-  window.fetch = function swrFetch(resource, init) {
-    if (!isSheetRequest(resource)) {
-      return ORIGINAL_FETCH(resource, init);
-    }
-
-    const url = (resource instanceof Request) ? resource.url : String(resource);
-    const key = cacheKeyFor(url);
-    const cachedJson = localStorage.getItem(key);
-
-    if (cachedJson) {
-      const cachedRes = responseFromCache(cachedJson);
-      backgroundRevalidate(resource, init, key);
-      return Promise.resolve(cachedRes.clone());
-    }
-
-    return fetchWithTimeout(resource, init, 7000).then(async (res) => {
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        storeInCache(key, res.clone());
-      }
-      return res;
-    }).catch((err) => {
-      const fallbackJson = localStorage.getItem(key);
-      if (fallbackJson) {
-        const fallbackRes = responseFromCache(fallbackJson);
-        return Promise.resolve(fallbackRes.clone());
-      }
-      return Promise.reject(err);
-    });
-  };
-})();
-
-</script>
 
 <script>
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
@@ -4183,143 +3942,7 @@ if (popup){
 })();
 </script>
 
-<script>
-(() => {
-  const ORIGINAL_FETCH = window.fetch.bind(window);
-  const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
 
-  const isSheetRequest = (input) => {
-    try {
-      const url = typeof input === "string" ? new URL(input) :
-                  (input instanceof Request ? new URL(input.url) :
-                   new URL(String(input)));
-      if (!MATCH_HOSTS.has(url.hostname)) return false;
-      if (url.hostname === "docs.google.com") {
-        return url.pathname.startsWith("/spreadsheets/");
-      }
-      if (url.hostname === "opensheet.elk.sh") return true;
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  const cacheKeyFor = (url) => `swr:${url}`;
-
-  const isCacheableResponse = (res, contentType) => {
-    if (!res || !res.ok) return false;
-    if (res.type === "opaque" || res.type === "opaqueredirect") return false;
-    if (!contentType) return false;
-    const ct = contentType.toLowerCase();
-    if (ct.includes("text/html")) return false;
-    return (
-      ct.includes("application/json") ||
-      ct.includes("text/csv") ||
-      ct.includes("text/plain")
-    );
-  };
-
-  const serializeHeaders = (headers) => { try { return Array.from(headers.entries()); } catch { return []; } };
-  const restoreHeaders = (entries) => { try { return new Headers(entries || []); } catch { return new Headers(); } };
-
-  const storeInCache = async (key, response) => {
-    try {
-      const ct = response.headers.get("content-type") || "";
-      if (!isCacheableResponse(response, ct)) return;
-
-      const bodyText = await response.clone().text();
-      const payload = {
-        body: bodyText,
-        status: response.status,
-        statusText: response.statusText || "",
-        headers: serializeHeaders(response.headers),
-        ts: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(payload));
-      try {
-        window.dispatchEvent(new CustomEvent('swr:cache:update', { detail: { key, ts: payload.ts } }));
-      } catch (e) {  }
-    } catch (e) {
-      console.warn("SWR cache store failed:", e);
-    }
-  };
-
-  const responseFromCache = (cachedJson) => {
-    try {
-      const cached = JSON.parse(cachedJson);
-      return new Response(cached.body, {
-        status: cached.status,
-        statusText: cached.statusText,
-        headers: restoreHeaders(cached.headers)
-      });
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchWithTimeout = (resource, init, ms = 7000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), ms);
-    const mergedInit = { ...(init || {}), signal: controller.signal };
-    return ORIGINAL_FETCH(resource, mergedInit).finally(() => clearTimeout(id));
-  };
-
-  const backgroundRevalidate = async (resource, init, key) => {
-    try {
-      const res = await fetchWithTimeout(resource, init, 7000);
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res);
-      }
-    } catch (e) {
-      console.info("SWR revalidate skipped:", e?.name || e);
-    }
-  };
-
-  const isReloadNavigation = () => {
-    try {
-      const navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
-      if (navEntries && navEntries[0]) return navEntries[0].type === 'reload';
-      if (performance.navigation) return performance.navigation.type === 1;
-    } catch (e) {}
-    return false;
-  };
-
-  window.fetch = function swrFetch(resource, init) {
-    if (!isSheetRequest(resource)) {
-      return ORIGINAL_FETCH(resource, init);
-    }
-
-    const url = (resource instanceof Request) ? resource.url : String(resource);
-    const key = cacheKeyFor(url);
-    const cachedJson = localStorage.getItem(key);
-
-    const forceNetwork = isReloadNavigation() ||
-                         (typeof location !== "undefined" && location.search && location.search.includes("nocache=1"));
-
-    if (cachedJson && !forceNetwork) {
-      const cachedRes = responseFromCache(cachedJson);
-      backgroundRevalidate(resource, init, key);
-      return Promise.resolve(cachedRes.clone());
-    }
-
-    return fetchWithTimeout(resource, init, 7000).then(async (res) => {
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res.clone());
-      }
-      return res;
-    }).catch((err) => {
-      const fallbackJson = localStorage.getItem(key);
-      if (fallbackJson) {
-        const fallbackRes = responseFromCache(fallbackJson);
-        return Promise.resolve(fallbackRes.clone());
-      }
-      return Promise.reject(err);
-    });
-  };
-})();
-</script>
 
 <script>
 
@@ -5072,8 +4695,7 @@ loadAndRenderCatalog();
   window.__triggerStrongHaptic = triggerVibe;
 })();
 </script>
+
 </body>
 </html>
-
-
 
