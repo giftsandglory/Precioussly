@@ -445,10 +445,7 @@ body {
   flex: 1;
   font-weight: 600;
 }
-* {
-  -webkit-tap-highlight-color: transparent; /* removes blue highlight */
-  outline: none;                            /* removes outline on click */
-}
+
 
 button.remove-btn:hover {
   background: #2874f0;
@@ -1193,8 +1190,38 @@ button.remove-btn:hover {
 }
 
 </style>
+<!-- ✅ Payment Processing Overlay (non-blocking) -->
+<style>
+.payment-processing-overlay{
+  position: fixed; inset: 0; display:none; align-items:center; justify-content:center;
+  background: rgba(0,0,0,.45); z-index: 10060; padding:16px;
+}
+.payment-processing-box{
+  background:#ffffff; width:100%; max-width:360px; border-radius:18px; border:1px solid #e5e5e5;
+  box-shadow:0 18px 45px rgba(0,0,0,.15); padding:18px 16px; text-align:center; font-family:'Roboto Slab', serif;
+}
+.processing-title{ font-size:20px; font-weight:800; color:#111; margin:8px 0 6px; }
+.processing-sub{ font-size:14px; color:#333; margin:0 10px 10px; line-height:1.45; }
+
+/* === Fix: Equal size for Razorpay and COD boxes === */
+.payment-option {
+  min-height: 64px;  /* ensures both have same height */
+  display: flex;
+  align-items: center;
+}
+.payment-option .payment-text {
+  flex: 1;
+}
+
+</style>
 </head>
 <body>
+  <div class="payment-processing-overlay" id="paymentProcessingOverlay">
+  <div class="payment-processing-box">
+    <div class="processing-title">Verifying Payment…</div>
+    <div class="processing-sub">We’re confirming your payment with Razorpay. Please don’t refresh this page.</div>
+  </div>
+</div>
 <!-- 👇 Resin-style MENU -->
 <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu(false)"></div>
 <nav class="side-menu" id="sideMenu">
@@ -4087,36 +4114,8 @@ window.closeHeaderSearch = closeHeaderSearch;
 })();
 </script>
 
-<!-- ✅ Payment Processing Overlay (non-blocking) -->
-<style>
-.payment-processing-overlay{
-  position: fixed; inset: 0; display:none; align-items:center; justify-content:center;
-  background: rgba(0,0,0,.45); z-index: 10060; padding:16px;
-}
-.payment-processing-box{
-  background:#ffffff; width:100%; max-width:360px; border-radius:18px; border:1px solid #e5e5e5;
-  box-shadow:0 18px 45px rgba(0,0,0,.15); padding:18px 16px; text-align:center; font-family:'Roboto Slab', serif;
-}
-.processing-title{ font-size:20px; font-weight:800; color:#111; margin:8px 0 6px; }
-.processing-sub{ font-size:14px; color:#333; margin:0 10px 10px; line-height:1.45; }
 
-/* === Fix: Equal size for Razorpay and COD boxes === */
-.payment-option {
-  min-height: 64px;  /* ensures both have same height */
-  display: flex;
-  align-items: center;
-}
-.payment-option .payment-text {
-  flex: 1;
-}
 
-</style>
-<div class="payment-processing-overlay" id="paymentProcessingOverlay">
-  <div class="payment-processing-box">
-    <div class="processing-title">Verifying Payment…</div>
-    <div class="processing-sub">We’re confirming your payment with Razorpay. Please don’t refresh this page.</div>
-  </div>
-</div>
 
 <script>
 // ===== Razorpay (safe) with server-created order + webhook verification =====
