@@ -2313,7 +2313,8 @@ loadAndRenderAllTabs();
 </div>
 <div id="popupName" style="font-size:16px; font-weight:600; text-align:center; margin: 2px 12px 2px 12px;"></div>
 
-<div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:14px; text-align:center;"></div>
+<div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:20px; font-weight:800; text-align:center;"></div>
+
 
 
 
@@ -2501,22 +2502,21 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   const nmEl = document.getElementById("popupName");
   if (nmEl) nmEl.innerText = name || "";
 
-  let priceHTML = "";
-  if (mrp && price) {
-    const discount = Math.round(((mrp - price) / mrp) * 100);
-    priceHTML = `
-      <div style="font-size:14px; display:flex; justify-content:center; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-        <b>₹${price}</b>
-        <s style="color:#999;">₹${mrp}</s>
-        <span style="color:green; font-size:13px;">${discount}% off</span>
-      </div>`;
-  } else if (price) {
-    priceHTML = `<b>₹${price}</b>`;
-  } else {
-    priceHTML = `<span style="color:#999;">Price not available</span>`;
-  }
-  const priceEl = document.getElementById("popupPrice");
-  if (priceEl) priceEl.innerHTML = priceHTML;
+  // === show SELLING PRICE only, bigger & bold ===
+let priceHTML = "";
+if (price) {
+  // single large bold price, centered
+  priceHTML = `
+  <div style="width:100%; text-align:center;">
+    <span style="font-size:18px; font-weight:700; display:inline-block; transform:translateX(-1px);">₹${price}</span>
+  </div>`;
+
+} else {
+  priceHTML = `<span style="color:#999;">Price not available</span>`;
+}
+const priceEl = document.getElementById("popupPrice");
+if (priceEl) priceEl.innerHTML = priceHTML;
+
 
   const descWrap = document.getElementById("popupDesc");
   const descText = document.getElementById("popupDescText");
