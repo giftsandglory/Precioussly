@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet"/>
-  <meta charset="UTF-8">
-  <title>Your Cart - Precioussly</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<title>Your Cart - Precioussly</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet" />
+
+<!-- Styles -->
+<link rel="stylesheet" href="/css/cart-critical.css" media="all" /> <!-- Critical header styles -->
+<link rel="preload" href="/css/cart.css" as="style" onload="this.rel='stylesheet'" />
+
+<!-- Scripts -->
+
+
 <style>
 .proceed-btn,
 .popup-razorpay-btn,
@@ -3298,7 +3307,7 @@ function saveOrderToGoogleSheet(order) {
     fetch(window.GS_WEB_APP_URL, {
       method: 'POST',
       mode: 'no-cors',                           // no need to read response
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // no preflight
+      headers: { 'Content-Type': 'text/html;charset=utf-8' }, // no preflight
       body: JSON.stringify(payload)
     });
   } catch (e) { /* ignore silently */ }
@@ -4795,3 +4804,4 @@ function buildRazorpayNotes(){
 
 </body>
 </html>
+
