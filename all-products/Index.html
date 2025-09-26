@@ -2246,6 +2246,25 @@ window.reloadProductGrid = function(){ loadAndRenderAllTabs().catch(()=>{}); };
 /* End of product-grid-google-sheets-clean.js */
 
 </script>
+<script>
+function stopAutoRefresh() {
+  if (_intervalHandle) {
+    clearInterval(_intervalHandle);
+    _intervalHandle = null;
+    console.log("⏸ Auto refresh stopped");
+  }
+}
+
+function resumeAutoRefresh() {
+  if (!_intervalHandle) {
+    _intervalHandle = setInterval(() => {
+      loadAndRenderAllTabs().catch(()=>{});
+    }, REVALIDATE_MS);
+    console.log("▶ Auto refresh resumed");
+  }
+}
+</script>
+
 
 <script>
   function getParam(name) {
@@ -2454,6 +2473,8 @@ function resetPopupScrollNow(){
 let selectedProduct = null;
 
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
+  stopAutoRefresh();
+
   selectedProduct = { image: images?.[0], name, mrp, price };
 
   const shareUrl = `${location.origin}${location.pathname}?p=${slugify(name || "")}`;
@@ -2880,6 +2901,8 @@ function closePopup() {
   card.classList.remove("enter");
   card.classList.add("leave");
   popup.classList.remove("is-open");
+  resumeAutoRefresh();
+
   document.body.classList.remove("noscroll");
 
   const onDone = (e) => {
