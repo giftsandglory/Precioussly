@@ -2457,6 +2457,19 @@ function injectProductSchema({name, price, mrp, image, description}) {
     document.head.appendChild(tag);
   } catch(e) {}
 }
+// --- add this once, near the top (next to `let selectedProduct = null;`) ---
+function resetPopupScrollNow(){
+  const pb = document.querySelector("#productPopup .popup-body");
+  const pc = document.querySelector("#productPopup .popup-card");
+  if (pb) { pb.scrollTop = 0; pb.scrollLeft = 0; }
+  if (pc) pc.scrollTop = 0;
+  // ensure after rendering frame as well
+  requestAnimationFrame(() => {
+    if (pb) { pb.scrollTop = 0; pb.scrollLeft = 0; }
+    if (pc) pc.scrollTop = 0;
+  });
+}
+// --- end helper ---
 
 let selectedProduct = null;
 
@@ -2480,6 +2493,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   try { history.replaceState(null, "", shareUrl); } catch (e) {}
 
   document.getElementById("popupQty").innerText = "1";
+  resetPopupScrollNow();
+
 
   const nmEl = document.getElementById("popupName");
   if (nmEl) nmEl.innerText = name || "";
