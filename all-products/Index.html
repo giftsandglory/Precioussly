@@ -1811,7 +1811,7 @@ div.product-title {
     />
 
     
-    <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+    <a href="/cart.html" style="position: relative; display: inline-block; margin-top: 5px;">
       <img
         src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
         alt="Cart"
@@ -2209,14 +2209,16 @@ window.reloadProductGrid = function(){ loadAndRenderAllTabs().catch(()=>{}); };
   }
 
   function maybeOpenFromURL() {
-    const wanted = getParam('p');
-    if (!wanted || !window.catalogData) return;
+  const p = getParam('p');
+  if (!p || !window.catalogData) return;
 
-    const wantedSlug = slugify(decodeURIComponent(wanted));
-    const item = window.catalogData.find(row =>
-      slugify(row["Product Name"]) === wantedSlug
-    );
-    if (!item) return;
+  const popupEl = document.getElementById('productPopup');
+  if (popupEl && popupEl.classList.contains('is-open')) {
+    return; // Keep current photo
+  }
+  // ... existing openPopup() logic ...
+}
+
 
     const images = [item["photo 1"], item["photo 2"], item["photo 3"], item["photo 4"]].filter(Boolean);
     openPopup(images, item["Product Name"], Number(item["MRP"]), Number(item["Selling Price"]), Number(item["in stock"]), getSheetDescription(item));
@@ -2587,6 +2589,8 @@ if (popupBtn) {
 
     const prevIndex = currentIndex;
     currentIndex = i;
+window._popupSlideIndex = i;
+
     const dist = Math.max(1, Math.abs(prevIndex - currentIndex));
     const base = 1400; // base ms (slower)
     const extra = 200 * (dist - 1);
@@ -4733,4 +4737,3 @@ loadAndRenderCatalog();
 
 </body>
 </html>
-
