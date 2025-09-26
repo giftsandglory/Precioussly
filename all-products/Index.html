@@ -2313,7 +2313,9 @@ loadAndRenderAllTabs();
 </div>
 <div id="popupName" style="font-size:16px; font-weight:600; text-align:center; margin: 2px 12px 2px 12px;"></div>
 
-<div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:20px; font-weight:800; text-align:center;"></div>
+<!-- popupPrice: hidden because price will be shown inside Add to Cart -->
+<div id="popupPrice" style="display:none; margin: 0 12px 10px 12px; font-size:20px; font-weight:800; text-align:center;"></div>
+
 
 
 
@@ -2514,49 +2516,77 @@ if (price) {
 } else {
   priceHTML = `<span style="color:#999;">Price not available</span>`;
 }
+// hide standalone popup price area (we'll show price inside the button)
 const priceEl = document.getElementById("popupPrice");
-if (priceEl) priceEl.innerHTML = priceHTML;
+if (priceEl) {
+  priceEl.style.display = "none";
+}
 
+// description handling (unchanged logic, just tidy)
+const descWrap = document.getElementById("popupDesc");
+const descText = document.getElementById("popupDescText");
+const fromSheet = (sheetDesc || "").trim();
 
-  const descWrap = document.getElementById("popupDesc");
-  const descText = document.getElementById("popupDescText");
-  const fromSheet = (sheetDesc || "").trim();
+if (descText) descText.textContent = "";
+if (fromSheet.length > 0) {
+  if (descWrap) descWrap.style.display = "block";
+  if (descText) descText.textContent = fromSheet;
+} else {
+  if (descWrap) descWrap.style.display = "none";
+}
 
-  if (descText) descText.textContent = "";
-  if (fromSheet.length > 0) {
-    if (descWrap) descWrap.style.display = "block";
-    if (descText) descText.textContent = fromSheet;
+// inject structured data (keep as is)
+injectProductSchema({
+  name,
+  price,
+  mrp,
+  image: images?.[0],
+  description: fromSheet
+});
+
+// prepare price text (safe check for numeric price)
+const priceText = (price !== undefined && price !== null && price !== "" && !isNaN(Number(price)))
+  ? `₹${price}`
+  : "";
+
+// configure Add to Cart button and insert price inside it
+const popupBtn = document.getElementById("popupAddBtn");
+if (popupBtn) {
+  if (+stock === 0) {
+    popupBtn.disabled = true;
+    popupBtn.innerHTML = "Out of Stock";
+    // optional: clear onclick when out of stock
+    popupBtn.onclick = null;
+    // optional: remove price when out of stock
   } else {
-    if (descWrap) descWrap.style.display = "none";
-  }
+    popupBtn.disabled = false;
 
-  injectProductSchema({
-    name,
-    price,
-    mrp,
-    image: images?.[0],
-    description: fromSheet
-  });
+    // make button content flexible so text + price align nicely
+    popupBtn.style.display = "flex";
+    popupBtn.style.alignItems = "center";
+    popupBtn.style.justifyContent = "center";
+    popupBtn.style.gap = "125px";
 
-  const popupBtn = document.getElementById("popupAddBtn");
-  if (popupBtn) {
-    if (+stock === 0) {
-      popupBtn.disabled = true;
-      popupBtn.innerHTML = "Out of Stock";
-    } else {
-      popupBtn.disabled = false;
-      popupBtn.innerHTML = "Add to Cart";
-      popupBtn.onclick = function () {
-        addToCartFromGrid(popupBtn, {
-          photo: images?.[0],
-          name,
-          mrp,
-          price,
-          qty: parseInt(document.getElementById("popupQty").innerText) || 1
-        });
-      };
-    }
+    // place label and price span (price will appear just to the right)
+    popupBtn.innerHTML = `<span style="display:inline-block; font-weight:700;">Add to Cart</span>` +
+                         (priceText ? `<span class="popup-price" style="font-weight:800; display:inline-block;">${priceText}</span>` : "");
+
+    // attach click handler to add item with chosen qty
+    popupBtn.onclick = function () {
+      const qtyEl = document.getElementById("popupQty");
+      const qty = qtyEl ? parseInt(qtyEl.innerText || "1", 10) : 1;
+
+      addToCartFromGrid(popupBtn, {
+        photo: images?.[0],
+        name,
+        mrp,
+        price,
+        qty: isNaN(qty) ? 1 : qty
+      });
+    };
   }
+}
+
 
   const slider = document.getElementById("popupSlider");
   const dotsContainer = document.getElementById("popupDots");
