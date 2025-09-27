@@ -14,10 +14,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&amp;display=swap" rel="stylesheet"/>
 <style>
-* {
-  outline: none !important;
-  -webkit-tap-highlight-color: transparent;
-}
+
 
 .quantity-bar {
   display: flex;
@@ -84,14 +81,19 @@ body.noscroll {
   display:block;
 }
 
-#popupSlider{
+#popupSlider {
   position: relative;
   min-height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;             
+  overflow: hidden;
+
+  /* iPhone fix: allow only horizontal swipes, block vertical jiggle */
+  touch-action: pan-x pinch-zoom !important;
+  cursor: grab;
 }
+
 
 .popup-slide{
   position: absolute;
@@ -501,14 +503,6 @@ body.noscroll {
 }
 
 .popup-dots:empty { display: none !important; }
-
-/* haptic helper pulse */
-.qty-pulse {
-  transform: scale(1.02);
-  transition: transform 120ms ease;
-  will-change: transform;
-}
-
 </style>
 <style>
 
@@ -1098,9 +1092,10 @@ body.horizontal-mode .product-grid{
   gap: 10px;
   width: 100%;
   height: 100%;
-  transition: transform 260ms cubic-bezier(.22,1,.36,1);
+  transition: transform 420ms cubic-bezier(.25, 1, .30, 1);
   will-change: transform;
 }
+
 #popupSlider .popup-slide{
   position: relative !important;
   inset: auto !important;
@@ -1312,10 +1307,34 @@ body.horizontal-mode .product-grid{
   max-height: 86vh;
   -webkit-overflow-scrolling: touch;
 }
+/* ----- CSS that styles the popup, the add button and description ----- */
 
+/* popup card container */
+.popup-card {
+  background: #f7f7f7;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 320px;
+  margin: 20px;
+  padding: 16px;
+  position: relative;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
 
-/* --- Improved Description UI (injected) --- */
+  transform: translateY(18px) scale(.975);
+  opacity: 0;
+  transform-origin: center;
+  will-change: transform, opacity;
+  transition:
+    transform 420ms cubic-bezier(.22,1,.36,1),
+    opacity 420ms ease;
+  contain: layout paint style;
+}
+
+/* Description box (rounded white card look) */
 .desc-section {
+  margin: 8px 8px 0;
+  text-align: center;
   background: linear-gradient(180deg, #fff, #fffefc);
   border-radius: 14px;
   padding: 14px;
@@ -1331,48 +1350,21 @@ body.horizontal-mode .product-grid{
   gap: 8px;
   justify-content: center;
 }
-.desc-lead {
-  font-size: 15px;
-  color: #111; font-weight: 600;
-  margin: 8px 0 10px;
+.desc-content{
+  font-size: 12.5px;
   line-height: 1.55;
-  font-weight: 600;
+  height:auto; overflow:visible;
+  padding: 0 4px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: 92%;
+  margin: 0 auto;
+  text-align: left;
+  color: #444;
+  white-space: pre-wrap;
 }
-.desc-content p {
-  margin: 8px 0;
-  color: #222; font-weight: 600;
-  font-size: 14.5px;
-  line-height: 1.6;
-}
-.desc-content ul {
-  margin: 6px 0 10px 18px;
-  padding: 0;
-}
-.desc-content li {
-  margin: 8px 0;
-  font-size: 14.5px;
-  color: #111; font-weight: 600;
-  line-height: 1.5;
-  list-style: none;
-  position: relative;
-  padding-left: 24px;
-}
-.desc-content li::before{
-  content: "•";
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: #ff6ea8;
-  font-weight: 700;
-  transform: translateY(1px);
-  font-size: 18px;
-}
-.features-title {
-  display: inline-block;
-  font-weight: 700;
-  color: #ff4d98;
-  margin-bottom: 6px;
-}
+
+/* Add-to-cart button styling that creates blue gradient + 'glow' box-shadow */
 #popupAddBtn {
   background: linear-gradient(90deg, #2563eb, #1e4fd6);
   border: none;
@@ -1384,7 +1376,10 @@ body.horizontal-mode .product-grid{
   box-shadow: 0 10px 26px rgba(37,99,235,0.18);
   transition: transform 140ms ease, box-shadow 140ms ease;
 }
-#popupAddBtn:active { transform: translateY(1px) scale(.995); box-shadow: 0 6px 16px rgba(37,99,235,0.12); }
+#popupAddBtn:active {
+  transform: translateY(1px) scale(.995);
+  box-shadow: 0 6px 16px rgba(37,99,235,0.12);
+}
 </style>
 
 <style id="alignment-fix-0901b">
@@ -1761,7 +1756,16 @@ div.product-title {
   justify-self: start !important;
 }
 </style>
-
+<!-- 2️⃣ ADD instant transition-disable styles in <head> -->
+<style id="instant-popup-image-css">
+#productPopup, 
+#productPopup .popup-card,
+#popupSlider .popup-slide,
+#popupSlider img.popup-slide,
+#popupSlider video.popup-slide {
+  transition: none !important;
+}
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -1809,7 +1813,7 @@ div.product-title {
     />
 
     
-    <a href="https://www.precioussly.com/cart" style="position: relative; display: inline-block; margin-top: 5px;">
+    <a href="/cart.html" style="position: relative; display: inline-block; margin-top: 5px;">
       <img
         src="https://i.postimg.cc/MZF8bJh0/Cart-Icon.png"
         alt="Cart"
@@ -1855,167 +1859,26 @@ div.product-title {
 
 <div id="content"></div>
 <script>
-(() => {
-  const ORIGINAL_FETCH = window.fetch.bind(window);
-  const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
+const PASTED_SHEET_LINK = "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
+const TAB_NAMES = ["resin-jewelry", "car-keychains", "crochets", "artificial-jewelry"];
 
-  const isSheetRequest = (input) => {
-    try {
-      const url = typeof input === "string" ? new URL(input) :
-                  (input instanceof Request ? new URL(input.url) :
-                   new URL(String(input)));
-      if (!MATCH_HOSTS.has(url.hostname)) return false;
-      if (url.hostname === "docs.google.com") {
-        return url.pathname.startsWith("/spreadsheets/");
-      }
-      if (url.hostname === "opensheet.elk.sh") return true;
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  const cacheKeyFor = (url) => `swr:${url}`;
-
-  const isCacheableResponse = (res, contentType) => {
-    if (!res || !res.ok) return false;
-    if (res.type === "opaque" || res.type === "opaqueredirect") return false;
-    if (!contentType) return false;
-    const ct = contentType.toLowerCase();
-    if (ct.includes("text/html")) return false;
-    return (
-      ct.includes("application/json") ||
-      ct.includes("text/csv") ||
-      ct.includes("text/plain")
-    );
-  };
-
-  const serializeHeaders = (headers) => {
-    try { return Array.from(headers.entries()); } catch { return []; }
-  };
-
-  const restoreHeaders = (entries) => {
-    try { return new Headers(entries || []); } catch { return new Headers(); }
-  };
-
-  const storeInCache = async (key, response) => {
-    try {
-      const ct = response.headers.get("content-type") || "";
-      if (!isCacheableResponse(response, ct)) return;
-
-      const bodyText = await response.clone().text();
-      const payload = {
-        body: bodyText,
-        status: response.status,
-        statusText: response.statusText || "",
-        headers: serializeHeaders(response.headers),
-        ts: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(payload));
-    } catch (e) {
-      console.warn("SWR cache store failed:", e);
-    }
-  };
-
-  const responseFromCache = (cachedJson) => {
-    try {
-      const cached = JSON.parse(cachedJson);
-      return new Response(cached.body, {
-        status: cached.status,
-        statusText: cached.statusText,
-        headers: restoreHeaders(cached.headers)
-      });
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchWithTimeout = (resource, init, ms = 7000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), ms);
-    const mergedInit = { ...(init || {}), signal: controller.signal };
-    return ORIGINAL_FETCH(resource, mergedInit).finally(() => clearTimeout(id));
-  };
-
-  const backgroundRevalidate = async (resource, init, key) => {
-    try {
-      const res = await fetchWithTimeout(resource, init, 7000);
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res);
-      }
-    } catch (e) {
-      console.info("SWR revalidate skipped:", e?.name || e);
-    }
-  };
-
-  window.fetch = function swrFetch(resource, init) {
-    if (!isSheetRequest(resource)) {
-      return ORIGINAL_FETCH(resource, init);
-    }
-
-    const url = (resource instanceof Request) ? resource.url : String(resource);
-    const key = cacheKeyFor(url);
-
-    const cachedJson = localStorage.getItem(key);
-
-    if (cachedJson) {
-      const cachedRes = responseFromCache(cachedJson);
-      backgroundRevalidate(resource, init, key);
-      return Promise.resolve(cachedRes.clone());
-    }
-
-    return fetchWithTimeout(resource, init, 7000).then(async (res) => {
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        storeInCache(key, res.clone());
-      }
-      return res;
-    }).catch((err) => {
-      const fallbackJson = localStorage.getItem(key);
-      if (fallbackJson) {
-        const fallbackRes = responseFromCache(fallbackJson);
-        return Promise.resolve(fallbackRes.clone());
-      }
-      return Promise.reject(err);
-    });
-  };
-})();
-</script>
-
-<script>
-/*
-  Paste this entire script in place of your old script.
-  It will:
-  1) fetch every tab in TAB_NAMES using opensheet.elk.sh
-  2) combine results and render sections & products into #content
-  3) respect visibility / section hiding rules
-  4) use safe event listeners to call addToCartFromGrid() and openPopup()
-*/
-
-const PASTED_SHEET_LINK =
-  "https://docs.google.com/spreadsheets/d/1PFz3c1VNcmFo5NkN1xdpCyYxJJGxMlxt1Aw_tWv56nA/edit?usp=drivesdk";
-
-// 👇 Multiple tab names yahan likho
-const TAB_NAMES = ["resin-jewelry", "car-keychains" , "crochets" , "artificial-jewelry"];
-
+// extract sheetId safely
 const idMatch = PASTED_SHEET_LINK.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-if (!idMatch) {
-  console.error("❌ Invalid Google Sheet URL:", PASTED_SHEET_LINK);
-}
 const sheetId = idMatch ? idMatch[1] : "";
+if (!sheetId) console.error('❌ Invalid Google Sheet URL provided in PASTED_SHEET_LINK');
 
-/* --------------------- helper functions (keeps your original behavior) --------------------- */
+// ---------------------- Helpers ----------------------
 function isHidden(row){
   const keys = ["visibility","Visibility","VISIBILITY","Visible","visible","Show/Hide","show/hide","Show","show"];
   for (const k of keys){
-    if (row.hasOwnProperty(k) && row[k] != null){
+    if (Object.prototype.hasOwnProperty.call(row, k) && row[k] != null){
       const v = String(row[k]).trim().toLowerCase();
-      if (v.includes("hide")) return true;   // hide when cell contains "hide"
-      if (v.length) return false;
+      if (!v) return false; // empty means show
+      if (v.includes('hide')) return true;
+      return false; // any other non-empty value -> show
     }
   }
-  return false; // blank means show
+  return false; // default: show
 }
 
 function getSheetDescription(row){
@@ -2029,254 +1892,384 @@ function getSheetDescription(row){
   return "";
 }
 
-function isVideoUrl(url=""){
+function isVideoUrl(url = ""){
   if (!url) return false;
-  const u = url.toLowerCase();
-  return u.endsWith(".mp4") || u.endsWith(".webm") || u.endsWith(".mov");
+  const u = String(url).toLowerCase().trim();
+  return u.endsWith('.mp4') || u.endsWith('.webm') || u.endsWith('.mov');
 }
 
-/* --------------------- main: fetch all tabs and render --------------------- */
+// safe DOM creation helper
+function el(tag, attrs = {}, children = []){
+  const node = document.createElement(tag);
+  for (const k in attrs){
+    if (k === 'className') node.className = attrs[k];
+    else if (k === 'innerHTML') node.innerHTML = attrs[k];
+    else node.setAttribute(k, attrs[k]);
+  }
+  (Array.isArray(children) ? children : [children]).forEach(c => { if (c) node.appendChild(c); });
+  return node;
+}
+
+// ---------------------- Fetching ----------------------
 async function fetchTab(tabName){
+  if (!sheetId) return [];
   const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
-  console.log("Fetching tab:", tabName, DATA_URL);
-  const res = await fetch(DATA_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${tabName}`);
-  const data = await res.json();
-  // tag each row with source tab (optional, useful for debugging)
-  data.forEach(row => { row.__tabName = tabName; });
-  return data;
+  try{
+    const res = await fetch(DATA_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    data.forEach(r => r.__tabName = tabName);
+    return data;
+  } catch(err){
+    console.error('Failed to fetch tab', tabName, err);
+    return [];
+  }
 }
 
-async function loadAndRenderAllTabs(){
-  try {
-    if (!sheetId) throw new Error("Missing sheetId.");
-    // build array of fetch promises
-    const fetchPromises = TAB_NAMES.map(t => fetchTab(t).catch(err => {
-      console.error("Failed to fetch tab:", t, err);
-      return []; // continue even if one tab fails
-    }));
+// SWR-like fetch that uses localStorage cache + background revalidate
+// --- START: robust fetchTabWithSWR (replace existing function) ---
+async function fetchTabWithSWR(tabName){
+  const cacheKey = `sheetCache_${sheetId}_${tabName}`;
+  const DATA_URL = `https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(tabName)}`;
 
-    const allResults = await Promise.all(fetchPromises);
-    // flatten into single list while preserving order of tabs
-    const combined = allResults.flat();
+  // try read cache immediately and keep as fallback
+  let cachedParsed = null;
+  try{
+    const raw = localStorage.getItem(cacheKey);
+    if (raw){
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)){
+        parsed.forEach(r => r.__tabName = tabName);
+        cachedParsed = parsed;
+        // spawn background revalidate but don't await it here
+        // revalidate is hoisted (declared below)
+        revalidate().catch(()=>{});
+        return { data: parsed, fromCache: true };
+      }
+    }
+  } catch(e){ console.warn('cache read failed', e); }
 
-    // If your project uses applyDirectionFromSheet when first loaded, call it with combined
-    if (typeof applyDirectionFromSheet === "function") {
-      try { applyDirectionFromSheet(combined); } catch (e) { console.warn("applyDirectionFromSheet failed:", e); }
+  // no usable cache -> try live fetch
+  try{
+    const res = await fetch(DATA_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const live = await res.json();
+    try{ localStorage.setItem(cacheKey, JSON.stringify(live)); } catch(e){ /* ignore storage errors */ }
+    live.forEach(r => r.__tabName = tabName);
+    return { data: live, fromCache: false };
+  } catch(err){
+    console.error('fetchTabWithSWR: live fetch failed for', tabName, err);
+
+    // MINIMAL FIX: if we had cached data, return it as a fallback instead of returning empty []
+    if (cachedParsed && Array.isArray(cachedParsed) && cachedParsed.length > 0){
+      console.warn('fetchTabWithSWR: returning cached fallback for', tabName);
+      return { data: cachedParsed, fromCache: true, fallback: true };
     }
 
-    renderCombinedData(combined);
-  } catch (err) {
-    console.error("Failed to load products:", err);
+    // Last-resort: attempt one quick retry (very small, non-blocking)
+    try{
+      const retryRes = await fetch(DATA_URL);
+      if (retryRes && retryRes.ok){
+        const retryData = await retryRes.json();
+        try{ localStorage.setItem(cacheKey, JSON.stringify(retryData)); } catch(e){}
+        retryData.forEach(r => r.__tabName = tabName);
+        return { data: retryData, fromCache: false };
+      }
+    }catch(e){ /* ignore retry failure */ }
+
+    // If absolutely nothing works, return an empty array but mark as failed
+    return { data: [], fromCache: false, error: String(err || 'unknown') };
+  }
+
+  // background revalidate (hoisted)
+  async function revalidate(){
+    try{
+      const freshRes = await fetch(DATA_URL, { cache: 'no-store' });
+      if (!freshRes.ok) return;
+      const fresh = await freshRes.json();
+      try{ localStorage.setItem(cacheKey, JSON.stringify(fresh)); } catch(e){}
+      fresh.forEach(r => r.__tabName = tabName);
+      if (typeof renderCombinedData === 'function'){
+        const existing = Array.isArray(window.catalogData) ? window.catalogData : [];
+        const others = existing.filter(d => d.__tabName !== tabName);
+        renderCombinedData(others.concat(fresh));
+      }
+    } catch(e){ /* silent */ }
   }
 }
+// --- END: robust fetchTabWithSWR ---
 
-/* --------------------- renderer (based on your original render logic) --------------------- */
+
+// ---------------------- Renderer ----------------------
 function renderCombinedData(data){
-  window.catalogData = data;
-  const content = document.getElementById("content");
-  if (!content) {
-    console.error("No #content container found.");
-    return;
+    // --- PRESERVE POPUP SLIDER STATE: capture current index (if popup open) ---
+  let __preservedPopup = null;
+  try {
+    const popup = document.getElementById('productPopup');
+    if (popup && (popup.classList.contains('is-open') || getComputedStyle(popup).display !== 'none')) {
+      const slider = document.getElementById('popupSlider');
+      if (slider) {
+        const track = slider.querySelector('.popup-track');
+        if (track) {
+          // helper to read current translate (same pattern used by your tunePopupSwipe())
+          const cur = (track.style.transform || '');
+          const m = cur.match(/translateX\((-?\d+(\.\d+)?)px\)/);
+          const curPx = m ? parseFloat(m[1]) : 0;
+          const widthWithGap = Math.max(1, slider.getBoundingClientRect().width + 10);
+          const curIndex = Math.round(Math.abs(curPx) / widthWithGap);
+          // save index + slider width for restoration
+          __preservedPopup = { index: curIndex, width: widthWithGap, imagesCount: (track.children.length || 0) };
+        }
+      }
+    }
+  } catch (e) {
+    // fail-safe: if anything goes wrong, we just won't restore
+    __preservedPopup = null;
   }
 
-  content.innerHTML = ""; // clear first
+  window.catalogData = Array.isArray(data) ? data : [];
 
-  let currentSection = "";
+  // ✅ Fix: Always keep tab order stable
+  window.catalogData.sort((a, b) => {
+    const orderA = TAB_NAMES.indexOf(a.__tabName || "");
+    const orderB = TAB_NAMES.indexOf(b.__tabName || "");
+    return orderA - orderB;
+  });
+
+  const content = document.getElementById('content');
+  if (!content) { console.error('No #content container found.'); return; }
+  content.innerHTML = '';
+
+
+  let currentSection = '';
   let sectionWrapper = null;
   let currentSectionHidden = false;
 
-  data.forEach((item) => {
-    // if row defines a Section header
-    if (item["Section"]) {
-      currentSection = item["Section"];
-      const secVis = String(item["visibility"] || item["Visibility"] || "")
-        .trim()
-        .toLowerCase();
-      currentSectionHidden = secVis.includes("hide");
-      if (currentSectionHidden) {
-        sectionWrapper = null;
-        return;
-      }
+  for (const item of window.catalogData){
+    // Section header rows
+    if (item['Section']){
+      currentSection = item['Section'];
+      const secVis = String(item['visibility'] || item['Visibility'] || '').trim().toLowerCase();
+      currentSectionHidden = secVis.includes('hide');
+      if (currentSectionHidden){ sectionWrapper = null; continue; }
 
-      // create section title
-      const sectionTitle = document.createElement("div");
-      sectionTitle.className = "section-title";
-      sectionTitle.innerText = currentSection;
+      const sectionTitle = el('div', { className: 'section-title', innerHTML: currentSection });
       content.appendChild(sectionTitle);
-
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
+      sectionWrapper = el('div', { className: 'product-grid' });
       content.appendChild(sectionWrapper);
-      return;
+      continue;
     }
 
-    if (currentSectionHidden) return;
-    if (isHidden(item)) return;
-    if (!item["Product Name"]) return;
+    if (currentSectionHidden) continue;
+    if (isHidden(item)) continue;
+    if (!item['Product Name']) continue;
 
-    const product = document.createElement("div");
-    product.className = "product";
+    const product = el('div', { className: 'product' });
 
-    product.addEventListener("click", (e) => {
-      // don't open popup when clicking controls inside product card
-      if (e.target.closest(".add-to-cart, .quantity-bar, button")) return;
-      const allPhotos = [
-        item["photo 1"],
-        item["photo 2"],
-        item["photo 3"],
-        item["photo 4"],
-      ].filter(Boolean);
-      if (typeof openPopup === "function") {
-        openPopup(
-          allPhotos,
-          item["Product Name"],
-          item["MRP"],
-          item["Selling Price"],
-          item["in stock"],
-          getSheetDescription(item)
-        );
-      } else {
-        console.warn("openPopup is not defined.");
+    product.addEventListener('click', (e) => {
+      if (e.target.closest('.add-to-cart, .quantity-bar, button')) return;
+      const allPhotos = [item['photo 1'], item['photo 2'], item['photo 3'], item['photo 4']].filter(Boolean);
+      if (typeof openPopup === 'function'){
+        openPopup(allPhotos, item['Product Name'], item['MRP'], item['Selling Price'], item['in stock'], getSheetDescription(item));
       }
     });
 
+    // media (img or video)
     (function(){
-      const url1 = (item["photo 1"] || "").trim();
-      let el;
-      if (isVideoUrl(url1)) {
-        const v = document.createElement("video");
+      const url1 = (item['photo 1'] || '').trim();
+      let elMedia;
+      if (isVideoUrl(url1)){
+        const v = document.createElement('video');
         v.src = url1;
         v.muted = true;
         v.autoplay = true;
         v.loop = true;
         v.playsInline = true;
-        v.preload = "metadata";
-        v.style.width = "100%";
-        v.style.height = "100%";
-        v.style.objectFit = "contain";
+        v.preload = 'metadata';
+        v.style.width = '100%';
+        v.style.height = '100%';
+        v.style.objectFit = 'contain';
         v.disablePictureInPicture = true;
-        v.setAttribute("muted","");
-        v.setAttribute("webkit-playsinline","true");
-        v.setAttribute("playsinline","true");
-        v.style.pointerEvents = "none"; // allow card click to bubble
-        v.style.cursor = "default";
-        el = v;
+        v.setAttribute('muted','');
+        v.setAttribute('playsinline','');
+        v.style.pointerEvents = 'none';
+        v.style.cursor = 'default';
+        elMedia = v;
       } else {
-        const img = document.createElement("img");
+        const img = document.createElement('img');
         img.src = url1;
-        img.alt = item["Product Name"];
-        img.style.pointerEvents = "none";
-        img.style.cursor = "default";
-        el = img;
+        img.alt = item['Product Name'] || '';
+        img.style.pointerEvents = 'none';
+        img.style.cursor = 'default';
+        elMedia = img;
       }
-      const wrap = document.createElement('div');
-      wrap.className = 'media-square';
-      wrap.appendChild(el);
+      const wrap = el('div', { className: 'media-square' });
+      wrap.appendChild(elMedia);
       product.appendChild(wrap);
     })();
 
-    if (item["Badge"]) {
-      const badge = document.createElement("div");
-      badge.className = "badge";
-      badge.innerText = item["Badge"];
+    if (item['Badge']){
+      const badge = el('div', { className: 'badge', innerHTML: item['Badge'] });
       product.appendChild(badge);
     }
 
-    const infoWrapper = document.createElement("div");
-    infoWrapper.style.padding = "0 6px";
+    const infoWrapper = el('div');
+    infoWrapper.style.padding = '0 6px';
 
-    const title = document.createElement("div");
-    title.className = "product-title";
-    title.style.fontSize = "14px";
-    title.style.textAlign = "center";
-    title.style.marginTop = "8px";
-    title.innerText = item["Product Name"];
-    try{ title.setAttribute("title", String(item["Product Name"]||"")); }catch(e){}
-    try{ title.setAttribute("aria-label", String(item["Product Name"]||"")); }catch(e){}
+    const title = el('div', { className: 'product-title', innerHTML: item['Product Name'] });
+    title.style.fontSize = '14px';
+    title.style.textAlign = 'center';
+    title.style.marginTop = '8px';
     title.style.maxWidth = '100%';
-
+    try{ title.setAttribute('title', String(item['Product Name']||'')); }catch(e){}
+    try{ title.setAttribute('aria-label', String(item['Product Name']||'')); }catch(e){}
     infoWrapper.appendChild(title);
 
-    const info = document.createElement("div");
-    info.className = "product-info";
+    const info = el('div', { className: 'product-info' });
 
-    let priceHTML = "";
-    if (item["MRP"] && item["Selling Price"]) {
+    let priceHTML = '';
+    if (item['MRP'] && item['Selling Price']){
       priceHTML = `
-        <div style="
-          text-align:center;
-          font-size:14px;
-          font-weight:bold;
-          display:flex; justify-content:center;
-          gap:6px;
-          align-items:center;
-          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-        ">
-          <span>₹${item["Selling Price"]}</span>
-          <s style="color:#999; font-weight:normal;">₹${item["MRP"]}</s>
-        </div>
-      `;
+        <div style="text-align:center; font-size:14px; font-weight:bold; display:flex; justify-content:center; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+          <span>₹${item['Selling Price']}</span>
+          <s style="color:#999; font-weight:normal;">₹${item['MRP']}</s>
+        </div>`;
     }
 
-    if (+item["in stock"] === 0) {
-      info.innerHTML = `
-        ${priceHTML}
-      `;
-      const outBtn = document.createElement("button");
-      outBtn.className = "add-btn";
+    if (+item['in stock'] === 0){
+      info.innerHTML = priceHTML || '';
+      const outBtn = el('button', { className: 'add-btn' });
       outBtn.disabled = true;
-      outBtn.style.background = "#f1f1f1";
-      outBtn.style.color = "#888";
-      outBtn.style.border = "1px solid #ccc";
-      outBtn.innerText = "Out of Stock";
+      outBtn.style.background = '#f1f1f1';
+      outBtn.style.color = '#888';
+      outBtn.style.border = '1px solid #ccc';
+      outBtn.innerText = 'Out of Stock';
       info.appendChild(outBtn);
     } else {
-      const productData = {
-        photo: item["photo 1"],
-        name: item["Product Name"],
-        mrp: item["MRP"],
-        price: item["Selling Price"],
-      };
-
-      info.innerHTML = priceHTML;
-      const addBtn = document.createElement("button");
-      addBtn.className = "add-btn";
-      addBtn.innerText = "Add to Cart";
-      // safe event listener (no JSON.stringify in onclick attribute)
-      addBtn.addEventListener("click", (ev) => {
-        ev.stopPropagation(); // prevent card click opening popup
-        if (typeof addToCartFromGrid === "function") {
-          addToCartFromGrid(addBtn, productData);
-        } else {
-          console.warn("addToCartFromGrid is not defined.");
-        }
+      const productData = { photo: item['photo 1'], name: item['Product Name'], mrp: item['MRP'], price: item['Selling Price'] };
+      info.innerHTML = priceHTML || '';
+      const addBtn = el('button', { className: 'add-btn' });
+      addBtn.innerText = 'Add to Cart';
+      addBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (typeof addToCartFromGrid === 'function') addToCartFromGrid(addBtn, productData);
       });
-
       info.appendChild(addBtn);
     }
 
     infoWrapper.appendChild(info);
     product.appendChild(infoWrapper);
 
-    if (!sectionWrapper) {
-      // if no section header was present, create a default wrapper
-      sectionWrapper = document.createElement("div");
-      sectionWrapper.className = "product-grid";
+    if (!sectionWrapper){
+      sectionWrapper = el('div', { className: 'product-grid' });
       content.appendChild(sectionWrapper);
     }
     sectionWrapper.appendChild(product);
-  });
+  }
+  // --- RESTORE POPUP SLIDER STATE (if we captured it) ---
+  try {
+    if (__preservedPopup && __preservedPopup.index >= 0) {
+      const popup = document.getElementById('productPopup');
+      const slider = document.getElementById('popupSlider');
+      if (popup && slider && (popup.classList.contains('is-open') || getComputedStyle(popup).display !== 'none')) {
+        const track = slider.querySelector('.popup-track');
+        if (track) {
+          // clamp index to available slides
+          const maxIdx = Math.max(0, (track.children.length - 1));
+          const idx = Math.max(0, Math.min(maxIdx, __preservedPopup.index));
+          // set translation instantly (no animation)
+          track.style.transition = 'none';
+          track.style.transform = 'translateX(' + (-idx * (slider.getBoundingClientRect().width + 10)) + 'px)';
+          // update dot classes if popup-dots exist
+          const dots = popup.querySelectorAll('.popup-dot');
+          if (dots && dots.length) {
+            dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+          }
+          // force a reflow so user sees the restored position immediately
+          void track.offsetWidth;
+          // re-enable transitions for normal behavior after a short tick
+          setTimeout(() => {
+            track.style.transition = '';
+          }, 20);
+        }
+      }
+    }
+  } catch (e) {
+    // ignore restore errors
+  }
 
-  // if you have a function that opens product based on URL params
-  if (typeof maybeOpenFromURL === "function") {
-    try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
+  // try opening from URL params if user supplied that helper
+  if (typeof maybeOpenFromURL === 'function'){
+    try{ maybeOpenFromURL(); } catch(e){ console.warn('maybeOpenFromURL failed', e); }
   }
 }
 
-/* --------------------- start --------------------- */
-loadAndRenderAllTabs();
+// ---------------------- Controller: load + periodic revalidate ----------------------
+let _isLoading = false;
+let _intervalHandle = null;
+const REVALIDATE_MS = 10_000; // 10s
+
+async function loadAndRenderAllTabs(){
+  if (!sheetId) return;
+  if (_isLoading) return; // prevent overlapping runs
+  _isLoading = true;
+  try{
+    const allData = [];
+    for (const t of TAB_NAMES){
+      const result = await fetchTabWithSWR(t);
+      if (result && Array.isArray(result.data)) allData.push(...result.data);
+    }
+
+    if (typeof applyDirectionFromSheet === 'function'){
+      try{ applyDirectionFromSheet(allData); } catch(e){ console.warn('applyDirectionFromSheet failed', e); }
+    }
+
+    // 👇 FIX: prevent blank screen on transient fetch failure
+    if (!Array.isArray(allData) || allData.length === 0) {
+      console.warn('loadAndRenderAllTabs: combined fetch empty — keeping existing UI (transient failure?)');
+      return;
+    }
+
+    renderCombinedData(allData);
+  } catch(e){ 
+    console.error('loadAndRenderAllTabs failed', e); 
+  } finally{ 
+    _isLoading = false; 
+  }
+}
+
+// start immediately and schedule periodic revalidation
+(function startAutoRefresh(){
+  loadAndRenderAllTabs().catch(()=>{});
+  if (_intervalHandle) clearInterval(_intervalHandle);
+  _intervalHandle = setInterval(() => { loadAndRenderAllTabs().catch(()=>{}); }, REVALIDATE_MS);
+})();
+
+// Optional: expose a manual reload function
+window.reloadProductGrid = function(){ loadAndRenderAllTabs().catch(()=>{}); };
+
+/* End of product-grid-google-sheets-clean.js */
+
 </script>
+<script>
+function stopAutoRefresh() {
+  if (_intervalHandle) {
+    clearInterval(_intervalHandle);
+    _intervalHandle = null;
+    console.log("⏸ Auto refresh stopped");
+  }
+}
+
+function resumeAutoRefresh() {
+  if (!_intervalHandle) {
+    _intervalHandle = setInterval(() => {
+      loadAndRenderAllTabs().catch(()=>{});
+    }, REVALIDATE_MS);
+    console.log("▶ Auto refresh resumed");
+  }
+}
+</script>
+
 
 <script>
   function getParam(name) {
@@ -2320,7 +2313,11 @@ loadAndRenderAllTabs();
 </div>
 <div id="popupName" style="font-size:16px; font-weight:600; text-align:center; margin: 2px 12px 2px 12px;"></div>
 
-<div id="popupPrice" style="margin: 0 12px 10px 12px; font-size:14px; text-align:center;"></div>
+<!-- popupPrice: hidden because price will be shown inside Add to Cart -->
+<div id="popupPrice" style="display:none; margin: 0 12px 10px 12px; font-size:20px; font-weight:800; text-align:center;"></div>
+
+
+
 
 
 <div class="quantity-bar premium-bar">
@@ -2340,13 +2337,10 @@ loadAndRenderAllTabs();
 <button id="popupAddBtn" style="width:100%; background:#2563eb; color:#fff; border:1px solid #2563eb; border-radius:8px; padding:12px 16px; font-size:15px; font-weight:500; cursor:pointer; font-family:'Roboto Slab', serif;">
   Add to Cart
 </button>
-
-
 <div id="popupDesc" class="desc-section">
   <div class="desc-title">Description</div>
   <div id="popupDescText" class="desc-content"></div>
 </div>
-
 
 </div>
 </div>
@@ -2467,13 +2461,29 @@ function injectProductSchema({name, price, mrp, image, description}) {
     document.head.appendChild(tag);
   } catch(e) {}
 }
+// --- add this once, near the top (next to `let selectedProduct = null;`) ---
+function resetPopupScrollNow(){
+  const pb = document.querySelector("#productPopup .popup-body");
+  const pc = document.querySelector("#productPopup .popup-card");
+  if (pb) { pb.scrollTop = 0; pb.scrollLeft = 0; }
+  if (pc) pc.scrollTop = 0;
+  // ensure after rendering frame as well
+  requestAnimationFrame(() => {
+    if (pb) { pb.scrollTop = 0; pb.scrollLeft = 0; }
+    if (pc) pc.scrollTop = 0;
+  });
+}
+// --- end helper ---
 
 let selectedProduct = null;
 
 function openPopup(images, name, mrp, price, stock, sheetDesc) {
+  stopAutoRefresh();
+
   selectedProduct = { image: images?.[0], name, mrp, price };
 
-  const shareUrl = `${location.origin}${location.pathname}?p=${encodeURIComponent(name || "")}`;
+  const shareUrl = `${location.origin}${location.pathname}?p=${slugify(name || "")}`;
+
 
   const imageUrl = images?.[0] || "";
   const line1 = `${name || ""} ${price ? "₹"+price : ""}`.trim();
@@ -2487,79 +2497,98 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     };
   }
 
-  try {
-    // If the URL doesn't already have the same ?p param, push a history entry.
-    const curP = (new URL(location.href)).searchParams.get('p');
-    const myP = (new URL(shareUrl)).searchParams.get('p');
-    if (curP !== myP) {
-      history.pushState({ __popup: true, p: myP }, "", shareUrl);
-    } else {
-      // If page was loaded directly with ?p, ensure state marks it as popup
-      try { history.replaceState(Object.assign({}, history.state || {}, { __popup: true, p: myP}), "", shareUrl); } catch(e){}
-    }
-  } catch (e) {}
+  try { history.replaceState(null, "", shareUrl); } catch (e) {}
 
   document.getElementById("popupQty").innerText = "1";
+  resetPopupScrollNow();
+
 
   const nmEl = document.getElementById("popupName");
   if (nmEl) nmEl.innerText = name || "";
 
-  let priceHTML = "";
-  if (mrp && price) {
-    const discount = Math.round(((mrp - price) / mrp) * 100);
-    priceHTML = `
-      <div style="font-size:14px; display:flex; justify-content:center; gap:6px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-        <b>₹${price}</b>
-        <s style="color:#999;">₹${mrp}</s>
-        <span style="color:green; font-size:13px;">${discount}% off</span>
-      </div>`;
-  } else if (price) {
-    priceHTML = `<b>₹${price}</b>`;
+  // === show SELLING PRICE only, bigger & bold ===
+let priceHTML = "";
+if (price) {
+  // single large bold price, centered
+  priceHTML = `
+  <div style="width:100%; text-align:center;">
+    <span style="font-size:18px; font-weight:700; display:inline-block; transform:translateX(-1px);">₹${price}</span>
+  </div>`;
+
+} else {
+  priceHTML = `<span style="color:#999;">Price not available</span>`;
+}
+// hide standalone popup price area (we'll show price inside the button)
+const priceEl = document.getElementById("popupPrice");
+if (priceEl) {
+  priceEl.style.display = "none";
+}
+
+// description handling (unchanged logic, just tidy)
+const descWrap = document.getElementById("popupDesc");
+const descText = document.getElementById("popupDescText");
+const fromSheet = (sheetDesc || "").trim();
+
+if (descText) descText.textContent = "";
+if (fromSheet.length > 0) {
+  if (descWrap) descWrap.style.display = "block";
+  if (descText) descText.textContent = fromSheet;
+} else {
+  if (descWrap) descWrap.style.display = "none";
+}
+
+// inject structured data (keep as is)
+injectProductSchema({
+  name,
+  price,
+  mrp,
+  image: images?.[0],
+  description: fromSheet
+});
+
+// prepare price text (safe check for numeric price)
+const priceText = (price !== undefined && price !== null && price !== "" && !isNaN(Number(price)))
+  ? `₹${price}`
+  : "";
+
+// configure Add to Cart button and insert price inside it
+const popupBtn = document.getElementById("popupAddBtn");
+if (popupBtn) {
+  if (+stock === 0) {
+    popupBtn.disabled = true;
+    popupBtn.innerHTML = "Out of Stock";
+    // optional: clear onclick when out of stock
+    popupBtn.onclick = null;
+    // optional: remove price when out of stock
   } else {
-    priceHTML = `<span style="color:#999;">Price not available</span>`;
+    popupBtn.disabled = false;
+
+    // make button content flexible so text + price align nicely
+    popupBtn.style.display = "flex";
+    popupBtn.style.alignItems = "center";
+    popupBtn.style.justifyContent = "center";
+    popupBtn.style.gap = "125px";
+
+    // place label and price span (price will appear just to the right)
+    popupBtn.innerHTML = `<span style="display:inline-block; font-weight:700;">Add to Cart</span>` +
+                         (priceText ? `<span class="popup-price" style="font-weight:800; display:inline-block;">${priceText}</span>` : "");
+
+    // attach click handler to add item with chosen qty
+    popupBtn.onclick = function () {
+      const qtyEl = document.getElementById("popupQty");
+      const qty = qtyEl ? parseInt(qtyEl.innerText || "1", 10) : 1;
+
+      addToCartFromGrid(popupBtn, {
+        photo: images?.[0],
+        name,
+        mrp,
+        price,
+        qty: isNaN(qty) ? 1 : qty
+      });
+    };
   }
-  const priceEl = document.getElementById("popupPrice");
-  if (priceEl) priceEl.innerHTML = priceHTML;
+}
 
-  const descWrap = document.getElementById("popupDesc");
-  const descText = document.getElementById("popupDescText");
-  const fromSheet = (sheetDesc || "").trim();
-
-  if (descText) descText.textContent = "";
-  if (fromSheet.length > 0) {
-    if (descWrap) descWrap.style.display = "block";
-    if (descText) descText.textContent = fromSheet;
-  } else {
-    if (descWrap) descWrap.style.display = "none";
-  }
-
-  injectProductSchema({
-    name,
-    price,
-    mrp,
-    image: images?.[0],
-    description: fromSheet
-  });
-
-  const popupBtn = document.getElementById("popupAddBtn");
-  if (popupBtn) {
-    if (+stock === 0) {
-      popupBtn.disabled = true;
-      popupBtn.innerHTML = "Out of Stock";
-    } else {
-      popupBtn.disabled = false;
-      popupBtn.innerHTML = "Add to Cart";
-      popupBtn.onclick = function () {
-        addToCartFromGrid(popupBtn, {
-          photo: images?.[0],
-          name,
-          mrp,
-          price,
-          qty: parseInt(document.getElementById("popupQty").innerText) || 1
-        });
-      };
-    }
-  }
 
   const slider = document.getElementById("popupSlider");
   const dotsContainer = document.getElementById("popupDots");
@@ -2672,7 +2701,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const atLast  = currentIndex === slides.length - 1 && dx < 0;
     const damp = (atFirst || atLast) ? 0.4 : 1;
     const pos = dragStartX + dx * damp;
-    track.style.transform = `translateX(${pos}px)`;
+track.style.transform = `translateX(${pos}px) scale(0.98)`;
+
 
     lastMoveTime = Date.now();
     lastMoveX = e.clientX;
@@ -2686,7 +2716,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     const dx = e.clientX - startX;
     const dt = Math.max(1, Date.now() - lastMoveTime);
     const velocity = (e.clientX - lastMoveX) / dt;
-    const threshold = Math.min(10, width() * 0.03);
+    const threshold = Math.min(20, width() * 0.01);  // sirf 3% swipe ya 20px
+
     const fast = Math.abs(velocity) > 0.6;
 
     let target = currentIndex;
@@ -2694,6 +2725,8 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
     else if (dx > threshold || (fast && dx > 0)) target = currentIndex - 1;
 
     window.__fastSwipe = fast;
+    track.style.transform = `translateX(${-target * width()}px) scale(1)`;
+
     goTo(target, true);
     setTimeout(() => { window.__fastSwipe = false; }, 50);
     slider.releasePointerCapture?.(e.pointerId);
@@ -2728,46 +2761,14 @@ function openPopup(images, name, mrp, price, stock, sheetDesc) {
   }
 }
 
-
 function changePopupQty(change) {
-  try {
-    const qtyElement = document.getElementById("popupQty");
-    if (!qtyElement) return;
-    let current = parseInt(qtyElement.innerText) || 1;
-    const newVal = Math.max(1, Math.min(99, current + change));
-    // If no change, do a short soft haptic for invalid (optional) or just return
-    if (newVal === current) {
-      // soft feedback for reaching bounds (shorter vibration)
-      try { if (navigator.vibrate) navigator.vibrate(8); } catch(e){}
-      return;
-    }
-    qtyElement.innerText = newVal;
-
-    // Debounced haptic to avoid double vibration on some devices/browsers
-    (function doHaptic(){
-      try {
-        if (!('vibrate' in navigator)) return;
-        const now = (performance && performance.now) ? performance.now() : Date.now();
-        const last = window.__lastQtyVibTime || 0;
-        // Ignore vibrations occurring within 120ms of previous one (prevents double triggers)
-        if (now - last < 120) return;
-        // Use a short, crisp pulse
-        navigator.vibrate(12);
-        window.__lastQtyVibTime = now;
-      } catch (e) {
-        // swallow errors (some browsers may throw)
-      }
-    })();
-
-    // Small visual pulse to indicate change (non-intrusive)
-    try {
-      qtyElement.classList.add('qty-pulse');
-      clearTimeout(window.__qtyPulseTimer);
-      window.__qtyPulseTimer = setTimeout(() => qtyElement.classList.remove('qty-pulse'), 140);
-    } catch(e){}
-  } catch(e){ console.warn('changePopupQty error', e); }
+  const qtyElement = document.getElementById("popupQty");
+  let current = parseInt(qtyElement.innerText);
+  current += change;
+  if (current < 1) current = 1;
+  if (current > 99) current = 99;
+  qtyElement.innerText = current;
 }
-
 
 function addToCartFromGrid(button, product) {
   const originalHTML = button.innerHTML;
@@ -2844,136 +2845,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("video").forEach(keepAliveVideo);
 });
 </script>
-<script>
 
-(() => {
-  const ORIGINAL_FETCH = window.fetch.bind(window);
-  const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
-
-  const isSheetRequest = (input) => {
-    try {
-      const url = typeof input === "string"
-        ? new URL(input)
-        : (input instanceof Request ? new URL(input.url) : new URL(String(input)));
-
-      if (!MATCH_HOSTS.has(url.hostname)) return false;
-
-      if (url.hostname === "docs.google.com") {
-        return url.pathname.startsWith("/spreadsheets/");
-      }
-      if (url.hostname === "opensheet.elk.sh") return true;
-
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  const cacheKeyFor = (url) => `swr:${url}`;
-
-  const isCacheableResponse = (res, contentType) => {
-    if (!res || !res.ok) return false;
-    if (res.type === "opaque" || res.type === "opaqueredirect") return false;
-    if (!contentType) return false;
-    const ct = contentType.toLowerCase();
-    if (ct.includes("text/html")) return false; // avoid caching error HTML
-    return (
-      ct.includes("application/json") ||
-      ct.includes("text/csv") ||
-      ct.includes("text/plain")
-    );
-  };
-
-  const serializeHeaders = (headers) => {
-    try { return Array.from(headers.entries()); } catch { return []; }
-  };
-  const restoreHeaders = (entries) => {
-    try { return new Headers(entries || []); } catch { return new Headers(); }
-  };
-
-  const storeInCache = async (key, response) => {
-    try {
-      const ct = response.headers.get("content-type") || "";
-      if (!isCacheableResponse(response, ct)) return;
-      const bodyText = await response.clone().text(); // keep .json()/.text() working
-      const payload = {
-        body: bodyText,
-        status: response.status,
-        statusText: response.statusText || "",
-        headers: serializeHeaders(response.headers),
-        ts: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(payload));
-    } catch (e) {
-      console.warn("SWR cache store failed:", e);
-    }
-  };
-
-  const responseFromCache = (cachedJson) => {
-    try {
-      const cached = JSON.parse(cachedJson);
-      return new Response(cached.body, {
-        status: cached.status,
-        statusText: cached.statusText,
-        headers: restoreHeaders(cached.headers)
-      });
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchWithTimeout = (resource, init, ms = 7000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), ms);
-    const mergedInit = { ...(init || {}), signal: controller.signal };
-    return ORIGINAL_FETCH(resource, mergedInit).finally(() => clearTimeout(id));
-  };
-
-  const backgroundRevalidate = async (resource, init, key) => {
-    try {
-      const res = await fetchWithTimeout(resource, init, 7000);
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res);
-      }
-    } catch (e) {
-      console.info("SWR revalidate skipped:", e?.name || e);
-    }
-  };
-
-  window.fetch = function swrFetch(resource, init) {
-    if (!isSheetRequest(resource)) {
-      return ORIGINAL_FETCH(resource, init);
-    }
-
-    const url = (resource instanceof Request) ? resource.url : String(resource);
-    const key = cacheKeyFor(url);
-    const cachedJson = localStorage.getItem(key);
-
-    if (cachedJson) {
-      const cachedRes = responseFromCache(cachedJson);
-      backgroundRevalidate(resource, init, key);
-      return Promise.resolve(cachedRes.clone());
-    }
-
-    return fetchWithTimeout(resource, init, 7000).then(async (res) => {
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        storeInCache(key, res.clone());
-      }
-      return res;
-    }).catch((err) => {
-      const fallbackJson = localStorage.getItem(key);
-      if (fallbackJson) {
-        const fallbackRes = responseFromCache(fallbackJson);
-        return Promise.resolve(fallbackRes.clone());
-      }
-      return Promise.reject(err);
-    });
-  };
-})();
-
-</script>
 
 <script>
   const announceSheetID = "1tjNd2zp77FVVdJQ181lhwSElZHgk3BT5Ma3_VM9Jafc";
@@ -3034,17 +2906,15 @@ function closePopup() {
   card.classList.remove("enter");
   card.classList.add("leave");
   popup.classList.remove("is-open");
+  resumeAutoRefresh();
+
   document.body.classList.remove("noscroll");
 
   const onDone = (e) => {
     if (e.target !== card) return;
     popup.style.display = "none";
     try { popup.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; }); } catch(e){}
-  try {
-      // If this history entry was created for the popup, go back to remove it; otherwise, just clean URL
-      if (history.state && history.state.__popup) { history.back(); return; }
-    } catch (e) {}
-    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
     card.removeEventListener("transitionend", onDone);
   };
   card.addEventListener("transitionend", onDone);
@@ -3605,7 +3475,7 @@ function applyDirectionFromSheet(rows){
       const obs = new MutationObserver(() => {
         const isOpen = window.getComputedStyle(popup).display === 'flex';
         if (isOpen && !(history.state && history.state.popupOpen)) {
-          try { history.replaceState({ popupOpen: true }, "", location.href); } catch(e) {}
+          try { history.pushState({ popupOpen: true }, "", location.href); } catch(e) {}
         }
       });
       obs.observe(popup, { attributes: true, attributeFilter: ['style', 'class'] });
@@ -3719,42 +3589,12 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     var descWrap = $("popupDesc");
     var descText = $("popupDescText");
     var fromSheet = (sheetDesc||"").trim();
-
-    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    function formatDescription(raw){
-      if(!raw) return '';
-      raw = raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-      // Split into paragraphs by double newline, keep single-line bullets as list items
-      const parts = raw.split(/\n{2,}/).map(p=>p.trim()).filter(Boolean);
-      let html = '';
-      parts.forEach((part, idx) => {
-        const lines = part.split('\n').map(l=>l.trim()).filter(Boolean);
-        // If most lines start with - or • or emoji bullet, treat as list
-        const bullets = lines.filter(l => /^[-•\u2022]|\u2728|🌟|✨|🌸|🌹/.test(l));
-        if(bullets.length >= 1 && bullets.length >= lines.length/2){
-          html += '<ul>';
-          lines.forEach(l => {
-            const li = l.replace(/^[-•\u2022]\s*/,'').replace(/^[\u2728\u2022\u2023\u25E6\u2023]\s*/,'');
-            html += '<li>' + escapeHtml(li) + '</li>';
-          });
-          html += '</ul>';
-        } else if(idx === 0){
-          // lead paragraph styled prominently
-          html += '<p class=\"desc-lead\">' + escapeHtml(lines.join(' ')) + '</p>';
-        } else {
-          html += '<p>' + escapeHtml(lines.join(' ')) + '</p>';
-        }
-      });
-      return html;
-    }
-
-    if(descText) descText.innerHTML = '';
+    if(descText) descText.textContent = "";
     if(fromSheet.length > 0){
-      if(descWrap) descWrap.style.display = 'block';
-      if(descText) descText.innerHTML = formatDescription(fromSheet);
+      if(descWrap) descWrap.style.display = "block";
+      if(descText) descText.textContent = fromSheet;
     }else{
-      if(descWrap) descWrap.style.display = 'none';
+      if(descWrap) descWrap.style.display = "none";
     }
 
     try{
@@ -3847,7 +3687,7 @@ history.replaceState && history.replaceState(null, "", shareUrl);
     slider.classList.remove('dragging');
     // decide swipe
     const totalDx = lastX - startX;
-    const threshold = Math.min(10, widthWithGap() * 0.03); // px
+    const threshold = Math.min(60, widthWithGap() * 0.15); // px
     const cur = track.style.transform || '';
     const m = cur.match(/translateX\((-?\d+)px\)/);
     const curTranslate = m ? parseInt(m[1], 10) : 0;
@@ -4086,7 +3926,7 @@ if (popup){
     window.openPopup = function() {
       try {
         if (!history.state || !history.state.__popup) {
-          history.replaceState({ __popup: true }, "", location.href);
+          history.pushState({ __popup: true }, "", location.href);
         }
       } catch (e) {}
       return __origOpenPopup.apply(this, arguments);
@@ -4178,7 +4018,7 @@ if (popup){
   if (profEl) {
     const pushIfNeeded = () => {
       if (profileOpen() && !(history.state && history.state.__profile)) {
-        try { history.replaceState({ __profile: true }, "", location.href); } catch(e){}
+        try { history.pushState({ __profile: true }, "", location.href); } catch(e){}
       }
     };
     const mo = new MutationObserver(pushIfNeeded);
@@ -4205,7 +4045,7 @@ if (popup){
   if (prodEl) {
     const mo2 = new MutationObserver(() => {
       if (productOpen() && !(history.state && history.state.__product)) {
-        try { history.replaceState({ __product: true }, "", location.href); } catch(e){}
+        try { history.pushState({ __product: true }, "", location.href); } catch(e){}
       }
     });
     mo2.observe(prodEl, { attributes: true, attributeFilter: ['class','style'] });
@@ -4218,143 +4058,7 @@ if (popup){
 })();
 </script>
 
-<script>
-(() => {
-  const ORIGINAL_FETCH = window.fetch.bind(window);
-  const MATCH_HOSTS = new Set(["opensheet.elk.sh", "docs.google.com"]);
 
-  const isSheetRequest = (input) => {
-    try {
-      const url = typeof input === "string" ? new URL(input) :
-                  (input instanceof Request ? new URL(input.url) :
-                   new URL(String(input)));
-      if (!MATCH_HOSTS.has(url.hostname)) return false;
-      if (url.hostname === "docs.google.com") {
-        return url.pathname.startsWith("/spreadsheets/");
-      }
-      if (url.hostname === "opensheet.elk.sh") return true;
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  const cacheKeyFor = (url) => `swr:${url}`;
-
-  const isCacheableResponse = (res, contentType) => {
-    if (!res || !res.ok) return false;
-    if (res.type === "opaque" || res.type === "opaqueredirect") return false;
-    if (!contentType) return false;
-    const ct = contentType.toLowerCase();
-    if (ct.includes("text/html")) return false;
-    return (
-      ct.includes("application/json") ||
-      ct.includes("text/csv") ||
-      ct.includes("text/plain")
-    );
-  };
-
-  const serializeHeaders = (headers) => { try { return Array.from(headers.entries()); } catch { return []; } };
-  const restoreHeaders = (entries) => { try { return new Headers(entries || []); } catch { return new Headers(); } };
-
-  const storeInCache = async (key, response) => {
-    try {
-      const ct = response.headers.get("content-type") || "";
-      if (!isCacheableResponse(response, ct)) return;
-
-      const bodyText = await response.clone().text();
-      const payload = {
-        body: bodyText,
-        status: response.status,
-        statusText: response.statusText || "",
-        headers: serializeHeaders(response.headers),
-        ts: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(payload));
-      try {
-        window.dispatchEvent(new CustomEvent('swr:cache:update', { detail: { key, ts: payload.ts } }));
-      } catch (e) {  }
-    } catch (e) {
-      console.warn("SWR cache store failed:", e);
-    }
-  };
-
-  const responseFromCache = (cachedJson) => {
-    try {
-      const cached = JSON.parse(cachedJson);
-      return new Response(cached.body, {
-        status: cached.status,
-        statusText: cached.statusText,
-        headers: restoreHeaders(cached.headers)
-      });
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchWithTimeout = (resource, init, ms = 7000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), ms);
-    const mergedInit = { ...(init || {}), signal: controller.signal };
-    return ORIGINAL_FETCH(resource, mergedInit).finally(() => clearTimeout(id));
-  };
-
-  const backgroundRevalidate = async (resource, init, key) => {
-    try {
-      const res = await fetchWithTimeout(resource, init, 7000);
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res);
-      }
-    } catch (e) {
-      console.info("SWR revalidate skipped:", e?.name || e);
-    }
-  };
-
-  const isReloadNavigation = () => {
-    try {
-      const navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
-      if (navEntries && navEntries[0]) return navEntries[0].type === 'reload';
-      if (performance.navigation) return performance.navigation.type === 1;
-    } catch (e) {}
-    return false;
-  };
-
-  window.fetch = function swrFetch(resource, init) {
-    if (!isSheetRequest(resource)) {
-      return ORIGINAL_FETCH(resource, init);
-    }
-
-    const url = (resource instanceof Request) ? resource.url : String(resource);
-    const key = cacheKeyFor(url);
-    const cachedJson = localStorage.getItem(key);
-
-    const forceNetwork = isReloadNavigation() ||
-                         (typeof location !== "undefined" && location.search && location.search.includes("nocache=1"));
-
-    if (cachedJson && !forceNetwork) {
-      const cachedRes = responseFromCache(cachedJson);
-      backgroundRevalidate(resource, init, key);
-      return Promise.resolve(cachedRes.clone());
-    }
-
-    return fetchWithTimeout(resource, init, 7000).then(async (res) => {
-      const ct = res.headers.get("content-type") || "";
-      if (isCacheableResponse(res, ct)) {
-        await storeInCache(key, res.clone());
-      }
-      return res;
-    }).catch((err) => {
-      const fallbackJson = localStorage.getItem(key);
-      if (fallbackJson) {
-        const fallbackRes = responseFromCache(fallbackJson);
-        return Promise.resolve(fallbackRes.clone());
-      }
-      return Promise.reject(err);
-    });
-  };
-})();
-</script>
 
 <script>
 
@@ -4654,8 +4358,7 @@ loadAndRenderCatalog();
 </script>
 
 
-
-<!-- MODIFIED popup history: pushState so browser Back goes back to base, and second Back goes to previous page -->
+<!-- Popup history handling fixes: use replaceState (no extra history entries) -->
 <script>
 (function(){
   const POPUP_ID = 'productPopup';
@@ -4665,89 +4368,84 @@ loadAndRenderCatalog();
     return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
 
-  // Ensure base state exists
+  // Ensure a base history state exists (mark whether popup initially open)
   try {
-    if (!history.state || !history.state.__base) {
-      history.replaceState(Object.assign({}, history.state || {}, { __base: true }), "", location.pathname + location.search);
-    }
-  } catch(e){}
+    const initialHasP = !!(new URLSearchParams(location.search).get('p'));
+    const baseState = Object.assign({}, history.state || {}, { __base: true, popupOpen: initialHasP });
+    history.replaceState(baseState, "", location.href);
+  } catch(e){ /* ignore */ }
 
-  // Wrap original openPopup to push a history entry when popup opens.
+  // Wrap existing openPopup to use replaceState (no pushState)
   const origOpen = window.openPopup;
   if (typeof origOpen === 'function') {
     window.openPopup = function(images, name, mrp, price, stock, desc){
-      try { origOpen.apply(this, arguments); } catch(e){ console.warn("openPopup original failed:", e); }
+      // call original implementation first to render popup
+      try { const res = origOpen.apply(this, arguments); } catch(e){ console.warn("openPopup original failed:", e); }
 
+      // set URL param to ?p=slug using replaceState so no new history entry is created
       try {
         const slug = slugify(name);
         const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-        // push a new history entry so Back will return to base page (without ?p=)
-        history.pushState({ __popup: true }, "", newUrl);
-      } catch (e) { console.warn("pushState openPopup failed:", e); }
+        const nextState = Object.assign({}, history.state || {}, { __base: true, popupOpen: true });
+        history.replaceState(nextState, "", newUrl);
+      } catch (e) { console.warn("replaceState openPopup failed:", e); }
     };
   }
 
-  // Wrap closePopup: if the last history entry was pushed for popup, go back; otherwise just close and replace state
+  // Wrap closePopup to remove ?p param via replaceState
   const origClose = window.closePopup;
   window.closePopup = function(){
-    try {
-      if (history.state && history.state.__popup) {
-        // go back in history which will remove the ?p param
-        history.back();
-        return;
-      }
-    } catch (e) { /* ignore */ }
-
-    // fallback: call original close logic and ensure URL cleaned
+    // call any existing close logic
     try { if (typeof origClose === 'function') origClose.apply(this, arguments); } catch(e){ console.warn("closePopup original failed:", e); }
+
+    // hide popup UI if still visible (safe-guard)
     try {
-      const baseUrl = location.pathname;
-      history.replaceState(Object.assign({}, history.state || {}, { __base: true }), "", baseUrl);
+      const el = popupEl();
+      if (el){
+        el.classList.remove('is-open');
+        el.style.display = 'none';
+        document.body.classList.remove('noscroll');
+      }
+    } catch(e){}
+
+    // replace history to remove param
+    try {
+      const nextState = Object.assign({}, history.state || {}, { __base: true, popupOpen: false });
+      history.replaceState(nextState, "", location.pathname);
     } catch (e) { console.warn("replaceState closePopup failed:", e); }
   };
 
-  // Popstate handler: open or close popup based on state and URL
+  // Popstate handler: make sure popup visibility follows state.popupOpen
   window.addEventListener('popstate', function(ev){
     const st = ev.state || {};
     const el = popupEl();
     const isVisible = el && (el.classList.contains('is-open') || getComputedStyle(el).display !== 'none');
-
-    // If the state indicates popup (or URL has ?p), ensure popup open
-    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
-    if (st && st.__popup || urlHasP) {
+    if (st.popupOpen) {
+      // ensure popup is open (try maybeOpenFromURL if available)
       if (!isVisible) {
-        // Try to open from URL if helper exists
-        if (typeof maybeOpenFromURL === 'function') {
+        const p = new URLSearchParams(location.search).get('p');
+        if (p && typeof maybeOpenFromURL === 'function') {
           try { maybeOpenFromURL(); } catch(e){ console.warn("maybeOpenFromURL failed:", e); }
         } else {
-          if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+          // fallback: just show popup element if present
+          try {
+            if (el){ el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+          } catch(e){}
         }
       }
     } else {
-      // Not a popup state: ensure popup closed
+      // ensure popup is closed
       if (isVisible) {
-        try { if (el){ el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } } catch(e){}
+        try { 
+          if (el){ el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); }
+        } catch(e){}
       }
     }
   }, false);
 
-  // If clicking on overlay (outside card) and this popup was opened via pushState, go back; otherwise close.
-  const overlay = popupEl();
-  if (overlay) {
-    overlay.addEventListener('click', function(e){
-      if (e.target === overlay) {
-        try {
-          if (history.state && history.state.__popup) { history.back(); return; }
-        } catch(e){}
-        // fallback
-        try { if (typeof origClose === 'function') origClose(); } catch(e){}
-        try { overlay.classList.remove('is-open'); overlay.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
-      }
-    }, { passive: true });
-  }
 })();
 </script>
-
+<!-- End history-fix -->
 
 
 <!-- FAST SWIPE TUNING: injected to make touch swipe feel faster & natural -->
@@ -4819,7 +4517,7 @@ loadAndRenderCatalog();
       const dx = clientX - startX;
       const velocity = dx / dt; // px per ms
       const fast = Math.abs(velocity) > 0.4; // threshold for quick flick
-      const threshold = Math.min(10, widthWithGap() * 0.03);
+      const threshold = Math.min(48, widthWithGap() * 0.12);
       const cur = getCurrentTranslate();
       const idx = Math.round(Math.abs(cur) / widthWithGap());
       let target = idx;
@@ -4888,434 +4586,232 @@ loadAndRenderCatalog();
 <!-- END FAST SWIPE TUNING -->
 
 
-
-
+<!-- BEGIN: Popup history fix (injected by ChatGPT) -->
 <script>
 (function(){
-  try {
-    const listingUrl = location.pathname;
-    // If there's no __intermediate or __popup in history, create a single intermediate so Back from listing goes to base.
-    const state = history.state || {};
-    if (!state.__intermediate && !state.__popup && !(state.__listing_marker)) {
-      // Ensure base exists and then push a listing marker
-      try {
-        history.replaceState(Object.assign({}, history.state || {}, { __base: true, __fromHome: true }), "", listingUrl);
-      } catch(e){}
-      try {
-        history.pushState({ __listing_marker: true }, "", listingUrl);
-      } catch(e){}
-    }
-  } catch(e){}
-})();
-</script>
-
-<!-- START: custom popup-history v4 (aggressive, forces Back -> Home when on listing with no popup) -->
-<script>
-(function(){
-  // Configuration: adjust if your listing URL path differs
-  const LISTING_KEYWORD = '/all-products';
-  const HOME_URL = location.origin + '/';
-
-  function slugify(name){
-    return String(name || '').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
+  // Robust single-source history handling for the product popup.
+  // Behaviour:
+  //  - Opening popup uses history.replaceState to set ?p=slug (no extra history entries).
+  //  - Closing popup restores the original pathname (replaceState).
+  //  - popstate closes popup immediately if it's open.
+  //  - Safe: does not rely on other scripts' internal state; tries to call existing openPopup/closePopup.
+  function slugify(s){
+    return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
 
-  function isListingPage() {
+  function isPopupOpen(){
     try {
-      return location.pathname.toLowerCase().indexOf(LISTING_KEYWORD) !== -1;
+      const el = document.getElementById('productPopup');
+      if (!el) return false;
+      return el.classList.contains('is-open') || window.getComputedStyle(el).display !== 'none';
     } catch(e){ return false; }
   }
 
-  function popupElement() {
-    return document.getElementById('productPopup') || document.querySelector('.product-popup') || null;
-  }
-
-  function isPopupVisible() {
-    const el = popupElement();
-    if (!el) return false;
+  function closePopupInstant(){
     try {
-      if (el.classList.contains('is-open')) return true;
-      const disp = getComputedStyle(el).display;
-      return disp !== 'none' && disp !== 'hidden' && disp !== '';
-    } catch(e){ return false; }
-  }
-
-  // Remove any in-popup back buttons if present
-  try {
-    const candidate = document.querySelector('#productPopup .popup-back, #productPopup .back-btn, #productPopup button.back, #productPopup [id*="Back"], #productPopup .pp-back');
-    if (candidate) candidate.remove();
-  } catch(e){}
-
-  // Only run heavy logic on listing pages
-  if (!isListingPage()) {
-    return;
-  }
-
-  const listingPathNormalized = location.pathname.replace(/\/+$/,'') + '/';
-
-  // Force top two entries to be: [..previous browser entries..] [BASE_MARKER] [LISTING_MARKER(current)]
-  try {
-    history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-    history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-  } catch(e){ console.warn("history setup failed", e); }
-
-  // Helpers to show/hide popup if your app has helpers
-  function showPopupFromURL() {
-    // If your site already implements maybeOpenFromURL, prefer it
-    if (typeof maybeOpenFromURL === 'function') {
-      try { maybeOpenFromURL(); return; } catch(e){ console.warn("maybeOpenFromURL failed", e); }
-    }
-    // Fallback: if you have openPopup and can derive product from URL 'p' param, try to call openPopup
-    try {
-      const params = new URLSearchParams(location.search);
-      const p = params.get('p');
-      if (p && typeof window.openPopup === 'function') {
-        // Attempt to call openPopup with only the name param (best-effort)
-        try { window.openPopup([], p); } catch(e){ console.warn("openPopup invocation failed", e); }
-      } else {
-        // Try to show DOM popup directly if present
-        const el = popupElement();
-        if (el) { el.style.display = 'flex'; el.classList.add('is-open'); document.body.classList.add('noscroll'); }
+      // prefer existing closePopup if defined
+      if (typeof window._chatgpt_closePopupInstant === 'function') {
+        return window._chatgpt_closePopupInstant();
       }
+      const popup = document.getElementById('productPopup');
+      if (!popup) return;
+      const card = popup.querySelector('.popup-card');
+      if (card) {
+        card.classList.remove('enter');
+        card.classList.add('leave');
+      }
+      popup.classList.remove('is-open');
+      popup.style.display = 'none';
+      document.body.classList.remove('noscroll');
+      // pause videos
+      try { popup.querySelectorAll('video').forEach(v=>{ v.pause(); v.currentTime = 0; }); } catch(e){}
     } catch(e){}
   }
 
-  function hidePopupImmediate() {
-    const el = popupElement();
-    if (el) {
-      try { el.classList.remove('is-open'); el.style.display = 'none'; document.body.classList.remove('noscroll'); } catch(e){}
+  // Save a reference to any existing openPopup/closePopup so other behavior stays intact
+  const origOpen = window.openPopup;
+  const origClose = window.closePopup;
+
+  // Provide a safe internal close that other injected code can call
+  window._chatgpt_closePopupInstant = function(){
+    closePopupInstant();
+  };
+
+  // Ensure base history state (mark starting URL)
+  try {
+    const base = Object.assign({}, history.state || {}, { __site_base: true });
+    history.replaceState(base, "", location.href);
+  } catch(e){}
+
+  // Override openPopup to replace URL (no history push)
+  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
+    // call original implementation first so popup appears quickly
+    if (typeof origOpen === 'function') {
+      try { origOpen.apply(this, arguments); } catch(e){ console.warn("origOpen failed:", e); }
     }
-  }
-
-  // Wrap window.openPopup to manage history without stacking multiple popup entries
-  const originalOpen = window.openPopup;
-  window.openPopup = function(images, name, mrp, price, stock, desc){
-    try {
-      if (typeof originalOpen === 'function') {
-        originalOpen.apply(this, arguments);
-      }
-    } catch(e){ console.warn("original openPopup error", e); }
-
     try {
       const slug = slugify(name || '');
-      const popupUrl = slug ? (listingPathNormalized + '?p=' + encodeURIComponent(slug)) : listingPathNormalized;
-
-      // Ensure listing marker exists
-      if (!(history.state && history.state.__listing)) {
-        try {
-          history.replaceState({__base:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-          history.pushState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search);
-        } catch(e){}
-      }
-
-      // If popup state already exists, replace it (prevents stacking); else push new popup state
-      if (history.state && history.state.__popup) {
-        history.replaceState({__popup:true, p: slug}, "", popupUrl);
-      } else {
-        history.pushState({__popup:true, p: slug}, "", popupUrl);
-      }
-    } catch(e){ console.warn("openPopup history error", e); }
+      const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
+      // Use replaceState so we do NOT add a new history entry
+      history.replaceState(Object.assign({}, history.state || {}, { popup: true }), "", newUrl);
+    } catch(e){ console.warn("history.replaceState failed:", e); }
   };
 
-  // Wrap window.closePopup so it goes back to listing state (which will hide popup)
-  const originalClose = window.closePopup;
+  // Override closePopup to restore pathname using replaceState (no extra history entry)
   window.closePopup = function(){
+    // If other scripts expected history.back() to trigger popstate, we still restore URL without adding entry.
+    closePopupInstant();
     try {
-      if (history.state && history.state.__popup) {
-        // go back to listing state (this triggers popstate where we hide the popup)
-        history.back();
-        return;
+      history.replaceState(Object.assign({}, history.state || {}, { popup: false }), "", location.pathname);
+    } catch(e){}
+    // also call original close if it exists
+    if (typeof origClose === 'function') {
+      try { origClose.apply(this, arguments); } catch(e){ /* ignore */ }
+    }
+  };
+
+  // When user presses back/forward, close popup if open.
+  window.addEventListener('popstate', function(ev){
+    try {
+      if (isPopupOpen()) {
+        // close without touching history (we're responding to pop)
+        closePopupInstant();
+        // restore clean pathname (but do not add new history)
+        try { history.replaceState(Object.assign({}, history.state || {}, { popup: false }), "", location.pathname); } catch(e){}
       }
     } catch(e){}
+  });
 
-    if (typeof originalClose === 'function') {
-      try { originalClose.apply(this, arguments); } catch(e){ console.warn("original closePopup error", e); }
-    } else {
-      hidePopupImmediate();
-      try { history.replaceState({__listing:true, __fromAssistant:true}, "", listingPathNormalized + location.search); } catch(e){}
+  // Also make overlay clicks close via history replace (keeps URL clean)
+  document.addEventListener('click', function(e){
+    const overlay = document.getElementById('productPopup');
+    if (!overlay) return;
+    if (e.target === overlay) {
+      window.closePopup();
     }
-  };
+  }, {passive:true});
 
-  // Intercept overlay clicks to use history.back when popup state exists
-  try {
-    const overlay = popupElement();
-    if (overlay) {
-      overlay.addEventListener('click', function(e){
-        if (e.target === overlay) {
-          try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
-          hidePopupImmediate();
-        }
-      }, { passive: true });
-    }
-  } catch(e){}
-
-  // Core popstate handler: ensures popup opens/closes correctly and ensures single-Back-to-home behavior
-  window.addEventListener('popstate', function(ev){
-    const st = ev.state || {};
-    const popupVisible = isPopupVisible();
-    const urlHasP = !!(new URLSearchParams(location.search).get('p'));
-
-    // If state is popup or URL has p param -> ensure popup shown
-    if ((st && st.__popup) || urlHasP) {
-      if (!popupVisible) {
-        showPopupFromURL();
+  // If page loaded with ?p=..., try to open matching product after catalog loads.
+  // maybeOpenFromURL may already exist; keep compatibility.
+  function tryMaybeOpen(){
+    try {
+      if (typeof maybeOpenFromURL === 'function') {
+        maybeOpenFromURL();
+      } else {
+        // fallback: if there is popup param but no opener, just leave URL as-is (no history changes)
       }
-      return;
-    }
-
-    // If no popup is open and we're on the listing page, redirect directly to home
-    // This makes a single Back press from listing go to home.
-    if (!popupVisible && ( (st && st.__listing) || isListingPage() )) {
-      // To avoid immediately reacting when page initially sets states, ensure this isn't the very first load
-      // If document.referrer is empty it might be direct load — but the user wants Back -> home regardless
-      try {
-        // Use replace to avoid adding extra history entry
-        location.href = HOME_URL;
-        return;
-      } catch(e){}
-    }
-
-    // If popup is visible but state is listing/no-p -> hide popup
-    if (popupVisible && ((st && st.__listing) || !urlHasP)) {
-      try { hidePopupImmediate(); } catch(e){}
-      return;
-    }
-
-  }, false);
-
+    } catch(e){}
+  }
+  // run after a short delay, to allow other scripts to set window.catalogData
+  window.addEventListener('DOMContentLoaded', function(){ setTimeout(tryMaybeOpen, 200); });
+  setTimeout(tryMaybeOpen, 800);
 })();
 </script>
-<!-- END: custom popup-history v4 -->
-
-
-
-
-<!-- Assistant: popup / back-button fix (appended) -->
-<script id="assistant-popup-fix">
+<!-- END: Popup history fix -->
+<script>
 (function(){
-  'use strict';
-  const POPUP_ID = 'productPopup';
-  function popupEl(){ return document.getElementById(POPUP_ID); }
-  function isPopupVisible(){
-    const el = popupEl(); if(!el) return false;
-    try {
-      if (el.classList && el.classList.contains('is-open')) return true;
-      const ds = (el.style && el.style.display) ? String(el.style.display).toLowerCase() : '';
-      return ds === 'flex' || ds === 'block' || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
-    } catch(e){ return false; }
+  function slugify(s){
+    return String(s||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
-  function showDomPopup(){
-    const el = popupEl(); if(!el) return;
-    try { el.style.display = 'flex'; el.classList && el.classList.add('is-open'); document.body && document.body.classList.add('noscroll'); } catch(e){}
-  }
-  function hideDomPopup(){
-    const el = popupEl(); if(!el) return;
-    try { el.classList && el.classList.remove('is-open'); el.style.display = 'none'; document.body && document.body.classList.remove('noscroll'); } catch(e){}
-  }
-  function slugify(name){ return String(name||'').trim().toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,''); }
 
-  // Wrap openPopup (or provide a wrapper if it doesn't exist)
   const origOpen = window.openPopup;
-  window.openPopup = function(images, name, mrp, price, stock, sheetDesc){
-    if (typeof origOpen === 'function') {
-      try { origOpen.apply(this, arguments); } catch(e){ console.warn('openPopup original error', e); showDomPopup(); }
-    } else {
-      showDomPopup();
-    }
+  const origClose = window.closePopup;
 
-    // push history entry with ?p=slug so back button removes it
+  // OPEN popup → pushState with ?p=slug
+  window.openPopup = function(images, name, mrp, price, stock, desc){
+    if (typeof origOpen === 'function') origOpen.apply(this, arguments);
     try {
       const slug = slugify(name);
       const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
-      const curP = (new URL(location.href)).searchParams.get('p') || null;
-      const newP = slug || null;
-      if (curP !== newP) {
-        history.pushState({__popup:true, p: newP}, '', newUrl);
-      } else {
-        history.replaceState(Object.assign({}, history.state || {}, {__popup:true, p:newP}), '', newUrl);
-      }
-    } catch(e){ console.warn('history push failed', e); }
-  };
-
-  // Wrap closePopup to use history.back when popup state exists
-  const origClose = window.closePopup;
-  window.closePopup = function(){
-    try {
-      if (history.state && history.state.__popup) {
-        history.back();
-        return;
-      }
+      history.pushState({popup:true}, "", newUrl);
     } catch(e){}
-    if (typeof origClose === 'function') {
-      try { origClose.apply(this, arguments); } catch(e){ console.warn('closePopup original failed', e); }
-    }
-    hideDomPopup();
-    try { history.replaceState(Object.assign({}, history.state || {}, {__listing:true}), '', location.pathname); } catch(e){}
   };
 
-  // Overlay clicks: prefer history.back so popstate handler will hide
-  document.addEventListener('click', function(e){
-    const overlay = popupEl();
-    if (!overlay) return;
-    if (e.target === overlay) {
-      try { if (history.state && history.state.__popup) { history.back(); return; } } catch(e){}
-      hideDomPopup();
-    }
-  }, true);
+  // CLOSE popup → restore clean URL
+  window.closePopup = function(){
+    if (typeof origClose === 'function') origClose.apply(this, arguments);
+    try { history.pushState({}, "", location.pathname); } catch(e){}
+  };
 
-  // Popstate: show popup when URL has ?p, hide when not.
-  window.addEventListener('popstate', function(ev){
-    let urlHasP = false;
-    try { urlHasP = (new URL(location.href)).searchParams.has('p'); } catch(e){}
-    const visible = isPopupVisible();
-    if (urlHasP) {
-      if (!visible) {
-        if (typeof maybeOpenFromURL === 'function') {
-          try { maybeOpenFromURL(); return; } catch(e){ console.warn('maybeOpenFromURL failed', e); }
-        }
-        showDomPopup();
-      }
-    } else {
-      if (visible) {
-        hideDomPopup();
-        return;
+  // BACK button → if popup open, close instead of going back again
+  window.addEventListener('popstate', function(e){
+    const popup = document.getElementById('productPopup');
+    if (popup && popup.classList.contains('is-open')) {
+      if (typeof origClose === 'function') origClose();
+      else {
+        popup.classList.remove('is-open');
+        popup.style.display = 'none';
       }
     }
-  }, false);
-
-  // ESC key fallback for non-history cases
-  document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' || e.key === 'Esc') {
-      if (isPopupVisible()) {
-        window.closePopup();
-        e.preventDefault();
-      }
-    }
-  }, false);
-
-  // On load, if URL has ?p ensure popup opens (best-effort)
-  try {
-    if ((new URL(location.href)).searchParams.has('p')) {
-      if (typeof maybeOpenFromURL === 'function') {
-        setTimeout(()=>{ try{ maybeOpenFromURL(); }catch(e){} }, 60);
-      } else {
-        setTimeout(showDomPopup, 60);
-      }
-    }
-  } catch(e){}
-
+  });
 })();
 </script>
-<!-- End Assistant popup/back-button fix -->
-
-
-<!-- BEGIN assistant: reliable back-button popup handler -->
+<!-- HAPTIC: single-strong vibration only for popup + grid Add-to-Cart -->
 <script>
 (function(){
-  const POPUP_ID = 'productPopup';
-  function popupEl(){ return document.getElementById(POPUP_ID); }
-  function isPopupVisible(){
-    const el = popupEl(); if(!el) return false;
-    try {
-      return el.classList.contains('is-open') || (el.style && (el.style.display === 'flex' || el.style.display === 'block')) || (window.getComputedStyle && window.getComputedStyle(el).display !== 'none');
-    } catch(e){ return false; }
-  }
-  function showPopupImmediate(){
-    const el = popupEl(); if(!el) return;
-    el.style.display = 'flex';
-    el.classList && el.classList.add('is-open');
-    document.body && document.body.classList.add('noscroll');
-    window.__popupOpen = true;
-  }
-  function hidePopupImmediate(){
-    const el = popupEl(); if(!el) return;
-    el.classList && el.classList.remove('is-open');
-    el.style.display = 'none';
-    document.body && document.body.classList.remove('noscroll');
-    window.__popupOpen = false;
+  // ---------- config ----------
+  const VIBRATE_MS = 70;        // single short pulse (adjust 60–110 as you like)
+  const DEBOUNCE_MS = 300;      // lock window to avoid duplicate triggers
+
+  let _lastVib = 0;
+  function canVibrate(){ return !!(navigator && typeof navigator.vibrate === 'function'); }
+  function triggerVibe(){
+    if (!canVibrate()) return;
+    const now = Date.now();
+    if (now - _lastVib < DEBOUNCE_MS) return;
+    _lastVib = now;
+    try { navigator.vibrate(VIBRATE_MS); } catch(e){ /* ignore */ }
   }
 
-  // Ensure openPopup sets a flag and pushes a popup state (best-effort)
-  const origOpen = window.openPopup;
-  window.openPopup = function(...args){
+  // ---------- wrap addToCartFromGrid (popup + outside both call this) ----------
+  function wrapAddToCartFn(){
     try {
-      if (typeof origOpen === 'function') origOpen.apply(this, args);
-    } catch(e){ console.warn('openPopup original failed', e); }
-    try {
-      // mark open
-      window.__popupOpen = true;
-      // push a popup history state so Back first closes popup
-      const cur = new URL(location.href);
-      if (!cur.searchParams.has('p')) {
-        // use a lightweight param to reflect popup; don't replace user's deeper URL if present
-        cur.searchParams.set('p', 'item');
-        try { history.pushState({__popup:true}, '', cur.toString()); } catch(e){}
-      } else {
-        try { history.replaceState(Object.assign({}, history.state || {}, {__popup:true}), '', location.href); } catch(e){}
-      }
-    } catch(e){}
-    // ensure popup visible in DOM in case original missed it
-    try { showPopupImmediate(); } catch(e){}
-  };
+      if (typeof window.addToCartFromGrid !== 'function') return false;
+      if (window.__addToCartWrapped) return true;
 
-  // Wrap closePopup to hide and keep user on listing (prevent immediate navigation away)
-  const origClose = window.closePopup;
-  window.closePopup = function(...args){
-    try {
-      if (typeof origClose === 'function') origClose.apply(this, args);
-    } catch(e){ console.warn('closePopup original failed', e); }
-    try {
-      hidePopupImmediate();
-      // after closing, re-insert a harmless listing state so user won't jump away on next Back
-      try { history.replaceState({__listing:true}, '', location.pathname + location.search); } catch(e){}
-    } catch(e){}
-  };
+      const original = window.addToCartFromGrid;
+      window.addToCartFromGrid = function(button, product){
+        try { triggerVibe(); } catch(e){}
+        return original.apply(this, arguments);
+      };
+      window.__addToCartWrapped = true;
+      return true;
+    } catch(e){
+      return false;
+    }
+  }
 
-  // When popstate occurs, if popup is open, close it and then push a listing state to keep user on page
-  window.addEventListener('popstate', function(ev){
-    try {
-      if (isPopupVisible() || window.__popupOpen) {
-        // Hide popup instead of letting browser go back
-        hidePopupImmediate();
-        // Give the browser a stable state that represents the listing (so further Back goes to previous site)
-        try { history.pushState({__listing_preserved:true}, '', location.pathname + location.search); } catch(e){}
-      }
-    } catch(e){}
-  }, false);
+  (function tryWrap(retries = 8, delay = 120){
+    if (wrapAddToCartFn()) return;
+    if (retries <= 0) return;
+    setTimeout(() => tryWrap(retries - 1, delay), delay);
+  })();
 
-  // Overlay clicks: prefer history.back so popstate runs (keeps behavior consistent)
+  // ---------- delegated listener for grid buttons (safety for inline onclick) ----------
   document.addEventListener('click', function(e){
-    const overlay = popupEl();
-    if (!overlay) return;
-    if (e.target === overlay) {
-      try {
-        if (window.__popupOpen) { history.back(); return; }
-      } catch(e){}
-      hidePopupImmediate();
-    }
-  }, true);
+    const btn = e.target.closest && e.target.closest('.add-btn');
+    if (!btn) return;
+    triggerVibe();
+  }, { passive: true });
 
-  // ESC key closes popup
-  document.addEventListener('keydown', function(e){
-    if ((e.key === 'Escape' || e.key === 'Esc') && (isPopupVisible() || window.__popupOpen)) {
-      try { history.back(); } catch(e){}
-    }
-  }, false);
+  // ---------- ensure popup add button (#popupAddBtn) also wired ----------
+  function wirePopupBtn(){
+    const btn = document.getElementById('popupAddBtn');
+    if (!btn) return;
+    if (btn.dataset.haptic === '1') return;
+    btn.addEventListener('click', function(){ triggerVibe(); }, { passive: true });
+    btn.dataset.haptic = '1';
+  }
+  wirePopupBtn();
 
-  // If page loaded with ?p param, try to open popup (non-destructive)
-  try {
-    const params = new URL(location.href).searchParams;
-    if (params.has('p')) {
-      // slightly delay to let other scripts finish
-      setTimeout(()=>{ try { showPopupImmediate(); } catch(e){} }, 80);
-    }
-  } catch(e){}
+  const mo = new MutationObserver(() => wirePopupBtn());
+  mo.observe(document.body, { childList: true, subtree: true });
+
+  // expose for manual use
+  window.__triggerStrongHaptic = triggerVibe;
 })();
 </script>
-<!-- END assistant: reliable back-button popup handler -->
 
 </body>
 </html>
-
-
 
