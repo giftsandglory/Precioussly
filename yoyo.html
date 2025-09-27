@@ -93,6 +93,10 @@ body.noscroll {
   touch-action: pan-x pinch-zoom !important;
   cursor: grab;
 }
+#popupSlider {
+  touch-action: pan-x pinch-zoom !important;
+  -ms-touch-action: pan-x pinch-zoom !important;
+}
 
 
 .popup-slide{
@@ -4475,6 +4479,60 @@ loadAndRenderCatalog();
 
     let startX=0, startT=0, lastX=0, dragging=false, baseTranslate=0;
     const widthWithGap = () => Math.max(1, slider.getBoundingClientRect().width + 10);
+    
+    
+/* --- Paste this after tunePopupSwipe() or in same script block (will attach guard to #popupSlider) --- */
+(function(){
+  function setupHorizontalTouchGuard(slider){
+    if (!slider) return;
+    let startX = 0, startY = 0, decided = false, horizontal = false;
+
+    slider.addEventListener('touchstart', function(e){
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      startX = t.clientX;
+      startY = t.clientY;
+      decided = false; horizontal = false;
+    }, { passive: true });
+
+    slider.addEventListener('touchmove', function(e){
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      if (!decided) {
+        if (Math.hypot(dx, dy) < 6) return; // wait small move
+        horizontal = Math.abs(dx) > Math.abs(dy);
+        decided = true;
+      }
+      if (horizontal) {
+        // user is swiping left/right: prevent vertical page scroll stealing gesture
+        e.preventDefault(); // requires passive:false below
+        // If your existing slider uses a function to move slides, call it here.
+        // Example: if you have pointerMove(x) exposed, you can call it:
+        if (typeof window.__popupPointerMove === 'function') {
+          window.__popupPointerMove(t.clientX);
+        }
+      } else {
+        // vertical scroll -> allow default (scroll popup content)
+      }
+    }, { passive: false }); // passive:false so preventDefault works on iOS
+  }
+
+  function attachGuard(){
+    const slider = document.getElementById('popupSlider') || document.querySelector('.popup-slider') ;
+    if (slider) setupHorizontalTouchGuard(slider);
+  }
+  document.addEventListener('DOMContentLoaded', attachGuard);
+  // ensure guard also attaches when popup is opened dynamically
+  const origOpen = window.openPopup;
+  window.openPopup = function(...args){
+    const res = (typeof origOpen === 'function') ? origOpen(...args) : undefined;
+    setTimeout(attachGuard, 50);
+    return res;
+  };
+})();
+
 
     function setTranslate(x, animate){
       if (!animate) track.style.transition = 'none';
@@ -4607,6 +4665,7 @@ loadAndRenderCatalog();
     } catch(e){ return false; }
   }
 
+  
   function closePopupInstant(){
     try {
       // prefer existing closePopup if defined
@@ -4622,11 +4681,48 @@ loadAndRenderCatalog();
       }
       popup.classList.remove('is-open');
       popup.style.display = 'none';
-      document.body.classList.remove('noscroll');
+      // 😈 Use iOS-safe unlock instead of raw class remove to properly restore scroll & position
+      try { unlockBodyFromPopup(); } catch(e){
+        // fallback to original if unlock function missing
+        document.body.classList.remove('noscroll');
+      }
       // pause videos
       try { popup.querySelectorAll('video').forEach(v=>{ v.pause(); v.currentTime = 0; }); } catch(e){}
     } catch(e){}
   }
+
+  /* --- 😈 iOS-safe body lock/unlock helpers ---
+     Paste these once (they are used by openPopup/closePopup to prevent background rubber banding on iOS).
+  */
+  (function(){
+    let __savedScrollY = 0;
+    window.lockBodyForPopup = function(){
+      try {
+        __savedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        // lock background by fixing body at current scroll position
+        document.documentElement.style.width = '100%';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${__savedScrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.classList.add('noscroll');
+      } catch (e){ console.warn('lockBodyForPopup failed', e); }
+    };
+    window.unlockBodyFromPopup = function(){
+      try {
+        document.body.classList.remove('noscroll');
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.documentElement.style.width = '';
+        // restore scroll position
+        window.scrollTo(0, Math.max(0, __savedScrollY || 0));
+        __savedScrollY = 0;
+      } catch (e){ console.warn('unlockBodyFromPopup failed', e); }
+    };
+  })();
+
 
   // Save a reference to any existing openPopup/closePopup so other behavior stays intact
   const origOpen = window.openPopup;
@@ -4650,6 +4746,9 @@ loadAndRenderCatalog();
       try { origOpen.apply(this, arguments); } catch(e){ console.warn("origOpen failed:", e); }
     }
     try {
+      // 😈 Lock body right after popup is shown to prevent background scroll / iOS rubber-band
+      try { lockBodyForPopup(); } catch(e){ /* ignore if helper missing */ }
+
       const slug = slugify(name || '');
       const newUrl = slug ? (location.pathname + '?p=' + encodeURIComponent(slug)) : location.pathname;
       // Use replaceState so we do NOT add a new history entry
@@ -4690,6 +4789,37 @@ loadAndRenderCatalog();
       window.closePopup();
     }
   }, {passive:true});
+
+
+  
+/* --- iOS-safe body lock/unlock: paste THIS just after closePopupInstant() in same <script> --- */
+(function(){
+  let __savedScrollY = 0;
+  window.lockBodyForPopup = function(){
+    try {
+      __savedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      document.documentElement.style.width = '100%';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${__savedScrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.classList.add('noscroll');
+    } catch (e){ console.warn('lockBodyForPopup failed', e); }
+  };
+  window.unlockBodyFromPopup = function(){
+    try {
+      document.body.classList.remove('noscroll');
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.documentElement.style.width = '';
+      window.scrollTo(0, Math.max(0, __savedScrollY || 0));
+      __savedScrollY = 0;
+    } catch (e){ console.warn('unlockBodyFromPopup failed', e); }
+  };
+})();
+
 
   // If page loaded with ?p=..., try to open matching product after catalog loads.
   // maybeOpenFromURL may already exist; keep compatibility.
